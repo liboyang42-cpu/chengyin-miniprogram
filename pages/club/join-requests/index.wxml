@@ -1,0 +1,52 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="club" need="club:member:approve" club-id="{{clubId}}" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="入会申请" safe-top="{{false}}" />
+  <view class="intro">{{introText}}</view>
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="3" loading-label="正在加载入会申请" />
+  <cy-empty wx:elif="{{state === 'missing-param'}}" fill size="lg" kind="missing-param" title="无法打开入会申请"
+            sub="{{errorText}}" cta="返回俱乐部" bind:cta="goBack" />
+  <cy-error class="cy-fade-in" wx:elif="{{state === 'business-error'}}" title="入会申请加载失败" sub="{{errorText}}" retry="重新加载" bind:retry="loadRequests" />
+  <cy-error wx:elif="{{state === 'network-error'}}" title="网络连接失败" sub="{{errorText}}" retry="重新加载" bind:retry="loadRequests" />
+
+  <block wx:elif="{{state === 'ready'}}">
+    <view wx:if="{{refreshing}}" class="refreshing" aria-role="status" aria-live="polite">正在更新入会申请…</view>
+    <cy-inline-error wx:if="{{staleError}}" class="list-inline-error" kind="{{staleErrorKind}}" title="入会申请暂未更新"
+                     sub="{{staleError}}" action="重试更新" bind:action="loadRequests" />
+    <cy-empty wx:if="{{requests.length === 0}}" fill size="lg" title="暂无待审申请" sub="新的申请会显示在这里" />
+
+    <!-- 稿 P3 30:2 的汇总行(「N 条待审 · 可直接通过或拒绝」)就是上面那条 .intro,
+         由 buildIntro 按条数生成 —— 这里不要再摆一条一模一样的。 -->
+    <view wx:else class="request-list">
+      <view class="request-card" wx:for="{{requests}}" wx:key="id">
+        <view class="request-row">
+          <cy-avatar class="request-avatar" size="88" src="{{item.avatar || '/images/d_profile.png'}}" />
+          <view class="request-main">
+            <view class="request-name">{{item.nickname || '城瘾玩家'}}</view>
+            <view class="request-time">申请于 {{item.requestTimeText}}</view>
+          </view>
+          <view class="request-actions">
+            <view class="request-btn request-btn--reject {{actingMemberId ? 'is-disabled' : ''}}" data-member-id="{{item.memberId}}" catchtap="reject"
+                  aria-role="button" aria-disabled="{{actingMemberId ? true : false}}" aria-label="拒绝 {{item.nickname || '玩家'}} 的入会申请" hover-class="{{actingMemberId ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+              {{actingMemberId == item.memberId && actingAction === 'reject' ? '正在拒绝…' : '拒绝'}}
+            </view>
+            <view class="request-btn request-btn--approve {{actingMemberId ? 'is-disabled' : ''}}" data-member-id="{{item.memberId}}" catchtap="approve"
+                  aria-role="button" aria-disabled="{{actingMemberId ? true : false}}" aria-label="通过 {{item.nickname || '玩家'}} 的入会申请" hover-class="{{actingMemberId ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+              {{actingMemberId == item.memberId && actingAction === 'approve' ? '正在通过…' : '通过'}}
+            </view>
+          </view>
+        </view>
+        <text wx:if="{{item.joinMessageText}}" class="request-message">{{item.joinMessageText}}</text>
+        <cy-inline-error wx:if="{{actionErrorMemberId === item.memberId}}" class="request-action-error" kind="{{actionErrorKind}}"
+                         title="这次处理没有完成" sub="{{actionErrorText}}" action="重试" bind:action="retryReview"
+                         data-member-id="{{item.memberId}}" />
+      </view>
+    </view>
+  </block>
+</view>
+</view>

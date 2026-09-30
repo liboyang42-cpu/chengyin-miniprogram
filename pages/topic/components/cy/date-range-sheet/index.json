@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-sheet": "../../../../../components/cy/sheet/index",
+    "cy-calendar": "../calendar/index",
+    "cy-inline-error": "../../../../../components/cy/inline-error/index",
+    "cy-btn": "../../../../../components/cy/btn/index"
+  }
+}

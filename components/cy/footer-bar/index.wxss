@@ -1,0 +1,43 @@
+/* cy-footer-bar · 固定底部动作条(ADA,2026-07-29)
+ * styleIsolation:isolated,--cy-* token 从页面继承(自定义属性穿透组件边界)。 */
+:host {
+  display: block;
+}
+
+.cy-footer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--cy-z-nav);
+  box-sizing: border-box;
+  /* 不透明承托:与页面同底,内容滚到底也不会与按钮文字互相穿透(ADA 可读性)。
+   * 底部内距 = 常规内距 + 安全区,iPhone home indicator 上不压手势条。
+   * ⚠️ env(safe-area-inset-bottom) 是本组件存在的理由之一,删掉即失效
+   *   —— 契约 tests/unit/ds-ada-foundation-contract.test.js 有负控盯这一条。
+   * ⚠️ 底色读 v2 真值层 --cy-color-bg-page,不读 v1 别名 --cy-bg-page:别名在 page{} 就地
+   *   解析,类作用域主题(.theme-light / .theme-merchant)下继承到的是**暗端已解析值**,
+   *   底栏会在浅色页里黑一条。v2 真 token 每个主题块都重定义过,跟随主题零遗漏。 */
+  background: var(--cy-color-bg-page);
+  padding: var(--cy-comp-footer-pad-y) var(--cy-page-x);
+  padding-bottom: calc(var(--cy-comp-footer-pad-y) + env(safe-area-inset-bottom));
+}
+
+/* 顶缘 1rpx 分隔线(可选):把动作条从内容里"抬"出来。
+ * ⚠️ 走 v2 边框语义 --cy-color-border-subtle,不借用 --cy-comp-card-highlight:
+ *   后者是**卡片**的暗端起层手段,浅端各主题块把它设成 transparent(浅端卡改用投影起层)。
+ *   底栏没有投影这条退路,借用卡片钩子等于「浅色页下分隔线整条消失」——语义借错层。
+ *   边框语义在暗/浅每个主题块里都有各自的非透明真值,两端都看得见(契约有反向核对)。 */
+.cy-footer-bar--highlight {
+  box-shadow: inset 0 1rpx 0 0 var(--cy-color-border-subtle);
+}
+
+.cy-footer-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+}
+
+/* 单按钮时主槽独占整行;双按钮时次按钮占 1 份、主按钮占 2 份(主动作视觉更重) */
+.cy-footer-bar__slot--secondary { flex: 1; }
+.cy-footer-bar__slot--primary { flex: 2; }

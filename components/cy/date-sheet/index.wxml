@@ -1,0 +1,20 @@
+<view class="ds {{reducedMotion ? 'ds--reduced-motion' : ''}} {{_closing ? 'ds--closing' : ''}}" wx:if="{{_render}}">
+  <view class="ds__mask" bindtap="onMask" aria-role="button" aria-label="关闭{{title}}" hover-class="ds__mask--press" hover-stay-time="80"></view>
+  <view class="ds-pop {{dark ? 'ds-pop--dark' : ''}}" catchtap="noop">
+    <!-- 头部与 cy-sheet 同构:标题在左、右上角 ✕ 在右(CU-M-149)。
+         2026-09-19 用户裁决:弹层退出口只留右上角 ✕,原来的左上「取消」退役 ——
+         它和 ✕ 是同一件事,摆两处反而让人怀疑这两个出口不一样。 -->
+    <view class="ds-top">
+      <view class="ds-title">{{title}}</view>
+      <view class="ds-close" bindtap="onCancel" aria-role="button" aria-label="关闭{{title}}" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+    </view>
+    <view class="ds-body">
+      <slot />
+    </view>
+    <!-- 完成 = 独立确认位(整宽主按钮,和右下角的 ✕ 分属两件事:落值 / 放弃)。
+         原来它挤在标题行右端,和遮罩压暗叠在一起几乎读不出是个动作(CU-C-166)。 -->
+    <view class="ds-foot">
+      <cy-btn variant="primary" style="flex:1" bindtap="onConfirm">{{confirmText}}</cy-btn>
+    </view>
+  </view>
+</view>

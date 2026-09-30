@@ -1,0 +1,12 @@
+<view class="discover-body">
+  <view class="discover-search"><input class="discover-search__input" value="{{keyword}}" placeholder="搜店名 / 城市角色" bindinput="onKeyword" confirm-type="search" bindconfirm="search" /><text class="discover-search__button" bindtap="search" aria-role="button" aria-label="搜索商家" hover-class="cy-pressed" hover-stay-time="80">搜索</text></view>
+  <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="discover-tags"><text wx:for="{{hotTags}}" wx:key="*this" class="discover-tag {{activeTag === item ? 'discover-tag--on' : ''}}" bindtap="toggleTag" data-t="{{item}}" hover-class="cy-pressed" hover-stay-time="80">{{item}}</text></scroll-view>
+  <cy-skeleton wx:if="{{state === 'loading' && !list.length}}" type="card" count="3" />
+  <cy-error class="cy-fade-in" wx:elif="{{state === 'error' && !list.length}}" fill title="附近商家暂时没打开" sub="{{errorText}}" retry="重试" bind:retry="retry" />
+  <block wx:else>
+    <view wx:if="{{state === 'stale'}}" class="discover-stale" aria-role="alert"><text>{{errorText}}</text><view class="discover-stale__action" bindtap="retry" aria-role="button" aria-label="重新读取附近商家" hover-class="cy-pressed" hover-stay-time="80">重试</view></view>
+    <view wx:elif="{{refreshing}}" class="discover-refreshing" aria-role="status">正在更新商家列表…</view>
+    <view wx:if="{{list.length}}" class="discover-list cy-fade-in"><cy-merchant-card wx:for="{{list}}" wx:key="id" class="discover-item" interactive="{{true}}" aria-role="button" aria-label="打开商家主页" data-id="{{item.id}}" bind:tap="openProfile" bind:action="openProfile" cover="{{item.cover}}" logo="{{item.logo}}" name="{{item.name}}" city-role="{{item.cityRole}}" desc="{{item.slogan}}" status="{{item.status}}" tags="{{item.tags}}" category-name="{{item.categoryName}}" /></view>
+    <cy-empty class="cy-fade-in" wx:elif="{{state === 'ready'}}" fill size="lg" kind="empty" title="没有找到匹配的商家" sub="换个关键词或标签再试试" />
+  </block>
+</view>

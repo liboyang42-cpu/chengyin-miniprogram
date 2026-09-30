@@ -1,0 +1,1416 @@
+<wxs src="../../../utils/time-format.wxs" module="tf" />
+<wxs src="../../../utils/wxs/chapter-title.wxs" module="chapterTitle" />
+<view class="fabu slopes theme-topic-editor">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+  <!-- 顶边复查(2026-09-18):--cy-safe-top 的 env 在模拟器/无刘海机为 0,padding 顶会把内容压进胶囊行 ⇒ 改胶囊实测 contentTop -->
+  <view class="pd-edit-gate" wx:if="{{editingTopicId && !editLoaded}}" style="padding-top:calc({{chrome.contentTop}}px + var(--cy-space-4))">
+    <view class="pd-edit-gate__panel" wx:if="{{editLoading}}">
+      <cy-skeleton type="detail" />
+      <text class="pd-edit-gate__hint">正在加载已保存的主题…</text>
+    </view>
+    <!-- E2(稿 S15 回填闸·加载失败):「重新加载」是这一屏的唯一出路,按稿钉在**底部整宽**,
+         不是正文中间那颗居中小钮。
+         ⚠️ 不改 cy-error 组件自带的 retry —— 它是 100 处共用的,把那颗改成底部整宽会波及全站;
+         这里把它关掉(不传 retry),由本页自己出一条底栏。 -->
+    <block wx:else>
+      <cy-error fill size="lg" title="这份主题没有加载出来" sub="{{editLoadError}}" retry="" auto-back />
+      <view class="pd-edit-gate__bottom">
+        <cy-btn variant="primary" bindtap="retryLoadEditingTopic">重新加载</cy-btn>
+      </view>
+    </block>
+  </view>
+  <!-- 顶部地图:由左下角药丸在「列表 / 地图」之间切,不再绑定在某个步骤上。
+       绑步骤是错的 —— 三种模式(城市定向重剧本 / 自由探索先摆点 / 俱乐部先定地点)
+       想看地图的时机各不相同,让人自己切才对。 -->
+  <view class="slopes-map-wrap" wx:if="{{editorPage === 1 && viewMode === 'map'}}">
+    <map
+      class="slopes-map"
+      id="routeMap"
+      longitude="{{mapCenter.longitude}}"
+      latitude="{{mapCenter.latitude}}"
+      scale="{{mapScale}}"
+      markers="{{mapMarkers}}"
+      polyline="{{mapPolyline}}"
+      include-points="{{mapInclude}}"
+      enable-rotate="{{false}}"
+      enable-overlooking="{{false}}"
+      show-location="{{false}}"
+      bindmarkertap="onMarkerTap">
+    </map>
+  </view>
+
+  <!-- 状态栏保护层:地图铺到 y=0,浅色瓦片下白色状态栏文字不可读,故压一层由深到透明的 scrim。
+       只把状态栏实高交给样式层,高度/渐变停止点全在 wxss 里按 token 算,这里不写任何字面尺寸。 -->
+  <view class="slopes-status-scrim" wx:if="{{editorPage === 1 && viewMode === 'map'}}" style="--cy-scrim-statusbar: {{statusBarHeight}}px;"></view>
+
+  <!-- 返回 + 发布:页面级固定层。原先「发布」埋在第三步底部,现在页面平铺、没有步骤了,
+       主动作就常驻右上角(禁用态一直可见,必填齐了才亮)。 -->
+  <!-- 稿子(4028:13649)是一颗 40px 白色圆钮 + 阴影,不是裸箭头。裸箭头压在地图瓦片上
+       会和路网撞色,原先靠 --on-map 翻成白色才看得见;有了白底就不需要那套翻色了。 -->
+  <view class="slopes-back" style="top: {{chrome.actionTop}}px;" bindtap="goBack" aria-role="button" aria-label="返回上一页" hover-class="cy-pressed" hover-stay-time="80">
+    <view class="slopes-back__ico"></view>
+  </view>
+  <!-- 顶部两格进度条已删(Figma 4028:13649):进度条暗示线性向导,但创作/票务两页
+       本来就能随便来回,tab 才是对的隐喻。切页移到底部导航条。 -->
+
+  <!-- Bottom Sheet 主内容 -->
+  <scroll-view
+    class="slopes-sheet {{editorPage === 1 && viewMode === 'map' ? '' : 'slopes-sheet--full'}}"
+    style="--cy-sheet-chrome-top: {{chrome.contentTop}}px; --cy-sheet-chrome-action: {{chrome.actionTop}}px;"
+    id="slopesSheet"
+    scroll-y="{{!dragNodeLid}}"
+    enhanced
+    show-scrollbar="{{false}}"
+    scroll-into-view="{{scrollIntoView}}"
+    scroll-with-animation>
+    <view id="sheetTop" class="slopes-sheet-anchor"></view>
+    <view class="slopes-grabber"></view>
+
+    <!-- 命名放在第一屏第一位:名称是必填,原先却埋在第三步,第一步顶上只显示一个改不了的
+         「未命名主题」—— 走到最后才被必填打回来。 -->
+    <view class="pd-title-field" id="fieldName" wx:if="{{editorPage === 1}}">
+      <input
+        class="pd-title-input"
+        value="{{formData.name}}"
+        bindinput="onNameChange"
+        placeholder="未命名主题"
+        placeholder-class="pd-title-input__ph"
+        maxlength="30" />
+    </view>
+    <!-- 主题详情:一个入口 → 一个弹窗,装除章节/玩法/票务外的全部主题内容。
+         摘要要能一眼看出还差几项,否则用户不知道该不该点进去。
+         ⚠️ 稿子(4028:13649)里它排在两格卡【之上】—— 主题详情是整个主题的必填集合,
+         模式/票务只是其中两个开关,把开关放在必填集合前面等于把次要项当门面。 -->
+    <!-- ⚠️ 行内横排必须自带一层 __row:cy-card 是 isolated 组件,slot 落在它内部的
+         .cy-card 里,而那层页面样式够不着。把 display:flex 写在 <cy-card> 宿主上只会
+         让宿主的唯一子节点(组件根)成为 flex item,标题块和 › 照旧竖排
+         —— 2026-08-10 实拍就是 › 单独掉到第三行。 -->
+    <cy-card class="pd-entry-card" wx:if="{{editorPage === 1}}" interactive="{{true}}" accessibility-label="打开主题详情" bindtap="openTopicDetail" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="pd-entry-card__row">
+        <view class="pd-entry-card__main">
+          <text class="pd-entry-card__title">主题详情</text>
+          <text class="pd-entry-card__sub">{{topicDetailSummary}}</text>
+        </view>
+        <view class="pd-row-chevron"><cy-icon name="chevron-right" size="32" /></view>
+      </view>
+    </cy-card>
+
+    <!-- 模式 / 票务两张并排卡(Figma 4028:13649)。右卡与底部「票务」tab 指向同一个页面,
+         不是两套实现 —— 用户 8-10 确认「是一个」。
+         2026-09-05 用户裁决(推翻早前"去掉 eyebrow"那次):eyebrow 保留但换内容 ——
+         右卡是「票务 / 票务设置 / 编辑」,左卡原来的「当前 / 城市定向 / 切换模式」跟它不是
+         同一套词性。眉标改成说「这张卡管什么」(模式 / 票务),动作改成动词(切换 / 编辑)。
+         图标与模式选择器保持同一套:城市定向=flag、自由探索=tab-explore。 -->
+    <view class="pd-modecards" wx:if="{{editorPage === 1}}">
+      <!-- 商家发布固定模式(2026-09-05 用户拍板):商家是从营销中心的「主题 / 自由探索」两个
+           入口分别进来的(pages/merchant/marketing/index.js 的 CONTENT_ROUTES,一条带 mode=2),
+           模式在**进这一页之前**就选完了。这里再放一颗「切换」等于让人推翻自己刚做的选择,
+           而且切模式会连带复制一份新草稿。所以商家档只读,锁在这里。
+           ⚠️ 真闸在 JS 的 requestModeSwitch —— 那才是唯一的写入口,只挡 openModePicker
+           等于只挡了看得见的那条路。 -->
+      <view class="pd-modecard" bindtap="openModePicker" aria-role="button" aria-label="{{operationScope === 'MERCHANT' ? '创作模式已固定，不可切换' : '切换创作模式'}}" hover-class="{{operationScope === 'MERCHANT' ? '' : 'cy-pressed'}}" hover-stay-time="80">
+        <view class="pd-modecard__ico"><cy-icon name="{{formData.productType === 2 ? 'tab-explore' : 'flag'}}" size="36" /></view>
+        <text class="pd-modecard__eyebrow">模式</text>
+        <text class="pd-modecard__name">{{formData.productType === 2 ? '自由探索' : '城市定向'}}</text>
+        <!-- 商家档这行按 Figma 组件说明(4851:13333)是【纯文字,不给可点承诺】—— 没有 chevron。
+             其余身份是「切换 ›」。稿子这里用的是 chevron(细折角)不是长箭头,两者形状差得很明显。 -->
+        <view class="pd-modecard__action"><text>{{operationScope === 'MERCHANT' ? '商家发布固定' : '切换'}}</text><cy-icon wx:if="{{operationScope !== 'MERCHANT'}}" name="chevron-right" size="24" /></view>
+      </view>
+      <view class="pd-modecard" data-page="2" bindtap="switchEditorPage" aria-role="button" aria-label="编辑票务设置" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="pd-modecard__ico"><cy-icon name="coupon" size="36" /></view>
+        <text class="pd-modecard__eyebrow">票务</text>
+        <text class="pd-modecard__name">票务设置</text>
+        <view class="pd-modecard__action"><text>编辑</text><cy-icon name="chevron-right" size="24" /></view>
+      </view>
+    </view>
+
+    <!-- 第 1 页 · 创作:章节与节点。剧情已移入章节弹窗(§4.5),这里只留状态标记。 -->
+    <block wx:if="{{editorPage === 1}}">
+      <view class="slopes-section" id="routeSection">
+        <view class="slopes-section-hd">
+          <text class="slopes-section-tit">章节</text>
+        </view>
+
+        <!-- 空态动作由 creationAnchor 决定；三条路径只改起手动作，最终仍收敛到同一章节/节点结构。 -->
+        <cy-card wx:if="{{formData.chapters.length === 0}}" class="slopes-empty-card">
+          <!-- 空态按稿(4028:13880)改成居中 + 图标 + 药丸按钮。原来是左对齐纯文字,
+               在一张大白卡里显得像"内容加载失败",而不是"等你来建第一章"。
+               ⚠️ 居中必须写在这层 __body 上,不能写在 <cy-card> 宿主:cy-card 是 isolated 组件,
+               slot 内容落在它内部的 .cy-card 里,页面样式够不着宿主的 flex —— 实拍是整张卡
+               被压成半宽、副标题与按钮直接不渲染。同一个坑上面 pd-entry-card__row 也踩过。 -->
+          <view class="slopes-empty-card__body">
+            <!-- 稿 P1/C1/M1 三身份一致:实心图钉,不是旗帜。旗帜是「模式=城市定向」那张卡的图标,
+                 两处用同一枚会让空态读成"这是城市定向的空态"。 -->
+            <view class="slopes-empty-ico"><cy-icon name="pin-solid" size="48" /></view>
+            <text class="slopes-empty-txt">还没有章节</text>
+            <text class="slopes-empty-sub">先写一章的故事，再往里放地点</text>
+            <!-- 标签仍然读 starterAction.label,不写死也不加 || 兜底 —— 派生态必须由 JS 给。
+                 2026-09-05 起三条起点收敛成同一个动作(创建章节),所以这里只剩一句副文。 -->
+            <cy-btn wx:if="{{starterAction}}" class="slopes-empty-cta" variant="primary" bindtap="onTapPrimaryStarter">{{starterAction.label}}</cy-btn>
+          </view>
+        </cy-card>
+
+        <!-- 待编排区。2026-08-11 用户提「删掉这个设计」,核过之后【没删】:
+             它不是一张多余的卡,而是「先写内容」「先录地点」这两条创作起点的落点 ——
+             那两条路产出的素材只有这里能看到、能补内容、能归章(四条契约钉着:
+             pro-editor-fabu-flow 里的选缝转正 / 配额闸 / 撤销恢复)。删掉 UI 不删这两条路,
+             素材就变成看不见也拿不回来的孤儿。
+             它平时不显示(wx:if 只在真有游离素材时才出现),所以并不占位置。
+             真要下线,得连着这两条起点一起重做,单独排一轮。 -->
+        <!-- 2026-09-05 按 Figma 拆卡:原来是一张大白卡把标题、计数、全部素材、删除键装进去,
+             读起来是一坨,而且右上角那颗删除键实际删的是**单个素材**,位置却像在删整块。
+             现在与「编辑主题」同一套:标题降为区块标题(不带卡),每个素材各占一张白卡,
+             删除 ✕ 落在自己那张卡的右上角。 -->
+        <view id="pendingMaterialsSection" class="pending-materials" wx:if="{{pendingMaterials.length}}">
+          <view class="pending-materials__head">
+            <view>
+              <text class="pending-materials__title">待编排区</text>
+              <text class="pending-materials__count">{{pendingMaterials.length || 0}} 个素材尚未进入章节</text>
+            </view>
+            <text class="pending-materials__continue" wx:if="{{creationAnchor === 'place'}}" bindtap="startClubPlaceCapture" hover-class="cy-pressed" hover-stay-time="80">继续录入地点</text>
+          </view>
+          <cy-card class="pending-material" wx:for="{{pendingMaterials}}" wx:key="_localId">
+            <view class="pending-material__x" bindtap="removePendingMaterial" data-localid="{{item._localId}}" aria-role="button" aria-label="删除素材" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="trash-2" size="28" /></view>
+            <!-- 2026-09-05 按 Figma 补缩略图:素材本来就带 imgUrl(见 pro-editor-materials.js
+                 的 materialFromNode),之前没渲染,一列纯文字读不出这是哪个点。没图时留占位框,
+                 不让「有图 / 没图」两种素材高度不一 —— 同一个理由见 story-node-block__thumb。 -->
+            <view class="pending-material__head">
+              <view class="pending-material__thumb">
+                <image wx:if="{{item.imgUrl}}" class="pending-material__img" src="{{item.imgUrl}}" mode="aspectFill" lazy-load="true" />
+                <cy-icon wx:else name="image" size="40" />
+              </view>
+            <view class="pending-material__main">
+              <text class="pending-material__kind">{{item.kind === 'place' ? '地点素材' : '节点素材'}}</text>
+              <text class="pending-material__name">{{item.name || '未命名素材'}}</text>
+              <text class="pending-material__desc">{{item.description || '待补文字说明'}}</text>
+              <text class="pending-material__state" wx:if="{{pendingMaterialStates[item._localId]}}">地点已配置 · 待归章</text>
+              <text class="pending-material__state is-warn" wx:else>待选地点 · 不能发布</text>
+            </view>
+            </view>
+            <view class="pending-material__actions">
+              <view class="pending-material__action" bindtap="editPendingMaterial" data-localid="{{item._localId}}" hover-class="cy-pressed" hover-stay-time="80">补内容</view>
+              <cy-dropdown wx:if="{{formData.chapters.length}}" range="{{formData.chapters}}" range-key="name" bind:change="arrangePendingIntoChapter" data-localid="{{item._localId}}">
+                <view class="pending-material__action">{{formData.productType === 1 ? '选择章节与插入点' : '放入已有章节'}}</view>
+              </cy-dropdown>
+              <view class="pending-material__action" bindtap="createChapterForPending" data-localid="{{item._localId}}" hover-class="cy-pressed" hover-stay-time="80">{{formData.productType === 1 ? '新建章节并编排' : '新建章节并放入'}}</view>
+            </view>
+          </cy-card>
+        </view>
+
+        <cy-card
+          class="slopes-chapter-block"
+          wx:for="{{formData.chapters}}"
+          wx:key="_localId"
+          wx:for-item="chapter"
+          wx:for-index="chapterIndex">
+
+          <view class="slopes-chapter-hd" catchtap="openStoryEditor" data-index="{{chapterIndex}}" aria-role="button" aria-label="编辑第{{chapterIndex + 1 || 1}}章故事流" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="slopes-chapter-copy">
+              <!-- CU-C-87:序号由位置派生,名字是可选的补充 —— 名字自带编号(「第1章 隔离书店站」)
+                   时不再叠一层,否则就是「第1章 第1章 隔离书店站」。判据收口在
+                   utils/wxs/chapter-title.wxs(与 index.js 的 chapterCardTitle 成对,有契约钉住)。 -->
+              <text class="slopes-chapter-name">{{chapterTitle.label(chapterIndex, chapter.name)}}</text>
+              <view class="slopes-chapter-offer" wx:if="{{formData.productType === 2 && chapter.recruitEnabled === 1}}">
+                <text>已开放承接</text>
+                <text>{{chapter.category || '待选择商家品类'}}</text>
+                <!-- ★ 别写成 `maxMerchant === 0 ? '名额不限' : maxMerchant + ' 家可承接'`:
+                     本地新建的章节压根没有这个字段(库里默认 4,但那是落库之后的事),
+                     undefined 会被直接拼进去,界面上就是「undefined 家可承接」
+                     —— 2026-09-08 走查实拍到。没有值就不出这一格。 -->
+                <text wx:if="{{chapter.maxMerchant > 0}}">{{chapter.maxMerchant || 0}} 家可承接</text>
+                <text wx:elif="{{chapter.maxMerchant === 0}}">名额不限</text>
+              </view>
+              <view class="slopes-chapter-offer" wx:elif="{{formData.productType === 2}}">
+                <text>未开放商家承接</text>
+              </view>
+            </view>
+            <!-- 这里原来有个 <text class="slopes-chevron slopes-chevron--sm">›</text>,2026-08-10 删掉:
+                 章节卡按 §6.1 已降级成【只读投影】,真正的入口是下方那个显式的
+                 <cy-btn catchtap="openStoryEditor">编辑故事流</cy-btn>。
+                 而这个 › 的容器 .slopes-chapter-hd 没有任何 bindtap ⇒ 是一个【死交互暗示】:
+                 看着像"点我进去",点下去什么都不发生,用户会以为页面坏了。比没有更糟。
+                 ⚠️ 现有的「死链按钮门禁」抓不到这一类 —— 它扫的是「bind* 绑定必须有对应 js 方法」,
+                 也就是【绑定指向不存在的处理器】;而这里是反过来的形状【有视觉暗示、根本没绑定】,
+                 门禁看不见"什么都没绑"的东西。
+                 2026-08-10 二次修订:稿子(4028:13409)要求这个 › 回来。这次把它【绑上】——
+                 整个 .slopes-chapter-hd 走 catchtap="openStoryEditor",和下方按钮同一个去处。
+                 有暗示就必须有行为,不能只把箭头画回来。 -->
+            <view class="slopes-chevron slopes-chevron--sm"><cy-icon name="chevron-right" size="28" /></view>
+          </view>
+
+          <!-- 剧情状态标记。正文本身在章节弹窗里编辑(§4.5)——
+               页面内 textarea 和弹窗同时可写就是两个入口,改一处另一处不知道。
+               ⚠️ 状态挂在 chapter._state 上,不用 chapterStates[chapterIndex] 跨数组索引:
+               两个数组的长度在 setData 之间会有一帧对不齐,那一帧取出 undefined 再取属性,
+               整页渲染直接失败(2026-08-10 实测:页面进不去,且没有任何 console 报错)。 -->
+          <view class="slopes-chapter-tags" wx:if="{{chapterStates[chapterIndex]}}">
+            <view class="slopes-tag {{chapterStates[chapterIndex].storyDone ? 'is-ok' : 'is-danger'}}"
+              wx:if="{{chapterStates[chapterIndex].storyRequired || chapterStates[chapterIndex].storyDone}}">
+              <cy-icon name="{{chapterStates[chapterIndex].storyDone ? 'check' : 'warning'}}" size="22" />
+              <text>{{chapterStates[chapterIndex].storyDone ? '剧情已写' : '缺剧情'}}</text>
+            </view>
+            <text class="slopes-tag">{{chapterStates[chapterIndex].nodeCount || 0}} 节点</text>
+            <view class="slopes-tag is-warn" wx:if="{{chapterStates[chapterIndex].nodesMissingCoords}}">
+              <cy-icon name="warning" size="22" />
+              <text>{{chapterStates[chapterIndex].nodesMissingCoords || 0}} 个待选地点</text>
+            </view>
+            <text class="slopes-tag" wx:if="{{chapterStates[chapterIndex].gameplayPending}}">玩法 {{chapterStates[chapterIndex].gameplayConfigured || 0}}/{{chapterStates[chapterIndex].nodeCount || 0}}</text>
+          </view>
+
+          <!-- 2026-08-10 二次修订:章节卡里的故事流只读预览按终稿(4028:13649)删掉。
+               早稿(4028:13330)画过它,终稿把它换成一条分隔线 —— 预览把每张章节卡撑到
+               四五屏高,列表反而扫不动,而真正要看正文的人下一步就是点「编辑故事流」。 -->
+          <block wx:if="{{formData.productType === 1}}">
+            <view class="slopes-chapter-divider"></view>
+            <!-- 稿 P2/C2 是两颗并排。城市定向档的章节卡上原来只有「编辑故事流」一颗,
+                 卡头的 › 也是去故事流 ⇒「编辑章节」在这一档**根本没有卡上入口**,
+                 只能从故事流底栏「下一步」绕进去(S42 那条路)。补上这一颗。 -->
+            <view class="slopes-chapter-cta">
+              <cy-btn variant="primary" size="sm" style="flex:1" catchtap="openStoryEditor" data-index="{{chapterIndex}}">编辑故事流</cy-btn>
+              <cy-btn variant="secondary" size="sm" style="flex:1" catchtap="showEditChapter" data-index="{{chapterIndex}}">编辑章节</cy-btn>
+            </view>
+          </block>
+
+          <block wx:else>
+          <view class="slopes-nodes">
+            <!-- 节点行放进 movable-area 才能拖着换顺序。每行严格定高(见 .slopes-node-row 的
+                 height 与 JS 的 ROW_H_RPX,两边必须同值),y = nodeIndex * rowHpx。
+                 长按左侧手柄才进入拖拽态,其余行同时被 disabled —— 否则和 scroll-view 的
+                 纵向滚动抢手势,列表会一边滚一边拖。
+                 ⚠️ 长度一律写成 chapter.nodes.length,不许写 (chapter.nodes || []).length:
+                 WXML 表达式不支持对「括号表达式」做成员访问,`(x).y` 会让整页静默创建失败——
+                 wx.reLaunch 连 fail 回调都不给,页面栈原地不动,console 零报错
+                 (2026-08-10 二分坐实,回归门禁见 tests/unit/wxml-paren-member-access.test.js)。
+                 WXML 的成员访问本身是空安全的,nodes 为 undefined 时取到 undefined 而不抛。
+                 高度末尾的 `|| 0` 是显式兜底:undefined * rowHpx = NaN → "NaNpx"。当前同层
+                 wx:if 已经挡住了这一支,但那是「同一行两个表达式恰好同序」的隐式耦合,
+                 挡不住以后有人把 wx:if 挪走。`|| 0` 不带括号,不触发上面那条括号成员访问禁忌。 -->
+            <movable-area
+              class="slopes-nodes-area"
+              wx:if="{{chapter.nodes.length}}"
+              style="height: {{chapter.nodes.length * rowHpx || 0}}px;">
+              <movable-view
+                class="slopes-node-movable {{dragNodeLid === node._localId ? 'is-dragging' : ''}}"
+                wx:for="{{chapter.nodes || []}}"
+                wx:key="_localId"
+                wx:for-item="node"
+                wx:for-index="nodeIndex"
+                direction="vertical"
+                damping="50"
+                y="{{nodeIndex * rowHpx + dragNudge}}"
+                disabled="{{dragNodeLid !== node._localId}}"
+                data-chapterlid="{{chapter._localId}}"
+                data-nodelid="{{node._localId}}"
+                bindchange="onNodeDragChange"
+                bindtouchend="onNodeDragEnd">
+                <view class="slopes-node-row">
+                  <!-- 序号即手柄:点一下 = 在地图上定位并高亮这个点(列表↔地图的"连起来"),
+                       长按 = 起拖换顺序。两个手势分开,不和下面的照片/地点点击撞车。 -->
+                  <view
+                    class="slopes-node-rail slopes-node-rail--handle {{selectedNodeLid === node._localId ? 'is-selected' : ''}}"
+                    catchtap="selectNode"
+                    catchlongpress="onNodeDragStart"
+                    data-nodelid="{{node._localId}}"
+                    data-chapterindex="{{chapterIndex}}"
+                    data-nodeindex="{{nodeIndex}}" hover-class="cy-pressed" hover-stay-time="80">
+                    <text class="slopes-node-num">{{nodeIndex + 1}}</text>
+                  </view>
+                  <view class="slopes-node-fields">
+                    <view
+                      class="slopes-node-photo"
+                      catchtap="pickNodePhoto"
+                      data-chapterindex="{{chapterIndex}}"
+                      data-nodeindex="{{nodeIndex}}"
+                      aria-role="button"
+                      aria-label="{{node.imgUrl ? '更换节点照片' : '添加节点照片'}}" hover-class="cy-pressed" hover-stay-time="80">
+                      <image
+                        wx:if="{{node.imgUrl}}"
+                        class="slopes-node-photo-img"
+                        lazy-load="true"
+                        src="{{img.first(node.imgUrl)}}"
+                        mode="aspectFill" />
+                      <view wx:else class="slopes-node-photo-empty">
+                        <view class="slopes-node-photo-plus"><cy-icon name="plus" size="28" /></view>
+                        <text class="slopes-node-photo-txt">照片</text>
+                      </view>
+                      <view class="slopes-node-photo-badge" wx:if="{{img.list(node.imgUrl).length > 1}}">共{{ (img.list(node.imgUrl).length) || 0 }}张</view>
+                    </view>
+                    <view
+                      class="slopes-node-loc"
+                      catchtap="pickNodeLocation"
+                      data-chapterindex="{{chapterIndex}}"
+                      data-nodeindex="{{nodeIndex}}" hover-class="cy-pressed" hover-stay-time="80">
+                      <text class="slopes-node-loc-name">{{node.name || '添加地点'}}</text>
+                      <text class="slopes-node-loc-addr" wx:if="{{node.address}}">{{node.address}}</text>
+                      <text class="slopes-node-loc-hint" wx:else>点击选择地点</text>
+                    </view>
+                    <!-- 节点抽屉(照片九宫格 / 玩法模板 / 删除节点)的入口。
+                         在此之前它只能靠点地图 marker 打开 —— 没坐标的节点没有 marker,
+                         于是那个节点既进不去也删不掉。 -->
+                    <view
+                      class="slopes-node-more"
+                      catchtap="showEditNodes"
+                      data-chapterindex="{{chapterIndex}}"
+                      data-nodeindex="{{nodeIndex}}"
+                      aria-role="button"
+                      aria-label="编辑节点 {{node.name || nodeIndex + 1}}" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="more" size="32" /></view>
+                  </view>
+                </view>
+              </movable-view>
+            </movable-area>
+
+          </view>
+
+          <!-- 章节卡底部双动作:左编辑章节、右创建节点。
+               城市定向没写剧情时不许建节点(领域依赖),按钮当场拦并把人送去写剧情。 -->
+          <view class="slopes-chapter-actions">
+            <cy-btn variant="secondary" size="sm" style="flex:1" catchtap="showEditChapter" data-index="{{chapterIndex}}">编辑章节</cy-btn>
+            <cy-btn variant="primary" size="sm" style="flex:1" catchtap="onTapAddNode" data-chapter-index="{{chapterIndex}}">
+              <cy-icon wx:if="{{!(formData.productType === 1 && chapterStates[chapterIndex].storyDone)}}" name="plus" size="24" />
+              <text>{{formData.productType === 1 && chapterStates[chapterIndex].storyDone ? chapterActionLabels[chapterIndex] : '创建节点'}}</text>
+            </cy-btn>
+          </view>
+          </block>
+        </cy-card>
+
+        <!-- 添加章节放在列表最下方(参考 Trip Way 的 + Create Activity),
+             不在右上角 —— 空态卡里那句「点击添加章节」原先指向的按钮在别处。 -->
+        <view class="slopes-add-chapter" wx:if="{{formData.chapters.length || pendingMaterials.length}}" bindtap="onTapAddChapter" aria-role="button" aria-label="添加章节" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="slopes-add-chapter__ico"><cy-icon name="plus" size="28" /></view>
+          <text class="slopes-add-chapter__txt">添加章节</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 简单发布升级为专业草稿的入口(与剧情步无关,平铺后挂在路线区之后) -->
+
+    <include src="./step3.wxml" />
+
+    <view class="slopes-sheet-bottom"></view>
+  </scroll-view>
+
+  <!-- 城市定向故事流：唯一写入口。插入点在动作前可见，节点配置跨二级页时锚点留在 page.data。 -->
+  <!-- 故事流编辑器。按 Figma 4028:13330 改成半屏 sheet(原为全屏页):
+       抓手 + 「第N章 · 故事流」居中标题 + 章节名单独一行 + 左侧导引线贯穿。
+       ⚠️ 节点块【不做拖拽手柄】—— 稿子里画了,但 8-10 用户裁决「拖拽小程序实现比较困难
+       就暂时先不做」。这是有意省略,不是漏做,别照稿补回来(见 vault《章节内容块化》§6.4)。 -->
+  <view class="story-editor {{popChapter ? 'is-stacked' : ''}}" wx:if="{{storyEditor.show}}" catchtouchmove="noop">
+    <view class="story-editor__backdrop" bindtap="closeStoryEditor" aria-role="button" aria-label="关闭故事编辑器" hover-class="cy-pressed" hover-stay-time="80"></view>
+    <view class="story-editor__sheet" style="top: {{chrome.sheetTop}}px">
+    <view class="story-editor__grabber"></view>
+    <view class="story-editor__header">
+      <view class="story-editor__back" bindtap="closeStoryEditor" aria-role="button" aria-label="关闭故事流编辑器" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="32" /></view>
+      <view class="story-editor__heading">第{{storyEditor.chapterIndex + 1 || 1}}章 · 故事流</view>
+      <view class="story-editor__done" bindtap="closeStoryEditor" aria-role="button" aria-label="完成故事流编辑" hover-class="cy-pressed" hover-stay-time="80">完成</view>
+    </view>
+    <view class="story-editor__namerow">
+      <input
+        class="story-editor__title"
+        value="{{formData.chapters[storyEditor.chapterIndex].name}}"
+        bindinput="onStoryChapterNameInput"
+        maxlength="30"
+        placeholder="章节名称" />
+    </view>
+    <scroll-view class="story-editor__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="story-editor__pending" wx:if="{{storyPendingMaterialLocalId}}">待编排节点已选，请在目标缝点「添加节点」</view>
+      <view class="story-editor__rail">
+        <block
+          wx:for="{{formData.chapters[storyEditor.chapterIndex].blocks || []}}"
+          wx:key="key"
+          wx:for-item="block"
+          wx:for-index="blockIndex">
+          <view class="story-insert {{storyEditor.insertMenuAt === blockIndex ? 'is-open' : ''}}" data-index="{{blockIndex}}" bindtap="toggleStoryInsertMenu" aria-role="button" aria-label="在第{{blockIndex + 1}}段前添加内容" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="story-insert__rule"></view>
+            <view class="story-insert__plus" wx:if="{{storyEditor.insertMenuAt !== blockIndex}}"><cy-icon name="plus" size="24" /></view>
+            <block wx:else>
+              <view class="story-insert__menu">
+                <view class="story-insert__action" data-index="{{blockIndex}}" catchtap="insertStoryTextAt" aria-role="button" aria-label="添加文字块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>文字</text></view>
+                <view class="story-insert__action" data-index="{{blockIndex}}" catchtap="insertStoryImageAt" aria-role="button" aria-label="添加图片块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>图片</text></view>
+                <view class="story-insert__action" data-index="{{blockIndex}}" catchtap="insertStoryAudioAt" aria-role="button" aria-label="添加音频块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>音频</text></view>
+                <view class="story-insert__action story-insert__action--node" data-index="{{blockIndex}}" catchtap="insertStoryNodeAt" aria-role="button" aria-label="添加节点块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>节点</text></view>
+                <!-- 第 5 个入口:玩法。选相册模板时落成相册块(名称 + 照片 + 每张一句),其余模板走节点配置。 -->
+                <view class="story-insert__action" data-index="{{blockIndex}}" catchtap="insertStoryGameAt" aria-role="button" aria-label="添加玩法" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>玩法</text></view>
+              </view>
+            </block>
+          </view>
+
+          <view class="story-text-block" wx:if="{{block.type === 'text'}}">
+            <textarea
+              class="story-text-block__input"
+              value="{{block.content}}"
+              data-blockkey="{{block.key}}"
+              bindinput="onStoryTextInput"
+              focus="{{storyEditor.focusBlockKey === block.key}}"
+              maxlength="5000"
+              auto-height
+              fixed="{{true}}"
+              cursor-spacing="120"
+              bindfocus="selectStoryBlock"
+              bindblur="onStoryTextBlur"
+              placeholder="写下这一段故事…可以写 {名字}，没值时写 {名字|兜底词}" />
+            <!-- 插入变量(契约 §3.1)。常驻而不是只在选中时出现:点它会让 textarea 失焦,
+                 靠选中态显隐的控件会在手指抬起来之前自己消失。 -->
+            <view class="story-var-entry" data-blockkey="{{block.key}}" catchtap="openStoryVarSheet"
+                  aria-role="button" aria-label="插入变量" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="plus" size="24" /><text>插入变量</text>
+            </view>
+            <view class="story-block-x" wx:if="{{storyEditor.selectedBlockKey === block.key}}" data-blockkey="{{block.key}}" catchtap="removeStoryText" aria-role="button" aria-label="删除文字块" hover-class="cy-pressed" hover-stay-time="80"><view class="story-block-x__glyph"><cy-icon name="trash-2" size="28" /></view></view>
+          </view>
+
+          <view class="story-media-block story-media-block--image"
+                wx:elif="{{block.type === 'image'}}"
+                bindlongpress="selectStoryBlock" data-blockkey="{{block.key}}">
+            <image class="story-media-block__img" src="{{block.url}}" mode="widthFix" lazy-load="true" />
+            <view class="story-block-x" wx:if="{{storyEditor.selectedBlockKey === block.key}}" data-blockkey="{{block.key}}" catchtap="removeStoryMedia" aria-role="button" aria-label="删除图片块" hover-class="cy-pressed" hover-stay-time="80"><view class="story-block-x__glyph"><cy-icon name="close" size="36" /></view></view>
+          </view>
+
+          <!-- 音频块(2026-09-06 用户裁决恢复,与章节级背景旁白并存)。
+               稿 Story / Media Block · Type=Audio:与图片块同一套占位语言 —— 一个灰底框,
+               里面是播放符号 + 文件名。它有位置:玩家读到这一段才响,不是整章底噪。 -->
+          <view class="story-media-block"
+                wx:elif="{{block.type === 'audio'}}"
+                bindlongpress="selectStoryBlock" data-blockkey="{{block.key}}">
+            <!-- ⚠️ 灰底必须画在**内层**:外层 .story-media-block 带着 88rpx 左内距(让开导引线),
+                 底色画在外层会连内距一起铺满 —— 左边压过竖线、右边越过插入缝的横线。
+                 图片块用的是同一条:底色在 __img 上,不在外层。 -->
+            <!-- 空态(还没选文件):稿 P8 是一个高一档的灰框,居中「▶ 上传音频」,点它才拉起选择器。 -->
+            <view class="story-media-block__audio story-media-block__audio--empty" wx:if="{{!block.url}}"
+                  data-blockkey="{{block.key}}" catchtap="uploadStoryAudio"
+                  aria-role="button" aria-label="上传音频" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="play-filled" size="28" />
+              <text class="story-media-block__audio-empty-label">上传音频</text>
+            </view>
+            <view class="story-media-block__audio" wx:else
+                  data-blockkey="{{block.key}}" catchtap="onPreviewStoryAudio"
+                  aria-role="button" aria-label="{{storyAudioKey === block.key && storyAudioPlaying ? '暂停音频' : '预听音频'}}"
+                  hover-class="cy-pressed" hover-stay-time="80">
+              <view class="story-media-block__audio-play {{storyAudioKey === block.key && storyAudioPlaying ? 'is-playing' : ''}}"><cy-icon name="play-filled" size="24" /></view>
+              <view class="story-media-block__audio-meta">
+                <text class="story-media-block__audio-name">{{block._name || '音频片段'}}</text>
+                <text class="story-media-block__audio-dur" wx:if="{{block._duration}}">{{block._duration}}″</text>
+              </view>
+            </view>
+            <view class="story-block-x" wx:if="{{storyEditor.selectedBlockKey === block.key}}" data-blockkey="{{block.key}}" catchtap="removeStoryMedia" aria-role="button" aria-label="删除音频块" hover-class="cy-pressed" hover-stay-time="80"><view class="story-block-x__glyph"><cy-icon name="close" size="36" /></view></view>
+          </view>
+
+          <!-- 梦块(契约 §3.2):一组图 + 每张一句,玩家端按「穿过去」一张张播。
+               1–6 张;一张都没有的相册存不进去(见 utils/publish/pro-editor-story.js)。 -->
+          <view class="story-dream-block"
+                wx:elif="{{block.type === 'dream'}}"
+                bindlongpress="selectStoryBlock" data-blockkey="{{block.key}}">
+            <view class="story-dream-block__head">
+              <input class="story-dream-block__line" value="{{block.title}}" maxlength="20" placeholder="相册（不填就叫相册）" data-blockkey="{{block.key}}" bindinput="onAlbumTitleInput" aria-label="相册名称" />
+              <text class="story-dream-block__count">{{block.images.length}} / 6 张</text>
+            </view>
+            <view class="story-dream-block__row" wx:for="{{block.images}}" wx:key="url" wx:for-item="img" wx:for-index="imgIndex">
+              <image class="story-dream-block__thumb" src="{{img.url}}" mode="aspectFill" lazy-load="true" />
+              <input class="story-dream-block__line" value="{{img.line}}" maxlength="40" placeholder="这一张的一句话"
+                     data-blockkey="{{block.key}}" data-index="{{imgIndex}}" bindinput="onStoryDreamLineInput" />
+              <view class="story-dream-block__del" data-blockkey="{{block.key}}" data-index="{{imgIndex}}" catchtap="removeStoryDreamImage"
+                    aria-role="button" aria-label="删除这张相册照片" hover-class="cy-pressed" hover-stay-time="80">
+                <cy-icon name="close" size="28" />
+              </view>
+            </view>
+            <view class="story-dream-block__empty" wx:if="{{!block.images.length}}">一张都没有的相册不会保存，先加一张。</view>
+            <view class="story-dream-block__add" wx:if="{{block.images.length < 6}}" data-blockkey="{{block.key}}" catchtap="addStoryDreamImage"
+                  aria-role="button" aria-label="给这个相册加一张图" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="plus" size="28" /><text>加一张</text>
+            </view>
+            <view class="story-block-x" wx:if="{{storyEditor.selectedBlockKey === block.key}}" data-blockkey="{{block.key}}" catchtap="removeStoryMedia" aria-role="button" aria-label="删除相册" hover-class="cy-pressed" hover-stay-time="80"><view class="story-block-x__glyph"><cy-icon name="close" size="36" /></view></view>
+          </view>
+
+          <view class="story-node-block {{block._nodeName ? '' : 'is-blank'}}" wx:else bindtap="editStoryNode" bindlongpress="selectStoryBlock" data-blockkey="{{block.key}}" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="story-node-block__num">{{block._nodeNumber}}</view>
+            <view class="story-node-block__card">
+              <view class="story-node-block__thumb">
+                <image wx:if="{{block._nodeThumb}}" class="story-node-block__img" src="{{block._nodeThumb}}" mode="aspectFill" lazy-load="true" />
+                <cy-icon wx:else name="image" size="28" />
+              </view>
+              <view class="story-node-block__body">
+                <text class="story-node-block__name">{{block._nodeName || '未命名'}}</text>
+                <text class="story-node-block__meta">{{block._nodeAddress ? block._nodeAddress : '点击选择地点'}}{{block._nodeAddress ? (block._nodeGameplayReady ? ' · 玩法已配' : ' · 玩法待配') : ''}}</text>
+              </view>
+              <view class="story-block-x" wx:if="{{storyEditor.selectedBlockKey === block.key}}" data-blockkey="{{block.key}}" catchtap="removeStoryNode" aria-role="button" aria-label="删除节点块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><view class="story-block-x__glyph"><cy-icon name="trash-2" size="28" /></view></view>
+            </view>
+          </view>
+        </block>
+
+        <view
+          class="story-insert story-insert--last"
+          data-index="{{formData.chapters[storyEditor.chapterIndex].blocks.length}}"
+          bindtap="toggleStoryInsertMenu"
+          aria-role="button"
+          aria-label="在故事流末尾添加内容" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="story-insert__rule"></view>
+          <view class="story-insert__plus" wx:if="{{storyEditor.insertMenuAt !== formData.chapters[storyEditor.chapterIndex].blocks.length}}"><cy-icon name="plus" size="24" /></view>
+          <block wx:else>
+              <view class="story-insert__menu">
+                <view class="story-insert__action" data-index="{{formData.chapters[storyEditor.chapterIndex].blocks.length}}" catchtap="insertStoryTextAt" aria-role="button" aria-label="添加文字块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>文字</text></view>
+                <view class="story-insert__action" data-index="{{formData.chapters[storyEditor.chapterIndex].blocks.length}}" catchtap="insertStoryImageAt" aria-role="button" aria-label="添加图片块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>图片</text></view>
+                <view class="story-insert__action" data-index="{{formData.chapters[storyEditor.chapterIndex].blocks.length}}" catchtap="insertStoryAudioAt" aria-role="button" aria-label="添加音频块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>音频</text></view>
+                <view class="story-insert__action story-insert__action--node" data-index="{{formData.chapters[storyEditor.chapterIndex].blocks.length}}" catchtap="insertStoryNodeAt" aria-role="button" aria-label="添加节点块" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>节点</text></view>
+                <view class="story-insert__action" data-index="{{formData.chapters[storyEditor.chapterIndex].blocks.length}}" catchtap="insertStoryGameAt" aria-role="button" aria-label="添加玩法" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true"><cy-icon name="plus" size="24" /><text>玩法</text></view>
+              </view>
+          </block>
+        </view>
+      </view>
+      <view class="story-editor__bottom"></view>
+    </scroll-view>
+    <!-- 插入变量列表(契约 §3.1):键来自主题里各节点玩法模板的建档题(question.key)
+         与会产出结果的玩法(diyName.name / check.passed)。兜底写法 {键|兜底词} 必须写在
+         界面上 —— 作者不知道有这个写法就不会去用。 -->
+    <view class="story-varsheet" wx:if="{{storyVarSheet.show}}">
+      <view class="story-varsheet__head">
+        <text class="story-varsheet__tit">插入变量</text>
+        <view class="story-varsheet__close" catchtap="closeStoryVarSheet" aria-role="button" aria-label="关闭变量列表" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close" size="28" /></view>
+      </view>
+      <view class="story-varsheet__hint">点一下插到光标处。玩家没填时写 {名字|那个人}，会拿兜底词顶上。</view>
+      <scroll-view class="story-varsheet__list" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="story-varsheet__item" wx:for="{{storyVarSheet.keys}}" wx:key="key" data-key="{{item.key}}" catchtap="insertStoryVar"
+              aria-role="button" aria-label="插入变量 {{item.token}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="story-varsheet__key">{{item.token}}</text>
+          <text class="story-varsheet__label">{{item.label}}</text>
+        </view>
+      </scroll-view>
+      <view class="story-varsheet__empty" wx:if="{{!storyVarSheet.keys.length}}">这个主题还没有可用变量：先在某个节点的玩法里配「角色建档」或「作品命名」，它们的答案才能被写进故事。</view>
+    </view>
+    <!-- 底栏 = 推进流程的单颗主动作(2026-09-04 稿)。原来是「加一段文字 / 创建节点」两颗,
+         那是插入缝的快捷复制 —— 缝里已经有文字/图片/节点三档,底栏再摆一遍等于同一个动作
+         两个入口,而真正缺的是「编排完了,接下来去哪」。现在它打开编辑章节弹窗(叠在故事流上,
+         见 G15:从这条路进来是叠层,从章节卡进来是单层),在那里填名称/配色/音频后「完成」。 -->
+    <view class="story-editor__footer">
+      <view class="story-editor__fbtn story-editor__fbtn--primary" data-index="{{storyEditor.chapterIndex}}" catchtap="openChapterSettingsFromStory" aria-role="button" aria-label="下一步:编辑章节信息" hover-class="cy-pressed" hover-stay-time="80"><text>下一步</text><cy-icon name="arrow-right" size="28" /></view>
+    </view>
+    </view>
+  </view>
+
+  <view class="pending-undo" wx:if="{{pendingUndo.show}}">
+    <text>{{pendingUndo.text}}</text>
+    <text class="pending-undo__action" bindtap="undoPendingRemoval" hover-class="cy-pressed" hover-stay-time="80">撤销</text>
+  </view>
+
+  <cy-inline-error class="slopes-submit-error" wx:if="{{submitError}}" kind="network"
+    title="这次还没有保存" sub="{{submitError}}" action="重试" bind:action="submitForm" />
+  <!-- 稿 S16:错误那一句之外还有一条可展开的「为什么会这样」。一句结果只说了"失败了",
+       人下一步该动哪儿仍然不知道;展开里写的是**能照着做的那一步**。 -->
+  <view class="submit-error-why" wx:if="{{submitError}}">
+    <view class="submit-error-why__toggle" bindtap="toggleSubmitErrorWhy"
+          aria-role="button" aria-label="为什么会这样" hover-class="cy-pressed" hover-stay-time="80">
+      <text>为什么会这样</text>
+      <cy-icon name="{{submitErrorWhy ? 'collapse' : 'expand'}}" size="24" />
+    </view>
+    <text class="submit-error-why__body" wx:if="{{submitErrorWhy}}">草稿还留在这台手机上,没有丢。名称重复就换个名字再试;网络不稳定就等一会儿再点「重试」。反复失败可以先退出去,回来时会从本机草稿接着编。</text>
+  </view>
+
+  <!-- 底部导航条(Figma 4028:13649):左侧两个 tab 切「内容 / 地图」,右侧一颗药丸是主动作。
+       取代原来的「顶部进度条 + 下一步/上一步」—— 三个控件干同一件事(换页),留一个就够。
+       右侧药丸按页分工:第 1 页(创作)= 稿子上的「预览 →」,跳玩家端主题详情
+       (/pages/topic/index/index?id=)看成品;第 2 页(票务)= 终点动作「检查并发布」。
+       ⚠️ 预览读的是【服务端已保存的那一版】,不是编辑器里的未保存改动 —— 本页没有
+       服务端存草稿这条路(proEditorDraft 只写本地 storage),新建未发布的主题没有 id,
+       所以那种情况只能提示,不能假装能预览。 -->
+  <view class="slopes-tabbar" wx:if="{{!storyEditor.show}}">
+    <!-- 左槽 = 内容/地图 视图切换。稿子底部那两个图标就是它,不是页签 ——
+         4028:13330 的主动作写「下一步:票务」,说明切页不靠这两个图标。
+         原来它是独立浮层 .pd-viewswitch,位置与本条重叠,实拍两组图标叠在一起;收进来同一条。
+         第 2 页没有地图,左槽换成回创作页的入口 —— 进了票务必须有路回去,
+         否则只能靠系统返回退出整个编辑器。
+         ⚠️ 2026-08-11 用户定:那个入口是「完成」,不是返回箭头。两页是平铺的、
+         没有先后,箭头会读成"上一步",暗示一条并不存在的流程顺序。 -->
+    <!-- 第 2 页(票务)没有视图切换 —— 左槽整块不渲染,底栏才是稿子 P11/C11 那条【整宽】的
+         「完成」。留一个 flex:1 的空壳会把按钮挤到右半边(实拍如此)。 -->
+    <view class="slopes-tabbar__tabs" wx:if="{{editorPage === 1}}">
+      <block wx:if="{{editorPage === 1}}">
+        <!-- 2026-09-05 按 Figma 4959:13535 换图标:内容 = 三横线列表,地图 = 折页地图。
+             原来是 edit(铅笔)+ pin(图钉) —— 铅笔读作"编辑"、图钉读作"某个地点",
+             都不是"切换到哪个视图"。两枚 SVG 取自稿子导出的资产,已进 design/icons/coolicons/
+             并由 scripts/ds-build-icons.py 生成进 icons.wxss(那个文件是生成物,禁手改)。 -->
+        <view class="slopes-tab {{viewMode === 'list' ? 'is-on' : ''}}" data-mode="list" bindtap="switchViewMode" aria-role="tab" aria-label="内容" hover-class="cy-pressed" hover-stay-time="80">
+          <cy-icon name="list" size="46" />
+          <view class="slopes-tab__dot"></view>
+        </view>
+        <view class="slopes-tab {{viewMode === 'map' ? 'is-on' : ''}}" data-mode="map" bindtap="switchViewMode" aria-role="tab" aria-label="地图" hover-class="cy-pressed" hover-stay-time="80">
+          <cy-icon name="map" size="46" />
+          <view class="slopes-tab__dot"></view>
+        </view>
+      </block>
+    </view>
+    <!-- 第 2 页(票务)底栏:稿 P11 / C11 都是【整宽黑色药丸「完成」】,不是左下角一行小字。
+         票务页没有视图切换,左槽空着;整条底栏就交给这一颗收尾动作。 -->
+    <cy-btn wx:if="{{editorPage === 2}}" variant="primary" class="slopes-tabbar__doneCta" data-page="1" bindtap="switchEditorPage" aria-label="完成票务设置，回到创作">完成</cy-btn>
+    <!-- 2026-09-05 用户裁决:删掉「预览」。它跳玩家端主题详情页(/pages/topic/index/index?id=),
+         读的是**服务端已保存的那一版** —— 编辑器里刚写的东西根本不在里面;而且新建、还没
+         发布过的主题没有 editingTopicId,点了压根不跳转,只弹一句 toast。一个既看不到当前
+         改动、又经常点不动的「预览」,不如换成真正推进流程的主动作。
+         发布入口因此统一收到第 1 页:第 2 页(票务)只留左槽的「完成」回创作页(B12)。
+         箭头保留 —— 用户 2026-09-05 明确要;它读作「往下走一步」,后面还有发布前检查与确认页。 -->
+    <cy-btn wx:if="{{editorPage === 1}}" variant="primary" class="slopes-tabbar__cta" loading="{{submitting}}" disabled="{{!canPublish}}" aria-disabled="{{!canPublish || submitting}}" bindtap="submitForm" bind:disabledtap="onPublishDisabledTap"><text>{{submitting ? '发布中...' : '发布'}}</text><cy-icon name="arrow-right" size="28" /></cy-btn>
+  </view>
+
+  <!-- 左下角视图切换药丸:列表 ↔ 地图,只在第 1 页(第 2 页是纯表单,地图对它没意义)。 -->
+
+  <!-- 节点文字说明二级页 -->
+  <view class="pd-subpage-mask {{narrativeEditor.show ? 'show' : ''}}">
+    <view class="pd-subpage">
+      <view class="pd-subpage-top">
+        <view class="pd-round-back" bindtap="closeNarrativeEditor" aria-role="button" aria-label="关闭叙事编辑器" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="32" /></view>
+        <view class="pd-subpage-title">文字说明</view>
+      </view>
+      <scroll-view scroll-y class="pd-subpage-scroll" show-scrollbar="{{false}}">
+        <view class="pd-subpage-context">
+          <text class="pd-context-title">{{narrativeEditor.nodeName || '未命名地点'}}</text>
+          <text class="pd-context-sub">{{narrativeEditor.chapterName}}</text>
+        </view>
+        <cy-card class="pd-list pd-list--single">
+          <view class="pd-field pd-field--single">
+            <textarea class="pd-textarea pd-textarea--narrative" placeholder="添加文字说明" placeholder-class="slopes-story-placeholder" value="{{narrativeEditor.description}}" data-field="description" bindinput="onNarrativeEditorInput" maxlength="2000" fixed="{{true}}" />
+          </view>
+        </cy-card>
+      </scroll-view>
+      <view class="pd-subpage-footer">
+        <cy-btn variant="primary" bindtap="saveNarrativeEditor">完成</cy-btn>
+      </view>
+    </view>
+  </view>
+
+  <!-- 多选弹框 -->
+  <view class="modal-mask" wx:if="{{showMultiSelectModal}}" bindtap="hideMultiSelectModal" aria-role="button" aria-label="关闭多选面板" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="multi-select-modal" wx:if="{{showMultiSelectModal}}">
+    <view class="modal-header">
+      <view class="modal-title">选择主题类别</view>
+      <view class="modal-close" bindtap="hideMultiSelectModal" aria-role="button" aria-label="关闭类别选择" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+    </view>
+    <view class="modal-content">
+      <view class="category-list">
+        <view wx:for="{{categoryList}}" wx:key="id" class="category-item " bindtap="toggleCategorySelect" data-id="{{item.id}}" data-name="{{item.categoryName}}" hover-class="cy-pressed" hover-stay-time="80">
+          <!-- 2026-09-05:勾选框原来是两张 PNG(ck3/ck4)。位图勾选框不跟主题走、也不跟字号缩放,
+               换成矢量:选中 = 黑底圆角 + 白勾;未选 = 白底 + 细描边。 -->
+          <view class="category-checkbox {{item.isChecked==1 ? 'is-on' : ''}}">
+            <cy-icon wx:if="{{item.isChecked==1}}" name="check" size="28" />
+          </view>
+          <view class="category-name">{{item.categoryName}}
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="selected-count">已选择 {{ selectedCategoryIds.length || 0 }} 个</view>
+      <cy-btn variant="primary" size="sm" class="cy-btn-inline" bindtap="confirmMultiSelect">保存选择</cy-btn>
+    </view>
+  </view>
+
+
+  <!-- 节点编辑弹窗(Figma 4029:14152)。三张白卡:地点 / 配置模板 / 照片,末尾一张红字删除卡。
+       壳子用既有 cy-sheet(默认 bottom 变体),不自己造第二套弹窗 —— 遮罩、关闭、无障碍
+       契约都由组件承担;和主题详情弹窗同一套底座。
+       ⚠️ 不传 title:稿子的头是「左灰圆 × + 右黑药丸 完成」,而 cy-sheet 的 .sh__head 是
+       「左标题 + 右 ×」且那段 wxml/wxss 被无障碍契约逐字锁死(不能改)。不传 title 时
+       .sh__head 整段不渲染,头就完全交给这里画,不用 CSS 去盖组件的头。 -->
+  <cy-sheet show="{{popChapterNodes}}" style="--cy-comp-sheet-max-h: calc(100vh - {{chrome.sheetTop}}px)" bind:close="cancelPopChapter">
+  <view class="pop-chapter node-sheet">
+    <!-- 头是两态,写成两段而不是把 handler 名塞进 {{}}:事件名走数据绑定的话,
+         「死链按钮门禁」(扫 bind* → 必须有同名 js 方法)就看不见它绑到哪儿了。
+         2026-09-24 CU-M-159:✕ 收右上角(全仓统一),主操作「完成」紧贴其左;
+         玩法列表那一段的「上一步」仍留左上 —— 它退一层,不是关闭。 -->
+    <view class="node-sheet__top" wx:if="{{nodeSheetView==='games'}}">
+      <view class="node-sheet__back" bindtap="backToNodeDetail" aria-role="button" aria-label="返回节点" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="32" /></view>
+      <view class="node-sheet__done" bindtap="confirmTemp" aria-role="button" aria-label="完成玩法模板选择" hover-class="cy-pressed" hover-stay-time="80">完成</view>
+      <view class="node-sheet__close" bindtap="cancelPopChapter" aria-role="button" aria-label="关闭玩法模板选择" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="node-sheet__close-circle"><cy-icon name="close-sm" size="44" /></view>
+      </view>
+    </view>
+    <view class="node-sheet__top" wx:else>
+      <view class="node-sheet__done" bindtap="confrimNode" aria-role="button" aria-label="完成节点编辑" hover-class="cy-pressed" hover-stay-time="80">完成</view>
+      <view class="node-sheet__close" bindtap="cancelPopChapter" aria-role="button" aria-label="关闭节点编辑" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="node-sheet__close-circle"><cy-icon name="close-sm" size="44" /></view>
+      </view>
+    </view>
+
+    <block wx:if="{{nodeSheetView==='detail'}}">
+      <!-- 标题区:小字说明在上、节点名大标题在下,且大标题本身就是输入框
+           —— 稿子把「节点名称」这个字段提成了标题,不再单独占一张卡。 -->
+      <view class="node-sheet__titlebar">
+        <text class="node-sheet__eyebrow">{{popChapterNodesAction==0?'新建节点':'编辑节点'}}</text>
+        <input class="node-sheet__name" value="{{nodesForm.name}}" bindinput="onNodeNameInput" placeholder="给这个节点起个名字" placeholder-class="node-sheet__name-ph" maxlength="40" />
+      </view>
+
+      <!-- 地点。2026-08-11 用户定:
+           ① 选完点之后标题【直接变成地点名】——「地点」这个字段名只在还没选的时候有意义,
+              选完了再顶着它,真正要看的名字反而降级成副文;
+           ② 不显示经纬度 —— 创作者认的是地名,坐标对不对他也看不出来,
+              「有没有坐标」这件事由下面那句状态文案说,不靠念数字;
+           ③「修改点位」跟着下移到地址那一行,第一行就只剩"这是哪儿"。 -->
+      <view class="node-card">
+        <view class="node-card__row">
+          <view class="node-card__ico"><cy-icon name="pin" size="32" /></view>
+          <view class="node-card__main">
+            <!-- ⚠️ name 兜底不能省:选完 POI 后 name 会被写成 POI 名(见 choosePoiForNode),
+                 但创作者可以把它改空 —— 那时 address 还在,标题就成了一条空白。 -->
+            <text class="node-card__title">{{nodesForm.address ? (nodesForm.name || '未命名地点') : '地点'}}</text>
+            <text class="node-card__value" wx:if="{{!nodesForm.address}}">还没有选点</text>
+          </view>
+        </view>
+        <view class="node-card__foot">
+          <!-- CU-C-161:「自由探索可稍后补」是自由探索那一档的规则,原先无条件贴在这张共用卡上,
+               城市定向的节点也照着它显示 ⇒ 看起来像可以跳过。发布校验两种模式都硬性要坐标
+               (publish-validation-bag:节点没选地点直接 blocking),文案按模式分开说。 -->
+          <text class="node-card__addr">{{nodesForm.address || (formData.productType === 2 ? '搜索并选择一个 POI；自由探索可稍后补' : '搜索并选择一个 POI，城市定向的每一站都要点位')}}</text>
+          <view class="node-pill" catchtap="choosePoiForNode" aria-role="button" aria-label="选择或修改节点点位" hover-class="cy-pressed" hover-stay-time="80"><text>{{nodesForm.address ? '修改点位' : '选择点位'}}</text><cy-icon name="chevron-right" size="24" /></view>
+        </view>
+      </view>
+
+      <!-- 配置模板。开关关 = 纯到达打卡:原先只有一个「配置玩法(可稍后补)」按钮,
+           "不配"是隐式的,创作者分不清自己是故意没配还是忘了配。
+           ⚠️ 开关态不入库(NodeDTO 无该字段),开抽屉时由 templateId 派生(见 showEditNodes),
+           所以关掉必须连 templateId 一起清,否则重开又会被派生成"开"。 -->
+      <view class="node-card" wx:if="{{!aiSimple}}">
+        <view class="node-card__row">
+          <view class="node-card__ico"><cy-icon name="play" size="32" /></view>
+          <view class="node-card__main">
+            <text class="node-card__title">配置模板</text>
+          </view>
+          <cy-switch checked="{{nodesForm.showTemplate}}" bind:change="onToggleNodeGame" />
+        </view>
+        <view class="node-card__foot">
+          <text class="node-card__addr">{{nodesForm.showTemplate ? '互动环节' : '走到即完成，不需要玩法'}}</text>
+          <view class="node-pill" wx:if="{{nodesForm.showTemplate}}" catchtap="showTemp" aria-role="button" aria-label="选择或修改节点玩法" hover-class="cy-pressed" hover-stay-time="80"><text>{{nodesForm.templateId ? '玩法已配置，点击修改' : '选择或创建玩法模板'}}</text><cy-icon name="chevron-right" size="24" /></view>
+        </view>
+      </view>
+
+      <!-- 路线只在当前节点内出现：创作者对应玩法结果与下一站，故事流顺序仍是默认路径。 -->
+      <view class="node-card node-route-entry" wx:if="{{formData.productType === 1 && popChapterNodesAction==1}}" bindtap="openNodeRouteMapping" data-nodeid="{{editTargetNodeLid}}" aria-role="button" aria-label="编辑下一站对应" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="node-card__row">
+          <view class="node-card__ico"><cy-icon name="route" size="32" /></view>
+          <view class="node-card__main">
+            <text class="node-card__title">下一站</text>
+            <text class="node-card__value">{{routeNodeMappingSummary[editTargetNodeLid] || '按故事流继续'}}</text>
+          </view>
+          <view class="node-pill">编辑 <cy-icon name="chevron-right" size="24" /></view>
+        </view>
+      </view>
+
+      <!-- 文字说明只留给自由探索:城市定向已块化,节点的叙事一律写在故事流的文字块里
+           —— 位置即时序(节点前那块=到达前的悬念,节点后那块=完成后的剧情),
+           挂在节点上的叙事字段就成了同一件事的第二个写处,创作者每次都要想"这句写哪儿"。 -->
+      <view class="node-card" wx:if="{{formData.productType === 2}}">
+        <view class="node-card__row">
+          <view class="node-card__ico"><cy-icon name="edit" size="32" /></view>
+          <view class="node-card__main">
+            <text class="node-card__title">文字说明</text>
+          </view>
+        </view>
+        <textarea class="pending-node-description" value="{{nodesForm.description}}" bindinput="onNodesDescriptionInputChange" placeholder="玩家到这里要观察、寻找或完成什么？" placeholder-class="slopes-story-placeholder" maxlength="500" auto-height fixed="{{true}}" />
+      </view>
+
+      <!-- 照片 -->
+      <view class="node-card">
+        <view class="node-card__row">
+          <view class="node-card__ico"><cy-icon name="image" size="32" /></view>
+          <view class="node-card__main">
+            <text class="node-card__title">照片</text>
+            <text class="node-card__value">上传节点实拍，最多 9 张</text>
+          </view>
+          <text class="node-badge">{{img.list(nodesForm.imgUrl).length}}/9</text>
+        </view>
+        <view class="pgrid">
+          <block wx:for="{{img.list(nodesForm.imgUrl)}}" wx:key="*this" wx:for-item="p" wx:for-index="pi">
+            <view class="pgrid-cell">
+              <image lazy-load="true" class="pgrid-cell-img" src="{{p}}" mode="aspectFill" />
+              <view class="pgrid-del" catchtap="removeNodePhoto" data-imgindex="{{pi}}" aria-role="button" aria-label="删除节点照片 {{pi + 1}}" hover-class="cy-pressed" hover-stay-time="80">
+                <view class="pgrid-del__glyph"><cy-icon name="close-sm" size="28" /></view>
+              </view>
+            </view>
+          </block>
+          <view class="pgrid-cell pgrid-add" wx:if="{{img.list(nodesForm.imgUrl).length < 9}}" bindtap="uploadAddressPic" aria-role="button" aria-label="添加节点照片" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="pgrid-add-plus"><cy-icon name="plus" size="40" /></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="node-card node-card--danger" bindtap="deleteNode" wx:if="{{popChapterNodesAction==1}}" hover-class="cy-pressed" hover-stay-time="80">删除节点</view>
+    </block>
+
+    <!-- 玩法模板选择。2026-08-11:原来只列 /api/template/my-list(我自己建的),
+         创作者第一次用时那里必然是空的,于是"配置模板"看起来只能自己从零写。
+         补上公共玩法库(/api/template/homeData 的精选/热门/最新,和创意广场同一个数据源),
+         两段分开列,免得分不清"这是我的"还是"平台的"。 -->
+    <view class="pop-cont pop-cont-games" wx:elif="{{nodeSheetView==='games'}}">
+      <view class="temp-seg">
+        <text class="temp-seg__tit">公共玩法库</text>
+        <text class="temp-seg__sub" wx:if="{{!publicTempList.length}}">暂时拉不到，可以先用下面自己的模板</text>
+      </view>
+      <scroll-view class="temp-rail" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{publicTempList.length}}">
+        <view class="temp-rail__ul">
+          <view bindtap="selectTemp" class="temp-rail__li {{selectedTempId === item.id ? 'is-on' : ''}}" wx:for="{{publicTempList}}" wx:key="id" data-item="{{item}}" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="item">
+              <image lazy-load="true" src="{{item.imgUrl}}" mode="aspectFill" class="temp-rail__pic" />
+              <view class="item-txt">
+                <view class="tit ep1">{{item.title}}</view>
+                <view class="david_mbxi">
+                  <view class="david_mbxi_li">{{ item.players || '--' }}</view>
+                  <view class="david_mbxi_li">{{ item.duration === 0 ? 0 : (item.duration || '--') }}分钟</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="temp-seg">
+        <text class="temp-seg__tit">我的模板</text>
+        <text class="temp-seg__sub" wx:if="{{!tempList.length}}">还没建过自己的玩法</text>
+      </view>
+      <scroll-view class="temp-rail" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{tempList.length}}">
+        <view class="temp-rail__ul">
+          <view bindtap="selectTemp" class="temp-rail__li {{selectedTempId === item.id ? 'is-on' : ''}}" wx:for="{{tempList}}" wx:key="id" data-item="{{item}}" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="item">
+              <image lazy-load="true" src="{{item.imgUrl}}" mode="aspectFill" class="temp-rail__pic" />
+              <view class="item-txt">
+                <view class="tit ep1">{{item.title}}</view>
+                <view class="david_mbxi">
+                  <view class="david_mbxi_li">{{ item.players || '--' }}</view>
+                  <view class="david_mbxi_li">{{ item.duration === 0 ? 0 : (item.duration || '--') }}分钟</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <cy-btn variant="primary" style="display:block;width:100%;margin:24rpx 0 0" bindtap="onCreateGame">自己建一个玩法</cy-btn>
+    </view>
+  </view>
+  </cy-sheet>
+
+  <!-- 节点下一站：只显示“玩法结果 → 地点”，不把起点、结局或技术规则交给创作者。 -->
+  <cy-sheet show="{{routeMappingShow}}" style="--cy-comp-sheet-max-h: calc(100vh - {{chrome.sheetTop}}px)" bind:close="closeNodeRouteMapping">
+    <view class="route-mapping-sheet node-sheet">
+      <view class="node-sheet__top">
+        <view class="node-sheet__done" bindtap="finishNodeRouteMapping" aria-role="button" aria-label="完成下一站编辑" hover-class="cy-pressed" hover-stay-time="80">完成</view>
+        <view class="node-sheet__close" bindtap="closeNodeRouteMapping" aria-role="button" aria-label="关闭下一站编辑" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="node-sheet__close-circle"><cy-icon name="close-sm" size="44" /></view>
+        </view>
+      </view>
+      <view class="node-sheet__titlebar route-mapping-sheet__titlebar">
+        <text class="node-sheet__eyebrow">{{routeMappingSourceLabel}}{{routeMappingTemplateLabel && routeMappingTemplateLabel !== routeMappingSourceLabel ? ' · ' + routeMappingTemplateLabel : ''}}</text>
+        <text class="node-sheet__name node-sheet__name--static">下一站</text>
+      </view>
+      <!-- 稿 S36 的这句是防走错门用的:人常把这张当成"改玩法"的地方。 -->
+      <text class="route-mapping-sheet__note">这一页只决定「玩完之后去哪」。玩法本身在节点弹窗的「配置模板」里改。</text>
+
+      <view class="node-card route-mapping-card">
+        <view class="route-mapping-row" wx:for="{{routeMappingRows}}" wx:key="code" wx:for-item="mapping" wx:for-index="mappingIndex">
+          <text class="route-mapping-row__label">{{mapping.label}}</text>
+          <cy-dropdown class="route-mapping-row__picker" range="{{mapping.targetOptions}}" range-key="label" data-rowindex="{{mappingIndex}}" bind:change="onRouteMappingTargetPick">
+            <view class="route-mapping-row__target"><text>{{mapping.targetLabel}}</text><cy-icon name="arrow-right" size="24" /></view>
+          </cy-dropdown>
+        </view>
+        <view class="route-mapping-row route-mapping-row--fallback">
+          <view>
+            <text class="route-mapping-row__label">其他结果</text>
+            <text class="route-mapping-row__hint">没有单独对应时</text>
+          </view>
+          <text class="route-mapping-row__fallback">{{routeMappingFallbackLabel}}</text>
+        </view>
+      </view>
+
+    </view>
+  </cy-sheet>
+
+
+  <!-- 章节设置 -->
+  <view class="pop-model pop-temp pop-chapter-settings {{ popChapter?'show':''}}">
+    <!-- CU-C-156:原来左上是「取消」、右上是「完成」,整层没有右上角 ✕。
+         改成完成在左、✕ 在右 —— 关闭位置不再和相邻弹层反向,「完成」仍是那颗保存动作。 -->
+    <view class="pop-top flex-cb">
+      <cy-btn variant="ghost" size="xs" class="cy-btn-inline" bindtap="confrimChapter">完成</cy-btn>
+      <view class="tit">{{popChapterAction==0?'添加章节':'编辑章节'}}</view>
+      <view class="cs-close" bindtap="cancelChapter" aria-role="button" aria-label="关闭章节设置" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+    </view>
+   
+      <view class="david_tk chapter-settings-body">
+        <!-- 2026-09-05 按 Figma:原来是「大标题 + 半截 228rpx 蓝下划线」,标题与输入内容
+             挤在同一行、下划线只压半截,读起来像排版坏了。改成常规的「标签 + 填充输入框」。 -->
+        <view class="chapter-name-field">
+          <text class="chapter-name-field__label">章节名称</text>
+          <input class="chapter-name-field__input" type="text" placeholder="章节名称"
+                 placeholder-class="chapter-name-field__ph"
+                 value="{{chapterForm.name}}" bindinput="onChapterNameInputChange" data-field="name" />
+        </view>
+
+        <!-- 自由探索不进入 V1 块化路径，保留原章节概述；城市定向正文只在全屏故事流编辑器写。 -->
+        <view class="chapter-story-field" wx:if="{{formData.productType === 2}}">
+          <view class="chapter-story-field__label">
+            <text>章节剧情</text>
+            <text class="chapter-story-field__req">选填</text>
+          </view>
+          <textarea
+            class="chapter-story-field__input"
+            placeholder="这一章讲什么？（选填）"
+            placeholder-class="slopes-story-placeholder"
+            value="{{chapterForm.description}}"
+            bindinput="onChapterDescInput"
+            maxlength="500"
+            auto-height
+            fixed="{{true}}" />
+        </view>
+        <!-- CU-C-165:这一句原先只按模式分岔(非自由探索就说「创建后…」),于是编辑一章早已
+             存在的章节还在预告创建之后会发生什么;故事流此刻就在背后开着。「块间插入点」是实现术语。
+             现在按【本章是否还没建】出示:只有点完成会真的把这一章追加进去、并自动打开故事流
+             (fabu/index.js:3368 cityStoryFlow → :3402 openStoryEditor)时才说这句话。
+             编辑既有章节不出提示 —— 这里能改的就是名称、音频、配色和商家承接。 -->
+        <view class="chapter-story-entry-hint" wx:elif="{{popChapterAction == 0}}">点「完成」后进入全屏故事流，剧情和地点在那一屏写</view>
+
+        <!-- 2026-09-04 拍板:音频从故事流的可重复块升成【章节的一个属性】,一章最多一段。
+             它是这一章的背景旁白 —— 玩家进入本章时自动播放,所以它没有"插在第几段"这回事,
+             留在故事流里就是给一个不存在的位置感。玩家端对应改动见 pages/play/index.js。 -->
+        <view class="chapter-audio">
+          <view class="chapter-audio__head">
+            <text>章节音频</text>
+            <text>玩家进入本章时自动播放</text>
+          </view>
+          <view class="chapter-audio__empty" wx:if="{{!chapterForm.audioUrl}}" bindtap="uploadChapterAudio"
+                aria-role="button" aria-label="添加章节音频" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon name="plus" size="28" /><text>添加音频</text>
+          </view>
+          <view class="chapter-audio__file" wx:else>
+            <view class="chapter-audio__play" bindtap="onPreviewChapterAudio"
+                  aria-role="button" aria-label="{{audioPreviewPlaying ? '暂停预听' : '预听章节音频'}}" hover-class="cy-pressed" hover-stay-time="80">
+              <text>{{audioPreviewPlaying ? '暂停' : '预听'}}</text>
+            </view>
+            <view class="chapter-audio__meta">
+              <text class="chapter-audio__name">{{chapterForm.audioFileName || '章节音频'}}</text>
+              <text class="chapter-audio__dur" wx:if="{{chapterForm.audioDuration}}">{{chapterForm.audioDuration}}″</text>
+            </view>
+            <view class="chapter-audio__del" bindtap="clearChapterAudio"
+                  aria-role="button" aria-label="移除章节音频" hover-class="cy-pressed" hover-stay-time="80">移除</view>
+          </view>
+        </view>
+
+        <view class="chapter-atmosphere" wx:if="{{formData.productType === 1}}">
+          <view class="chapter-atmosphere__head">
+            <text>章节配色</text>
+            <text>决定玩家端整章的配色</text>
+          </view>
+          <scroll-view class="chapter-atmosphere__list" scroll-x enhanced show-scrollbar="{{false}}">
+            <view class="chapter-atmosphere__track">
+              <view class="chapter-atmosphere__item {{item.className}} {{chapterForm.atmospherePreset === item.value ? 'is-on' : ''}}"
+                    wx:for="{{atmosphereOptions}}" wx:key="value" data-value="{{item.value}}"
+                    bindtap="onChapterAtmosphereSelect" aria-role="button" aria-label="选择{{item.label}}氛围" hover-class="cy-pressed" hover-stay-time="80">
+                <text class="chapter-atmosphere__name">{{item.label}}</text>
+                <text class="chapter-atmosphere__note">{{item.note}}</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+
+        <!-- 商家承接段(稿 P6/C6/M6 都画了,三身份一致)。
+             ⚠️ 2026-08-10 曾把这块整块移出章节弹窗,理由是「招商要等商家看到主题才会来报名,
+             发布前填不准、发布后 WHITELIST 又改不了」。**2026-09-05 用户裁决推翻那条:
+             「D6 就写在里面」** —— 所以装回来。原来的 handler 一直留在 JS 里(那批零绑定债务
+             正是它们),这次只是把线接回去,不是新写一套。
+             ⚠️ 品类是自由探索的必填闸:normalizeChapterMerchantConfig 在 productType===2 且
+             开了招募时,没选品类会当场拦下并 toast。 -->
+        <!-- 2026-09-07 用户裁决:「商家承接只有俱乐部主理人能开」。
+             判据用 merchantPoolEditable —— 它就是「本账号是不是俱乐部主理人」的权限快照,
+             和后端 CmsTopicServiceImpl.resolveMerchantPoolFlag 是同一条闸(2026-08-11 定的)。
+             ⚠️ 此前这一段没有任何 wx:if:玩家和商家也看得到整套控件,开了要到发布时才被后端拒。 -->
+        <view class="chapter-recruit" wx:if="{{merchantPoolEditable}}">
+          <view class="chapter-recruit__head">
+            <text>商家承接</text>
+            <text>承接的商家给玩家权益,或者只做引流。</text>
+          </view>
+
+          <view class="node-card">
+            <view class="node-card__row">
+              <view class="node-card__ico"><cy-icon name="discover-shop" size="32" /></view>
+              <view class="node-card__main">
+                <text class="node-card__title">本章开放商家承接</text>
+                <text class="node-card__value">{{chapterForm.recruitEnabled ? '开后商家可在合作池申请承接本章' : '本章不对商家开放'}}</text>
+              </view>
+              <cy-switch checked="{{chapterForm.recruitEnabled}}" bindchange="onChapterRecruitToggleChange" />
+            </view>
+
+            <block wx:if="{{chapterForm.recruitEnabled}}">
+              <view class="node-card__hr"></view>
+              <cy-dropdown range="{{merchantCategoryList}}" range-key="categoryName" bind:change="onChapterMerchantCategoryChange">
+                <view class="node-card__row">
+                  <view class="node-card__ico"><cy-icon name="discover-shop" size="32" /></view>
+                  <view class="node-card__main">
+                    <text class="node-card__title">商家品类</text>
+                    <text class="node-card__value">{{chapterForm.category || '限定可承接的商家类型'}}</text>
+                  </view>
+                  <view class="node-pill"><text>选择品类</text><cy-icon name="chevron-right" size="24" /></view>
+                </view>
+              </cy-dropdown>
+
+              <view class="node-card__hr"></view>
+              <view class="tk-field">
+                <text class="tk-label">承接条款</text>
+                <view class="tk-segment">
+                  <view class="tk-segment__item {{chapterForm.termsMode !== 'TRAFFIC' ? 'is-active' : ''}}" bindtap="onChapterTermsModeChange" data-mode="PERK" aria-role="button" aria-label="承接条款选给权益" hover-class="cy-pressed" hover-stay-time="80">给权益</view>
+                  <view class="tk-segment__item {{chapterForm.termsMode === 'TRAFFIC' ? 'is-active' : ''}}" bindtap="onChapterTermsModeChange" data-mode="TRAFFIC" aria-role="button" aria-label="承接条款选只引流" hover-class="cy-pressed" hover-stay-time="80">只引流</view>
+                </view>
+              </view>
+
+              <block wx:if="{{chapterForm.termsMode !== 'TRAFFIC'}}">
+                <view class="node-card__hr"></view>
+                <view class="node-card__row">
+                  <view class="node-card__ico"><cy-icon name="star" size="32" /></view>
+                  <view class="node-card__main">
+                    <text class="node-card__title">权益门槛 (¥)</text>
+                    <text class="node-card__value">商家给出的权益不低于这个价值</text>
+                  </view>
+                  <input class="chapter-recruit__num" type="digit" value="{{chapterForm.perkMinValue}}" placeholder="不限" placeholder-class="chapter-recruit__ph" bindinput="onChapterPerkMinValueInput" />
+                </view>
+              </block>
+
+              <view class="node-card__hr"></view>
+              <view class="node-card__row">
+                <view class="node-card__ico"><cy-icon name="tab-club" size="32" /></view>
+                <view class="node-card__main">
+                  <text class="node-card__title">名额上限 (家)</text>
+                  <text class="node-card__value">{{chapterForm.maxMerchant ? '最多 ' + chapterForm.maxMerchant + ' 家可承接' : '名额不限'}}</text>
+                </view>
+                <input class="chapter-recruit__num" type="number" value="{{chapterForm.maxMerchant}}" placeholder="不限" placeholder-class="chapter-recruit__ph" bindinput="onChapterMaxMerchantInput" />
+              </view>
+            </block>
+          </view>
+        </view>
+
+
+        <!-- 从故事流「下一步」进来时不给删除(用户 2026-09-05 定):那一步是「把刚编排完的章节收尾」,
+             删除留在章节卡那条单层入口。也顺带避免「删掉了章节、下层故事流还开着并指向它」这种悬空态。 -->
+        <view class="chapter-settings-delete" bindtap="deleteChapter" wx:if="{{popChapterAction==1 && !chapterSettingsFromStory}}" aria-role="button" aria-label="删除章节" hover-class="cy-pressed" hover-stay-time="80">删除章节</view>
+
+      </view>
+  </view>
+
+  <!-- 发布前检查弹层 -->
+  <view class="pop-model pop-publish-check {{ publishCheck.show?'show':'' }}">
+    <!-- 2026-09-05 用户拍板:点「发布」不直接发 —— 先自动检查,再让人过一遍眼,确认了才真发布。
+         所以这一层不再只是「检查报告」,它就是那一页确认页:检查结果 + 玩家看到的样子 + 两颗底部动作。 -->
+    <!-- CU-C-156:退出从左上箭头改成右上角 ✕(同一个 closePublishCheck,
+         仍是「回编辑器改」)。底部那颗「返回修改」是发布前二选一的一半,原样保留。 -->
+    <view class="pop-top flex-cb">
+      <view class="pc-lead"></view>
+      <view class="tit">发布确认</view>
+      <view class="pc-close" bindtap="closePublishCheck" aria-role="button" aria-label="关闭发布确认" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+    </view>
+    <view class="pop-cont pc-cont">
+      <view class="pc-lede">确认无误后才会真正发布，发布后进入平台审核。</view>
+      <view class="pc-section-tit">本次发布</view>
+      <cy-card class="pc-summary">
+        <view class="pc-summary__line" wx:for="{{publishCheck.summary}}" wx:key="*this">{{item}}</view>
+        <view class="pc-summary__visibility">{{publishToCreative ? '默认公开：发布后会在创意广场公开展示；继续即按当前公开范围发布。' : '当前不在创意广场公开展示，仅通过主题入口访问。'}}</view>
+      </cy-card>
+      <block wx:if="{{publishCheck.passed.length}}">
+        <view class="pc-section-tit">自动检查</view>
+        <cy-card class="pc-passed">
+          <view class="pc-passed__head">
+            <view class="pc-passed__mark"><cy-icon name="check" size="28" /></view>
+            <text class="pc-passed__title">自动检查已通过 · {{publishCheck.passed.length || 0}} 项</text>
+          </view>
+          <view class="pc-passed__item" wx:for="{{publishCheck.passed}}" wx:key="label">
+            <text class="pc-dot pc-dot-ok"></text>
+            <text class="pc-label">{{item.label}}</text>
+          </view>
+        </cy-card>
+      </block>
+      <block wx:if="{{publishCheck.blocking.length || !identityReady}}">
+        <view class="pc-section-tit pc-blocking">必填项(需补全才能发布)</view>
+        <view class="pc-item pc-item-blocking" wx:for="{{publishCheck.blocking}}" wx:key="index"
+              data-field="{{item.field}}" data-tab="{{item.tab}}" bindtap="locatePublishIssue" aria-role="button" aria-label="去填写 {{item.label}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="pc-dot pc-dot-red"></text>
+          <text class="pc-label">{{item.label}}</text>
+          <view class="pc-arrow"><text>去填写</text><cy-icon name="arrow-right" size="24" /></view>
+        </view>
+        <!-- RUN-52 发布者实名:玩家没有向导,这一层就是最后一步,补全的控件就在下面,
+             所以这一条不带「去填写」——没有别处可去,指向本层那三格(不是死箭头)。 -->
+        <view class="pc-item pc-item-blocking" wx:if="{{!identityReady}}">
+          <text class="pc-dot pc-dot-red"></text>
+          <text class="pc-label">发布者实名未填写</text>
+          <view class="pc-arrow pc-arrow--static"><text>在本层填写</text></view>
+        </view>
+      </block>
+      <block wx:if="{{publishCheck.advisory.length}}">
+        <view class="pc-section-tit pc-advisory">建议完善(不影响发布)</view>
+        <view class="pc-item pc-item-advisory" wx:for="{{publishCheck.advisory}}" wx:key="index"
+              data-field="{{item.field}}" data-tab="{{item.tab}}" bindtap="locatePublishIssue" aria-role="button" aria-label="去完善 {{item.label}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="pc-dot pc-dot-gray"></text>
+          <text class="pc-label">{{item.label}}</text>
+          <view class="pc-arrow"><text>去完善</text><cy-icon name="arrow-right" size="24" /></view>
+        </view>
+      </block>
+      <!-- RUN-52 发布者实名:要收钱就得知道收钱的人是谁(电商法 §27)。姓名 + 身份证号 + 单独同意,
+           挂在发布确认这一层(用户裁定「放最后一步」)。已登记的人整节不见,只在上面的
+           「自动检查已通过」里多一行「已登记」——接口只回真假,值不下发也不回显。 -->
+      <block wx:if="{{!identityRegistered}}">
+        <view class="pc-section-tit">发布者实名</view>
+        <view class="pc-identity">
+          <cy-field label="真实姓名" required placeholder="与身份证一致"
+                    value="{{identityRealName}}" maxlength="{{20}}"
+                    data-field="identityRealName" bindinput="onIdentityFieldInput" />
+          <cy-field label="身份证号" required placeholder="18 位"
+                    value="{{identityIdCard}}" maxlength="{{18}}"
+                    data-field="identityIdCard" bindinput="onIdentityFieldInput" />
+          <cy-consent-check class="pc-identity__consent" checked="{{identityConsented}}"
+                            text="{{identityHint}}" bind:change="onIdentityConsent" />
+          <view class="pc-identity__foot">填过一次就不再出现。变更实名信息请联系平台客服。</view>
+        </view>
+        <cy-inline-error class="pc-identity__err" wx:if="{{identityError}}" kind="error"
+                         title="实名没有登记" sub="{{identityError}}" />
+      </block>
+      <!-- P0.5 奖励总览(只读:XP 自动分配 / 通关勋章) -->
+      <view class="pc-section-tit">奖励总览</view>
+      <cy-card class="pc-reward">
+        <view class="pc-reward-row"><text class="pc-reward-k">探索值(XP)</text><text class="pc-reward-v">自动分配 · 按任务难度拆 60%,余额为通关奖励</text></view>
+        <view class="pc-reward-row"><text class="pc-reward-k">通关勋章</text><text class="pc-reward-v">{{formData.finishMedalName || (formData.name || '主题名') + ' · 通关(默认)'}}</text></view>
+      </cy-card>
+      <!-- blocking 非空(内容安全/AI 判定为 error)时不给继续发布。
+           2026-09-05 按 Figma 统一按钮位置:阻断态原来只有一行红字、连个按钮都没有,
+           和「仅建议」那态长得完全不同 —— 现在两态都有同一颗底部按钮,阻断时禁用,
+           红字提示留在按钮上方说明为什么点不动。 -->
+      <!-- 玩家看到的样子。⚠️ 读的是编辑器里的当前草稿(_buildPublishPreview),不是 ?id= 拉服务端 ——
+           拿服务端那版预览就是上一次保存的内容,与眼前的编辑器对不上。 -->
+      <block wx:if="{{publishCheck.preview}}">
+        <view class="pc-section-tit">玩家看到的样子</view>
+        <cy-card class="pc-preview">
+          <image wx:if="{{publishCheck.preview.cover}}" class="pc-preview__cover" src="{{publishCheck.preview.cover}}" mode="aspectFill" lazy-load="true" />
+          <view wx:else class="pc-preview__cover pc-preview__cover--empty"><cy-icon name="image" size="48" /></view>
+          <text class="pc-preview__name">{{publishCheck.preview.name}}</text>
+          <text class="pc-preview__sub" wx:if="{{publishCheck.preview.subtitle}}">{{publishCheck.preview.subtitle}}</text>
+          <view class="pc-preview__stats">
+            <view class="pc-preview__stat" wx:for="{{publishCheck.preview.stats}}" wx:key="k">
+              <text class="pc-preview__stat-v">{{item.v}}</text>
+              <text class="pc-preview__stat-k">{{item.k}}</text>
+            </view>
+          </view>
+          <text class="pc-preview__desc" wx:if="{{publishCheck.preview.description}}">{{publishCheck.preview.description}}</text>
+          <view class="pc-preview__chapter" wx:for="{{publishCheck.preview.chapters}}" wx:key="name" wx:for-item="chapter">
+            <text class="pc-preview__chapter-name">{{chapter.name}}</text>
+            <view class="pc-preview__node" wx:for="{{chapter.nodes}}" wx:key="name">
+              <text class="pc-preview__node-name">{{item.name}}</text>
+              <text class="pc-preview__node-addr">{{item.address}}</text>
+            </view>
+          </view>
+        </cy-card>
+      </block>
+      <!-- blocking 非空(内容安全/AI 判定为 error)时不给发布:按钮禁用,红字说明为什么点不动。 -->
+      <view class="pc-actions">
+        <view wx:if="{{publishCheck.blocking.length || !identityReady}}" class="pc-blocked-tip">请先处理上方必填项后再发布</view>
+        <view class="pc-actions__row">
+          <cy-btn class="pc-actions__btn" variant="secondary" bindtap="closePublishCheck">返回修改</cy-btn>
+          <cy-btn class="pc-actions__btn" variant="primary" disabled="{{!!publishCheck.blocking.length || !identityReady}}"
+                  aria-disabled="{{!!publishCheck.blocking.length || !identityReady}}"
+                  bind:disabledtap="onPublishCheckDisabledTap"
+                  bindtap="confirmPublishCheck">确认发布</cy-btn>
+        </view>
+      </view>
+    </view>
+  </view>
+
+
+<!-- 时间选择弹框 -->
+<cy-date-sheet show="{{timePicker.show}}" title="选择营业时间" bind:cancel="onBusinessTimeCancel" bind:confirm="onBusinessTimeConfirm">
+  <cy-card class="time-picker-content">
+    <view class="time-picker-content__inner">
+      <view class="time-section">
+      <view class="time-label">开始时间</view>
+      <view class="time-selector">
+        <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{startTimeIndex}}" bindchange="onStartTimeChange">
+          <picker-view-column>
+            <view wx:for="{{hours}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}时</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{minutes}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}分</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+      </view>
+      <view class="time-separator">至</view>
+      <view class="time-section">
+      <view class="time-label">结束时间</view>
+      <view class="time-selector">
+        <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{endTimeIndex}}" bindchange="onEndTimeChange">
+          <picker-view-column>
+            <view wx:for="{{hours}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}时</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{minutes}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}分</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+      </view>
+    </view>
+  </cy-card>
+</cy-date-sheet>
+
+<!-- 动作结果面板(S14 安全预检中 / S16 发布失败)。区域与整页的数据状态仍归 cy-error /
+     cy-skeleton,不走这里。发布成功也走本面板(2026-09-06 用户裁决「统一」,
+     不再保留旧稿 §4 那两颗按钮)。 -->
+<cy-result-sheet show="{{resultSheet.show}}" kind="{{resultSheet.kind}}" title="{{resultSheet.title}}"
+  sub="{{resultSheet.sub}}" why="{{resultSheet.why}}"
+  duration="{{resultSheet.duration}}" bind:close="closeResultSheet" />
+
+
+<!-- 开始时间选择弹框 -->
+<cy-date-sheet show="{{startTimePicker.show}}" title="选择开始时间" bind:cancel="closeStartTimePicker" bind:confirm="confirmStartTime">
+  <cy-card class="time-picker-content">
+    <view class="time-picker-content__inner">
+      <view class="time-section">
+      <view class="time-label">日期</view>
+      <view class="time-selector">
+        <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{startDateIndex}}" bindchange="onStartDateChange">
+          <picker-view-column>
+            <view wx:for="{{dateList}}" wx:key="index" class="picker-item">{{item.display}}</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+      </view>
+      <view class="time-separator">至</view>
+      <view class="time-section">
+      <view class="time-label">时间</view>
+      <view class="time-selector">
+        <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{startTimeIndex}}" bindchange="onStartTimePickerChange">
+          <picker-view-column>
+            <view wx:for="{{hours}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}时</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{minutes}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}分</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+      </view>
+    </view>
+  </cy-card>
+</cy-date-sheet>
+
+<!-- 票种时间选择弹框 -->
+<cy-date-sheet show="{{ticketTimePicker.show}}" title="{{ticketTimePicker.title || '选择时间'}}" bind:cancel="closeTicketTimePicker" bind:confirm="confirmTicketTime">
+  <cy-card class="time-picker-content">
+    <view class="time-picker-content__inner">
+      <view class="time-section">
+      <view class="time-label">日期</view>
+      <view class="time-selector">
+        <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{ticketDateIndex}}" bindchange="onTicketPickerDateChange">
+          <picker-view-column>
+            <view wx:for="{{dateList}}" wx:key="index" class="picker-item">{{item.display}}</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+      </view>
+    <block wx:if="{{ticketTimePicker.mode === 'datetime'}}">
+      <view class="time-separator">至</view>
+      <view class="time-section">
+        <view class="time-label">时间</view>
+        <view class="time-selector">
+          <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{ticketTimeIndex}}" bindchange="onTicketPickerTimeChange">
+            <picker-view-column>
+              <view wx:for="{{hours}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}时</view>
+            </picker-view-column>
+            <picker-view-column>
+              <view wx:for="{{minutes}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}分</view>
+            </picker-view-column>
+          </picker-view>
+        </view>
+      </view>
+    </block>
+    </view>
+  </cy-card>
+</cy-date-sheet>
+
+<!-- 结束时间选择弹框 -->
+<cy-date-sheet show="{{endTimePicker.show}}" title="选择结束时间" bind:cancel="closeEndTimePicker" bind:confirm="confirmEndTime">
+  <cy-card class="time-picker-content">
+    <view class="time-picker-content__inner">
+      <view class="time-section">
+      <view class="time-label">日期</view>
+      <view class="time-selector">
+        <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{endDateIndex}}" bindchange="onEndDateChange">
+          <picker-view-column>
+            <view wx:for="{{dateList}}" wx:key="index" class="picker-item">{{item.display}}</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+      </view>
+      <view class="time-separator">至</view>
+      <view class="time-section">
+      <view class="time-label">时间</view>
+      <view class="time-selector">
+        <picker-view class="time-picker-view slopes-time-picker" indicator-style="{{slopesPickerIndicator}}" mask-style="{{slopesPickerMask}}" value="{{endTimeIndex}}" bindchange="onEndTimePickerChange">
+          <picker-view-column>
+            <view wx:for="{{hours}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}时</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{minutes}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}分</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+      </view>
+    </view>
+  </cy-card>
+</cy-date-sheet>
+
+<cy-category-sheet show="{{categorySheetVisible}}" type="{{1}}" ids="{{categorySheetIds}}"
+  bind:select="onCategorySelect" bind:close="onCategorySheetClose" />
+
+  <!-- 主题模式选择器(2026-08-11 用户定)。原来点左卡是【直接对切】——
+       两种模式的差别(要不要定集合时间地点、票怎么卖)全靠创作者自己知道,切错了
+       整条票务链路的必填项都跟着变。改成先把两种模式摊开讲清楚再让人选。
+       文案取自票种编辑器稿(2770:11762 / 2770:13325)的那两句模式说明,同一句话只有一份。 -->
+  <cy-sheet show="{{modePickerShow}}" style="--cy-comp-sheet-max-h: calc(100vh - {{chrome.sheetTop}}px)" bind:close="closeModePicker">
+    <view class="pd-topic-detail node-sheet">
+      <view class="node-sheet__top">
+        <view class="node-sheet__done" bindtap="confirmModePicker" aria-role="button" aria-label="确认创作模式" hover-class="cy-pressed" hover-stay-time="80">使用此模式</view>
+        <view class="node-sheet__close" bindtap="closeModePicker" aria-role="button" aria-label="关闭模式选择" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="node-sheet__close-circle"><cy-icon name="close-sm" size="44" /></view>
+        </view>
+      </view>
+      <view class="node-sheet__titlebar">
+        <text class="node-sheet__eyebrow">主题模式</text>
+        <text class="node-sheet__name node-sheet__name--static">这个主题怎么玩？</text>
+      </view>
+
+      <view class="node-card mode-opt mode-opt--city {{modePickerMode === 1 ? 'is-on' : ''}}" bindtap="onPickMode" data-mode="1" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="node-card__row">
+          <view class="node-card__ico mode-opt__ico"><cy-icon name="flag" size="32" /></view>
+          <view class="node-card__main">
+            <text class="node-card__title mode-opt__name">城市定向</text>
+            <text class="mode-opt__desc">需设置具体的集合时间与地点，适合强组织的团体活动。</text>
+          </view>
+          <text class="mode-opt__mark" wx:if="{{formData.productType === 1}}">当前</text>
+        </view>
+      </view>
+
+      <view class="node-card mode-opt mode-opt--roam {{modePickerMode === 2 ? 'is-on' : ''}}" bindtap="onPickMode" data-mode="2" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="node-card__row">
+          <view class="node-card__ico mode-opt__ico"><cy-icon name="tab-explore" size="32" /></view>
+          <view class="node-card__main">
+            <text class="node-card__title mode-opt__name">自由探索</text>
+            <text class="mode-opt__desc">只需设置有效期，用户在规定时间内自由前往体验。</text>
+          </view>
+          <text class="mode-opt__mark" wx:if="{{formData.productType === 2}}">当前</text>
+        </view>
+      </view>
+
+      <view class="tk-note">切换模式会保留当前草稿，另外复制一份新草稿再切 —— 已经写好的章节不会被改掉。</view>
+    </view>
+  </cy-sheet>
+
+  <include src="./topic-detail-sheet.wxml" />
+
+  <!-- 2026-08-20 物理返回守卫:任一浮层开着时,返回键/侧滑先关最上层浮层(节点抽屉的
+       玩法视图先退回详情),不再把整个编辑器弹出去。表达式覆盖本页全部浮层且无排斥项:
+       浮层间切换时它保持为真,不会产生「误触发 afterleave 把底层关掉」的竞态;
+       backGuardOff 用于容器被返回键消费后翻转重挂(page-container 每页只能有一个)。 -->
+  <page-container
+    show="{{!backGuardOff && (routeMappingShow || popChapterNodes || popChapter || publishCheck.show || storyEditor.show || modePickerShow || topicDetailShow)}}"
+    duration="{{0}}" overlay="{{false}}"
+    custom-style="width:0;height:0;background:transparent;pointer-events:none"
+    bind:afterleave="onNativeBackGuard" />
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

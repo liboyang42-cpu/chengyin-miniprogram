@@ -1,0 +1,50 @@
+<wxs src="../../utils/wxs/img.wxs" module="img" />
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="canyu-page">
+<cy-nav-bar custom-back bind:back="onBack" />
+<view class="canyu-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+<cy-page-title title="我的参与" safe-top="{{false}}" />
+<cy-tabs active="{{activeTab}}" bind:change="switchTab" tabs="{{tabs}}" variant="fill" />
+
+<view class="canyubox">
+  <cy-skeleton wx:if="{{firstLoading}}" type="list" count="4" />
+  <cy-error fill class="cy-fill-state cy-fade-in" size="lg" wx:elif="{{errorMsg && list.length==0}}" title="参与记录没能打开" sub="{{errorMsg}}" bind:retry="onRetry" auto-back />
+  <cy-empty fill class="cy-fill-state" size="lg" wx:elif="{{list.length==0}}" icon="/images/d_yhqon.png" title="{{activeTab === 'all' ? '暂无参与记录' : '当前筛选暂无参与记录'}}" sub="{{activeTab === 'all' ? '报名后，路线和活动会出现在这里' : '切换其他状态查看参与记录'}}" />
+  <view class="canyu-refreshing" wx:if="{{refreshing}}" aria-role="status" aria-live="polite">正在更新参与记录…</view>
+
+  <view class="canyubox_li" wx:for="{{list}}" wx:key="id" wx:for-item="item" bindtap="goOrder" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+    <view class="canyubox_li_tgb">
+      <view class="canyubox_li_left">
+        <image lazy-load="true" src="{{img.first(item.sourceCover) || '/images/route_city_cover.png'}}" mode="aspectFill" />
+      </view>
+      <view class="canyubox_li_right">
+        <!-- 状态签在上、标题独占整行最多两行:原来并排时 102rpx 定宽状态格把标题挤成
+             「城市定向…」、自己也只剩「未」(2026-09-16 FILLED/23 实拍)。 -->
+        <view class="canyubox_li_right_top">
+          <view class="canyubox_li_right_top_zt">
+            <cy-badge type="status" variant="{{item.stateVariant}}" label="{{item.stateText}}" />
+          </view>
+          <view class="canyubox_li_right_top_name ep2">{{item.sourceName}}</view>
+        </view>
+        <view class="canyubox_li_right_time">
+          <image lazy-load="true" src="/subpackageMember/images/d_cyIcon.png" mode="widthFix" />{{item.dateText}}
+        </view>
+        <view class="canyubox_li_right_txt ep1">
+          <image lazy-load="true" src="/subpackageMember/images/d_cyIcon2.png" mode="widthFix" />{{item.typeLabel}} · {{item.sourceAddress}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+</view>
+<!-- 参与详情 = 三级(记录/状态)⇒ 弹窗,由本页托管;关闭回到列表而不是回 tab。 -->
+<view class="canyu-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'member-participation-detail'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeScene" bind:back="closeScene">
+    <cy-scene-member-participation-detail record-id="{{sceneCurrent.params.id}}" theme="{{sceneCurrent.theme}}" bind:back="closeScene" bind:close="closeScene" bind:refresh="onRetry" />
+  </cy-scene-sheet>
+</view>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

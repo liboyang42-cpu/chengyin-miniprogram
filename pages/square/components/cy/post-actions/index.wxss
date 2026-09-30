@@ -1,0 +1,57 @@
+/* cy-post-actions · 帖文「···」操作弹层(Figma 347:737)。
+ *
+ * ① 面板底不是纯黑实底:走 cy-sheet 的 --cy-comp-sheet-role-glass 玻璃底 + backdrop 模糊。
+ *    用户 2026-09-01 明确指出过——纯黑面板压在纯黑页上等于看不见边界。遮罩同样由
+ *    cy-sheet 出(--cy-color-overlay),这里不重复定义,免得两处漂移。
+ *
+ * ② 为什么是「两张分组卡」而不是一条平列表(2026-09-02 拍板 R3=C):
+ *    「编辑」是可逆修改,「删除 / 举报」是处置,两种性质,落在规范里「多组不同性质」那一类。
+ *    ⚠️ 这是例外不是通则 —— 单组选项一律平列表,别拿这条当拆卡的口子。
+ *
+ * ③ AA 豁免(明写):红字压在 --cy-color-bg-interactive(#4D4D4D)上只有 2.41:1 < 4.5。
+ *    这条豁免是登记过的,边界与理由见 style/tokens.wxss 里 --cy-color-status-danger-on-interactive
+ *    的注释(#4D4D4D 太亮,往合规方向调最红只到 #FFA8AE,已经是粉了)。
+ *    ⚠️ 后来的人别把它当对比度 bug 顺手改掉,也别把这个组合外扩到别的底色。
+ *
+ * 单位:稿上 pt × 2 = rpx。
+ */
+:host { display: block; }
+
+.pa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3);   /* 稿:块间距 12pt = 24rpx */
+  /* 稿:面板上内边距 10pt=20rpx、下 24pt=48rpx、左右 16pt=32rpx。
+     左右已由 cy-sheet 的 --cy-page-x(32rpx)给足;上下这里只补差额——
+     cy-sheet 自己已有 .sh__body 的 8rpx 上下 + .sh__panel 的 24rpx 底(在安全区之上)。
+     ⇒ 上 8+12=20rpx,下 8+16+24=48rpx。 */
+  padding: var(--cy-space-1-5) 0 var(--cy-space-2);
+}
+
+.pa-card {
+  background: var(--cy-color-bg-interactive);
+  border-radius: var(--cy-radius-lg);   /* 稿:16pt = 32rpx */
+  overflow: hidden;                     /* 首尾行的按压底色不许溢出圆角 */
+}
+
+.pa-row {
+  display: flex;
+  align-items: center;
+  padding: 22rpx var(--cy-space-3-5);   /* 稿:上下 11pt=22rpx、左右 14pt=28rpx */
+  color: var(--cy-color-text-primary);
+}
+/* 组内发丝线:只在同一张卡里的两行之间画(仓库统一 2rpx = 稿上 1px) */
+.pa-row + .pa-row { border-top: 2rpx solid var(--cy-color-border-subtle); }
+/* 危险行:文字与图标同色 —— cy-icon 吃 currentColor,所以色设在行上、不设在文字上 */
+.pa-row--danger { color: var(--cy-color-status-danger-on-interactive); }
+
+.pa-row__label {
+  flex: 1;                              /* 稿:文字弹性撑开,图标始终贴右 */
+  min-width: 0;
+  font-size: var(--cy-type-button);     /* 稿:16pt = 32rpx Regular */
+  font-weight: 400;
+  line-height: 44rpx;                   /* 22 + 44 + 22 = 88rpx,正好一个标准点击热区 */
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,按仓库既有组件的做法本地补一份(灰底与灰字，松手恢复)。 */
+.pa-row.cy-pressed { background: var(--cy-color-bg-raised); color: var(--cy-color-text-secondary); }

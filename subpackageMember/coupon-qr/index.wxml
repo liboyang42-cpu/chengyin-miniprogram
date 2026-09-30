@@ -1,0 +1,111 @@
+<!-- M0-2 优惠券出示与核销闭环:动态二维码(60s刷新)+核销状态轮询
+     亮码态用 cy-qr-voucher(DS §5.9,Blackbird 式浅色码卡),只消费不改组件
+
+     UI 改版第2批核实(用户原话"出码失败...这个是白色的 需要重新设计"):当前"出码失败"
+     就是这里的 qrState==='error' 分支,渲染在 cy-qr-voucher 内部(暗 scrim + 浅色码卡 +
+     错误文案 + 点此重试),不再是截图里那种整页纯白态——已经是设计过的错误态,本批未再改动。
+     AI 复查补充提到的两处遗留紫色(错误占位图标裂图带紫蓝调、出示中态中心 logo 挖空)都在
+     cy-qr-voucher 组件内的共享图片资产/中心 logo 上,不是本页私有样式,留给设计出新图/新 logo。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="cq-page {{reducedMotion ? 'cq--reduced' : ''}}">
+  <!-- 只留返回钮:标题语义在 cy-qr-voucher / 结果卡内,再画一层大标题会与码卡打架。
+       R2-C04:此前这里是裸 <cy-nav-bar />,而 cy-qr-voucher 默认 z=900 > --cy-z-nav=90,
+       它那层 rgba(0,0,0,.82) 遮罩把返回钮整个盖住 —— 箭头被压成灰(受控截图 08),
+       且点击被遮罩接住而本页 maskClosable=false ⇒ **看得见、点不动的假按钮**。
+       现在:凭证层降到 78(tokens 规定的页面内容自由区 z<80),导航条浮到遮罩之上;
+       tint="light" 强制白箭头(暗遮罩上恒可见、不随主题漂移),
+       custom-back + bind:back 复用本页已正确的 onClose。
+       同型先例:subpackageP3/pages/stamp-camera(暗色全幅背景上的导航)= tint="light";
+       pages/club/group-code(同为 cy-qr-voucher 页)= custom-back bind:back="onClose"。
+       不用 pill:非 hero 页禁用(nav-bar 注释 + secondary-nav-consistency 负控)。
+       ⚠️ 有意**不加 overlay**:本页 .cq-page 没有导航让位块,结果态(useStatus!=0)的卡片
+       本就贴着顶排。保持实底 nav 则结果态渲染与改动前逐像素一致,只有出码态多一条与页身
+       同色的顶栏(--cy-comp-nav-bg 本就是页面同底);换 overlay 会让结果态卡片从箭头下透出来,
+       而结果态本轮没有截图可核 —— 不拿没法验证的视觉变化换一点观感。 -->
+  <cy-nav-bar tint="light" custom-back bind:back="onClose" wx:if="{{!(entryState === 'ready' && useStatus == 0)}}" />
+
+  <cy-state-shell
+    class="cq-entry-state"
+    wx:if="{{entryState === 'missing-param'}}"
+    kind="missing-param"
+    auto-back
+    custom-back
+    bind:back="onClose"
+    title="缺少券信息"
+    sub="请返回票夹重新进入"
+    primary="返回"
+    fill="{{true}}"
+    size="lg"
+    theme="player"
+    bind:primary="onClose"
+  />
+
+  <!-- 使用期承诺:start 前不出码,只展示可用时间与等待;到点后 countdown 换码链路自动转为亮码。
+       errMsg 非空时把失败正文落到等待壳,并给「重新获取」——失败可重试,不是死壳。 -->
+  <cy-state-shell
+    class="cq-entry-state"
+    wx:if="{{entryState === 'ready' && useStatus == 0 && notStarted}}"
+    kind="not-started"
+    title="还没到可用时间"
+    sub="{{errMsg || (coupon.startTimeText ? '该券 ' + coupon.startTimeText + ' 起可使用' : '该券尚未到可使用时间')}}"
+    primary="重新获取"
+    fill="{{true}}"
+    size="lg"
+    theme="player"
+    bind:primary="retryNow"
+  />
+
+  <!-- 亮码态:出示给商家扫码核销 -->
+  <cy-qr-voucher
+    z-index="{{78}}"
+    show="{{entryState === 'ready' && (useStatus==0 || useStatus === null) && !notStarted}}"
+    qr="{{qrcodeUrl}}"
+    state="{{qrState}}"
+    title="{{coupon.couponName || '优惠券'}}"
+    desc="出示给商家扫码核销"
+    countdown="{{qrState === 'ready' ? '二维码 ' + countdown + 's 后自动刷新' : ''}}"
+    secondaryText="刷新二维码"
+    errorText="{{errMsg || '二维码未加载'}}"
+    maskClosable="{{false}}"
+    bind:close="onClose"
+    bind:retry="retryNow"
+    bind:secondary="retryNow"
+  />
+
+  <cy-inline-error
+    class="cq-poll-error"
+    wx:if="{{entryState === 'ready' && useStatus == 0 && qrState === 'ready' && pollError}}"
+    kind="network"
+    title="核销状态暂未更新"
+    sub="{{pollError}}"
+  />
+
+  <!-- 已核销 / 过期 / 已失效:结果态 -->
+  <block wx:if="{{useStatus==1 || useStatus==2 || useStatus==3}}">
+    <cy-card class="cq-card">
+      <view class="cq-name">{{coupon.couponName || '优惠券'}}</view>
+      <view class="cq-desc" wx:if="{{coupon.description}}">{{coupon.description}}</view>
+      <!-- 用户原话"删除有效期":已核销态不再需要展示有效期;过期态保留(告诉用户为什么用不了);
+           已失效态由结果文案直接说明,不再拿有效期做干扰。 -->
+      <view class="cq-valid" wx:if="{{coupon.endTimeText && useStatus==2}}">有效期至 {{coupon.endTimeText}}</view>
+    </cy-card>
+
+    <view class="cq-result cq-done" wx:if="{{useStatus==1}}">
+      <view class="cq-badge"><cy-icon name="check" size="56" /></view>
+      <view class="cq-result-text">已核销</view>
+      <view class="cq-result-sub" wx:if="{{useTimeText}}">{{useTimeText}}</view>
+    </view>
+
+    <view class="cq-result cq-expired" wx:elif="{{useStatus==2}}">
+      <view class="cq-result-text">该券已过期</view>
+    </view>
+
+    <view class="cq-result cq-expired" wx:else>
+      <view class="cq-result-text">该券已失效</view>
+    </view>
+  </block>
+</view>
+</view>

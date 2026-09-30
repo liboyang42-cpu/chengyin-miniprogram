@@ -1,0 +1,140 @@
+/* 原型自己那层半屏壳与抽屉。漫游与组局两页共用 —— 这四个模式不套小程序 DS 的半屏组件。
+ * 从 pages/roam/index.wxss 抽出来,一行未改;抽的原因是组局页也要用同一件。 */
+/* ══ 原型自己的半屏壳(sheet / dim / grab / sx)══════════════════════════════
+   2026-09-10 用户裁决:**漫游四个模式不跟小程序 UI 规则走,壳子也照 HTML 抄**,
+   不再套 cy-scene-sheet 那层带标题栏的玻璃皮。场景栈的行为(打开/返回/关闭/脏确认)
+   仍走原来的 handler —— 换的是看得见的那一层,不是接线。
+   逐条换算 1px = 1.923rpx;颜色、圆角、时长、缓动全取原值。
+   ⚠️ 进出场原型写的是 @keyframes up/fade,这里改成同参数的 transition ——
+      仓库的 keyframes 只减不增(motion-property-ratchet),而 cy-toast 当初也是这么改的,
+      时长/曲线/位移一样,屏上看不出区别。 */
+/* 层序照原型:压暗层盖住读数卡与三键(原型 .dim z=20 > .dcard z=15),半屏再盖住压暗层。
+   现码这两件的 z 是 40/50,所以这里取 60/70 —— 顺序一样,数值跟着现码的基数抬。
+   ⚠️ 用原型的 20/30 会让读数卡从压暗层里透出来(实拍见过:半屏上方露出「当前目标」一角)。 */
+.pdim{ position:fixed; left:0; right:0; top:0; bottom:0; z-index:60;
+  background:rgba(0,0,0,.62); /* ds-ok 原型 .dim */
+  opacity:0; transition:opacity .2s linear; }
+.pdim.is-in{ opacity:1; }
+.psheet{ position:fixed; left:0; right:0; bottom:0; z-index:70; box-sizing:border-box;
+  background:#000; border-radius:54rpx 54rpx 0 0; /* ds-ok 原型 .sheet #000 / 28px */
+  padding:0 46rpx calc(42rpx + env(safe-area-inset-bottom)); /* ds-ok 原型 padding:0 24px 22px */
+  /* ⚠️ 原型 .sheet 自己没有 max-height —— 它靠每屏 s.style.top 定高,内容多就长。
+     这里必须分两档,不能一刀 70vh:注册表里 roam-share / roam-task-list / roam-poi-detail /
+     roam-history / roam-session / play-activity-detail / qr-citynode 都是 variant:'full',
+     原来由 cy-scene-sheet 给满高;一律 70vh 会把它们压掉三成阅读区(实测漫游历史是空态
+     看不出来,任务列表与据点详情就挤了)。上限取「不越过微信胶囊」,与 DS 同一条算式。 */
+  /* ⚠️ token 的 --cy-safe-top 走 env(safe-area-inset-top),在模拟器和无刘海真机上解析为 0,
+     顶边会落进胶囊行(2026-09-18 全站顶边复查)。宿主(play/roam 两页都已接
+     resolveMenuChrome)在页面根上给 --cy-psheet-max-h 传胶囊实测值时以它为准,拿不到才退回 token。 */
+  max-height:var(--cy-psheet-max-h, var(--cy-comp-sheet-max-height)); overflow-y:auto;
+  transform:translateY(46rpx); opacity:0; /* ds-ok 原型 @keyframes up 的 24px */
+  transition:transform .26s cubic-bezier(.2,.82,.2,1), opacity .26s cubic-bezier(.2,.82,.2,1); }
+.psheet.is-in{ transform:none; opacity:1; }
+/* 半屏档:原型给这几屏设的 top 大致就是七成屏高 */
+.psheet--half{ max-height:70vh; }
+/* ⚠️ 满屏档**不要**再给它让胶囊带。上面的 max-height 已经是
+     calc(100vh - --cy-safe-top - 顶部留白),半屏是贴底的 ⇒ 它的上沿本来就落在胶囊下面。
+   2026-09-11 实拍抓到:这里原来还叠了一层 padding-top:var(--cy-safe-top),
+   于是安全区被算了两遍 —— 抓杆、标题、✕ 整体比原型低了一条胶囊带(≈132rpx)。
+   跟 .pbar 当初 padding-bottom 与 --cy-tabbar-h 重复计算是同一类错。 */
+/* 减少动态效果:撤掉位移与渐显,直接到终态。原型没有这一档(静态稿),但它是无障碍行为
+   不是 DS 皮肤 —— 换壳不该把它一起换掉(原来由 cy-scene-sheet 的 reduced-motion 承担)。 */
+.pdim.is-reduced, .psheet.is-reduced{ transition:none; }
+.psheet.is-reduced{ transform:none; opacity:1; }
+.pdim.is-reduced{ opacity:1; }
+/* ══ 脏确认层(开一局表单填一半要关时)══════════════════════════════════════
+   F08:确认层与它下面的 create 表单都用 .psheet(z=70),而 create 在 DOM 里排在后面 ——
+   同档时后绘制者胜,确认层被表单整块盖住,用户根本看不到。确认层必须整层压过它。
+   复用分档 token 的「面板压自身遮罩」写法(与 components.wxss 的 .cy-mask/.cy-sheet、
+   activity-picker 的遮罩/面板同构):遮罩=--cy-z-sheet,面板=+1。
+   ⚠️ 不改分档天花板,也不动原型半屏自己的 60/70 基数。 */
+.pdim--confirm{ z-index:var(--cy-z-sheet); }
+.psheet--confirm{ z-index:calc(var(--cy-z-sheet) + 1); }
+.psheet__grab{ width:77rpx; height:8rpx; border-radius:4rpx; margin:19rpx auto 0; background:rgba(255,255,255,.22); } /* ds-ok 原型 .grab 40×4 / radius 2 / 上 10px */
+/* 抓杆有几处是可点的(点它收起半屏),而它本身只有 4px 高 —— 视觉照原型不动,
+   命中区用透明 ::after 撑到 44px(cy-info-pop 同款写法,a11y 门禁认这一种)。 */
+.psheet__grab{ position:relative; }
+.psheet__grab::after{ content:''; position:absolute; left:50%; top:50%; width:88rpx; height:88rpx; transform:translate(-50%,-50%); }
+.psheet__x{ position:absolute; right:31rpx; top:31rpx; width:58rpx; height:58rpx; border-radius:50%;
+  background:transparent; color:#C4CBD4; /* ds-ok 2026-09-18 用户裁决:✕ 一律纯字形无圆底,与 cy-scene-sheet 同口径(原型的 .sx 圆底作废) */
+  display:flex; align-items:center; justify-content:center; z-index:3; }
+/* 热区靠透明层撑到 88rpx(44pt);字形统一到 close-sm 档 44rpx(2026-09-18 用户裁决:32 偏小) */
+.psheet__x::after{ content:''; position:absolute; left:50%; top:50%; width:88rpx; height:88rpx;
+  transform:translate(-50%,-50%); }
+.psheet__x-i{ width:44rpx; height:44rpx; /* ds-ok 字形统一 44rpx,与 cy-icon close-sm size=44 同大小 */
+  /* 原型那枚 ✕ 的 path 原样搬:M4 4l7 7 M11 4l-7 7,1.9 描边、圆头。
+     背景图里用不了 currentColor,所以把 .sx 的 #C4CBD4 写死在里面。 */
+  background:no-repeat center/100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 15 15' fill='none'%3E%3Cpath d='M4 4l7 7M11 4l-7 7' stroke='%23C4CBD4' stroke-width='1.9' stroke-linecap='round'/%3E%3C/svg%3E"); }
+
+.ph1{ display:block; margin:38rpx 0 0; font-size:38rpx; font-weight:700; color:#FFFFFF; } /* ds-ok 原型 .h1 20px/700 / 上 20px */
+
+/* ══ 工具抽屉 · 照原型 drawer() 搬 ═════════════════════════════════════════
+   原型 f-more:.sheet.drw 从 top:330px 起,里面一行行 .drow。
+   现码复用上面那层 .psheet(同一件黑面),只把高度换成「从 330px 起」的等价写法。
+   1px = 1.923rpx。 */
+.psheet--drw{ max-height:calc(100vh - 635rpx); } /* ds-ok 原型 drawer top:330px */
+.drow{ display:flex; align-items:center; gap:27rpx; padding:29rpx 0; min-height:112rpx; box-sizing:border-box;
+  border-top:1rpx solid rgba(255,255,255,.07); } /* ds-ok 原型 .drow gap 14px / padding 15px 0 / min-height 58px / 上边框 1px 白 7% */
+/* 分隔线是「行与行之间」的:紧跟拖杆的第一行不画(原型 .drw .grab + .drow)。 */
+.psheet__grab + .drow{ border-top:0; }
+.dic{ flex:none; width:50rpx; height:50rpx; display:flex; align-items:center; justify-content:center; color:#8A93A0; } /* ds-ok 原型 .dic 26px #8A93A0 */
+.dcopy{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.dt{ font-size:27rpx; color:#FFFFFF; } /* ds-ok 原型 .dt 14px */
+.ds{ margin-top:4rpx; font-size:21rpx; color:#6A7282; } /* ds-ok 原型 .ds 11px #6A7282 / 上 2px */
+.dv{ flex:none; margin-left:auto; font-size:23rpx; color:#8A93A0; } /* ds-ok 原型 .dv 12px #8A93A0 */
+.darr{ flex:none; margin-left:auto; width:19rpx; height:29rpx;
+  /* 原型那个 › 是文字字符,仓库禁止拿字符当图标(读屏器会念),画成同形矢量,色取 #5B6472 */
+  background:no-repeat center/100% 100% url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='14' viewBox='0 0 8 14' fill='none'%3E%3Cpath d='M1.5 1.5L6.5 7l-5 5.5' stroke='%235B6472' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.dv + .darr{ margin-left:15rpx; } /* ds-ok 原型 .dv + .darr 8px */
+.drow.is-off{ opacity:.42; } /* ds-ok 原型 .drow.is-off */
+/* 原型自己那枚 44×26 药丸开关(.dsw),不是小程序的 switch */
+.dsw{ flex:none; margin-left:auto; position:relative; width:85rpx; height:50rpx; border-radius:999rpx; background:#1E2228; } /* ds-ok 原型 .dsw 44×26 / #1E2228 */
+.dsw::after{ content:''; position:absolute; left:50%; top:50%; width:88rpx; height:88rpx; transform:translate(-50%,-50%); }
+.dsw-i{ position:absolute; top:6rpx; left:6rpx; width:38rpx; height:38rpx; border-radius:50%; background:#8A93A0; transition:transform .18s var(--cy-ease-out), background .18s var(--cy-ease-out); } /* ds-ok 原型 .dsw i 20px #8A93A0 / top-left 3px */
+.dsw.is-on{ background:#FFFFFF; } /* ds-ok 原型 .dsw.on */
+.dsw.is-on .dsw-i{ transform:translateX(35rpx); background:#0A0A0A; } /* ds-ok 原型 translateX(18px) / #0A0A0A */
+
+
+/* ══ 原型半屏正文里那几件共用的(h1 / h2 / sub / mini / kv / avs / btnRow)══════════
+   1px = 1.923rpx;颜色取原型 --t1 #fff / --t2 #8A93A0 / --t3 #5B6472。 */
+.pbody{ display:flex; flex-direction:column; }
+.ph1{ display:block; margin:38rpx 0 0; font-size:38rpx; font-weight:700; color:#FFFFFF; } /* ds-ok 原型 .h1 20px/700 / 上 20px */
+.ph2{ display:block; margin:27rpx 0 0; font-size:50rpx; font-weight:700; color:#FFFFFF; } /* ds-ok 原型 .h2 26px/700 / 上 14px */
+.psub{ display:block; margin:12rpx 0 0; font-size:25rpx; color:#8A93A0; } /* ds-ok 原型 .sub 13px --t2 / 上 6px */
+.pmini{ display:block; font-size:21rpx; color:#5B6472; } /* ds-ok 原型 .mini 11px --t3 */
+/* 键值行(原型 .kv 里的 .k / .v 那一路) */
+.kvlist{ margin-top:27rpx; }
+.kv2{ display:flex; align-items:center; padding:23rpx 0; border-bottom:2rpx solid rgba(255,255,255,.07); font-size:27rpx; } /* ds-ok 原型 .kv 12px 0 / 1px 白 7% / 14px */
+.kv2__k{ flex:none; width:123rpx; font-size:25rpx; color:#5B6472; } /* ds-ok 原型 .kv .k 13px --t3 / 宽 64px */
+.kv2__v{ flex:1; min-width:0; color:#FFFFFF; } /* ds-ok 原型 .kv .v */
+/* 头像堆(原型 .avs:30px 圆、2px 黑描边、左叠 -8px) */
+.avsrow{ display:flex; align-items:center; gap:19rpx; margin-top:31rpx; } /* ds-ok 原型 .row gap 10px / 上 16px */
+.avsrow--loose{ margin-top:27rpx; }
+.avs{ display:flex; }
+.avs__i{ margin-left:-15rpx; } /* ds-ok 原型 .avs img margin-left:-8px */
+.avs__i:first-child{ margin-left:0; }
+/* 底部按钮排(原型 btnRow + .btn.w / .btn.s) */
+.btnrow{ display:flex; gap:19rpx; margin-top:35rpx; } /* ds-ok 原型 .row gap 10px + btnRow 上 18px */
+.btn2{ display:flex; align-items:center; justify-content:center; height:88rpx; border-radius:999rpx; font-size:29rpx; font-weight:700; } /* ds-ok 原型 .btn 46px/15px/700;46px=88rpx 正好压住 44pt 命中区 */
+.btn2--w{ flex:2; background:#FFFFFF; color:#111111; } /* ds-ok 原型 .btn.w */
+.btn2--s{ flex:1; background:#1A1A1A; color:#FFFFFF; } /* ds-ok 原型 .btn.s */
+.btn2--d{ flex:1; background:#1A1A1A; color:#F87171; } /* ds-ok 原型 .btn.d(危险动作那一档) */
+.btn2--narrow{ flex:0 0 162rpx; } /* ds-ok 原型 btnRow 里 f:'0 0 84px' 那一档 */
+.btn2.is-busy{ opacity:.6; }
+
+/* ══ 原型 topicSheet:图带浮在弹窗上沿外面,弹窗里是 tag/eyebrow/标题/介绍/三格 ══
+   2026-09-11 从 subpackageRoam/nearby 抽出来,一行未改 —— 漫游点主题针(原型 f-topic / f-city)
+   出的是同一件。⚠️ .tstrip 的 bottom 跟着半屏高走,用它的页要按自己那档半屏高覆盖。 */
+.tstrip{ position:fixed; left:31rpx; right:0; bottom:calc(70vh - 19rpx); z-index:65; height:227rpx; white-space:nowrap;
+  opacity:0; transition:opacity .26s cubic-bezier(.2,.82,.2,1); } /* ds-ok 原型 .tstrip left:16px / 图 118px 高 */
+.tstrip.is-in{ opacity:1; }
+.tstrip__i{ display:inline-block; width:323rpx; height:227rpx; border-radius:31rpx; margin-right:15rpx; } /* ds-ok 原型 .tstrip img 168×118 / radius 16 / gap 8 */
+.trow{ display:flex; align-items:center; gap:19rpx; margin-top:35rpx; } /* ds-ok 原型 .row gap 10px / 上 18px */
+.ph1--tight{ margin-top:15rpx; } /* ds-ok 原型 .h1 在这屏是 margin-top:8px */
+.ptag{ display:inline-block; font-size:21rpx; font-weight:700; padding:8rpx 17rpx; border-radius:15rpx; } /* ds-ok 原型 .tag 11px/700 / padding 4px 9px / radius 8 */
+.ptag--city{ background:#132A1C; color:#4ADE80; } /* ds-ok 城市定向绿,与地图点位同一对 */
+.ptag--free{ background:#3467AE; color:#FFFFFF; } /* ds-ok 原型 h-topic 的 tagBg/tagFg */
+.tstats{ display:flex; gap:19rpx; margin-top:31rpx; background:#101418; border-radius:31rpx; padding:27rpx 31rpx; } /* ds-ok 原型 .tstats gap 10 / 上 16 / #101418 / radius 16 / padding 14 16 */
+.tstats__c{ flex:1; text-align:center; }
+.tstats__v{ display:block; font-size:37rpx; font-weight:800; color:#FFFFFF; } /* ds-ok 原型 .tstats .v 19px/800 */
+.tstats__l{ display:block; margin-top:10rpx; font-size:21rpx; color:#6A7282; } /* ds-ok 原型 .tstats .l 11px #6A7282 / 上 5px */

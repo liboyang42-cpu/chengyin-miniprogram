@@ -1,0 +1,339 @@
+@import '../../../style/merchant-light.wxss';
+
+.cu-page {
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--cy-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.cu-head {
+  padding: 0 var(--cy-page-x);
+}
+
+/* Figma 23:195：导航只负责返回；页面标题与真实客户总数独立成 Hero。 */
+.cu-hero {
+  padding: 44rpx 40rpx 0; /* ds-ok: Figma 25:124 x=20, title y=119 */
+}
+.cu-hero-title {
+  display: block;
+  font-size: 52rpx; /* ds-ok: Figma 25:124 页面标题 26px */
+  font-weight: 700;
+  line-height: 1.35; /* ds-ok: 小程序 text 在紧行高下会裁中文上沿 */
+  color: var(--cy-text-title);
+}
+.cu-hero-sub {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: 24rpx; /* ds-ok: Figma 25:124 副标题 12px */
+  color: var(--cy-text-secondary);
+}
+.cu-search {
+  padding: 0 24rpx; /* ds-ok: Figma 搜索框 x=12 */
+}
+
+/* CU-M-101 / CU-M-121:原来是 flex-wrap + justify-content:flex-end,四个同层工具
+   在窄屏换行后错落(「更多筛选」居中、「批量标签」偏左、两枚黑底靠右)。
+   改成等宽两列规则网格:永远成组、对齐,不必横向滚动也能全部可达。 */
+.cu-toolbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-2);
+}
+.cu-tool, .cu-inline-button {
+  min-height: 64rpx;
+  margin: 0;
+  padding: 0 var(--cy-space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card);
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-caption);
+  line-height: 1;
+}
+.cu-tool {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+}
+.cu-tool::after, .cu-inline-button::after { border: 0; }
+.cu-inline-button--primary { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }
+.cu-filter, .cu-batch, .cu-export {
+  margin-top: var(--cy-space-2);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.cu-filter-title { display: block; margin: var(--cy-space-2) 0 var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cu-filter-title:first-child { margin-top: 0; }
+.cu-filter-options { display: flex; gap: var(--cy-space-2); }
+.cu-filter-chip, .cu-saved-item {
+  display: inline-block;
+  margin-right: var(--cy-space-2);
+  padding: var(--cy-space-1-5) var(--cy-space-2-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-page);
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-caption);
+  white-space: nowrap;
+}
+.cu-filter-chip--on { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }
+.cu-date-row { display: flex; align-items: center; gap: var(--cy-space-2); }
+.cu-date { min-width: 180rpx; padding: var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-bg-page); font-size: var(--cy-font-caption); color: var(--cy-text-body); text-align: center; }
+.cu-date-sep { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cu-tag-filter, .cu-saved { white-space: nowrap; }
+.cu-filter-actions { display: flex; justify-content: flex-end; margin-top: var(--cy-space-2); }
+.cu-save-segment { display: flex; align-items: center; gap: var(--cy-space-2); margin-top: var(--cy-space-2); }
+.cu-segment-input, .cu-batch-input { flex: 1; min-width: 0; height: 64rpx; padding: 0 var(--cy-space-2); box-sizing: border-box; border-radius: var(--cy-radius-md); background: var(--cy-bg-page); font-size: var(--cy-font-caption); color: var(--cy-text-title); }
+.cu-saved { margin-top: var(--cy-space-2); }
+.cu-batch { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cy-space-2); }
+.cu-batch-count { width: 100%; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cu-batch-error { width: 100%; font-size: var(--cy-font-caption); color: var(--cy-color-status-danger); }
+.cu-export { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-text-body); }
+/* ===== 分段:概览 + 筛选二合一 ===== */
+.cu-segs {
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 20rpx;
+  margin-bottom: 26rpx;
+  padding: 0 40rpx; /* ds-ok: Figma chip x=20 */
+  white-space: nowrap;
+  /* CU-M-99:横滑可以停在任意像素,于是"回头客"会被屏幕边缘切成半颗。
+     按整颗标签吸附停靠,并让吸附点落在内容边缘(与上面 padding 同值)而不是屏幕边缘。 */
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 40rpx; /* ds-ok: 与 .cu-segs 左内距同源 */
+  scroll-padding-right: 40rpx; /* ds-ok: 同上,右侧末颗标签也要能整颗停住 */
+}
+
+.cu-seg {
+  display: inline-flex;
+  align-items: center;
+  height: 66rpx;
+  margin-right: 16rpx;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card);
+  scroll-snap-align: start;
+}
+
+.cu-seg--manage {
+  margin-left: var(--cy-space-2);
+}
+
+/* 选中态用实心反白,不靠描边 —— 一排 chip 里描边太弱,扫一眼看不出选了哪个 */
+.cu-seg--on {
+  background: var(--cy-btn-solid-bg);
+}
+
+.cu-seg-lbl {
+  font-size: 26rpx; /* ds-ok: Figma chip 13px */
+  color: var(--cy-text-body);
+}
+
+.cu-seg--on .cu-seg-lbl {
+  color: var(--cy-btn-solid-fg);
+}
+
+/* ===== 名单:密集行 + 分隔线,不是一行一张卡 =====
+   商家扫一屏要能看十几个人。卡片版一屏只放得下三个,翻页翻到手酸。 */
+.cu-scroll {
+  flex: 1;
+  min-height: 0;
+  margin-top: var(--cy-space-4);
+}
+
+.cu-sync {
+  display: block;
+  margin: 0 var(--cy-page-x) var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.cu-inline-state { display: block; margin: 0 var(--cy-page-x) var(--cy-space-3); }
+
+/* 白底给到内层而不是 scroll-view:给 scroll-view 的话,只剩一两行时
+   白色会一直铺到屏幕底,看着像块没画完的空板。 */
+.cu-list { background: transparent; }
+
+.cu-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 24rpx;
+  min-height: 186rpx;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+.cu-check {
+  width: 40rpx;
+  height: 40rpx;
+  margin-top: 18rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid var(--cy-border-card);
+  border-radius: 50%;
+  box-sizing: border-box;
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-caption);
+}
+.cu-check--on { border-color: transparent; background: transparent; color: var(--cy-btn-solid-bg); }
+
+/* 分隔线只画在行与行之间,最后一行不留悬空线 */
+.cu-row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 152rpx;
+  right: 40rpx;
+  bottom: 0;
+  height: 1rpx;
+  background: var(--cy-border-card);
+}
+
+.cu-avatar { flex-shrink: 0; }
+
+.cu-body { flex: 1; min-width: 0; }
+
+/* 姓名 + 分层同一行。 */
+.cu-line1 {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+}
+
+.cu-name {
+  font-size: 30rpx; /* ds-ok: Figma 名称 15px */
+  font-weight: 700;
+  color: var(--cy-text-title);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 「最近发生了什么」——比一串计数好读:讲的是一件事,不是几个数 */
+.cu-action {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* CU-M-161:备注和脱敏电话原来挤在同一行 flex 里 —— 电话那一坨(含 88rpx 复制热区)
+   不伸缩,长备注被压成"审查样例：偏好清淡饮品；下…"。备注是识别客户的主信息,
+   让它独占一行,电话另起一行。 */
+.cu-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6rpx;
+  min-width: 0;
+  margin-top: var(--cy-space-1);
+}
+
+.cu-phone-row {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.cu-phone {
+  display: inline-block;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.cu-copy {
+  position: relative;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cu-copy::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+
+.cu-copy-img { width: 30rpx; height: 30rpx; }
+
+.cu-note {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-label);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 拿不到电话时的原因说明。压到 caption 档 —— 它是解释,不是内容 */
+.cu-nophone {
+  width: 100%;
+  min-width: 0;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* ===== 分层标记 =====
+   不做填充色块。密集列表里每行挂一个 chip 是纯噪音,而且色块底会吃掉自己文字的
+   对比度:代进商家主题实算,amber-700 落在同色系软底(合成后 #F2ECE2)上只有
+   4.46:1,落在 --cy-bg-card-2(#EEEEEE)上 4.51:1,都在 4.5 这条线上打转。
+   直接落在白色行底上是 amber 5.24:1 / red 5.00:1,干净又过 AA。
+   ⚠️ 顺带:--cy-color-status-warning-strong 在 merchant-light 里根本没定义,
+   写了等于没颜色 —— token 名对不代表颜色对。 */
+.cu-tier {
+  flex-shrink: 0;
+  padding: 2rpx 12rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-card-2);
+  font-size: var(--cy-font-micro);
+  color: var(--cy-text-secondary);
+}
+
+.cu-arrow {
+  flex: none;
+  align-self: center;
+  color: var(--cy-text-secondary);
+}
+
+/* 底部留白:动作条是 fixed,列表滚到底时最后一行不能被它压住。
+   CU-M-100:这一档还要能装下"已全部显示"的收口行,所以按内容排布,不再只是空高。 */
+.cu-foot {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: var(--cy-space-3) var(--cy-page-x) 0;
+}
+.cu-foot-txt {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* CU-M-148:空态/错误态不在 scroll-view 里,底栏 fixed 又不占文档流,
+   展开筛选后 CTA 会被 Home Indicator 截住 —— 这一支要自己让出底栏高(含安全区)。 */
+.cu-state-clear {
+  box-sizing: border-box;
+  padding-bottom: var(--cy-comp-footer-h);
+}

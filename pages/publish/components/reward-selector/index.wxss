@@ -1,0 +1,203 @@
+:host { display: block; }
+
+.reward-selector {
+  padding: 24rpx 0;
+  border-top: 2rpx solid var(--cy-color-border-subtle);
+}
+
+.reward-selector__meta,
+.reward-selector__field,
+.reward-sheet__none,
+.reward-sheet__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reward-selector__meta { margin-bottom: var(--cy-legacy-14); }
+
+.reward-selector__label {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+}.reward-selector__occasion, .reward-sheet__sub, .reward-sheet__loading {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+}
+
+.reward-selector__field {
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+  padding: 0 var(--cy-legacy-22);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.reward-selector__value {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+}
+
+.reward-selector__value.is-placeholder { color: var(--cy-color-text-tertiary); }
+
+.reward-selector__arrow {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-title);
+  line-height: 1;
+}
+
+.reward-sheet { padding-bottom: 8rpx; }
+
+.reward-sheet__none,
+.reward-sheet__item {
+  min-height: 112rpx;
+  padding: 16rpx 0;
+  box-sizing: border-box;
+  border-bottom: 2rpx solid var(--cy-color-border-subtle);
+}
+
+.reward-sheet__copy { display: flex; flex-direction: column; gap: var(--cy-space-1); min-width: 0; }
+
+.reward-sheet__name {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+}
+
+.reward-sheet__check {
+  color: var(--cy-color-selection);
+  font-size: var(--cy-type-caption);
+  flex: none;
+}.reward-sheet__loading { padding: 40rpx 0; text-align: center; }
+
+.reward-sheet__footer {
+  display: flex;
+}
+
+/* ===== 创建优惠券 / 体验卡(半屏 sheet 内容) ===== */
+.create-form { padding-bottom: var(--cy-space-2); }
+.create-field { padding: var(--cy-space-2-5) 0; }
+.create-field__label {
+  margin-bottom: var(--cy-space-2);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+}
+.create-field__req { color: var(--cy-color-status-danger); margin-left: 4rpx; }
+.create-row {
+  display: flex;
+  gap: var(--cy-space-3);
+}
+.create-row .create-field {
+  flex: 1;
+  min-width: 0;
+}
+.create-field__input {
+  width: 100%;
+  height: var(--cy-btn-h);
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-3-5);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+}
+.create-field__textarea {
+  width: 100%;
+  height: 128rpx;
+  box-sizing: border-box;
+  padding: var(--cy-space-2-5) var(--cy-space-3-5);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+}
+.create-field__placeholder,
+.create-picker__placeholder { color: var(--cy-color-text-secondary); }
+.create-field__number {
+  height: var(--cy-btn-h);
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-3-5);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+  display: flex;
+  align-items: center;
+}
+.create-field__number .create-field__input { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.create-field__icon {
+  flex: none;
+  color: var(--cy-color-text-secondary);
+}
+.create-date {
+  height: var(--cy-btn-h);
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-3-5);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-label);
+}
+.create-date__range { display: flex; align-items: center; min-width: 0; white-space: nowrap; }
+.create-date__ph { color: var(--cy-color-text-secondary); }
+.create-date__sep { margin: 0 var(--cy-space-1-5); color: var(--cy-color-text-secondary); }
+.create-picker {
+  height: var(--cy-btn-h);
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-3-5);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+}
+.create-picker__arrow { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-section-title); }
+.create-picker--fixed { color: var(--cy-color-text-secondary); }
+
+.create-footer {
+  display: flex;
+  align-items: center;
+  --cy-bg-subtle: var(--cy-color-bg-surface-subtle);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }
+
+/* 优惠券 / 体验卡 两档筛选(2026-09-08)。用 chip 而不是 cy-tabs:
+   这里是「筛列表」不是「切内容区」,全站 chip 就是干这个的。 */
+.reward-sheet__kinds {
+  display: flex;
+  gap: var(--cy-space-2);
+  padding: 0 0 var(--cy-space-3);
+}
+
+.reward-sheet__kind {
+  min-height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-font-body);
+}
+
+.reward-sheet__kind.is-on {
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+}

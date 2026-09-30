@@ -1,0 +1,35 @@
+:host { display: block; height: 100%; }
+
+/* 集邮册 · 照原型 f-sticker 逐条搬(1px = 1.923rpx)。
+   2026-09-10 用户裁决:漫游四模式不跟小程序 UI 规则走 —— 原来那套纸白「收藏夹」皮肤
+   (Figma 220:1388)整个退场,这里直接坐在原型的黑半屏上。
+   原型没有的那几样(空/错/加载三态、续读、相机入口)保留,它们是接口带来的真状态。 */
+.album-body { position: relative; min-height: 100%; box-sizing: border-box; padding-bottom: 38rpx; color: #FFFFFF; } /* ds-ok 原型 .sheet 正文,底 20px */
+.album-sub { display: block; margin: 12rpx 0 0; font-size: 25rpx; color: #8A93A0; } /* ds-ok 原型 .sub 13px / --t2 */
+
+.stkgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15rpx; margin-top: 27rpx; } /* ds-ok 原型 .stkgrid gap 8px / 上 14px */
+.stkcell { position: relative; aspect-ratio: 1; border-radius: 23rpx; overflow: hidden; background: #141A22; } /* ds-ok 原型 .stkcell radius 12 / #141A22 */
+.stkcell__img { width: 100%; height: 100%; display: block; }
+/* 票面底部那一行:原型压的是地名,现码压的是投票人写的那一句(≤30 字,机审过)。 */
+.stkcell__cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 27rpx 15rpx 12rpx; font-size: 19rpx; font-weight: 700; color: #FFFFFF; background: linear-gradient(transparent, rgba(0, 0, 0, .75)); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* ds-ok 原型 .stkcell span */
+.stkcell--lock { border: 2rpx dashed rgba(255, 255, 255, .16); background: transparent; display: flex; align-items: center; justify-content: center; } /* ds-ok 原型 .stkcell--lock */
+.stkcell__lock-t { font-size: 19rpx; font-weight: 700; color: #6E7176; } /* ds-ok 原型 .stkcell--lock span */
+
+.album-mini { display: block; margin-top: 15rpx; font-size: 21rpx; color: #5B6472; } /* ds-ok 原型 .mini 11px / --t3 */
+
+/* —— 以下是原型没有、接口带来的真状态,配色跟着黑半屏走 —— */
+.album-empty { padding-top: 160rpx; text-align: center; }
+.album-empty__title, .album-empty__sub { display: block; }
+.album-empty__title { color: #FFFFFF; font-size: 33rpx; } /* ds-ok 跟随原型 .sheet 的白字 */
+.album-empty__sub { margin-top: 12rpx; color: #8A93A0; font-size: 25rpx; } /* ds-ok 同 .sub */
+.album-empty__cta { display: inline-flex; align-items: center; justify-content: center; min-height: 88rpx; margin-top: 58rpx; padding: 0 46rpx; border-radius: 999rpx; background: #FFFFFF; color: #111111; font-size: 29rpx; font-weight: 700; } /* ds-ok 原型 .btn.w */
+.album-more { padding: 31rpx; color: #8A93A0; font-size: 21rpx; text-align: center; } /* ds-ok 原型 .mini 口径 */
+.album-more--error { color: #FFFFFF; } /* ds-ok 跟随原型 .sheet 的白字 */
+.album-load-more { min-height: 88rpx; margin-top: 23rpx; display: flex; align-items: center; justify-content: center; border-radius: 999rpx; background: #1A1A1A; color: #FFFFFF; font-size: 29rpx; font-weight: 700; } /* ds-ok 原型 .btn.s */
+.album-fab { position: sticky; bottom: 23rpx; z-index: 2; width: 88rpx; height: 88rpx; margin: 23rpx 0 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #FFFFFF; color: #111111; } /* ds-ok 原型 .btn.w 同一对黑白 */
+.album-state { display: flex; flex-direction: column; flex: 1; justify-content: center; }
+
+.album-fab--press { opacity: 0.72; }
+.album__press { opacity: .72; }
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。 */
+.cy-pressed { opacity: .88; }

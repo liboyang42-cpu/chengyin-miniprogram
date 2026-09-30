@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-btn": "/components/cy/btn/index"
+  },
+  "styleIsolation": "isolated"
+}

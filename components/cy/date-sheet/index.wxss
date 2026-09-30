@@ -1,0 +1,134 @@
+:host { display: block; }
+
+/* 根:全屏定位层 = 遮罩 + 贴底面板。2026-08-25 之前这里只有面板本身,
+   上半屏没有任何遮挡,选时间时能点穿到背后的页面。 */
+.ds {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cy-z-sheet);   /* T9:底部面板档 */
+  display: flex;
+  align-items: flex-end;
+  color: var(--cy-text-body);
+}
+
+.ds__mask {
+  position: absolute;
+  inset: 0;
+  background: var(--cy-color-overlay);
+  animation: ds-fade-in var(--cy-motion-slow) var(--cy-ease-out);
+}
+
+/* 复刻 .pop-model 底部面板(common.wxss),视觉与 2026-08-25 之前一致 */
+.ds-pop {
+  position: relative;
+  /* CU-C-166 根因:面板可见的底画在 .ds-pop::before(z-index:-1)上,而 .ds-pop 原来
+     z-index:auto 不构成层叠上下文 ⇒ 这一档负数直接掉到 .ds 这个上下文的最底层,
+     被同层的 .ds__mask 压在下面。实拍就是「滚轮内容是亮的、上面那行操作是灰的」:
+     picker-view 自带上下文所以浮在遮罩上,普通流里的标题行没有。
+     给 .ds-pop 定 0 档,整块面板(底 + 顶部操作)一起回到遮罩之上。 */
+  z-index: 0;
+  width: 100%;
+  border-radius: var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0;
+  padding: 0 40rpx env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  animation: ds-up var(--cy-motion-slow) var(--cy-ease-out);  /* T3:浮层出入=slow+减速收尾 */
+}
+.ds-pop::before {
+  content: "";
+  position: absolute; left: 0; top: 0; z-index: -1;
+  width: 100%; height: 100%;
+  /* ⚠️ 2026-08-27:这里原来写死 rgba(245,246,243,.7) —— 一个浅色字面量。
+     全站默认主题是深色,于是这块面板在纯黑页上渲染成浅灰,像另一个 App 弹出来的
+     (cy-time-range 实拍即如此)。--cy-comp-sheet-bg 是 cy-sheet 一直在用的那个
+     主题感知 token,深/浅两套都已就位 —— 面板底色跟主题走,不再各写各的。 */
+  background: var(--cy-comp-sheet-bg);
+  backdrop-filter: blur(32rpx);
+  /* 24px 档跟面板 .ds-pop 同值:这层就是面板可见的底,弧与壳两档半径会露怯 */
+  border-radius: var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0;
+  box-shadow: 0px 8rpx 64rpx 0px rgba(0, 0, 0, 0.16);
+}
+
+/* 减动效:直接就位,不播 */
+.ds--reduced-motion .ds-pop { animation: none; }
+.ds--reduced-motion .ds__mask { animation: none; }
+
+/* 退场:show 置 false 后 JS 挂 .ds--closing 播完再卸载(见 index.js 的 exitMotion(220))。
+   进场 ds-up 用 slow(350)、退场用 standard(220) —— DS 文档3 §B.1「进场慢、退场快」。 */
+.ds--closing { pointer-events: none; }
+.ds--closing .ds-pop { animation: ds-down var(--cy-motion-standard) var(--cy-ease-out) forwards; }
+.ds--closing .ds__mask { animation: ds-fade-out var(--cy-motion-standard) var(--cy-ease-out) forwards; }
+
+/* 复刻 .pop-top(2026-09-24 CU-M-149 起与 cy-sheet 头部同构:标题在左、✕ 在右上角) */
+.ds-top {
+  position: relative;
+  display: flex; align-items: center;
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+  padding: 24rpx 0 8rpx;
+  font-size: var(--cy-font-subtitle); font-weight: bold;
+}
+/* 标题不许换行:它和右上角 ✕ 共处一行,一换行整条动作栏被撑高一倍,
+   「选择结束时间」实拍就断成了两行。右侧按 ✕ 热区整档预留,长标题收在省略号里。 */
+.ds-title {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding-right: var(--cy-btn-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+}
+/* ✕ 与 cy-sheet 的 .sh__close 同源:字形-only(§3.21 去圆底),热区仍是整块 --cy-btn-h */
+.ds-close {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-secondary);
+  background: transparent;
+  line-height: 1;
+}
+/* 完成:独立确认位,整宽主按钮(和 cy-sheet 的 footer CTA 同一档) */
+.ds-foot { display: flex; padding: var(--cy-space-3) 0 var(--cy-space-4); }
+
+/* 复刻 .david_tk(80vh 固定高度内容区) */
+/* 80vh → 50vh(2026-08-11):滚轮本身只有 ~300rpx,80vh 里有一多半是空的,
+   却把整个面板顶到微信胶囊上(实拍「完成」被胶囊压住)。
+   ⚠️ 高度必须是【确定值】不能改 auto —— 调用方的 .time-picker-view 是 height:100%,
+   父级一旦变成 auto 就塌成 0,滚轮直接消失。
+   overflow 保持 hidden:父级滚动会和内部 picker-view 抢手势。入驻经营时段靠压矮滚轮塞进 50vh。 */
+.ds-body { overflow: hidden; height: 50vh; margin: 0 -40rpx; padding: 0 40rpx; }
+
+.ds-pop--dark::before {
+  background: rgba(28, 28, 30, 0.96);
+  box-shadow: 0 8rpx 64rpx rgba(0, 0, 0, 0.45);
+}
+
+.ds-pop--dark .ds-title {
+  color: #ffffff;
+}
+
+/* 暗面 ✕ 走中性次级动作色(原来左上的「取消」用的就是这一档),
+   不跟「完成」主按钮塌成同一个语义。 */
+.ds-pop--dark .ds-close {
+  color: var(--cy-color-action-secondary-fg-on-dark);
+}
+
+@keyframes ds-up      { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes ds-down    { from { transform: translateY(0); }    to { transform: translateY(100%); } }
+@keyframes ds-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ds-fade-out{ from { opacity: 1; } to { opacity: 0; } }
+
+/* 同上:isolated 下全局 .cy-pressed 无效;遮罩只减淡不位移。 */
+.cy-pressed { opacity: .88; }
+.ds__mask--press { opacity: .86; }

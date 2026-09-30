@@ -1,0 +1,22 @@
+<cy-sheet show="{{show}}" handle="{{true}}" bind:close="onClose">
+  <view class="tw">
+    <view class="pk-eyebrow">{{eyebrow}}</view>
+    <view class="tw__head">
+      <view class="tw__badge">{{glyph}}</view>
+      <view class="tw__headcopy">
+        <view class="pk-title tw__title">{{title}}</view>
+        <view class="tw__window">开放时段 {{openFrom}} – {{openTo}}</view>
+      </view>
+    </view>
+    <view class="tw__count">
+      <text class="pk-figure tw__clock">{{clock}}</text>
+      <text class="tw__after">后开播 · 到点提醒我</text>
+    </view>
+  </view>
+  <view slot="footer" class="tw__cta">
+    <cy-btn variant="{{subscribed ? 'ghost' : 'primary'}}" disabled="{{subscribed}}" bindtap="onSubscribe">
+      <cy-icon name="bell" size="28" />
+      <text>{{subscribed ? '已订阅 · 到点会提醒你' : '订阅开播提醒'}}</text>
+    </cy-btn>
+  </view>
+</cy-sheet>

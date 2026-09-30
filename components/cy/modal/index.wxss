@@ -1,0 +1,217 @@
+/* cy-modal · 居中 Alert 确认弹窗(文档1 §6)
+ * 卡 640rpx / 圆角 32 / padding 40;标题居中 32;正文 28/1.6;
+ * 按钮左右:取消 secondary 左 · 主/危险 右,高 88rpx。色随主题。 */
+:host { display: block; }
+.mo {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cy-z-modal);        /* T9:弹窗档(压过 sheet 档) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mo__mask {
+  position: absolute;
+  inset: 0;
+  background: var(--cy-color-overlay);
+  animation: mo-fade-in var(--cy-motion-standard) var(--cy-ease-out); /* 遮罩淡入,和卡片弹出同步 */
+}
+.mo__card {
+  position: relative;
+  width: 640rpx;
+  box-sizing: border-box;
+  padding: var(--cy-btn-h) 40rpx 40rpx;   /* 顶格留出右上角 ✕ 的一整档热区,标题永不压到关闭键下 */
+  border-radius: var(--cy-radius-lg);
+  /* T2 面板走专用档:原来读 --cy-bg-card = #0A0A0B,压在 #000000 页底上几乎隐形
+   * (Brand Handbook 410-121 §⑥「P3 / P4 两处看不见」)。浅色域里这个 token 仍是白卡。 */
+  background: var(--cy-comp-modal-panel);
+  border: 2rpx solid var(--cy-border-card);
+  animation: mo-pop var(--cy-motion-standard) var(--cy-ease-out); /* T3:弹出收尾减速 */
+}
+/* 右上角关闭:字形-only(2026-09-02 §3.21 去圆底口径,与 cy-sheet 的 ✕ 同源),
+   热区仍是整块 --cy-btn-h(≥88rpx),去掉的是底色不是可点范围。 */
+.mo__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-secondary);
+  background: transparent;
+  line-height: 1;
+}
+.mo__title {
+  text-align: center;
+  font-size: var(--cy-font-subtitle);   /* 32rpx */
+  font-weight: 700;
+  color: var(--cy-text-title);
+  margin-bottom: var(--cy-space-3);
+}
+.mo__content {
+  text-align: center;
+  font-size: var(--cy-font-body);       /* 28rpx */
+  line-height: var(--cy-leading-normal);/* 1.6 */
+  color: var(--cy-text-body);
+  margin-bottom: var(--cy-space-5);
+}
+/* 2026-09-18 起按钮区固定两档:替代方案列(仅危险确认)在上、主按钮行在下;
+   主按钮行永远「取消左 / 确认右」横排。 */
+.mo__btns { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.mo__btn-row { display: flex; gap: var(--cy-space-2); }
+.mo__alt-col { display: flex; flex-direction: column; }
+.mo__btn {
+  flex: 1;
+  height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-lg);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  transition: opacity var(--cy-dur-fast) var(--cy-ease);
+}
+.mo__btn:active { opacity: .88; }
+.mo__btn--secondary {
+  /* 用户定：只有填充没有描边。与 cy-btn 的 secondary 同源（同一组 comp token），
+     原本是 transparent + 2rpx 描边，跟组件层不一致。 */
+  background: var(--cy-comp-btn-secondary-bg);
+  color: var(--cy-comp-btn-secondary-fg);
+}
+.mo__btn--primary { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }
+.mo__btn--danger  { background: var(--cy-danger); color: #fff; }
+@keyframes mo-pop {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+/* 退场:show 置 false 后 JS 挂 .mo--closing 播完再卸载(见 index.js show observer) */
+/* 退场比进场快一档:进场 mo-pop 用 standard(220),退场用 fast(140)。
+   DS 文档3 §B.1「进场慢、退场快」;时长在 index.js 的 exitMotion(140) 有镜像。 */
+.mo--closing { pointer-events: none; }
+.mo--closing .mo__card { animation: mo-pop-out var(--cy-motion-fast) var(--cy-ease-out) forwards; }
+.mo--closing .mo__mask { animation: mo-fade-out var(--cy-motion-fast) var(--cy-ease-out) forwards; }
+.mo--reduced-motion .mo__card { animation: none; }
+.mo--reduced-motion .mo__mask { animation: none; }
+@keyframes mo-pop-out {
+  from { transform: scale(1); opacity: 1; }
+  to   { transform: scale(.92); opacity: 0; }
+}
+@keyframes mo-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes mo-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }
+.mo__btn--primary.cy-pressed { background: var(--cy-color-text-secondary); }
+
+/* ===== 危险确认三段式(2026-08-27)=====
+ * 参考:Revolut Business 185(后果三条 + Freeze 替代方案)/ 118(不可逆一句话)/ 282(级联删除)、
+ *      Threads 78(三条后果)、Locals 63-64(红危险键 + 按钮内 loading)。
+ * 全部新增块在没传对应属性时不渲染,老的 13 个 cy-modal 调用点渲染结果不变。 */
+
+/* 后果清单卡:参考图里是弹窗底色上再叠一层更浅的卡,把三条后果框在一起 */
+.mo__consq {
+  background: var(--cy-bg-card-2);
+  border-radius: var(--cy-radius-md);
+  padding: var(--cy-space-3);
+  margin-bottom: var(--cy-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3);
+}
+.mo__consq-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-2-5);
+}
+/* icon 用 currentColor 取色,这里定的是整行的字色,icon 跟着走 */
+.mo__consq-icon {
+  flex: none;
+  color: var(--cy-text-secondary);
+}
+.mo__consq-text {
+  flex: 1;
+  text-align: left;              /* 后果是要读的,居中会更难扫 */
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-body);
+}
+
+/* 危险确认(2026-09-18 起横排):替代方案独占上方一行。
+   列向容器里 flex:1 会变成纵向拉伸,这里钉回自然高度。 */
+.mo__alt-col .mo__btn { flex: none; }
+
+/* 替代方案的一句解释:说清「更轻」轻在哪,否则用户看不出该选哪个 */
+.mo__alt-hint {
+  text-align: center;
+  font-size: var(--cy-font-caption);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-secondary);
+  margin-top: var(--cy-space-1);
+}
+
+/* 执行中:按钮变暗且不可点,文字换成转圈(Locals 64) */
+.mo__btn.is-loading { opacity: .72; }
+.mo__spinner {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 4rpx solid var(--cy-white-40);
+  border-top-color: currentColor;
+  animation: mo-spin 720ms linear infinite;
+}
+.mo--reduced-motion .mo__spinner { animation-duration: 2400ms; }
+@keyframes mo-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ===== T2 居中确认(compact,2026-09-02)=====
+ * Brand Handbook 弹层四型原口径是「没有顶栏、没有 ✕,只能点按钮」;
+ * 2026-09-24 用户统一规则改成【各类弹层关闭一律右上角 X,且各类型一致】,
+ * 所以 ✕ 与顶格预留和大卡共用,compact 只保留「没有顶栏」这一档差异。
+ * 窄卡 / 圆角收进 lg(见下) / bg-interactive,标题与正文左对齐(默认大卡是居中,这一档不是)。
+ * maskClosable 沿用组件默认 false,遮罩仍点不掉。
+ * ⚠️ 2026-09-02 截图对稿修正:稿上的 311/28/20/24/18 全是 **px**(画板 375 宽),写进 wxss 要 ×2。
+ *    上一版直接当 rpx 写,卡片只有 155px 宽 —— 正文挤成三行、两个按钮被压到 31px 宽,实测已断。 */
+.mo--compact .mo__card {
+  width: 622rpx;                    /* 稿 311px × 2 */
+  padding: var(--cy-btn-h) 40rpx 48rpx;   /* 顶格同大卡:右上角 ✕ 的一档热区,标题不压到关闭键下 */
+  border-radius: var(--cy-radius-lg);     /* 2026-09-19 用户裁决:稿 18px×2 收进 lg 档,与大卡同档 */
+  background: var(--cy-bg-interactive);
+  border: 0;
+}
+.mo--compact .mo__title {
+  text-align: left;
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-color-text-primary);
+  margin-bottom: var(--cy-space-2-5);   /* 稿 标题→正文 10px × 2 */
+}
+.mo--compact .mo__content {
+  text-align: left;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-color-text-secondary);
+  margin-bottom: var(--cy-space-4);     /* 稿 正文→按钮 16px × 2 */
+}
+.mo--compact .mo__btns { gap: var(--cy-space-3); }   /* 稿 12px × 2 = 24rpx */
+.mo--compact .mo__btn {
+  height: var(--cy-btn-h);                           /* 稿 44px × 2 = 88rpx */
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-label);
+}
+.mo--compact .mo__btn--secondary {
+  background: var(--cy-color-bg-glass);
+  color: var(--cy-color-text-primary);
+}
+.mo--compact .mo__btn--danger { background: var(--cy-color-status-danger); }

@@ -1,0 +1,106 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="角色与权限" subtitle="{{activitySubtitle}}" safe-top="{{false}}" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="4" />
+  <!-- 2026-08-26:权限拒绝原来和加载失败共用一个 error 态,渲染成「暂时不可用 + 重新加载」——
+       给了一个永远点不成功的重试按钮,用户不会知道是权限问题。现在拆成三条。 -->
+  <cy-error wx:elif="{{state === 'no-permission'}}" fill size="lg" retry=""
+            title="你没有管理角色的权限" sub="{{errorText || '只有主理人可以分配角色。想帮忙管角色,让主理人先把你提为主理人。'}}" auto-back />
+  <cy-error wx:elif="{{state === 'network-error'}}" title="网络连接失败" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+  <cy-error wx:elif="{{state === 'error'}}" title="角色管理暂时不可用" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+  <cy-empty wx:elif="{{state === 'empty'}}" fill size="lg" title="还没有可委派的成员" sub="先邀请成员加入俱乐部，再为他们分配运营角色。" />
+
+  <block wx:elif="{{state === 'ready'}}">
+    <!-- Figma 290:393「当前委派」——主理人固定第一行(全部权限,不可撤销)，
+         后面接实际委派；单卡 + 发丝分隔，撤销收进描述行内联文字。 -->
+    <view class="section">
+      <text class="section-title">当前委派</text>
+      <view class="ds-card">
+        <view class="row">
+          <view class="row-text">
+            <text class="row-title">{{ownerName || '主理人'}}</text>
+            <text class="row-desc">全部权限，不可撤销</text>
+          </view>
+          <text class="row-value row-value--primary">主理人</text>
+        </view>
+        <view class="row" wx:for="{{assignments}}" wx:key="id">
+          <view class="row-text">
+            <text class="row-title">{{item.memberName}}</text>
+            <text class="row-desc">{{item.roleSummary}}{{item.expiresText}} · <text
+              class="row-link {{actingKey ? 'row-link--disabled' : ''}}" catchtap="revokeRole"
+              data-id="{{item.id}}" data-version="{{item.version}}"
+              aria-role="button" aria-label="撤销 {{item.memberName}} 的 {{item.roleName}}"
+              aria-disabled="{{actingKey !== ''}}"
+              hover-class="{{actingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">撤销</text></text>
+          </view>
+          <text class="row-value row-value--primary">{{item.roleName}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 稿 R1 290:393:分配区是一个标题 + 一张三行卡 + 一个「分配」大按钮,
+         不是拆成带编号的两节。成员与角色都收进行内选择器,选中的名字显示在行右侧。 -->
+    <view class="section">
+      <text class="section-title">分配固定角色</text>
+      <text class="section-caption">选择成员后，从下方分配一个固定角色</text>
+      <view class="ds-card">
+        <view class="row" bindtap="openMemberPicker" aria-role="button"
+          aria-label="选择成员" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="row-title">选择成员</text>
+          <text class="row-pick">{{selectedMemberName || '未选择'}}</text><cy-icon class="row-pick-arrow" name="slide-arrow" size="28" />
+        </view>
+        <view class="row" bindtap="openRolePicker" aria-role="button"
+          aria-label="选择角色" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="row-title">角色</text>
+          <text class="row-pick">{{selectedRoleName || '未选择'}}</text><cy-icon class="row-pick-arrow" name="slide-arrow" size="28" />
+        </view>
+      </view>
+      <view class="assign-btn {{(!selectedMemberId || !selectedRoleCode || actingKey) ? 'disabled' : ''}}"
+        bindtap="assignRole" aria-role="button"
+        aria-disabled="{{!selectedMemberId || !selectedRoleCode || actingKey !== ''}}"
+        hover-class="{{(!selectedMemberId || !selectedRoleCode || actingKey) ? 'none' : 'cy-pressed'}}"
+        hover-stay-time="80">分配</view>
+      <cy-empty wx:if="{{members.length === 0}}" size="sm" title="还没有可委派的成员" sub="先邀请成员加入俱乐部，再为他们分配运营角色。" />
+    </view>
+
+    <text class="page-note">撤销角色要二次确认；撤销后该成员立即失去对应入口。</text>
+  </block>
+</view>
+</view>
+
+<cy-sheet show="{{memberPickerVisible}}" title="选择成员" closable maskClosable bind:close="closeMemberPicker">
+  <view class="picker">
+    <view class="picker-row {{selectedMemberId == item.memberId ? 'picker-row--on' : ''}}"
+      wx:for="{{members}}" wx:key="memberId" data-member-id="{{item.memberId}}" bindtap="pickMember"
+      aria-role="button" aria-pressed="{{selectedMemberId == item.memberId}}"
+      aria-label="选择成员 {{item.nickname}}" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-avatar size="72" src="{{item.avatar || '/images/d_profile.png'}}" name="{{item.nickname}}" />
+      <text class="picker-name">{{item.nickname}}</text>
+      <text class="picker-mark">{{selectedMemberId == item.memberId ? '已选' : '选择'}}</text>
+    </view>
+    <cy-empty wx:if="{{members.length === 0}}" size="sm" title="还没有可委派的成员" sub="先邀请成员加入俱乐部。" />
+  </view>
+</cy-sheet>
+
+<cy-sheet show="{{rolePickerVisible}}" title="选择角色" closable maskClosable bind:close="closeRolePicker">
+  <view class="picker">
+    <view class="picker-row {{selectedRoleCode === item.roleCode ? 'picker-row--on' : ''}}"
+      wx:for="{{roles}}" wx:key="roleCode" data-role-code="{{item.roleCode}}" bindtap="pickRole"
+      aria-role="button" aria-pressed="{{selectedRoleCode === item.roleCode}}"
+      aria-label="选择角色 {{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="picker-text">
+        <text class="picker-name">{{item.name}}</text>
+        <text class="picker-desc">{{item.summary}}</text>
+      </view>
+      <text class="picker-mark">{{selectedRoleCode === item.roleCode ? '已选' : '选择'}}</text>
+    </view>
+  </view>
+</cy-sheet>
+
+<!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key -->
+<cy-danger-confirm id="dc" bind:confirm="onConfirmRevokeRole" />

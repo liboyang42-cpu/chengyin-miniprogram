@@ -1,0 +1,162 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-predict · 竞猜转盘(逐值照抄原型 playkit.html 的 .ring / .rcard / .sl / .fc) */
+.pd {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+  padding: calc(env(safe-area-inset-top) + 180rpx) 44rpx 260rpx;   /* 底部给按钮和提示各留一档 */
+  box-sizing: border-box;
+  text-align: center;
+  color: var(--ink);
+}
+.pd__q { font-size: var(--cy-type-sheet-title); font-weight: 800; line-height: 1.35; }   /* ds-ok 原型 .hdr .t 23px */
+
+.pd__ring {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  perspective: 2000rpx;                    /* ds-ok 原型 1000px */
+  perspective-origin: 50% 50%;
+}
+.pd__inner {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 0; height: 0;
+  transform-style: preserve-3d;
+}
+/* 支架:0×0,只负责角度与缩放。preserve-3d 会把子元素的 translateZ 一起缩,
+   所以整条弧是等比长大的,竖条不会互相错开。 */
+.pd__card {
+  position: absolute;
+  left: 0; top: 0;
+  width: 0; height: 0;
+  transform-style: preserve-3d;
+}
+.pd__sl { position: absolute; left: 0; top: 0; overflow: hidden; }
+.pd__fc {
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  border-radius: 32rpx;                    /* ds-ok 原型 16px */
+  border: 4rpx solid #ffffff;              /* ds-ok */
+  background: #0c0c10;                     /* ds-ok */
+  color: #f4f4f6;                          /* ds-ok */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 34rpx;                          /* ds-ok 原型 17px */
+  text-align: left;
+}
+.pd__k {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-caption);
+  font-weight: 800;
+  letter-spacing: .2em;
+  color: #6f6f78;                          /* ds-ok */
+}
+.pd__l { font-size: var(--cy-type-section-title); font-weight: 900; line-height: 1.2; }   /* ds-ok 原型 19px */
+.pd__m { font-size: var(--cy-type-caption); font-weight: 600; color: #6f6f78; }     /* ds-ok */
+
+/* 彩色描边只属于**被选中**那张。它跟 .pd__fc 一样是整张卡的尺寸、被竖条各裁一段,
+   所以渐变是连着走完整张卡的,不是每条各来一遍。 */
+.pd__edge {
+  position: absolute;
+  left: -4rpx; top: -4rpx; right: -4rpx; bottom: -4rpx;
+  border-radius: 34rpx;  /* ds-ok 转盘与火漆印,逐值照原型 */
+  padding: 5rpx;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+  background: linear-gradient(148deg, #ff6ea9, #5b8cff 36%, #a06bff 62%, #ff9d6e);   /* ds-ok */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);  /* ds-ok 转盘与火漆印,逐值照原型 */
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);  /* ds-ok 转盘与火漆印,逐值照原型 */
+  mask-composite: exclude;
+}
+/* 彩边亮起来的同时把本体那圈素描边收掉,不然彩边外面还套一圈灰线 */
+/* 卡在转,按下去要有回应。只减淡不动位置 —— 位置是转盘算出来的,
+   按一下把它挪走会让人以为自己拨动了转盘。 */
+.pd__card--press { opacity: .82; }
+.pd__card.is-sel .pd__fc { border-color: transparent; }
+.pd__card.is-sel .pd__edge { opacity: 1; }
+
+.pd__hint {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: calc(env(safe-area-inset-bottom) + 190rpx);
+  z-index: 6;
+  text-align: center;
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  color: var(--sub);
+  letter-spacing: .06em;
+}
+
+/* 揭晓块。压在转盘和按钮之间那条空里,不挤进转盘 ——
+   转盘还要继续转(玩家得看得见自己押的是哪一张)。 */
+.pd__reveal {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: calc(env(safe-area-inset-bottom) + 176rpx);
+  z-index: 6;
+  padding: 28rpx 32rpx;
+  border-radius: 28rpx;  /* ds-ok 转盘与火漆印,逐值照原型 */
+  background: rgba(255, 255, 255, .06);                 /* ds-ok 竞猜屏是近黑底 */
+  text-align: center;
+}
+.pd__reveal-h {
+  font-size: var(--cy-type-body);
+  font-weight: 800;
+  color: #f4f4f6;                                       /* ds-ok */
+}
+.pd__reveal-t {
+  margin-top: 10rpx;
+  font-size: var(--cy-type-label);
+  line-height: 1.6;
+  color: #9a9aa2;                                       /* ds-ok */
+}
+/* 中没中只靠一行字说不清 —— 给它一条颜色边。绿=中,红=没中,灰=作废 */
+.pd__reveal--won  { box-shadow: inset 0 0 0 2rpx #12a06f; }   /* ds-ok */
+.pd__reveal--lost { box-shadow: inset 0 0 0 2rpx #d0323b; }   /* ds-ok */
+.pd__reveal--void { box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, .18); }  /* ds-ok 转盘与火漆印,逐值照原型 */
+
+/* 押定的火漆印。红蜡一坨,边缘不规则(蜡本来就压不圆),里面一圈凹进去的环和一个字。
+   逐值照原型 .pvseal(88px / right 16% / top 23%)。 */
+.pd__seal {
+  position: absolute; right: 16%; top: 23%; z-index: 40;
+  width: 176rpx; height: 176rpx; pointer-events: none;
+  animation: pd-seal .7s cubic-bezier(.2, 1.25, .35, 1) forwards;
+}
+.pd__seal-wax {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  border-radius: 47% 53% 50% 50% / 52% 47% 53% 48%;
+  background: radial-gradient(62% 62% at 36% 30%, #ec5a61, #c22a32 54%, #8a141b 100%);  /* ds-ok 照原型火漆色 */
+  box-shadow: 0 16rpx 32rpx rgba(0, 0, 0, .5), inset 0 -8rpx 16rpx rgba(80, 8, 12, .55),  /* ds-ok 转盘与火漆印,逐值照原型 */
+              inset 0 8rpx 16rpx rgba(255, 255, 255, .24);  /* ds-ok 转盘与火漆印,逐值照原型 */
+}
+.pd__seal-rim {
+  position: absolute; left: 20rpx; right: 20rpx; top: 20rpx; bottom: 20rpx;
+  border-radius: 50%; border: 4rpx solid rgba(255, 255, 255, .18);  /* ds-ok 转盘与火漆印,逐值照原型 */
+  box-shadow: inset 0 4rpx 10rpx rgba(90, 10, 14, .6), 0 2rpx 0 rgba(255, 255, 255, .14);  /* ds-ok 转盘与火漆印,逐值照原型 */
+}
+.pd__seal-ch {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-type-page-title); font-weight: 900; color: #9e1c24;                                   /* ds-ok 照原型 30px */
+  text-shadow: 0 2rpx 0 rgba(255, 255, 255, .22), 0 -2rpx 2rpx rgba(70, 6, 10, .7);  /* ds-ok 转盘与火漆印,逐值照原型 */
+}
+@keyframes pd-seal {
+  0%   { opacity: 0; transform: translateY(-140rpx) rotate(-18deg) scale(2.5); }
+  42%  { opacity: 1; transform: translateY(0) rotate(-11deg) scale(.84) scaleY(.74); }
+  62%  { transform: translateY(0) rotate(-11deg) scale(1.06) scaleY(1.04); }
+  100% { opacity: 1; transform: translateY(0) rotate(-11deg) scale(1); }
+}
+/* 减动效:章还在(它是「押定了」这条信息),只是不砸下来 */
+.pd--reduced .pd__seal { animation: none; transform: rotate(-11deg); }

@@ -1,0 +1,16 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "创建主题",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "cy-card": "/components/cy/card/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-progress-status": "/components/cy/progress-status/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  }
+}

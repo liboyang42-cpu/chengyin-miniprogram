@@ -1,0 +1,7 @@
+<view class="album" wx:if="{{show}}">
+  <text class="album__title">{{title || '相册'}}</text>
+  <cy-album-glass class="album__glass" images="{{images}}" cur="{{cur}}" bind:change="onChange" />
+  <text class="album__line">{{images[cur].line}}</text>
+  <text class="album__count">{{cur + 1}} / {{images.length}}</text>
+  <view class="album__back" bindtap="close" aria-role="button" aria-label="收起相册" hover-class="album__back--press" hover-stay-time="80">收起相册</view>
+</view>

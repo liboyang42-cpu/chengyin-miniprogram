@@ -1,0 +1,31 @@
+<cy-sheet show="{{show}}" handle="{{true}}" dirty="{{!!value}}"
+          bind:close="onClose" bind:requestclose="onRequestClose">
+  <view class="dn">
+    <view class="pk-eyebrow">{{eyebrow}}</view>
+    <view class="dn__top">
+      <view class="dn__shot">
+        <image wx:if="{{photoUrl}}" class="dn__shot-img" src="{{photoUrl}}" mode="aspectFill"
+               aria-role="img" aria-label="你刚拍下的作品" />
+        <cy-icon wx:else class="dn__shot-ph" name="camera" size="56" />
+      </view>
+      <view class="pk-title dn__title">{{title}}</view>
+    </view>
+
+    <input class="dn__input" value="{{value}}" placeholder="给它起个名字"
+           placeholder-class="dn__input-ph" maxlength="{{maxLength}}"
+           confirm-type="done" bindinput="onInput" />
+
+    <view class="dn__sub">猫向导递来几个备选：</view>
+    <view class="dn__chips">
+      <view class="dn__chip" wx:for="{{suggestions}}" wx:key="*this"
+            data-name="{{item}}" bindtap="onPickSuggestion"
+            aria-role="button" aria-label="用备选名 {{item}}"
+            hover-class="cy-pressed" hover-stay-time="80">「{{item}}」</view>
+    </view>
+  </view>
+  <view slot="footer" class="dn__cta">
+    <cy-btn variant="primary" loading="{{submitting}}" disabled="{{!value}}" bindtap="onSubmit">
+      {{ctaLabel}}
+    </cy-btn>
+  </view>
+</cy-sheet>

@@ -1,0 +1,251 @@
+/* Atlys Roadmap 信息骨架；色彩、字阶和动效只消费城瘾 token。 */
+:host {
+  display: block;
+  flex: 1;
+  min-height: 0;
+}
+
+.roadmap {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  color: var(--cy-comp-play-roadmap-text);
+  background: var(--cy-comp-play-roadmap-bg);
+}
+
+.roadmap__scroll { height: 100%; }
+.roadmap__head {
+  position: relative;
+  min-height: calc(var(--cy-space-8) * 3);
+  padding: var(--cy-space-2) var(--cy-page-x) 0 calc(var(--cy-page-x) + var(--cy-space-5));
+  box-sizing: border-box;
+  animation: roadmap-title-in var(--cy-motion-slow) var(--cy-ease-out) both;
+}
+.roadmap__progress {
+  width: fit-content;
+  min-height: var(--cy-btn-h-xs);
+  padding: 0 var(--cy-space-2-5);
+  border: 1rpx solid var(--cy-comp-play-roadmap-accent);
+  border-radius: var(--cy-radius-pill);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+  color: var(--cy-comp-play-roadmap-cta-fg);
+  background: var(--cy-comp-play-roadmap-accent);
+  font-size: var(--cy-type-caption);
+}
+.roadmap__progress-dot {
+  width: var(--cy-space-2);
+  height: var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-comp-play-roadmap-cta-fg);
+  box-shadow: 0 0 var(--cy-space-2) var(--cy-comp-play-roadmap-accent-soft);
+}
+.roadmap__eyebrow {
+  display: block;
+  margin-top: var(--cy-space-5);
+  color: var(--cy-comp-play-roadmap-muted);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+}
+.roadmap__title {
+  display: block;
+  max-width: calc(100% - var(--cy-space-4));
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-page-title);
+  font-weight: 700;
+  line-height: var(--cy-leading-tight);
+}
+.roadmap__path {
+  position: absolute;
+  /* 2026-09-18 UI-20 返修:时间线只留一条竖线,竖线中线 = 章节卡左缘(= head 左内边距 page-x+space-5)
+     = 站点圆点中线(序号列 space-4 + 轨道列 space-4 的中心)。原来的 C 形(左+上+下边框)会在章节卡
+     左上角拐出一个框,且左边框停在 page-x、和卡片/圆点各偏一条线。 */
+  left: calc(var(--cy-page-x) + var(--cy-space-5) - 2rpx);
+  bottom: 0;
+  width: 4rpx;
+  height: calc(var(--cy-space-8) * 2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-comp-play-roadmap-accent);
+  transform-origin: top;
+  animation: roadmap-path-in var(--cy-motion-slow) var(--cy-ease-out) both;
+}
+.roadmap__path-tail {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  width: 4rpx;
+  height: var(--cy-space-6);
+  border-radius: 0 0 var(--cy-radius-pill) var(--cy-radius-pill);
+  background: var(--cy-comp-play-roadmap-accent);
+}
+
+.roadmap__steps { padding: 0 var(--cy-page-x); }
+.roadmap__node {
+  display: grid;
+  /* 2026-09-18 UI-20 返修:轨道列中线必须落在章节卡左缘(page-x+space-5)。序号列 + 轨道列
+     都是 space-4 时,圆点中线 = page-x+space-4+space-4/2 = page-x+space-5。原来两列都是
+     space-5,圆点在 page-x+72rpx,比卡片左缘(space-5)偏右 24rpx。 */
+  grid-template-columns: var(--cy-space-4) var(--cy-space-4) minmax(0, 1fr);
+  min-height: calc(var(--cy-space-8) * 2);
+  opacity: 0;
+  transform: translateY(var(--cy-space-2));
+  animation: roadmap-node-in var(--cy-motion-standard) var(--cy-ease-out) both;
+}
+.roadmap__number {
+  padding-top: var(--cy-space-1);
+  text-align: center;
+  color: var(--cy-comp-play-roadmap-text);
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+}
+.roadmap__rail { position: relative; display: flex; justify-content: center; }
+.roadmap__marker {
+  position: relative;
+  z-index: 1;
+  width: var(--cy-space-3);
+  height: var(--cy-space-3);
+  margin-top: var(--cy-space-1);
+  border: 4rpx solid var(--cy-comp-play-roadmap-line);
+  border-radius: var(--cy-radius-pill);
+  box-sizing: border-box;
+  background: var(--cy-comp-play-roadmap-bg);
+}
+.roadmap__marker-core {
+  position: absolute;
+  inset: var(--cy-legacy-4);
+  border-radius: var(--cy-radius-pill);
+  background: transparent;
+}
+.roadmap__segment {
+  position: absolute;
+  top: var(--cy-space-4);
+  bottom: 0;
+  width: 4rpx;
+  background: var(--cy-comp-play-roadmap-accent);
+}
+.roadmap__copy {
+  min-width: 0;
+  padding: 0 0 var(--cy-space-5) var(--cy-space-2);
+}
+.roadmap__state {
+  display: block;
+  color: var(--cy-comp-play-roadmap-accent);
+  font-size: var(--cy-type-caption);
+  font-weight: 700;
+}
+.roadmap__name {
+  display: block;
+  margin-top: var(--cy-space-1);
+  color: var(--cy-comp-play-roadmap-text);
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: var(--cy-leading-tight);
+}
+.roadmap__body {
+  display: block;
+  margin-top: var(--cy-space-1);
+  color: var(--cy-comp-play-roadmap-muted);
+  font-size: var(--cy-type-body);
+  line-height: var(--cy-leading-normal);
+}
+.roadmap__node--active .roadmap__marker,
+.roadmap__node--done .roadmap__marker {
+  border-color: var(--cy-comp-play-roadmap-accent);
+}
+.roadmap__node--active .roadmap__marker {
+  box-shadow: 0 0 0 var(--cy-space-1) var(--cy-comp-play-roadmap-accent-soft);
+  animation: roadmap-current-in var(--cy-motion-celebrate) var(--cy-ease-out) both;
+}
+.roadmap__node--active .roadmap__marker-core,
+.roadmap__node--done .roadmap__marker-core {
+  background: var(--cy-comp-play-roadmap-accent);
+}
+.roadmap__node--active .roadmap__segment,
+.roadmap__node--done .roadmap__segment { background: var(--cy-comp-play-roadmap-accent); }
+.roadmap__node--locked .roadmap__segment { background: var(--cy-comp-play-roadmap-accent-fade); }
+
+/* 路线流光(Figma Anim/路线流光,node 42:294 / 42:305)
+ * 稿里是两帧关键帧:一道亮点在路线段上换位置。这里做成沿段向下循环的高光,
+ * 只在**走过的**路段亮(done/active)—— 未解锁的路不该有"正在通电"的暗示。 */
+.roadmap__shimmer {
+  position: absolute;
+  left: -4rpx;
+  width: 12rpx;
+  height: 56rpx;
+  border-radius: var(--cy-radius-pill);
+  background: linear-gradient(to bottom, transparent, var(--cy-comp-play-roadmap-accent), transparent);
+  opacity: 0;
+}
+/* 自己一个循环节奏:借 --cy-motion-flight-cycle(FocusFlight 单轮时间轴)会把两个
+   不相干功能的节奏焊死,以后改 FocusFlight 会连带改流光速度 */
+.roadmap__node--done .roadmap__shimmer,
+.roadmap__node--active .roadmap__shimmer {
+  opacity: 1;
+  animation: roadmap-shimmer var(--roadmap-shimmer-cycle, 5200ms) var(--cy-ease-out) infinite;
+}
+@keyframes roadmap-shimmer {
+  0%   { transform: translateY(-56rpx); opacity: 0; }
+  18%  { opacity: 1; }
+  82%  { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+.roadmap__node--locked { opacity: .55; }
+.roadmap__end-space { height: calc(var(--cy-btn-h) + var(--cy-space-8)); }
+
+.roadmap__footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--cy-space-6) var(--cy-page-x) calc(var(--cy-space-3) + env(safe-area-inset-bottom));
+  background: linear-gradient(to bottom, transparent, var(--cy-comp-play-roadmap-bg) var(--cy-space-6));
+  opacity: 0;
+  transform: translateY(var(--cy-space-2));
+  animation: roadmap-footer-in var(--cy-motion-standard) var(--cy-ease-out) both;
+}
+.roadmap__cta {
+  min-height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-comp-play-roadmap-cta-fg);
+  background: var(--cy-comp-play-roadmap-accent);
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  transition: transform var(--cy-motion-press) var(--cy-ease-out);
+}
+.roadmap__cta--pressed { transform: scale(.98); }
+
+.roadmap--reduced-motion .roadmap__head,
+.roadmap--reduced-motion .roadmap__path,
+.roadmap--reduced-motion .roadmap__node,
+.roadmap--reduced-motion .roadmap__footer,
+.roadmap--reduced-motion .roadmap__node--active .roadmap__marker {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+.roadmap--reduced-motion .roadmap__cta { transition: none; }
+/* 减动效:流光整条撤掉。它是纯装饰,没有"降级版"可留 */
+.roadmap--reduced-motion .roadmap__shimmer { animation: none; opacity: 0; }
+
+@keyframes roadmap-title-in {
+  from { opacity: 0; transform: translateY(var(--cy-space-2)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes roadmap-path-in {
+  from { opacity: 0; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+@keyframes roadmap-node-in {
+  to { opacity: 1; transform: none; }
+}
+@keyframes roadmap-footer-in {
+  to { opacity: 1; transform: none; }
+}
+@keyframes roadmap-current-in {
+  from { box-shadow: 0 0 0 0 var(--cy-comp-play-roadmap-accent-soft); }
+  to { box-shadow: 0 0 0 var(--cy-space-1) var(--cy-comp-play-roadmap-accent-soft); }
+}

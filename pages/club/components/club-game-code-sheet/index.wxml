@@ -1,0 +1,32 @@
+<!-- 出示团码(Figma s7SEFaoJ3GQUIxJhdqcFUb / 335:1275)
+     T1 底部弹层:抓手条 + 标题左 / ✕ 右 + 二维码卡 + 主题名 + 保存到相册。
+     ⚠️ 有些玩法需要**把码打印出来**贴在站点上,所以底部那个下载图标不是装饰 ——
+        它是这张稿存在的理由,不能省。 -->
+<cy-scene-sheet show="{{show}}" variant="half" title="{{title}}" closable maskClosable bind:close="onClose">
+  <view class="cgcs">
+    <view class="cgcs__card">
+      <!-- 出码 / 生成中:码图或占位,尺寸按稿。 -->
+      <view wx:if="{{state !== 'error'}}" class="cgcs__qr {{state !== 'ready' ? 'is-placeholder' : ''}}">
+        <image wx:if="{{state === 'ready' && qr}}" class="cgcs__qr-img" src="{{qr}}" mode="aspectFit" show-menu-by-longpress />
+        <text wx:elif="{{state === 'loading'}}" class="cgcs__qr-hint">正在生成…</text>
+      </view>
+      <!-- CU-C-148:错误态不再复用那张 518×516 的码格 —— 那个尺寸是给「能扫的码」留的物理空间,
+           没码时它就是一整块空白,把半屏弹层撑得接近满屏,正文被挤得在「重/试」中间硬折行。
+           改成一条按内容高的错误说明 + 重试,占位高交给文案自己,不再是死格子。 -->
+      <view wx:else class="cgcs__error">
+        <text class="cgcs__error-text">{{errorText || '团码暂时没能生成，请稍后重试'}}</text>
+        <view class="cgcs__retry" bindtap="onRetry"
+              aria-role="button" aria-label="重新出码" hover-class="cy-pressed" hover-stay-time="80">重试</view>
+      </view>
+
+      <text class="cgcs__name">{{name}}</text>
+
+      <!-- 稿 335:1347:24×24 download。只在真有码时才给,否则存下来是张空白图。 -->
+      <view wx:if="{{state === 'ready' && qr}}" class="cgcs__save" bindtap="onSave"
+            aria-role="button" aria-label="保存游戏码到相册，可打印后贴在站点"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="download" size="48" />
+      </view>
+    </view>
+  </view>
+</cy-scene-sheet>

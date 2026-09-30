@@ -1,0 +1,19 @@
+{
+  "B14": [
+    { "method": "openJournal", "waitMs": 2600 }
+  ],
+  "B15": [
+    { "method": "onComplete", "args": [1001, {}] },
+    {
+      "method": "openStory",
+      "args": [{ "currentTarget": { "dataset": { "id": 1001, "step": "第 1 站" } } }],
+      "waitMs": 2600
+    }
+  ],
+  "B16": [
+    { "method": "onComplete", "args": [1001, {}] },
+    { "method": "onComplete", "args": [1002, {}] },
+    { "method": "onComplete", "args": [1003, {}] },
+    { "method": "onComplete", "args": [1004, { "completed": true }], "waitMs": 2600 }
+  ]
+}

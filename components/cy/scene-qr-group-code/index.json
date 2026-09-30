@@ -1,0 +1,11 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-qr-voucher": "/components/cy/qr-voucher/index"
+  },
+  "styleIsolation": "isolated"
+}

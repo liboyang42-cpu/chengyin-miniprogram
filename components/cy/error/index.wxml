@@ -1,0 +1,13 @@
+<!-- autoBack:整页失败只剩原因 + 自动返回,原位留一块空白占住版面,不画第二套错误页 -->
+<block wx:if="{{autoBack}}">
+  <view aria-hidden="true" class="cy-error-veil {{fill ? 'cy-error--fill' : ''}}"></view>
+  <cy-result-sheet show="{{_sheet}}" kind="fail" title="{{title}}" why="{{sub}}" bind:close="onAutoBack" />
+</block>
+<view class="cy-error {{fill ? 'cy-error--fill' : ''}} {{size === 'lg' ? 'cy-error--lg' : ''}}" wx:else
+      aria-role="alert" aria-live="polite" aria-label="{{aria || title}}{{!aria && sub ? '，' + sub : ''}}">
+  <image wx:if="{{icon}}" class="cy-error-ic" src="{{icon}}" mode="widthFix" aria-hidden="true" />
+  <view class="cy-error-title">{{title}}</view>
+  <view wx:if="{{sub}}" class="cy-error-sub">{{sub}}</view>
+  <view wx:if="{{retry}}" class="cy-error-retry" hover-class="cy-error-retry--press" hover-stay-time="80" aria-role="button" aria-label="{{retryLabel}}" bindtap="onRetry">{{retryLabel}}</view>
+  <view wx:if="{{secondary}}" class="cy-error-secondary" hover-class="cy-error-secondary--press" hover-stay-time="80" aria-role="button" aria-label="{{secondary}}" bindtap="onSecondary">{{secondary}}</view>
+</view>

@@ -1,0 +1,2 @@
+/* 壳只留页面 chrome;详情卡样式已随内容搬进 subpackageMember/components/scene-member-participation-detail。 */
+.mycanyuinfo-page{ min-height:100vh; }

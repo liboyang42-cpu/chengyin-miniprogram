@@ -1,0 +1,24 @@
+<view class="sts {{show ? 'sts--on' : ''}} {{reduced ? 'sts--reduced' : ''}}" wx:if="{{show}}">
+  <!-- 压暗层:Scale+Dim 的 Dim 半边(Scale 半边由页面根节点加 class 完成) -->
+  <view class="sts__scrim" bindtap="onClose" aria-role="button" aria-label="关闭剧情" hover-class="cy-pressed" hover-stay-time="80"></view>
+
+  <view class="sts__panel" catchtap="noop" style="{{panelTop === null ? '' : 'top:' + panelTop + 'px'}}">
+    <view class="sts__nav" style="padding-top:{{closeTop === null ? 0 : closeTop}}px;">
+      <view class="sts__nav-copy">
+        <text class="sts__step" wx:if="{{step}}">{{step}}</text>
+        <text class="sts__title serif">{{title}}</text>
+      </view>
+      <view class="sts__close" bindtap="onClose" data-testid="story-sheet-close" aria-role="button" aria-label="关闭{{title}}" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+    </view>
+
+    <scroll-view class="sts__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+      <!-- 剧情配图 hero:没有配图就整块不出现,不塞占位图 -->
+      <view class="sts__hero" wx:if="{{cover}}">
+        <image class="sts__hero-img" src="{{cover}}" mode="aspectFill" />
+        <view class="sts__hero-scrim"></view>
+      </view>
+      <view class="sts__p serif" wx:for="{{paras}}" wx:key="index">{{item}}</view>
+      <view class="sts__pad"></view>
+    </scroll-view>
+  </view>
+</view>

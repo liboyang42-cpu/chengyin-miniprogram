@@ -1,0 +1,1411 @@
+{
+  "_purpose": "人工核实后的断言修正，优先级高于 _gen_selectors.js 的自动推断。生成器每次跑都会合并这里。",
+  "_why_needed": "生成器只能按「页面里哪个类带 wx:if 又显眼」来挑锚点，遇到多分支页面会挑反。挑反的断言恒红，比没有断言更糟——它会把好页判成坏页。",
+  "A01": {
+    "selector": ".v3-nearby-card, .v2-fitem",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ]
+  },
+  "A02": {
+    "selector": "cy-skeleton",
+    "min": 1,
+    "_why": "首页 loading 必须进入同构 feed-card 骨架，旧 .loading-more 与首载无关。"
+  },
+  "A03": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "A04": {
+    "selector": ".v3-hero-hi",
+    "min": 1,
+    "forbid": [
+      ".v3-hero-mem"
+    ]
+  },
+  "A05": {
+    "selector": ".square, .theme-dark, .sq-page, .pop",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ]
+  },
+  "A06": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "A07": {
+    "selector": "cy-skeleton",
+    "min": 1
+  },
+  "A08": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "A09": {
+    "selector": "cy-post-card",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "广场列表允许游客浏览；A09 必须命中真实帖子正文，不能再注入页面不存在的 sessionExpired 并复用加载错误态。"
+  },
+  "A10": {
+    "selector": ".detail, .theme-dark",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A11": {
+    "selector": ".david_npl_right, .david_nplinu",
+    "min": 1
+  },
+  "A12": {
+    "selector": ".detail, .theme-dark",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A13": {
+    "selector": "cy-skeleton",
+    "min": 1
+  },
+  "A14": {
+    "selector": ".club-grid, .club-card",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A15": {
+    "selector": ".club-grid, .club-card",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A16": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "A17": {
+    "selector": ".club-card",
+    "min": 1,
+    "textIncludes": [
+      "外滩夜行俱乐部"
+    ]
+  },
+  "A22": {
+    "selector": ".li",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A23": {
+    "selector": ".hot-keys .li",
+    "min": 1,
+    "textIncludes": [
+      "外滩",
+      "夜行",
+      "示例灵感一",
+      "示例灵感二"
+    ],
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A24": {
+    "selector": ".hot-keys .li, .search-actions",
+    "min": 2,
+    "forbid": [
+      ".type-list"
+    ],
+    "_why": "类别为空要隐藏整个 type-list，同时保留运营搜索词和地图入口，不能拍成空壳。"
+  },
+  "A25": {
+    "selector": ".result-card",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton",
+      "cy-empty"
+    ],
+    "_why": "搜索正常态必须至少渲染一张当前合同的结果卡，页面根不能证明 visibleResults 有内容。"
+  },
+  "A26": {
+    "selector": ".result-card",
+    "min": 2,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton",
+      "cy-empty"
+    ],
+    "_why": "多结果态必须同时渲染两张卡，不能复用单卡或空态截图。"
+  },
+  "A27": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "A28": {
+    "selector": "cy-skeleton",
+    "min": 1,
+    "_why": "搜索首载使用 feed-card 骨架。"
+  },
+  "A30": {
+    "selector": ".smap-location-error",
+    "min": 1
+  },
+  "A31": {
+    "selector": ".smap-listbtn, .smap-listtip",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A32": {
+    "selector": ".pc-stats",
+    "min": 1
+  },
+  "A34": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "A35": {
+    "selector": ".pts-hero, cy-skeleton",
+    "min": 2,
+    "forbid": [
+      "cy-empty",
+      ".pts-loading"
+    ],
+    "_why": "积分任务半屏必须在 #profile 正文内同时命中统计头和加载骨架。"
+  },
+  "A36": {
+    "selector": ".pc-feed",
+    "min": 1,
+    "forbid": [
+      ".pc-achievement-metrics",
+      ".pc-about-head"
+    ]
+  },
+  "A37": {
+    "selector": ".pc-achievement-metrics",
+    "min": 1,
+    "forbid": [
+      ".pc-feed",
+      ".pc-about-head"
+    ]
+  },
+  "A38": {
+    "selector": ".pc-about-head",
+    "min": 1,
+    "forbid": [
+      ".pc-feed",
+      ".pc-achievement-metrics"
+    ]
+  },
+  "A39": {
+    "selector": ".signup, .flex-col, .davidwu",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ]
+  },
+  "A40": {
+    "selector": "cy-state-shell",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error"
+    ]
+  },
+  "A41": {
+    "selector": "swiper-item[aria-label^=\"已取消\"]",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ]
+  },
+  "A61": {
+    "selector": "cy-skeleton",
+    "min": 1,
+    "forbid": [
+      "cy-state-shell"
+    ],
+    "_why": "票夹加载态必须命中票券同构骨架，不能回退到通用 loading 状态壳。"
+  },
+  "A42": {
+    "selector": ".pc-page",
+    "min": 1,
+    "_why": "userinfo 只是 cy-profile 壳；必须在 #profile 组件内命中真实主页根，弱 view 无法阻止瞬时黑屏假绿。"
+  },
+  "A45": {
+    "selector": ".favorite-card",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "A48": {
+    "selector": ".favorite-refreshing, .c1-page-title, .favorite-card",
+    "min": 3,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "保留旧内容的刷新态必须同时出现非阻塞更新提示、标题与内容卡，不能退成整页骨架。"
+  },
+  "A52": {
+    "selector": ".shzlbox_li_left_txt_li, .shzlbox_li_left_ntu_li",
+    "min": 1
+  },
+  "A53": {
+    "selector": ".david_tk_box",
+    "min": 1
+  },
+  "A54": {
+    "selector": ".crop__missing",
+    "min": 1
+  },
+  "A56": {
+    "selector": ".agr-page",
+    "min": 1,
+    "weak": true
+  },
+  "A57": {
+    "selector": ".agr-page",
+    "min": 1,
+    "weak": true
+  },
+  "A58b": {
+    "selector": ".privacy-actions",
+    "min": 1
+  },
+  "A58": {
+    "selector": ".privacy-setting-title",
+    "min": 1,
+    "forbid": [
+      ".privacy-actions"
+    ]
+  },
+  "A59": {
+    "selector": "cy-cell",
+    "min": 3
+  },
+  "A60": {
+    "selector": ".dz_li",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ]
+  },
+  "B01": {
+    "selector": ".intro, .map-stack, .vignette",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-error"
+    ]
+  },
+  "B03": {
+    "selector": ".intro-permission",
+    "min": 1,
+    "_why": "漫游拒权必须命中显著权限恢复区，而不是恒真的 intro 页面壳。"
+  },
+  "B04": {
+    "selector": ".settle__track-empty",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error"
+    ],
+    "_why": "无轨迹证据必须命中真实结算分支的地图覆盖说明，不能复用漫游首屏。"
+  },
+  "B07": {
+    "selector": ".hs",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty"
+    ]
+  },
+  "B08": {
+    "selector": ".ss",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-error"
+    ]
+  },
+  "B09": {
+    "selector": "cy-empty",
+    "min": 1,
+    "_why": "scene-roam-session:9 的 .ss 是 wx:else 内容分支;本条 state 走的是 :6 的 cy-empty「找不到这次漫游」,原选择器与它相反。"
+  },
+  "B10": {
+    "selector": ".cc-missing",
+    "min": 1,
+    "forbid": [
+      "cy-qr-voucher"
+    ],
+    "_why": "缺参必须进入 state==='missing' 的 .cc-missing，不能把不存在的 empty 状态拍成 QR 加载占位。"
+  },
+  "B11": {
+    "selector": ".qr__error, .qr__err-retry",
+    "min": 2,
+    "assertTarget": "cy-qr-voucher",
+    "forbid": [
+      ".qr__card",
+      ".qr__secondary"
+    ],
+    "_why": "页面注入二维码错误，断言进入 cy-qr-voucher 内部的错误文案与重试动作。"
+  },
+  "B12": {
+    "selector": ".preview-back, .glass, .stage, .start-flight",
+    "min": 1,
+    "weak": true
+  },
+  "B13": {
+    "selector": ".fx-pack",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "自由探索 mode2 的首屏是镭射卡包 .fx-pack；城市定向的 .stage/.start-flight 分支在 mode2 下不会渲染。"
+  },
+  "B14": {
+    "selector": ".journal",
+    "min": 1
+  },
+  "B15": {
+    "selector": "cy-story-sheet",
+    "min": 1
+  },
+  "B16": {
+    "selector": ".finsheet",
+    "min": 1
+  },
+  "B18": {
+    "selector": ".activity-hero, .activity-section",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B19": {
+    "selector": ".activity-hero, .activity-action",
+    "min": 2,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B20": {
+    "selector": ".activity-hero, .activity-action",
+    "min": 2,
+    "viewportSelector": ".activity-action",
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B21": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "B22": {
+    "selector": ".setly_li--total, .bmbottom_box_gx",
+    "min": 2,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B23": {
+    "selector": ".submit-inline-error",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      ".load-state--error"
+    ]
+  },
+  "B25": {
+    "selector": "cy-skeleton",
+    "min": 1
+  },
+  "B26": {
+    "selector": ".setly_li--total, .bmbottom_box",
+    "min": 2
+  },
+  "B27": {
+    "selector": ".oe-card",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B28": {
+    "selector": ".oe-tabs, cy-empty",
+    "min": 2,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B29": {
+    "selector": ".oe-tabs, .oe-card",
+    "min": 2,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B30": {
+    "selector": ".od-fact, .od-reward-row",
+    "min": 3,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "结束态必须渲染活动统计与两条可读奖励，页面根 .od-page 不能证明 rewards 已被正确呈现。"
+  },
+  "B31": {
+    "selector": ".oi-card",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B32": {
+    "selector": ".om-card",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B35": {
+    "selector": ".gl-tpl",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B36": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "B37": {
+    "selector": ".detail-time, rich-text",
+    "min": 2,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B38": {
+    "selector": "cy-skeleton",
+    "min": 1
+  },
+  "B39": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "B43": {
+    "selector": ".mp-card",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B44": {
+    "selector": ".mp-card",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B45": {
+    "selector": ".ti-card",
+    "min": 1
+  },
+  "B46": {
+    "selector": ".fbox_sr",
+    "min": 1
+  },
+  "B48": {
+    "selector": ".pd-ai-topic__plan, .pd-field",
+    "min": 1
+  },
+  "B49": {
+    "selector": ".pop-chapter-settings.show, .chapter-atmosphere",
+    "min": 2,
+    "allowFlatDarkEdge": true,
+    "_why": "章节编辑是全宽深色抽屉，#2C2C2F 合法占满侧边；保留 frameException 后人工复核，不能按 DevTools 灰栏误杀。"
+  },
+  "B50": {
+    "selector": "#ticketSection, .slopes-tabbar",
+    "min": 2
+  },
+  "B51": {
+    "selector": ".simple-ai__chip text",
+    "min": 3,
+    "textIncludes": [
+      "老城建筑与咖啡",
+      "周末亲子探险",
+      "雨天室内漫游"
+    ],
+    "visibleMin": 3
+  },
+  "B52": {
+    "selector": ".cg-hero-body, .cg-count, .cg-label, .cg-card-head",
+    "min": 1
+  },
+  "B53": {
+    "selector": ".item-tit, .item-cont",
+    "min": 1
+  },
+  "B57": {
+    "selector": ".xb-page",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B58": {
+    "selector": "cy-skeleton",
+    "min": 1
+  },
+  "B59": {
+    "selector": ".cml-card",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B60": {
+    "selector": "cy-state-shell",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton"
+    ]
+  },
+  "B61": {
+    "selector": "cy-state-shell",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton"
+    ]
+  },
+  "B62": {
+    "selector": ".al-root, .theme-light",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "B63": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "B64": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "B66": {
+    "selector": ".bw-list-row",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ]
+  },
+  "B67": {
+    "selector": ".bw-empty-state",
+    "min": 1,
+    "viewNodeMin": 1
+  },
+  "B68": {
+    "selector": ".gc-metric-row, .gc-badge-row",
+    "min": 5
+  },
+  "B70": {
+    "selector": ".gc-score-rank",
+    "min": 1
+  },
+  "B71": {
+    "selector": ".gc-pod-name",
+    "min": 3,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      "cy-empty",
+      ".gc-state"
+    ]
+  },
+  "B72": {
+    "selector": ".gc-pod-name",
+    "min": 3,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      "cy-empty",
+      ".gc-state"
+    ]
+  },
+  "B73": {
+    "selector": ".gc-pod-name",
+    "min": 3,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      "cy-empty",
+      ".gc-state"
+    ]
+  },
+  "B74": {
+    "selector": ".gc-empty-board",
+    "min": 1
+  },
+ "B75": {
+  "selector": ".gc-error-board",
+    "min": 1
+  },
+  "C01": {
+    "selector": ".rv-revenue-amount, .rv-project-card, .rv-msg-item",
+    "min": 3,
+    "_why": "工作台正常态必须同时显示已确认收入、项目和消息，页面根不能证明首屏运营价值成立。"
+  },
+  "C02": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "C03": {
+    "selector": ".rv-console-error",
+    "min": 1,
+    "_why": "商家工作台失败在页内表达，整屏闸已删除。"
+  },
+  "C04": {
+    "selector": ".wizard-progress, .wizard-card, .wizard-actions",
+    "min": 3,
+    "forbid": [
+      ".status-card",
+      "cy-state-shell"
+    ],
+    "_why": "已填基础资料的可继续态必须保留步骤、表单卡和底部动作，并与 C06 的禁用态形成正负对照。"
+  },
+  "C05": {
+    "selector": ".frow",
+    "min": 1
+  },
+  "C06": {
+    "selector": ".wizard-progress, .wizard-actions",
+    "min": 2,
+    "forbid": [
+      ".status-card",
+      "cy-state-shell"
+    ]
+  },
+  "C07": {
+    "selector": ".fin-summary, .fin-row",
+    "min": 2,
+    "_why": "核销内容态必须消费 redemptionGroups，至少出现汇总与一条记录。"
+  },
+  "C08": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "C09": {
+    "selector": ".fin-hero, .fin-row",
+    "min": 3,
+    "_why": "结算内容态必须同时出现资金 hero、收入明细和对公批次。"
+  },
+  "C10": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "C12": {
+    "selector": ".tile, .mine-tile, .coop",
+    "min": 8,
+    "forbid": [
+      "cy-empty",
+      "cy-skeleton"
+    ]
+  },
+  "C12b": {
+    "selector": ".value-card, .ai-card",
+    "min": 2,
+    "_why": "店铺参谋正常态必须同时呈现基础经营事实与 AI 解读。"
+  },
+  "C12c": {
+    "selector": ".value-card, .ai-card--down",
+    "min": 2,
+    "_why": "AI 降级态仍必须保留基础经营事实，并显示可恢复的降级区。"
+  },
+  "C13": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "C14": {
+    "selector": ".rel-item",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "C15": {
+    "selector": ".rel-item",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "C18": {
+    "selector": ".cn-primary-action, .cn-reject-reason, .cn-node-code",
+    "min": 3,
+    "forbid": [
+      "cy-empty",
+      "cy-skeleton"
+    ]
+  },
+  "C19": {
+    "selector": ".cn-quota, cy-empty",
+    "min": 2,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "C20": {
+    "selector": ".dc-identity, .dc-card",
+    "min": 2,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "店铺装修 normal 态必须进入 loadState=ok && m 的 M2 行式正文；只锚页面根会把尚未入驻兜底误判成通过。"
+  },
+  "C21": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "C23": {
+    "selector": ".slide1, .topic-hero-meta",
+    "min": 2,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "详情态必须同时具备封面首屏与详情元信息，弱 .topic 只证明黑色页面壳存在。"
+  },
+  "C24": {
+    "selector": ".chart-tit, .topic-list .li",
+    "viewportSelector": ".topic-list .li",
+    "min": 2,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "路线态必须命中章节标题和至少一个路线节点，弱 .topic 只证明页面壳存在。"
+  },
+  "C25": {
+    "selector": "cy-empty",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "C26": {
+    "selector": ".cover-brief-title",
+    "min": 1,
+    "weak": true
+  },
+  "C27": {
+    "selector": ".det3",
+    "min": 1,
+    "weak": true
+  },
+  "C28": {
+    "selector": ".hero-status, .metrics, .card--flush",
+    "min": 3,
+    "assertTarget": "project-join",
+    "forbid": [
+      ".load-error",
+      ".reject"
+    ]
+  },
+  "C29": {
+    "selector": ".ma-form .ma-card",
+    "min": 3
+  },
+  "C30": {
+    "selector": ".drs",
+    "min": 1,
+    "assertTarget": "#availabilityDateRange"
+  },
+  "C38": {
+    "selector": ".frow",
+    "min": 1
+  },
+  "C39": {
+    "selector": ".body",
+    "min": 1,
+    "forbid": [
+      ".dots"
+    ]
+  },
+  "C40": {
+    "selector": ".cc-body, .cc-opt-body, .cc-opt-t",
+    "min": 1,
+    "weak": true
+  },
+  "C41": {
+    "selector": ".cc-body, .cc-chips",
+    "min": 1,
+    "weak": true
+  },
+  "C42": {
+    "selector": ".cc-field",
+    "min": 1
+  },
+  "C43": {
+    "selector": ".cc-field",
+    "min": 1
+  },
+  "C44": {
+    "selector": ".cover-wrap, cy-post-card",
+    "min": 2,
+    "forbid": [
+      ".error-state",
+      "cy-skeleton"
+    ],
+    "_why": "俱乐部成员态必须同时渲染 club Hero 与成员动态；只锚页面根会把 notFound 错误态误判成通过。"
+  },
+  "C45": {
+    "selector": ".cover-wrap, .cover-nav-act",
+    "min": 3,
+    "forbid": [
+      ".error-state",
+      "cy-skeleton"
+    ],
+    "_why": "主理人态必须同时渲染 Hero、分享和设置入口；退出俱乐部链接只属于普通成员，不能拿来断言主理人态。"
+  },
+  "C46": {
+    "selector": ".frow, .card, .operation-input",
+    "min": 1
+  },
+  "C47": {
+    "selector": ".team",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "C48": {
+    "selector": ".team",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "C49": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "C50": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "C51": {
+    "selector": ".session-picker",
+    "min": 1,
+    "weak": true
+  },
+  "C52": {
+    "selector": ".coop-list, .theme-merchant",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "C56": {
+    "selector": ".retry-lg",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      ".card"
+    ]
+  },
+  "C57": {
+    "selector": ".sh__panel",
+    "min": 1,
+    "assertTarget": "#inviteConfirmSheet"
+  },
+  "C58": {
+    "selector": ".fin-hero, .fin-row",
+    "min": 2,
+    "_why": "合作分润筛选内容态至少显示资金 hero 与一条合作收入。"
+  },
+  "C59": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "C60": {
+    "selector": ".stat-grid, .fc-card, .fc-explainer",
+    "min": 3,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "D01": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "D02": {
+    "selector": ".order-page, .order-tabs-wrap, .orderbox",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty",
+      "cy-skeleton"
+    ]
+  },
+  "D03": {
+    "selector": ".order-page, .order-tabs-wrap, .orderbox",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty",
+      "cy-skeleton"
+    ]
+  },
+  "D04": {
+    "selector": ".orderbox_li",
+    "min": 1,
+    "textIncludes": [
+      "进行中",
+      "69.00"
+    ],
+    "forbid": [
+      "cy-empty",
+      "cy-skeleton"
+    ]
+  },
+  "D05": {
+    "selector": "cy-skeleton",
+    "min": 1
+  },
+  "D07": {
+    "selector": ".david",
+    "min": 1,
+    "forbid": [
+      ".rs--fail",
+      ".order-load-loading"
+    ],
+    "_why": "订单深链壳的 ready 正文在 #orderDetail 内，退款态应命中 .david，不能拿壳的 .theme-dark 当恒真锚点。"
+  },
+  "D08": {
+    "selector": ".canyubox_li",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "D09": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "D10": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "D11": {
+    "selector": ".cyinfotop, .cyinfo2k, .cyinfozt",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "D12": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "D13": {
+    "selector": ".coupon-page, .theme-topic-editor, .david, .tkbg",
+    "min": 1,
+    "weak": true,
+    "forbid": [
+      "cy-empty"
+    ]
+  },
+  "D14": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "D15": {
+    "selector": ".fabu, .theme-topic-editor",
+    "min": 1,
+    "weak": true
+  },
+  "D16": {
+    "selector": ".cq-page",
+    "min": 1,
+    "weak": true
+  },
+  "D17": {
+    "selector": ".cq-done",
+    "min": 1
+  },
+  "D18": {
+    "selector": ".qr__error, .qr__err-retry",
+    "min": 2,
+    "assertTarget": "cy-qr-voucher",
+    "forbid": [
+      ".qr__card",
+      ".qr__secondary"
+    ]
+  },
+  "D19": {
+    "selector": ".txcon_top_je_qian, .txcon_ly_inp",
+    "min": 1
+  },
+  "D20": {
+    "selector": ".txcon_ly--filled",
+    "min": 1
+  },
+  "D21": {
+    "selector": ".txjl_li",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "D22": {
+    "selector": ".txjl-state",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error"
+    ],
+    "_why": "提现记录是 full-sheet 壳，empty DOM 与新状态容器 .txjl-state 都在 #withdrawHistory 内。"
+  },
+  "D23": {
+    "selector": ".ir-summary, .ir-group, .ir-row",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "邀请记录是 full-sheet 壳，列表正文位于 #inviteHistory 内。"
+  },
+  "D24": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "D25": {
+    "selector": ".cp-field",
+    "min": 1
+  },
+  "D27": {
+    "selector": ".li",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ]
+  },
+  "D28": {
+    "selector": ".id-item",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      "cy-empty"
+    ],
+    "_why": "收益明细的内容态要命中 #incomeDetail 内真实记录 .id-item，旧 .id-list 只是弱容器。"
+  },
+  "D29": {
+    "selector": ".id-item",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      "cy-empty"
+    ],
+    "_why": "品牌收益同样注入 #incomeDetail，并以真实记录节点而非旧弱容器断言。"
+  },
+  "D30": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "D31": {
+    "selector": "cy-error",
+    "min": 1
+  },
+  "D32": {
+    "selector": ".id-tabs, .id-state-fill",
+    "min": 2,
+    "forbid": [
+      ".id-item",
+      "cy-skeleton",
+      "cy-error",
+      "cy-scene-merchant-profit"
+    ],
+    "_why": "收益明细是深链壳，必须在 #incomeDetail 正文组件中同时命中筛选胶囊与无记录状态。"
+  },
+  "D33": {
+    "selector": ".ae-hero, .ae-section",
+    "min": 2,
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      "cy-empty"
+    ],
+    "_why": "earnings 正文组件已从 er-* 改为 ae-*；ready 态必须同时出现 hero 与 section。"
+  },
+  "D34": {
+    "selector": ".conv-wrap",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "D35": {
+    "selector": ".conv-wrap",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "D36": {
+    "selector": ".row, .bubble-wrap",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "D38": {
+    "selector": ".deregister-copy",
+    "min": 1,
+    "forbid": [
+      "cy-empty",
+      "cy-error"
+    ],
+    "_why": "资格态正文在 #deregisterFlow 内；只锚页面根会把核验失败误判成通过。"
+  },
+  "E02": {
+    "selector": ".od-loading",
+    "min": 1,
+    "_why": "官方活动失败必须进入任务相关状态容器，不能只锚暗色页面根。"
+  },
+  "E07": {
+    "selector": ".cnc-ok, .cnc-tpl-name, .cnc-addr",
+    "min": 3,
+    "forbid": [
+      ".cnc-err",
+      "cy-error",
+      "cy-skeleton"
+    ],
+    "_why": "据点报名正常态必须同时有已配置玩法和已确认店址；只锚 .cnc-page 会把店铺资料网络错误态误判成通过。"
+  },
+  "E17": {
+    "selector": ".slopes-chapter-block",
+    "min": 1,
+    "scrollSelector": ".slopes-sheet",
+    "viewportSelector": ".slopes-chapter-block"
+  },
+  "E26": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "F01": {
+    "selector": ".mp-empty__b",
+    "min": 1,
+    "viewNodeMin": 3
+  },
+  "F04": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "F02": {
+    "selector": ".b3__fallback",
+    "min": 1,
+    "forbid": [
+      ".b3__xr--loading"
+    ]
+  },
+  "F06": {
+    "selector": ".order-detail__state",
+    "min": 1,
+    "forbid": [
+      "cy-skeleton",
+      ".fin-hero"
+    ]
+  },
+  "E12": {
+    "selector": ".order-summary, .order-timeline",
+    "min": 2,
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "F07": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "F08": {
+    "selector": "cy-empty",
+    "min": 1
+  },
+  "F11": {
+    "selector": ".wallet-card",
+    "min": 1,
+    "assertPath": [
+      {
+        "selector": "cy-scene-deep-link",
+        "index": 0
+      },
+      {
+        "selector": "cy-scene-game-coupon-wallet",
+        "index": 0
+      }
+    ],
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      "cy-empty"
+    ],
+    "_why": "薄壳 normal 必须命中嵌套券夹的真实卡片，不能只验恒真的页面根或把网络错误态当成功。"
+  },
+  "F18": {
+    "selector": ".gn-info-row",
+    "min": 7,
+    "scrollSelector": ".gn-scroll",
+    "forbid": [
+      "cy-empty",
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "F21": {
+    "selector": "cy-empty",
+    "min": 2,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "F24": {
+    "selector": "cy-empty",
+    "min": 1,
+    "viewNodeMin": 7,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "F29": {
+    "selector": "cy-empty",
+    "min": 1,
+    "forbid": [
+      "cy-error",
+      "cy-skeleton"
+    ]
+  },
+  "F12": {
+    "selector": "cy-empty",
+    "min": 1,
+    "assertPath": [
+      {
+        "selector": "cy-scene-deep-link",
+        "index": 0
+      },
+      {
+        "selector": "cy-scene-roam-poi-detail",
+        "index": 0
+      }
+    ],
+    "forbid": [
+      "cy-skeleton",
+      "cy-error",
+      ".poi-body"
+    ]
+  }
+}

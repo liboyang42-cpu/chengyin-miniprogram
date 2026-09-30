@@ -1,0 +1,38 @@
+<view class="fmap-wrap">
+  <map id="fmap" class="fmap"
+       aria-role="img" aria-label="{{accessibilityLabel}}"
+       longitude="{{center.lng}}" latitude="{{center.lat}}" scale="{{scale}}"
+       markers="{{scene === 'explore' ? mapMarkers : markers}}"
+       polyline="{{mapPolyline}}" polygons="{{mapPolygons}}"
+       circles="{{scene === 'explore' ? mapCircles : circles}}"
+       show-location="{{false}}" enable-rotate="{{false}}" enable-overlooking="{{false}}"
+       enable-zoom="{{interactive}}" enable-scroll="{{interactive}}"
+       enable-poi="{{true}}" enable-building="{{false}}"
+       subkey="{{subkey}}" layer-style="{{layerStyle}}"
+       bindupdated="onUpdated" bindmarkertap="onMarkerTap"
+       bindregionchange="onRegionChange" bindpoitap="onPoiTap">
+    <cover-view slot="callout">
+      <cover-view wx:for="{{photoCallouts}}" wx:key="id" marker-id="{{item.id}}" class="fmap-photo">
+        <cover-image class="fmap-photo__image" src="{{item.imgUrl}}"></cover-image>
+        <cover-view class="fmap-photo__badge">{{item.num}}</cover-view>
+      </cover-view>
+    </cover-view>
+    <!-- 外层 = 真实命中区(横纵均 ≥88rpx = 44pt),内层 = 64rpx 高的「退出」文字胶囊。
+         tap 挂在外层,不是视觉层。⚠️「退出」二字是显式特殊控制的判据,不得收成裸箭头。 -->
+    <cover-view wx:if="{{showExit}}" class="fmap-exit-hit" style="top:{{exitTop}}px;" bindtap="onExitTap" aria-role="button" aria-label="退出游玩" hover-class="cy-pressed" hover-stay-time="80">
+      <cover-view class="fmap-exit">退出</cover-view>
+    </cover-view>
+  </map>
+  <canvas type="2d" id="iconcv" class="iconcv"></canvas>
+  <!-- 2026-08-04 减法:原来是「白文字胶囊 + 黑圆钮」三组两件套并排飘在地图上 = 6 个元素做 3 件事。
+       收成一条深色轨:定位单独一枚,缩放两枚并成一条(它们是同一件事的两个方向)。
+       可见中文标签去掉,读屏语义由 aria-label 承担(见 free-map-tools-label.test.js 的新契约)。 -->
+  <view class="fmap-ctrl" wx:if="{{showControls}}">
+    <view class="fmap-btn" bindtap="recenter" aria-role="button" aria-label="回到当前位置" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="gps" size="40" /></view>
+    <view class="fmap-zoom">
+      <view class="fmap-btn fmap-btn--flush" bindtap="zoomIn" aria-role="button" aria-label="放大地图" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="plus" size="40" /></view>
+      <view class="fmap-zoom__sep"></view>
+      <view class="fmap-btn fmap-btn--flush" bindtap="zoomOut" aria-role="button" aria-label="缩小地图" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="zoom-out" size="40" /></view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,23 @@
+{
+  "usingComponents": {
+    "cy-session-picker": "/pages/topic/components/cy/session-picker/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-modal": "/components/cy/modal/index",
+    "cy-consent-check": "/components/cy/consent-check/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-option-sheet": "/components/cy/option-sheet/index",
+    "cy-result-sheet": "/components/cy/result-sheet/index"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white"
+}

@@ -1,0 +1,6 @@
+/* cy-switch · 统一开关(2026-07-31 第8批新建,补项目里缺失的共享 switch 组件)。
+   微信原生 <switch> 各页原来各写各的尺寸(zoom:.7/.75/70% 混用),这里收成一个 token。
+   zoom 而非 transform:scale:transform 会连点击热区一起缩小到视觉框之外，
+   zoom 是唯一能让原生组件视觉与热区同步缩放的写法(该场景下的既有约定,非本组件发明)。 */
+:host { display: inline-block; }
+.cs { zoom: var(--cy-comp-switch-scale); }

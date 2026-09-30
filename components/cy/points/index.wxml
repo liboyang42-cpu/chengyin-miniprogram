@@ -1,0 +1,14 @@
+<view class="pt pt--{{size}} {{tappable ? 'pt--tappable' : ''}}" hover-class="{{tappable ? 'pt--press' : ''}}" hover-stay-time="80" bindtap="onTap">
+  <text wx:if="{{source}}" class="pt__source">{{source}}</text>
+  <view class="pt__main">
+    <text wx:if="{{_prefix}}" class="pt__prefix">{{_prefix}}</text>
+    <view wx:if="{{loading}}" class="pt__sk"></view>
+    <text wx:else class="pt__val">{{_val}}</text>
+    <text class="pt__unit">{{_unit}}</text>
+    <view wx:if="{{_delta}}" class="pt__delta pt__delta--{{state}}">
+      <cy-icon wx:if="{{state === 'pending'}}" name="clock" size="24" />
+      <text>{{_delta}}</text>
+    </view>
+  </view>
+  <text wx:if="{{subline && size === 'hero'}}" class="pt__subline">{{subline}}</text>
+</view>

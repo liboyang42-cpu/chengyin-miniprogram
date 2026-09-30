@@ -1,0 +1,78 @@
+:host { display: block; }
+
+.pv-sheet {
+  padding: var(--cy-space-2) 0 var(--cy-space-3);
+  color: var(--cy-text-title);
+}
+
+.pv-sheet__body {
+  display: block;
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-loose);
+}
+
+/* 城瘾无全站链接色 token(全局规范 §1.3):可点性由《书名号》+ 下划线表达,不自造淡紫链接色 */
+.pv-sheet__link {
+  margin-top: var(--cy-space-3-5);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+  text-decoration: underline;
+}
+
+.pv-sheet__title {
+  display: block;
+  margin-top: var(--cy-space-5);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 600;
+}
+
+.pv-sheet__sub {
+  display: block;
+  margin-top: var(--cy-space-1-5);
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+}
+
+.pv-sheet__action {
+  display: block;
+  margin-top: var(--cy-space-3);
+}
+
+/* 分享轨迹裁剪:一行开关 + 滑块 + 刻度(照 Any Distance 107.png 的信息顺序) */
+.pv-sheet__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--cy-space-3);
+}
+
+.pv-sheet__row-label {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+}
+
+.pv-sheet__slider {
+  margin-top: var(--cy-space-2);
+}
+
+.pv-sheet__ticks {
+  display: flex;
+  justify-content: space-between;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+
+.pv-sheet__warn {
+  display: block;
+  margin-top: var(--cy-space-2);
+  color: var(--cy-color-status-danger);
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

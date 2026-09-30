@@ -1,0 +1,64 @@
+/* H12 参与详情卡样式沿用原页面,只去掉页面 chrome(nav-bar / page-title,顶部交给 scene-sheet)。
+   面板底色由 .ss__panel 出,这里不重刷。 */
+:host { display: block; height: 100%; }
+.mci { width: 100%; min-height: 100%; box-sizing: border-box; }
+
+/* 根容器 flex column + 确定高度,是 cy-empty/cy-error 的 fill(flex:1)真正吃满"标题下方到
+   屏幕底部"剩余空间的前提(2026-07-31 总控根因修复:居中=剩余空间居中,不是整屏/贴顶)。 */
+.mci{ min-height: 100vh; display: flex; flex-direction: column;}
+.cyinfotop{ overflow: hidden; margin: var(--cy-space-4); display: flex; justify-content: space-between; align-items: flex-end;}
+/* 原 60rpx 超出 DS 字阶上限(display 56)—— 与本页 .cyinfobottom_sum_txt 的 16rpx 同类越界 */
+.cyinfotop_left{ width: 400rpx;  overflow: hidden; font-size: var(--cy-type-display); font-weight: bold; line-height: var(--cy-leading-tight);}
+.cyinfotop_right{ height: 100rpx; overflow: hidden;}
+.cyinfotop_right .mci-badge{ width: 252rpx; height: 48rpx; line-height: 48rpx; text-align: center; color: var(--cy-color-text-inverse); font-size: var(--cy-type-caption); font-weight: bold; border-radius: var(--cy-radius-sm); display: block; margin-bottom: var(--cy-legacy-4);}
+.cyinfotop_right .mci-badge.davidhei{ background: var(--cy-color-action-primary-bg);}
+.cyinfotop_right .mci-badge.davidhong{ background: var(--cy-color-status-warning);}
+
+.cyinfobox{ margin: var(--cy-space-4);}
+.cyinfobox_tw{overflow: hidden; border-bottom: 1rpx solid var(--cy-color-border-subtle); display: flex; justify-content: space-between; padding-bottom: var(--cy-space-2-5); margin-bottom: var(--cy-legacy-36);}
+.cyinfobox_tw_left{ width: 182rpx; height: 170rpx;flex-shrink: 0;}
+.cyinfobox_tw_left .mci-cover{width: 182rpx; height: 170rpx; vertical-align: top;}
+.cyinfobox_tw_right{ width: 384rpx; overflow: hidden;}
+/* R1-C04:mode/status 标签原为硬编码 <text> 实底(经典定向用 --cy-color-brand=紫,与全仓
+   去紫色化方向冲突)。改用 cy-badge(status 胶囊,浅底+语义色文字),不再自建第二套标签样式。 */
+.cyinfobox_tw_right_name{ overflow: hidden; display: flex; align-items: center; gap: var(--cy-space-1-5); margin-bottom: var(--cy-legacy-10);}
+.cyinfobox_tw_right_txt{  overflow: hidden; font-size: var(--cy-type-body); color: var(--cy-color-text-secondary); line-height: var(--cy-leading-normal);}
+.cyinfobox_con{ overflow: hidden; display: flex; justify-content: space-between; margin-top: 24rpx;}
+.cyinfobox_con_left{flex-shrink: 0; color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); margin-right: var(--cy-space-2-5);line-height: var(--cy-leading-normal);}
+.cyinfobox_con_left .mci-ico{ width: var(--cy-space-3-5); height: var(--cy-space-3-5); vertical-align: top; margin: var(--cy-legacy-6) var(--cy-legacy-6) 0 0;}
+.cyinfobox_con_right{ text-align: right; font-size: var(--cy-type-body); font-weight: 500;}
+.cyinfobox_con_right .mci-line{ display: block; line-height: var(--cy-leading-normal);}
+.cyinfo2k{display: flex; justify-content: space-between; margin: var(--cy-space-4);}
+.cyinfo2k_box{width: 318rpx; height: 164rpx; background: var(--cy-color-bg-surface); border-radius: var(--cy-radius-sm); box-shadow: var(--cy-shadow-card); }
+.cyinfo2k_box_name{font-size: var(--cy-type-label); font-weight: 500; color: var(--cy-color-text-tertiary); margin: var(--cy-space-4) 0 var(--cy-legacy-10) var(--cy-space-4);}
+.cyinfo2k_box_txt{color: var(--cy-color-text-primary); margin-left: var(--cy-space-4);}
+.cyinfo2k_box_txt .mci-num-value{font-size: var(--cy-type-page-title); font-weight: bold;}
+.cyinfo2k_box_txt .mci-num-unit{font-size: var(--cy-type-body); color: var(--cy-color-text-secondary); margin-left: var(--cy-legacy-6);}
+.cyinfozt{ overflow: hidden; margin: var(--cy-space-4); position: relative; border-radius: var(--cy-radius-sm); border: 1rpx solid var(--cy-color-border-strong); background: var(--cy-color-bg-surface);}
+.cyinfozt--press{ background: var(--cy-color-state-pressed); }
+.cyinfozt .mci-banner{ width: 670rpx; vertical-align: top; display: block;}
+.cyinfozt_name--overlay {  position: absolute;  top: 0;  left: 0;  width: 100%;  height: 100%;  background: var(--cy-color-overlay);}
+.cyinfozt_name {  display: flex;  justify-content: center;  align-items: center;  gap: var(--cy-space-1);  padding: var(--cy-space-4);  font-size: var(--cy-type-card-title);  font-weight: bold;  color: var(--cy-color-text-inverse);}
+.cyinfozt_name:not(.cyinfozt_name--overlay) { color: var(--cy-color-text-primary); }
+.cyinfobottom{ width: 100%; position: fixed; bottom: 0; left: 0; background: var(--cy-color-bg-page); padding: var(--cy-comp-footer-pad-y) 0; padding-bottom: calc(var(--cy-comp-footer-pad-y) + env(safe-area-inset-bottom));}
+.cyinfobottom_scan{ width: 650rpx; height: var(--cy-btn-h); line-height: var(--cy-btn-h); margin: 0 auto var(--cy-space-3) auto; text-align: center; border-radius: var(--cy-radius-sm); background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); font-size: var(--cy-type-body); font-weight: 600;}
+.cyinfobottom_scan--press{ opacity: 0.85; }
+.cyinfobottom_sum{ width: 650rpx; overflow: hidden;display: flex; margin: 0 auto;}
+.cyinfobottom_sum_tu{width: 48rpx; height: 48rpx;margin-right: var(--cy-space-2-5); flex-shrink: 0;}
+.cyinfobottom_sum_tu .mci-avatar{ width: 48rpx; height: 48rpx;  vertical-align: top;}
+/* 原 16rpx 低于 DS 最小档(micro 20rpx,§2.6 明令禁止更小)*/
+.cyinfobottom_sum_txt{ font-size: var(--cy-type-micro); line-height: 28rpx;color: var(--cy-color-text-primary);}
+.cyinfobottom_box{ overflow: hidden; display: flex; justify-content: center;}
+/* 固定底栏避让:占位高与底栏实高同源(全局规范 §3.11-2),不再内联 260rpx 字面值 */
+.cyinfo-footer-spacer{ height: var(--cy-comp-footer-h);}
+/* R1-C04:「公告」假按钮(无 tap 绑定、品牌紫实底 + 描边)已在 WXML 删除,其定义随之移除。
+   联系客服是原生 button(open-type="contact"),这里补 margin/padding 复位与 ::after 去边框。 */
+.cyinfobottom_box_but{ width:524rpx; height: var(--cy-btn-h); line-height: var(--cy-btn-h); margin: 0; padding: 0; box-sizing: border-box; border-radius: var(--cy-radius-sm); background: var(--cy-color-action-primary-bg); text-align: center; color: var(--cy-color-action-primary-fg); font-size: var(--cy-type-body); font-weight: 600;}
+.cyinfobottom_box_but--cancel{ border: 1rpx solid var(--cy-color-status-danger); background: transparent; color: var(--cy-color-status-danger);}
+.cyinfobottom_box_but--contact{ border: 1rpx solid var(--cy-color-text-secondary); background: transparent; color: var(--cy-color-text-primary);}
+.cyinfobottom_box_but::after{ border: none;}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

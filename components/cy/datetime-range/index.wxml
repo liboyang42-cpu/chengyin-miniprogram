@@ -1,0 +1,56 @@
+<wxs src="../../../utils/time-format.wxs" module="tf" />
+
+<cy-date-sheet show="{{show}}" title="{{title}}" confirm-text="完成" bind:cancel="onCancel" bind:confirm="onConfirm">
+  <view class="cdr {{reducedMotion ? 'cdr--reduced-motion' : ''}}">
+    <!-- 跨度:原来两处都不显示「这段有多长」,用户得自己心算跨了几天。
+         ⚠️ 不合法时不在这儿红着显示占位文案 —— 两头明明都有值,却写「选择起止时间」是假的;
+         错在哪由下面那行提示说,徽章只负责「有多长」这一件事,没有答案就不出现。 -->
+    <view class="cdr__badge-row">
+      <view class="cdr__badge" wx:if="{{_spanText}}">{{_spanText}}</view>
+    </view>
+
+    <!-- 双栏摘要 = 同时也是切换器:两头的值始终在场,下划线指出现在编辑哪一头。
+         原来两头是两个先后弹出的独立面板,选结束时看不到开始选了什么。 -->
+    <view class="cdr__summary">
+      <view
+        class="cdr__col {{_phase === 'start' ? 'cdr__col--on' : ''}}"
+        bindtap="onPickStart"
+        hover-class="cy-pressed"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="编辑开始时间"
+      >
+        <text class="cdr__col-label">开始</text>
+        <text class="cdr__col-val">{{_startText}}</text>
+      </view>
+      <view
+        class="cdr__col {{_phase === 'end' ? 'cdr__col--on' : ''}}"
+        bindtap="onPickEnd"
+        hover-class="cy-pressed"
+        hover-stay-time="80"
+        aria-role="button"
+        aria-label="编辑结束时间"
+      >
+        <text class="cdr__col-label">结束</text>
+        <text class="cdr__col-val">{{_endText}}</text>
+      </view>
+    </view>
+
+    <!-- 一个 3 列滚轮,不是「日期」+「时间」两个 picker-view:
+         日期与时刻本就是同一个时刻的三个部分,拆成两个就得在中间塞一个连接词,
+         而没有哪个连接词是对的(「9 月 1 日 至 14:30」读不通)。 -->
+      <picker-view class="cdr__wheel pw-wheel" value="{{_index}}" indicator-style="height:88rpx; border-top:1rpx solid rgba(128,128,128,0.45); border-bottom:1rpx solid rgba(128,128,128,0.45);" mask-style="background: transparent;" bindchange="onWheel">
+        <picker-view-column>
+          <view wx:for="{{_dates}}" wx:key="date" class="cdr__item">{{item.display}}</view>
+        </picker-view-column>
+        <picker-view-column>
+          <view wx:for="{{_hours}}" wx:key="*this" class="cdr__item">{{tf.pad2(item)}} 时</view>
+        </picker-view-column>
+        <picker-view-column>
+          <view wx:for="{{_minutes}}" wx:key="*this" class="cdr__item">{{tf.pad2(item)}} 分</view>
+        </picker-view-column>
+      </picker-view>
+
+    <view class="cdr__hint {{_hint ? 'cdr__hint--on' : ''}}" aria-role="alert">{{_hint}}</view>
+  </view>
+</cy-date-sheet>

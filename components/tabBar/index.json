@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-icon": "/components/cy/icon/index",
+    "cy-publish-sheet": "/components/cy/publish-sheet/index"
+  }
+}

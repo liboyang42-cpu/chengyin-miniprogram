@@ -1,0 +1,117 @@
+:host { display: block; }
+.ps { position: fixed; inset: 0; z-index: var(--cy-z-sheet); }
+/* 商家主题会给根 view 铺实色；玻璃菜单外壳必须透明，才能采样真实页面。 */
+.ps.ps--quick { background: transparent; }
+.ps__mask { position: absolute; inset: 0; } /* top 由 JS 按胶囊实测下发,见 index.js 的 chrome */
+.ps--closing { pointer-events: none; }
+/* 右上角 ✕:热区整档 --cy-btn-h、字形-only 无圆底(§3.21),顶边和玻璃层同一条线,
+   所以它就是这块面板的右上角,而不是浮在微信导航行里。 */
+.ps__close {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 88rpx); /* 兜底,实际由行内 style 覆盖 */
+  right: var(--cy-page-x);
+  z-index: 1;
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-font-subtitle);
+  line-height: 1;
+  color: var(--cy-color-text-primary);
+  background: transparent;
+  opacity: 0;
+  transition: opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+.ps--quick-open .ps__close { opacity: 1; }
+.ps--quick.ps--closing .ps__close { opacity: 0; }
+.ps--quick.ps--reduced .ps__close { transition: none; }
+/* 用户视频：整组以右下角加号为锚点等比生长，无卡片底板。 */
+.ps--quick .ps__mask {
+  background: var(--cy-comp-publish-player-glass);
+  opacity: 0;
+  backdrop-filter: blur(var(--cy-space-4));
+  -webkit-backdrop-filter: blur(var(--cy-space-4));
+  transition: opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+.ps--quick.ps--quick-open .ps__mask { opacity: 1; }
+.ps__quick {
+  position: absolute;
+  right: var(--cy-page-x);
+  bottom: calc(var(--cy-tabbar-h) + var(--cy-float-gap));
+  width: 360rpx; /* ds-ok:视频中文字在左、图标在右的紧凑菜单宽度 */
+  transform-origin: calc(100% - var(--cy-comp-publish-trigger) / 2) calc(100% - var(--cy-comp-publish-trigger) / 2);
+  transform: scale(.12);
+  opacity: 0;
+  transition: none;
+}
+.ps__quick-action {
+  min-height: var(--cy-comp-publish-trigger);
+  padding: var(--cy-space-3) var(--cy-space-2);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--cy-space-3);
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: var(--cy-comp-publish-label);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+  color: var(--cy-color-text-primary);
+}
+.ps__quick-action--return { padding: 0 var(--cy-space-2); }
+.ps--quick-open .ps__quick {
+  transform: scale(1);
+  opacity: 1;
+  transition: transform var(--cy-motion-slow) var(--cy-ease-emphasized-decelerate), opacity var(--cy-motion-fast) var(--cy-ease-out);
+}
+.ps--quick.ps--closing .ps__quick {
+  transform: scale(.12);
+  opacity: 0;
+  transition: transform var(--cy-motion-standard) var(--cy-ease-accelerate), opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+.ps--quick.ps--closing .ps__mask { opacity: 0; }
+.ps--quick.ps--reduced .ps__quick,
+.ps--quick.ps--reduced .ps__mask { transition: none; }
+
+.ps__quick-icon { width: var(--cy-comp-publish-icon); height: var(--cy-comp-publish-icon); flex-shrink: 0; } /* ds-ok:与原片28px彩色图标的视觉盒一致 */
+
+.ps__quick-return {
+  width: var(--cy-comp-publish-icon); /* ds-ok:与其余三枚图标同列 */
+  height: var(--cy-comp-publish-icon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* 返回先出现，随后互动、城市定向、自由探索，错峰向上浮出再回落。 */
+.ps__quick-action {
+  opacity: 0;
+  transform: translate3d(0, var(--cy-space-5), 0);
+  transition: none;
+}
+.ps--quick-open .ps__quick-action {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--cy-comp-publish-float) var(--cy-comp-publish-ease), opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+.ps--quick-open .ps__quick-action--interaction { transition-delay: var(--cy-comp-publish-stagger); }
+.ps--quick-open .ps__quick-action--city { transition-delay: calc(var(--cy-comp-publish-stagger) * 2); }
+.ps--quick-open .ps__quick-action--explore { transition-delay: calc(var(--cy-comp-publish-stagger) * 3); }
+/* 退出立即开始，取消入场错峰，整体仍缩回右下角。 */
+.ps--closing .ps__quick-action {
+  opacity: 0;
+  transform: translate3d(0, var(--cy-space-3), 0);
+  transition: transform var(--cy-motion-standard) var(--cy-ease-out), opacity var(--cy-motion-fast) var(--cy-ease-out);
+  transition-delay: 0s;
+}
+.ps--quick.ps--reduced .ps__quick-action {
+  transform: none;
+  transition: none;
+  transition-delay: 0s;
+}
+
+.ps--merchant .ps__mask { background: var(--cy-comp-publish-merchant-glass); }

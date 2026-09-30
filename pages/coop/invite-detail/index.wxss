@@ -1,0 +1,125 @@
+/* 协作邀约详情(Figma 02d-1~5)。用俱乐部端的暗色阶,不挂 theme-merchant。 */
+.coop-detail {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-6) + env(safe-area-inset-bottom));
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+
+.hd { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cy-space-3); padding: var(--cy-space-4) 0 var(--cy-space-3); }
+.hd-status { font-size: var(--cy-font-title); font-weight: 800; }
+.hd-status--pending { color: var(--cy-color-status-warning); }
+.hd-status--accepted { color: var(--cy-color-status-success); }
+.hd-status--closed { color: var(--cy-color-text-tertiary); }
+.hd-from { flex: none; color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+
+.cover { overflow: hidden; width: 100%; height: 380rpx; border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-raised); }
+/* 终态压暗一档:与可操作的状态分开,但不隐藏 */
+.cover--dim { opacity: 0.55; }
+.cover-img { width: 100%; height: 100%; }
+
+.meta { display: flex; flex-direction: column; gap: var(--cy-space-2); padding: var(--cy-space-4) 0; }
+.meta-title { font-size: var(--cy-font-subtitle); font-weight: 800; }
+.meta-line { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.meta-contact { display: flex; align-items: baseline; gap: var(--cy-space-2); margin-top: var(--cy-space-1); }
+.meta-contact-label { flex: none; color: var(--cy-color-text-secondary); font-size: var(--cy-font-label); font-weight: 700; }
+.meta-contact-value { flex: 1; min-width: 0; font-size: var(--cy-font-label); font-weight: 700; }
+.meta-contact-none { flex: 1; color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.meta-copy { flex: none; color: var(--cy-color-text-primary); font-size: var(--cy-font-caption); }
+
+.card { display: flex; flex-direction: column; gap: var(--cy-space-3); box-sizing: border-box; margin-bottom: var(--cy-space-4); padding: var(--cy-space-4); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-raised); }
+.card-title { font-size: var(--cy-font-label); font-weight: 700; }
+.kv { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cy-space-3); }
+.kv .k { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.kv .v { flex: none; font-size: var(--cy-font-caption); font-weight: 700; text-align: right; }
+.kv .v--owed { color: var(--cy-color-status-danger); }
+
+.bubble { display: flex; flex-direction: column; gap: 6rpx; padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-elevated); }
+.bubble--reason { background: var(--cy-color-bg-surface-strong); }
+.bubble-text { font-size: var(--cy-font-caption); line-height: 1.6; }
+.bubble-time { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.bubble-empty { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+
+.field-label { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.field { box-sizing: border-box; width: 100%; height: 180rpx; padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-elevated); color: var(--cy-color-text-primary); font-size: var(--cy-font-caption); }
+.field-ph { color: var(--cy-color-text-tertiary); }
+.field-count { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); text-align: right; }
+
+/* 已接受卡搬来的履约动作:列表行收纳在此(详情页动作区 ≤2 并排,其余不做成弹窗堆按钮) */
+.op {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  min-height: 88rpx;
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+}
+.op-name { font-weight: 600; }
+.op-name--danger { color: var(--cy-color-status-danger); }
+.op-hint { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.op--disabled { opacity: 0.45; }
+
+/* 行内回执/说明;与 pages/coop/list 的 action-state 同口径,让搬过来的动作失败时可见 */
+.inline-state {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--cy-space-2);
+  padding: 0 var(--cy-space-2-5);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-font-label);
+}
+.inline-state--error { color: var(--cy-color-status-danger); }
+
+/* 供给申报勾选浮层(随动作从 pages/coop/list 搬来,口径不变) */
+.pk-hint { margin-top: var(--cy-legacy-10); font-size: var(--cy-font-label); color: var(--cy-text-secondary); line-height: 1.45; }
+.pk-list { margin-top: var(--cy-space-2-5); flex: 1; }
+.pk-item {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;
+  padding: var(--cy-space-2-5);
+  border-radius: 20rpx; /* ds-ok 原样搬迁 pages/coop/list 的勾选项样式,避免搬家走形 */
+  margin-bottom: var(--cy-legacy-14);
+}
+.pk-item.on { background: var(--cy-brand-soft); }
+.pk-box {
+  width: var(--cy-legacy-36);
+  height: var(--cy-legacy-36);
+  border-radius: 8rpx; /* ds-ok 原样搬迁 pages/coop/list 的勾选框样式,避免搬家走形 */
+  border: 3rpx solid var(--cy-border-line);
+  flex-shrink: 0;
+}
+.pk-box.on { background: var(--cy-btn-solid-bg); border-color: var(--cy-btn-solid-bg); }
+.pk-main { flex: 1; padding-left: var(--cy-space-2-5); min-width: 0; }
+.pk-name { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.pk-meta { margin-top: var(--cy-legacy-6); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.pk-save {
+  margin-top: 16rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+}
+.pk-save.dis {
+  background: var(--cy-bg-card-2);
+  color: var(--cy-text-secondary);
+  border: 1rpx solid var(--cy-border-line);
+}
+
+.acts { display: flex; gap: var(--cy-space-3); margin-top: var(--cy-space-2); }
+.act { display: flex; flex: 1; align-items: center; justify-content: center; box-sizing: border-box; height: 96rpx; border-radius: var(--cy-radius-pill); font-size: var(--cy-font-body); font-weight: 800; }
+.act--wide { flex: 1; }
+.act--solid { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+.act--ghost { border: 2rpx solid var(--cy-color-border-subtle); color: var(--cy-color-text-primary); }
+/* 终态那条不是按钮:不给圆角药丸的实心感,也不给按压反馈 */
+.act--dead { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); font-weight: 400; }

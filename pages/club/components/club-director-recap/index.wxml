@@ -1,0 +1,26 @@
+<view class="cdrecap">
+  <text class="cdrecap__title">{{title}}</text>
+
+  <view class="cdrecap__section">
+    <text class="cdrecap__section-title">{{funnelTitle}}</text>
+    <text class="cdrecap__section-sub" wx:if="{{funnelSub}}">{{funnelSub}}</text>
+    <view class="cdrecap__metrics" wx:if="{{metrics.length}}">
+      <view class="cdrecap__metric" wx:for="{{metrics}}" wx:key="label">
+        <text class="cdrecap__metric-value">{{item.value}}</text>
+        <text class="cdrecap__metric-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="cdrecap__section">
+    <text class="cdrecap__section-title">{{completionTitle}}</text>
+    <cy-club-director-row-list rows="{{completionRows}}" surface="elevated" />
+  </view>
+
+  <view class="cdrecap__section">
+    <text class="cdrecap__section-title">{{leaderboardTitle}}</text>
+    <cy-club-director-row-list rows="{{leaderboardRows}}" surface="elevated" selectable bind:rowtap="onLeaderboardRowTap" />
+  </view>
+
+  <text class="cdrecap__caption" wx:if="{{caption}}">{{caption}}</text>
+</view>

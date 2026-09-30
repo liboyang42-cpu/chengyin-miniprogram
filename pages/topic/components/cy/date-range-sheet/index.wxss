@@ -1,0 +1,108 @@
+/* cy-date-range-sheet · 区间选择半屏
+ * 壳、遮罩、进退场全交给 cy-sheet,这里只排头部摘要 + 底部芯片。 */
+:host { display: block; }
+
+.drs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 var(--cy-space-4);
+}
+
+/* —— 汇总徽章 —— */
+.drs__badge-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--cy-space-2);
+}
+.drs__badge {
+  padding: var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-brand-soft);
+  color: var(--cy-color-brand-strong);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* —— 双栏摘要 —— */
+.drs__summary {
+  display: flex;
+  gap: var(--cy-space-4);
+  padding: var(--cy-space-3) 0 var(--cy-space-4);
+}
+/* 2026-08-27:原来是一条下划线。全站表单字段(参考图的 Start Date / Target Date 同理)
+   都是深灰胶囊,下划线在这一个面板里自成一派;而且下划线只有一条边,聚焦态只能靠颜色说话。
+   改成胶囊之后,聚焦那栏整块提亮一档 —— 面积比一条线更容易一眼看到该点哪头。 */
+.drs__col {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--cy-space-2) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+  opacity: .82;
+  transform: translateY(4rpx);
+  transition:
+    background var(--cy-motion-fast) var(--cy-ease-out),
+    opacity var(--cy-motion-fast) var(--cy-ease-out),
+    transform var(--cy-motion-fast) var(--cy-ease-out);
+}
+.drs__col--on { background: var(--cy-color-bg-surface-strong); opacity: 1; transform: translateY(0); }
+
+.drs__col-label {
+  display: block;
+  font-size: var(--cy-type-micro);
+  letter-spacing: 1rpx;
+  color: var(--cy-color-text-tertiary);
+}
+.drs__col-val {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+/* 占位文案压一档:它是提示不是值,和真选中的日期同字重会读成「已经选了」 */
+.drs__col-val--empty {
+  font-weight: 400;
+  color: var(--cy-color-text-placeholder);
+}
+
+.drs__cal { flex: 1 1 auto; min-height: 0; }
+
+/* —— 快捷芯片 —— */
+.drs__quick {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  padding: var(--cy-space-3) 0;
+  border-top: 2rpx solid var(--cy-color-bg-surface-subtle);
+}
+.drs__chip {
+  padding: var(--cy-space-1-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  line-height: 1.4;
+}
+/* 清除靠右,且用蓝而不是品牌紫 —— 它是操作文字不是选中装饰 */
+.drs__clear {
+  margin-left: auto;
+  padding: var(--cy-space-1-5) var(--cy-space-2);
+  color: var(--cy-color-status-info);
+  font-size: var(--cy-type-caption);
+}
+
+.drs__footer { padding: var(--cy-space-3) var(--cy-space-4); }
+
+/* styleIsolation:isolated 不继承全局 style/components.wxss 的 .cy-pressed,
+   在组件内重声明一份(与 cy/empty 同一手法)。 */
+.cy-pressed { opacity: .88; transform: scale(.96); }
+/* ⚠️ 减少动态效果的兜底必须挂**组件自己**的 class:全局那个 .cy-motion-reduced 挂在
+   组件外的祖先上,isolated 组件的选择器根本匹配不到它 —— 在这里写 .cy-motion-reduced
+   是一条永远不会命中的死规则(仓库里 tabBar / scene-roam-session 的注释记过同一个坑)。
+   所以本组件接 behaviors/reduced-motion.js,由 wxml 在根节点挂 .drs--reduced-motion。
+   撤位移、保留减淡 —— 反馈不能归零。 */
+.drs--reduced-motion .cy-pressed { transform: none; }
+.drs--reduced-motion .drs__col { transition: none; }

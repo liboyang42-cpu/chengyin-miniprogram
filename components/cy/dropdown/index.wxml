@@ -1,0 +1,34 @@
+<view class="cdd">
+  <!-- 触发器:与原生 <picker> 一样,内容由调用方以 slot 提供,原样保留既有排版 -->
+  <view class="cdd__trigger {{disabled ? 'cdd__trigger--disabled' : ''}} {{show ? 'cdd__trigger--open' : ''}}"
+        bindtap="onTrigger"
+        aria-role="button"
+        aria-label="{{labels[value] ? '当前选择 ' + labels[value] + '，点击更换' : '展开选项'}}" hover-class="cdd__trigger--press" hover-stay-time="80">
+    <slot />
+  </view>
+
+  <!-- root-portal 把面板挂到页面根:cy-sheet 进场用 transform,会把内部 position:fixed
+       重新当成包含块,承接表单里「选择玩法」面板会被裁到看不见。 -->
+  <root-portal wx:if="{{_render}}" enable="{{portal}}">
+    <view class="cdd__layer {{portal ? 'cdd__layer--portal' : ''}} {{merchant ? 'theme-merchant' : ''}} {{reducedMotion ? 'cdd__layer--reduced-motion' : ''}} {{_closing ? 'cdd__layer--closing' : ''}}">
+      <!-- 遮罩透明但可点:dropdown 是轻量态,压暗整页会让它显得比实际重要;
+           但点外部必须能收起,否则面板会跟着页面一起滚走。 -->
+      <view class="cdd__mask" bindtap="onMask" aria-role="button" aria-label="收起选项" hover-class="cdd__mask--press" hover-stay-time="80"></view>
+      <view class="cdd__panel {{dropUp ? 'cdd__panel--up' : ''}}" style="{{panelStyle}}" catchtap="noop">
+        <scroll-view class="cdd__scroll" scroll-y="{{true}}" enhanced show-scrollbar="{{false}}" style="max-height:var(--cdd-scroll-height);">
+          <slot wx:if="{{customPanel}}" name="panel" />
+          <block wx:else>
+          <view class="cdd__item {{index === value ? 'cdd__item--on' : ''}}"
+                wx:for="{{labels}}" wx:key="index"
+                data-index="{{index}}" bindtap="onPick"
+                hover-class="cdd__item--press" hover-stay-time="60"
+                aria-role="button" aria-label="{{item}}">
+            <view class="cdd__check"><cy-icon wx:if="{{index === value}}" name="check" size="28" /></view>
+            <text class="cdd__item-txt">{{item}}</text>
+          </view>
+          </block>
+        </scroll-view>
+      </view>
+    </view>
+  </root-portal>
+</view>

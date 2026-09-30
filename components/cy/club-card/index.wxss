@@ -1,0 +1,109 @@
+:host { display: block; }
+
+.cc {
+  background: var(--cy-color-bg-surface);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-lg);
+  box-shadow: var(--cy-shadow-card);
+  overflow: hidden;
+}
+.cc--press { background: var(--cy-color-bg-surface-subtle); }
+
+/* ===== 封面 ===== */
+.cc__cover { position: relative; height: 240rpx; background: var(--cy-color-bg-surface-subtle); }
+.cc__cover-img { width: 100%; height: 100%; display: block; }
+.cc__cover-ph {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-tertiary); opacity: .6;
+}
+.cc__logo {
+  position: absolute; left: 24rpx; bottom: -48rpx;
+  width: 96rpx; height: 96rpx; border-radius: var(--cy-radius-md); overflow: hidden;
+  background: var(--cy-color-bg-surface-subtle);
+  border: 4rpx solid var(--cy-color-bg-surface);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-secondary);
+}
+.cc__logo-img { width: 100%; height: 100%; }
+
+/* ===== 主体 ===== */
+.cc__body { padding: 60rpx 24rpx 24rpx; display: flex; flex-direction: column; gap: var(--cy-space-1-5); }
+.cc__name-row { display: flex; align-items: center; gap: var(--cy-space-1-5); }
+.cc__name { flex: 1; min-width: 0; font-size: var(--cy-type-card-title); font-weight: 600; color: var(--cy-color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc__level {
+  flex: none; height: 36rpx; padding: 0 var(--cy-legacy-14);
+  display: inline-flex; align-items: center;
+  border-radius: var(--cy-radius-pill);
+  border: 1rpx solid var(--cy-color-rare);
+  color: var(--cy-color-rare);
+  font-size: var(--cy-type-label); font-weight: 600;
+}
+.cc__sub { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.cc__data { display: flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+
+/* 主理人行 */
+.cc__leader {
+  display: flex; align-items: center; gap: var(--cy-space-2);
+  padding: 16rpx;
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-sm);
+}
+.cc__leader-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.cc__leader-name { font-size: var(--cy-type-label); font-weight: 600; color: var(--cy-color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc__leader-meta { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc__leader-ic { color: var(--cy-color-rare); flex: none; }
+
+.cc__abilities { display: flex; align-items: center; gap: var(--cy-space-1); flex-wrap: wrap; }
+.cc__ability {
+  height: 40rpx; padding: 0 var(--cy-legacy-14); display: inline-flex; align-items: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-status-info-soft); color: var(--cy-color-status-info);
+  font-size: var(--cy-type-label);
+}
+.cc__tags { display: flex; align-items: center; gap: var(--cy-space-1); flex-wrap: wrap; }
+.cc__tag {
+  height: 40rpx; padding: 0 var(--cy-legacy-14); display: inline-flex; align-items: center;
+  border-radius: var(--cy-radius-pill);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  font-size: var(--cy-type-label); color: var(--cy-color-text-secondary);
+}
+
+/* 底行(稿 9:2):权益行占左,按钮贴右;无权益时撑条把按钮推到右侧 */
+.cc__bottom { display: flex; align-items: center; gap: var(--cy-space-1-5); }
+.cc__bottom-fill { flex: 1; min-width: 0; }
+
+/* 权益行:金调,只在未加入且有成员优先报名时出现 */
+.cc__perk {
+  flex: 1; min-width: 0;
+  padding: 16rpx 20rpx;
+  background: var(--cy-comp-rare-soft);
+  border-radius: var(--cy-radius-sm);
+  color: var(--cy-color-rare);
+  font-size: var(--cy-type-label); font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cc__btn {
+  flex: none;
+  height: var(--cy-btn-h-sm); padding: 0 var(--cy-space-3-5);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-comp-btn-radius);
+  font-size: var(--cy-type-body); font-weight: 600;
+}
+.cc__btn--solid { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }
+.cc__btn--secondary { background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-primary); }
+.cc__btn--ghost { border: 1rpx solid var(--cy-color-border-subtle); color: var(--cy-color-text-secondary); }
+
+/* ===== 骨架 ===== */
+.sk { background: var(--cy-color-skeleton-base); border-radius: var(--cy-radius-sm); }
+.cc__sk .cc__cover { border-radius: 0; }
+.cc__sk .sk-l { height: 30rpx; width: 50%; }
+.cc__sk .sk-l.short { width: 32%; }
+.cc__sk .sk-block { height: 88rpx; width: 100%; }
+.cc__sk-chips { display: flex; gap: var(--cy-space-1); }
+.cc__sk .sk-chip { width: 130rpx; height: 40rpx; border-radius: var(--cy-radius-pill); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

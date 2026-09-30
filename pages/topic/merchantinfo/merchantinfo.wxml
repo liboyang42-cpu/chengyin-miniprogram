@@ -1,0 +1,589 @@
+<!-- ============ 我的参与视图（从商家首页"我的参与"卡片进入） ============ -->
+<!-- 2026-08-04 按 Figma 重做:每块是一张白卡,二级内容(玩法规则/剧情/条款)一律点进去看。
+     顶部那条状态切换胶囊是设计稿的预览开关,不是页面元素,故不实现。 -->
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+<view class="merchant-info-page theme-merchant {{reducedMotion ? 'mi--reduced' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<!-- 承接视图拆成组件:再加主办视图时是并列一个兄弟组件,
+     而不是把这个文件撑到八百行。逻辑仍全在页面,组件只渲染 + 冒泡点击。 -->
+<!-- 缺参态:id 与 topicId 都没有。2026-09-16 截图冒烟:原先三条入口全不命中时
+     渲染的是「未命名路线 · 开放时间待定」空壳主题页(没请求、没错误、也没出口)。
+     与其它详情页统一:提示 + 返回上一页。 -->
+<block wx:if="{{ missingParam }}">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-empty fill size="lg" kind="missing-param" cta="返回上一页" bind:cta="goBack" />
+</block>
+<project-host wx:elif="{{ role === 'host' }}"
+    hostOwnerType="{{ hostOwnerType || '' }}"
+    statusBarHeight="{{ statusBarHeight }}"
+    navBarHeight="{{ navBarHeight }}"
+    nav-hidden="{{ checkinVisible }}"
+    loadFailed="{{ loadFailed }}"
+    rulesOpen="{{ rulesOpen }}"
+    quickActions="{{ quickActions }}"
+    clubActions="{{ clubActions }}"
+    playerSheet="{{ playerSheet }}"
+    playerFilters="{{ playerFilters }}"
+    playerActions="{{ playerActions }}"
+    merchantSheet="{{ merchantSheet }}"
+    moreSheet="{{ moreSheet }}"
+    
+    merchantActions="{{ merchantActions }}"
+    clubSheet="{{ clubSheet }}"
+    hostTopic="{{ hostTopic }}"
+    hostRecruit="{{ hostRecruit }}"
+    hostMerchants="{{ hostMerchants }}"
+    hostPlayers="{{ hostPlayers }}"
+    owner-chapter-applications="{{ownerChapterApplications}}"
+    owner-chapter-applications-state="{{ownerChapterApplicationsState}}"
+    pending-merchant-nodes="{{pendingMerchantNodes}}"
+    pending-merchant-nodes-state="{{pendingMerchantNodesState}}"
+    station-ops-error-text="{{stationOpsErrorText}}"
+    bind:act="onJoinAct" />
+
+<project-join wx:elif="{{ !fromMerchantJoin }}"
+    assignedLabel="{{ assignedLabel }}"
+    assignedNodeText="{{ assignedNodeText || '' }}"
+    assignedValue="{{ assignedValue }}"
+    badgeImg="{{ badgeImg }}"
+    chapterActionText="{{ chapterActionText }}"
+    chapterImg="{{ chapterImg }}"
+    coopPartner="{{ coopPartner }}"
+    fulfillActionText="{{ fulfillActionText }}"
+    heroFailed="{{ heroFailed }}"
+    heroImg="{{ heroImg }}"
+    info="{{ info }}"
+    isSelfTemplate="{{ isSelfTemplate }}"
+    loadFailed="{{ loadFailed }}"
+    modeText="{{ modeText }}"
+    myStations="{{ myStations }}"
+    activeStationId="{{ activeStationId }}"
+    navBarHeight="{{ navBarHeight }}"
+    pendingCount="{{ pendingCount }}"
+    play="{{ play }}"
+    prepText="{{ prepText }}"
+    prepHeadcount="{{ prepHeadcount }}"
+    primaryDisabled="{{ primaryDisabled }}"
+    primaryText="{{ primaryText }}"
+    quickActions="{{ quickActions }}"
+    reward="{{ reward }}"
+    rulesOpen="{{ rulesOpen }}"
+    scheduleValue="{{ scheduleValue }}"
+    sharedAmountText="{{ sharedAmountText }}"
+    sharingRateText="{{ sharingRateText }}"
+    showCheckinQr="{{ showCheckinQr }}"
+    showFulfillment="{{ showFulfillment }}"
+    showPrep="{{ showPrep }}"
+    stateClass="{{ stateClass }}"
+    stateKey="{{ stateKey }}"
+    stateSub="{{ stateSub }}"
+    stateText="{{ stateText }}"
+    statusBarHeight="{{ statusBarHeight }}"
+    progress="{{ progress }}"
+    stepText="{{ stepText }}"
+    templateReady="{{ templateReady }}"
+    templateSubText="{{ templateSubText }}"
+    todos="{{ todos }}"
+    totalCount="{{ totalCount }}"
+    verifiedCount="{{ verifiedCount }}"
+    clubActions="{{ clubActions }}"
+    playerSheet="{{ playerSheet }}"
+    playerFilters="{{ playerFilters }}"
+    clubSheet="{{ clubSheet }}"
+    moreSheet="{{ moreSheet }}"
+    chapterSheet="{{ chapterSheet }}"
+    nodeSheet="{{ nodeSheet }}"
+    role="{{ role }}"
+    bind:act="onJoinAct" />
+
+<!-- ============ 品牌浏览视图（从品牌招募广场进入，看主题详情后报名） ============ -->
+<view class="topic theme-merchant" wx:if="{{ fromMerchantJoin }}">
+  <cy-nav-bar />
+  <cy-error class="browse-error" wx:if="{{browseLoadError}}" fill title="加载失败"
+            sub="{{browseLoadError}}" retry="重试" bind:retry="retryBrowseData" />
+  <view class="slide1" wx:else>
+    <!-- P1-2:封面图挂掉(后台留了 example.com 占位假图)时整屏空白,这里给带主题名的兜底占位 -->
+    <image lazy-load="true" wx:if="{{ info.imgUrl && !coverFailed }}" src="{{ info.imgUrl }}" mode="aspectFill" binderror="onCoverError" />
+    <view class="slide-cover-fallback" wx:else>
+      <view class="cover-fb-skeleton" aria-hidden="true">
+        <view class="cover-fb-block cover-fb-block--wide"></view>
+        <view class="cover-fb-block"></view>
+        <view class="cover-fb-block cover-fb-block--short"></view>
+      </view>
+      <!-- 加载中(imgUrl 还没回来)不该说"不可用",只有 binderror 真触发才说 -->
+      <view class="cover-fb-tip" wx:if="{{ coverFailed }}">封面图暂不可用</view>
+    </view>
+    <!-- 稿 181:576「全屏图 375×890」上只有返回箭头和右上角胶囊,封面本身不压任何字:
+         整页是一条长滚动,封面高过一屏、下面的正文自然露头,不需要「下滑…」这种提示。
+         所以成功渲染封面时,原来压在上面的类型/标题/简介、提示语和向下箭头全部撤掉。
+         ⚠️ 只有封面真的没渲染出来(空 URL 或 binderror)才保留那块信息锚点 ——
+            那时屏幕上一个字都没有,不写就不知道自己打开的是哪条主题(P0-UI-1 的本意)。 -->
+    <view class="slide-scrim {{ !info.imgUrl || coverFailed ? 'slide-scrim--cover-fallback' : '' }}"></view>
+    <view class="slide-txt slide-txt--cover-fallback" wx:if="{{ !info.imgUrl || coverFailed }}">
+      <view class="cover-brief">
+        <text class="cover-brief-type">{{ info.productType === 2 ? '自由探索' : '城市定向' }}</text>
+        <view class="cover-brief-title">{{ info.name || '主题详情' }}</view>
+        <text class="cover-brief-value">{{ info.subtitle || info.description || '一条可由商家承接的城市路线，看看你的店铺能参与哪一站' }}</text>
+      </view>
+      <view class="jt flex-cc" bindtap="scrollToSecond" aria-role="button" aria-label="滚动到下一屏" hover-class="cy-pressed" hover-stay-time="80">
+        <image lazy-load="true" src="/pages/topic/images/xjt.png" mode="widthFix" />
+      </view>
+    </view>
+  </view>
+  <view class="slide2" wx:if="{{!browseLoadError}}">
+    <view class="det1">
+      <image lazy-load="true" wx:if="{{img.first(info.imgArr) && !detailCoverFailed}}"
+             src="{{img.first(info.imgArr)}}" mode="aspectFill" class="bgt" binderror="onDetailCoverError" />
+      <!-- CU-M-156:这块原来不分状态,里面永远只有两条 aria-hidden 的装饰灰条 ——
+           图真挂了(binderror)和"还在加载"长得一模一样,走到第二屏就是一大块白骨架。
+           现在按加载是否结束分两态:结束了就给和列表/模板详情同一口径的缺图占位,
+           没结束才留骨架(与上面 slide1 的 cover-fb-tip 同一个约定)。 -->
+      <view class="detail-cover-fallback" wx:else>
+        <view class="detail-cover-ph" wx:if="{{ info.name }}" aria-role="img" aria-label="{{ info.name }} 暂无封面">
+          <image class="detail-cover-ph-icon" src="/images/no_data.svg" mode="aspectFit" />
+          <text class="detail-cover-ph-txt">封面暂不可用</text>
+        </view>
+        <view class="detail-cover-skeleton" wx:else aria-hidden="true">
+          <view class="detail-cover-shape detail-cover-shape--large"></view>
+          <view class="detail-cover-shape"></view>
+        </view>
+      </view>
+      <view class="cont">
+        <view class="row1">
+          <text wx:for="{{ info.sysCategoryList }}" wx:key="*this">{{item.categoryName}}</text>
+        </view>
+      </view>
+    </view>
+    <!-- 稿 181:575 的数据条:横滑,格与格之间一条竖线,每格「小标题 / 大数字 / 小标题」。
+         与玩家深色版 214:384 是同一块,格子由 utils 的 buildTopicStatBar 统一出 ——
+         原来这五格写死在这份 wxml 里,玩家页又另算一套,同一条路线两个身份数字对不上。 -->
+    <scroll-view scroll-x class="statbar" wx:if="{{statBar.length}}" enhanced show-scrollbar="{{false}}">
+      <view class="statbar__row">
+        <block wx:for="{{statBar}}" wx:key="key">
+          <view class="statbar__sep" wx:if="{{index > 0}}"></view>
+          <view class="statbar__cell">
+            <text class="statbar__label">{{item.label}}</text>
+            <text class="statbar__value">{{item.value}}</text>
+            <view class="statbar__stars" wx:if="{{item.starList.length}}">
+              <cy-icon wx:for="{{item.starList}}" wx:for-item="s" wx:key="*this" name="star-filled" size="24" />
+            </view>
+            <text class="statbar__sub" wx:elif="{{item.sub}}">{{item.sub}}</text>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+    <view class="det4 det4--tabs">
+      <cy-tabs class="browse-tabs" variant="fill" wide="{{true}}" tabs="{{browseTabs}}" active="{{activeTab}}" bind:change="switchTab" />
+    </view>
+    <view class="tablist">
+      <view class="tabcont" wx:if="{{ activeTab=='0' }}">
+        <view class="det3" style="padding-top: 0;">
+          <view class="wp">
+            <view class="det-type">{{info.name}}</view>
+            <view class="cont1">
+              <view class="txt1">
+                {{info.subtitle}}
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="davidxian"></view>
+        <view class="det4">
+          <view class="david_ztjd">
+            <!-- 稿 181:575 与玩家版 214:384 都叫「节点介绍」。这一块两边是同一份内容
+                 (章节下的玩法模板横滑),商家版却另起了一个名字。 -->
+            <view class="det-type david_sti">节点介绍</view>
+
+            <view class="temp-list">
+              <view class="ul  scroll-list">
+                <block wx:for="{{ info.chaptersList }}" wx:key="chapterIndex" wx:for-index="chapterIndex" wx:for-item="chapter">
+                  <block wx:for="{{ chapter.nodes }}" wx:key="nodeIndex" wx:for-index="nodeIndex" wx:for-item="node">
+                    <view class="li" wx:if="{{ node.cmsMemberTemplate }}"  data-id="{{node.cmsMemberTemplate.id}}"  bindtap="goTemplateDetail"  hover-class="cy-pressed" hover-stay-time="80">
+                      <view class="item">
+                        <!-- CU-M-89:imgUrl 为 NULL 时原来照渲染 —— 全局 .pic 用 !important 钉死
+                             266rpx,四个模板全空就是四块连成一大片的空白。缺图给同尺寸占位。 -->
+                        <image wx:if="{{ node.cmsMemberTemplate.imgUrl }}" lazy-load="true" src="{{ node.cmsMemberTemplate.imgUrl }}" mode="widthFix" class="pic" />
+                        <view wx:else class="pic pic--empty" aria-hidden="true"><cy-icon name="discover-shop" size="48" /></view>
+                        <view class="item-txt">
+                          <view class="tit ep1">{{ node.cmsMemberTemplate.title }}</view>
+                          <view class="david_mbxi">
+                            <view class="david_mbxi_li">{{  node.cmsMemberTemplate.players }}</view>
+                            <view class="david_mbxi_li">{{ node.cmsMemberTemplate.duration === 0 ? 0 : (node.cmsMemberTemplate.duration || '--') }}分钟</view>
+                          </view>
+                        </view>
+                      </view>
+                    </view>
+                  </block>
+                </block>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="davidxian"></view>
+        <view class="det3" style="margin-bottom: 20rpx;">
+          <view class="wp">
+            <!-- 同上:稿两版都叫「主题介绍」,现码商家版叫「活动信息」——
+                 它下面装的是 info.description(主题描述),不是活动信息。 -->
+            <block wx:if="{{info.description && info.description !== 'null'}}">
+            <view class="det-type">主题介绍</view>
+            <view class="cont1">
+              <text class="txt1">
+                {{info.description}}
+              </text>
+            </view>
+            </block>
+
+              <!-- 稿 181:644 / 214:499 的「活动内容」。稿上那六条是 Udemy 占位(5 articles /
+                   12 downloadable resources / …),一条都不抄;位置留着,装我们自己真有的东西:
+                   章节 / 站点 / 玩法数、语音导览、通关勋章、通关券 —— 全是后端已下发、
+                   却从来没在详情页露过面的字段。一条都没有整块不出。 -->
+              <view class="topic-includes" wx:if="{{info.contentIncludes.length}}">
+                <view class="topic-includes__t">活动内容</view>
+                <view class="topic-includes__li" wx:for="{{info.contentIncludes}}" wx:key="*this">{{item}}</view>
+              </view>
+          </view>
+        </view>
+
+        <view class="davidxian" wx:if="{{info.lineup.length}}"></view>
+        <!-- 稿 181:575「阵容/商家」——与玩家版 214:384 同一块,只是浅色域。
+             原来是按章节循环的「参与品牌」:三章就印三次标题,而且只有商家没有俱乐部。
+             现在与玩家页共用 buildLineup(俱乐部在前、商家按 id 去重)。
+             ⚠️ 一个都没有就整块不渲染 ——「没有就没有」这条性质原来就成立,保留。 -->
+        <view class="lineup" wx:if="{{info.lineup.length}}">
+          <view class="det-type">阵容/商家</view>
+          <scroll-view scroll-x class="lineup-row scroll-list" enhanced show-scrollbar="{{false}}">
+            <view class="lineup-card" wx:for="{{info.lineup}}" wx:key="key"
+              data-kind="{{item.kind}}" data-id="{{item.targetId}}" bindtap="onLineupTap"
+              hover-class="cy-pressed" hover-stay-time="80"
+              aria-role="button" aria-label="查看{{item.role}}：{{item.name}}">
+              <cy-avatar size="96" src="{{item.avatar || ''}}" />
+              <text class="lineup-name ep1">{{item.name}}</text>
+              <text class="lineup-role">{{item.role}}</text>
+            </view>
+          </scroll-view>
+        </view>
+
+        <!-- 稿 181:575 阵容之后是「4.8 / 基于30条评论 / ★★★★★」加一排横滑评价卡
+             (181:687 与 181:696),与玩家版 214:542/551 是同一块。商家版一直没有这一块 ——
+             并排比稿才看出来:商家在决定要不要接这一站的时候，看不到玩过的人怎么说。
+             数据是现成的:/api/topic/info-to-user 同一个返回里就有 commentCount / commentList。
+             ⚠️ 稿上那颗「投票」不做:这一屏是从合作中心广场进来的招商浏览视图,
+                看的人是还没接单的商家,他没玩过,不该在这里给路线打分。
+                打分入口只留在玩家版(topic/index 的 voteClick),不开第二条。 -->
+        <view class="det6-light">
+          <view class="det6-light__head">
+            <text class="det6-light__score">{{ info.averageRating || 0 }}</text>
+            <view class="det6-light__meta">
+              <view class="det6-light__stars" wx:if="{{info.commentCount}}">
+                <cy-icon wx:for="{{info.starList}}" wx:key="*this" name="star-filled" size="24" />
+              </view>
+              <text class="det6-light__sub" wx:if="{{info.commentCount}}">基于 {{ info.commentCount || 0 }} 条评论</text>
+              <text class="det6-light__sub" wx:else>还没有人评价过这条路线</text>
+            </view>
+          </view>
+          <scroll-view scroll-x class="det6-light__row scroll-list" wx:if="{{info.commentList.length}}"
+                       enhanced show-scrollbar="{{false}}">
+            <view class="det6-light__card" wx:for="{{info.commentList}}" wx:key="id">
+              <view class="det6-light__card-top">
+                <text class="det6-light__who">{{item.memberNickname}}</text>
+                <view class="det6-light__card-stars">
+                  <cy-icon wx:for="{{item.rating}}" wx:key="*this" name="star-filled" size="20" />
+                </view>
+              </view>
+              <text class="det6-light__when">{{item.createTime}}</text>
+              <text class="det6-light__text">{{item.contents}}</text>
+            </view>
+          </scroll-view>
+        </view>
+
+        <view class="bm-btn btn1">
+          <cy-btn variant="primary" style="width:100%" bindtap="bmClick2">{{myChapterApplications.length ? '承接进度' : '报名'}}</cy-btn>
+        </view>
+      </view>
+      <view class="tabcont" wx:if="{{ activeTab=='1' }}">
+        <view class="david_tgb">
+          <block wx:for="{{info.chaptersList}}" wx:key="index" wx:for-item="chapter" wx:for-index="chapterIndex">
+            <view class="davidomxi">
+            <view class="david_tgb_con">
+              <view class="david_tgb_con_title">{{chapter.name}}</view>
+              <!-- 稿 181:715:这行是**这一章**的时长/地点/玩法,不是整个主题的合计 -->
+              <view class="david_tgb_con_3s" wx:if="{{chapter.hasMeta}}">
+                <view class="david_tgb_con_3s_li" wx:if="{{chapter.metaTime}}">
+                  <image lazy-load="true" src="/pages/topic/images/icon_date4.png" mode="widthFix" />{{chapter.metaTime}}
+                </view>
+                <view class="david_tgb_con_3s_li" wx:if="{{chapter.metaPlace}}">
+                  <image lazy-load="true" src="/images/icon_map4.png" mode="widthFix" />{{chapter.metaPlace}}
+                </view>
+                <view class="david_tgb_con_3s_li" wx:if="{{chapter.metaPlay}}">
+                  <image lazy-load="true" src="/pages/topic/images/icon_per4.png" mode="widthFix" />{{chapter.metaPlay}}
+                </view>
+              </view>
+              <text class="david_tgb_con_txt" wx:if="{{chapter.description && chapter.description !== 'null'}}">
+                {{chapter.description}}
+              </text>
+            </view>
+
+            <view class="david_tgb_box">
+              <view class="david_tgb_box_li" wx:for="{{chapter.nodes}}" wx:key="index" wx:for-item="node" wx:for-index="nodeIndex">
+                <view class="david_tgb_box_li_nbm">
+                  <view class="david_tgb_box_li_nbm_x"></view>
+                  <view class="david_tgb_box_li_nbm_t">{{nodeIndex+1}}</view>
+                </view>
+                <!-- CU-M-23:节点说明为空时不渲染,不露出「null」 -->
+                <view class="david_tgb_box_li_txt" wx:if="{{node.description && node.description !== 'null'}}">
+                  {{node.description}}
+                </view>
+                <!-- 站点卡按稿 181:715 重做:一张宽图,图底叠一条深色带写玩法名;
+                     图下是「商家名称（地点名称）」与右侧导航按钮。原来是「小图 + 玩法名」一行,
+                     读下来只知道玩什么,不知道去谁家、在哪儿。
+                     ⚠️ 稿上图下还有一行「11:00 AM, Thu 23 August」—— 节点是路线上的一站,
+                     具体时刻要看场次(oms_ticket),CmsTopicNode 本身没有时间字段,不编。
+                     ⚠️ 还没有商家承接的站不写「待定」:那会让人以为这一站在等谁。 -->
+                <view class="node-card" wx:if="{{node.cmsMemberTemplate || node.registrationMerchantList.length}}">
+                  <view class="node-card-cover" wx:if="{{node.cmsMemberTemplate.imgUrl || node.imgUrl}}">
+                    <image lazy-load="true" class="node-card-img" mode="aspectFill"
+                           src="{{node.cmsMemberTemplate.imgUrl || node.imgUrl}}" />
+                    <view class="node-card-tag" wx:if="{{node.cmsMemberTemplate.title}}">{{node.cmsMemberTemplate.title}}</view>
+                  </view>
+                  <view class="node-card-foot" wx:if="{{node.registrationMerchantList.length}}">
+                    <view class="node-card-who">
+                      <text class="node-card-name" wx:if="{{node.registrationMerchantList[0].mmsMerchant.name}}">{{node.registrationMerchantList[0].mmsMerchant.name}}</text>
+                      <text class="node-card-place" wx:if="{{node.name}}">（{{node.name}}）</text>
+                      <text class="node-card-more" wx:if="{{node.registrationMerchantList.length > 1}}">等 {{node.registrationMerchantList.length || 0}} 家</text>
+                    </view>
+                    <view class="node-card-go" wx:if="{{node.latitude && node.longitude}}"
+                          catchtap="goLocation" data-address="{{node.address}}" data-name="{{node.name}}"
+                          data-latitude="{{node.latitude}}" data-longitude="{{node.longitude}}"
+                          aria-role="button" aria-label="导航到 {{node.name}}"
+                          hover-class="cy-pressed" hover-stay-time="80">
+                      <cy-icon name="turn-right" size="26" />
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+          </block>
+        </view>
+
+      </view>
+
+      <!-- 「我的点位 / 我的承接申请」原来埋在「申请承接章节」那个弹层里 —— 要看自己申请到哪一步,
+           得先点开一个写着「申请承接」的弹窗,读起来像是要再申请一次。稿 159:346 那一屏只画了
+           选章节 + 选玩法 + 「下一步 · 填报名」,申请管理不在弹层里。所以整块搬到主题正文,
+           跟着这条主题走 —— 数据和五个动作(撤回申请 / 填写实际供给 / 供给无变化重新确认 /
+           暂停供给 / 驳回原因)一个不动,只换了位置。一条都没有时整块不出。 -->
+      <view class="det3 my-apply" wx:if="{{myChapterNodes.length || myChapterApplications.length}}">
+        <view class="wp">
+        <view class="det-type">我在这条路线上的承接</view>
+        <view wx:if="{{myChapterNodes.length}}">
+          <view class="dt">我的点位</view>
+          <view class="dd merchant-chapter-option" wx:for="{{myChapterNodes}}" wx:key="id" wx:for-item="chapterNode">
+            <view>{{chapterNode.name}}</view>
+            <view class="merchant-chapter-meta">{{chapterNode.address || '未填地址'}} · {{chapterNode.auditLabel}}</view>
+            <view class="merchant-chapter-meta" wx:if="{{chapterNode.nodeAuditReason}}">驳回原因：{{chapterNode.nodeAuditReason}}</view>
+            <view class="merchant-chapter-actions">
+              <!-- CU-M-59:待审核/已驳回的点位还没有生效供给,后端 saveNpcContent 的闸
+                   (liveOfferOf == null →「承接已失效或未生效」)必然拒。入口与后端同一判据:
+                   只有已通过的点位给配置入口,其余就地说明什么时候能配。 -->
+              <cy-btn wx:if="{{chapterNode.auditLabel === '已通过'}}" variant="ghost" size="sm" class="cy-btn-inline"
+                data-node-id="{{chapterNode.id}}" data-node-name="{{chapterNode.name}}"
+                bindtap="openNodeNpcForm">节点NPC</cy-btn>
+              <view wx:else class="merchant-chapter-meta">审核通过后可配置节点内容</view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{myChapterApplications.length}}">
+          <view class="dt">我的承接申请</view>
+          <view class="merchant-chapter-actions">
+            <cy-btn variant="ghost" size="sm" class="cy-btn-inline" data-apply="1" bindtap="bmClick2">申请承接其他章节</cy-btn>
+          </view>
+          <view class="dd merchant-chapter-option" wx:for="{{myChapterApplications}}" wx:key="id" wx:for-item="application">
+            <view>{{application.chapterName || '未命名章节'}} · {{application.statusLabel}}</view>
+            <view class="merchant-chapter-meta" wx:if="{{application.termsLabel}}">{{application.termsLabel}}</view>
+            <view class="merchant-chapter-actions" wx:if="{{application.canSubmitOffer || application.canWithdraw}}">
+              <cy-btn wx:if="{{application.canSubmitOffer}}" variant="ghost" size="sm" class="cy-btn-inline"
+                data-chapter-id="{{application.chapterId}}" bindtap="openChapterOfferForm">填写实际供给</cy-btn>
+              <cy-btn wx:if="{{application.canWithdraw}}" variant="ghost" size="sm" class="cy-btn-inline"
+                data-application-id="{{application.id}}" bindtap="withdrawChapterApplication">撤回申请</cy-btn>
+            </view>
+            <view class="merchant-chapter-meta" wx:if="{{application.offerReadOnly}}">
+              实际供给已生效<text wx:if="{{application.circleSupplyCheckedAtText}}"> · 最近确认 {{application.circleSupplyCheckedAtText}}</text>
+            </view>
+            <view wx:if="{{application.canReconfirmCircleSupply}}" class="merchant-chapter-actions">
+              <cy-btn variant="ghost" size="sm" data-offer-id="{{application.offerId}}" bindtap="reconfirmCircleSupply">供给无变化，重新确认</cy-btn>
+              <cy-btn variant="ghost" size="sm" data-offer-id="{{application.offerId}}" bindtap="pauseCircleSupply">暂停供给</cy-btn>
+            </view>
+            <view class="merchant-chapter-meta" wx:if="{{application.status === 1 && !application.offerReadOnly && !application.canSubmitOffer}}">
+              章节供给档位暂未读取，请稍后重试
+            </view>
+          </view>
+        </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!--主题弹窗 -->
+  <!-- 自由探索(selectedMode===2)的「选承接标的」已换成 cy-chapter-target-picker(稿 159:346),
+       见本文件末尾。这个旧 pop 只留给经典定向选节点那条路 —— 稿上没画它,现码也没有第二处入口。 -->
+  <view class="lightbox" bindtap="topicClose" aria-role="button" aria-label="关闭" aria-role="button" aria-label="关闭" wx:if="{{ topicShow && selectedMode !== 2 }}" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="pop pop-topic" wx:if="{{ topicShow && selectedMode !== 2 }}">
+    <view class="line" bindtap="topicClose" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"></view>
+    <view class="">
+      <view class="pop-cont">
+        <view class="zt1 flex-cb david_pr">
+          <view class="david_gbtu" bindtap="topicClose" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+          <view class="col1">
+            <image lazy-load="true" src="{{img.first(info.imgArr)}}" mode="aspectFill" />
+          </view>
+          <view class="col2 flex-a">
+            <view class="tit">{{info.name}}</view>
+            <view class="check flex-ac">
+              <text>已选：{{selectedModeText}}{{selectedMode === 2 && selectedChapterText ? '，' + selectedChapterText : ''}}{{selectedMode === 1 && selectedNodeText ? '，' + selectedNodeText : ''}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 主题产品类型已确定报名目标，商家不能在这里切换模式。 -->
+        <view class="dl david_pr">
+          <view class="dt">承接方式</view>
+          <view class="dt david_wh"bindtap="davidClick" hover-class="cy-pressed" hover-stay-time="80"><image lazy-load="true" src="/pages/topic/images/d_weihao.png" mode="widthFix" /></view>
+          <view class="check flex-w">
+            <view class="dd check">{{selectedModeText}}</view>
+          </view>
+        </view>
+
+        <!-- 经典定向：节点仍是报名目标，模板只用于展示该节点玩法。 -->
+        <view class="dl">
+          <view class="dt">选择节点</view>
+          <view class="check flex-w">
+            <block wx:for="{{allNodesList}}" wx:key="index" wx:for-item="node" wx:for-index="index">
+              <view class="dd {{selectedNodeId === node.id ? 'check' : ''}}" data-node="{{node}}" bindtap="selectNode" hover-class="cy-pressed" hover-stay-time="80">
+                {{node.cmsMemberTemplate.title}}
+              </view>
+            </block>
+          </view>
+        </view>
+      </view>
+      <view class="bm-btndavid btn1">
+        <cy-btn variant="primary" style="width:100%" bindtap="goSettlement">报名</cy-btn>
+      </view>
+    </view>
+  </view>
+
+
+  <!--报名模式说明-->
+  <view class="lightbox2" bindtap="davidClose" aria-role="button" aria-label="关闭" wx:if="{{ davidShow }}" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="pop pop-topic2" wx:if="{{ davidShow }}" style="--cy-comp-sheet-max-h: calc(100vh - {{chrome.sheetTop}}px)">
+    <view class="davidbmtk">
+      <view class="davidbmtk_top">
+        <view class="davidbmtk_top_tit">路线模式介绍</view>
+        <view class="davidbmtk_top_txt">选择最适合你的品牌参与方式，根据你的时间安排和社交偏好选择最适合的方式</view>
+        <view class="davidbmtk_top_gb" bindtap="davidClose" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+      </view>
+      <view class="davidbmtk_box">
+        <view class="davidbmtk_box_top">
+          <view class="davidbmtk_box_top_left"><image lazy-load="true" src="/pages/topic/images/d_bmtk1.png" mode="widthFix" /></view>
+          <view class="davidbmtk_box_top_right">
+            <view class="davidbmtk_box_top_right_tit">自由探索模式</view>
+            <view class="davidbmtk_box_top_right_con"><image lazy-load="true" src="/pages/topic/images/d_bmtk3.png" mode="widthFix" />灵活安排时间</view>
+          </view>
+        </view>
+        <view class="davidbmtk_box_ly">
+          <view class="davidbmtk_box_ly_name">玩家在主题周期内自由到店打卡完成任务。</view>
+          <view class="davidbmtk_box_ly_2h">
+            <view class="davidbmtk_box_ly_2h_li">玩家可以按照自己的节奏和时间安排完成探索</view>
+            <view class="davidbmtk_box_ly_2h_li">品牌可以自定义互动模式，构建有趣的的互动场景</view>
+          </view>
+          <view class="davidbmtk_box_ly_tit"><image lazy-load="true" src="/pages/topic/images/d_bmtk4.png" mode="widthFix" />商家收益</view>
+          <view class="davidbmtk_box_ly_txt">商家可选择模板并二次定义奖励机制，享受到店客流及二次消费。</view>
+        </view>
+      </view>
+      <view class="davidbmtk_box">
+        <view class="davidbmtk_box_top">
+          <view class="davidbmtk_box_top_left"><image lazy-load="true" src="/pages/topic/images/d_bmtk2.png" mode="widthFix" /></view>
+          <view class="davidbmtk_box_top_right">
+            <view class="davidbmtk_box_top_right_tit">城市定向模式</view>
+            <view class="davidbmtk_box_top_right_con"><image lazy-load="true" src="/pages/topic/images/d_bmtk5.png" mode="widthFix" />固定时间出发</view>
+          </view>
+        </view>
+        <view class="davidbmtk_box_ly">
+          <view class="davidbmtk_box_ly_name">玩家在指定时间统一出发，按路线顺序完成任务。</view>
+          <view class="davidbmtk_box_ly_2h">
+            <view class="davidbmtk_box_ly_2h_li">玩家按照固定的时间和路线完成探索</view>
+            <view class="davidbmtk_box_ly_2h_li">品牌可参与统一调度，提供限时互动体验</view>
+          </view>
+          <view class="davidbmtk_box_ly_tit"><image lazy-load="true" src="/pages/topic/images/d_bmtk6.png" mode="widthFix" />商家收益</view>
+          <view class="davidbmtk_box_ly_txt">商家可利用集中客流提升转化，享受限时活动带来的高峰流量。</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- F3 选承接标的(稿 159:346):章节横滑 + 玩法模板横滑 + 「下一步 · 填报名」。
+       选完直接把章节与玩法带进 chapter-node-form —— 稿上「下一步」就是那一屏。
+       原来这一步是 topicShow 那个旧 pop,它把「选标的」和「我的申请管理」挤在一起,
+       申请管理已经搬到主题正文,这里只剩选标的。 -->
+  <cy-chapter-target-picker
+    show="{{topicShow && selectedMode === 2}}"
+    chapters="{{allChaptersList}}"
+    chapters-state="{{chapterRecruitmentState}}"
+    chapters-error="{{chapterRecruitmentError}}"
+    application-open="{{chapterApplicationOpen}}"
+    submitting="{{chapterNodeSubmitting}}"
+    bind:close="topicClose"
+    bind:confirm="onChapterTargetConfirm"
+    bind:retrychapters="loadMerchantRecruitmentChapters"
+    bind:gocategory="goMerchantCategory"
+    bind:createtemplate="goCreateTemplate" />
+
+  <node-npc-form
+    show="{{nodeNpcFormVisible}}"
+    node-id="{{nodeNpcNodeId}}"
+    node-name="{{nodeNpcNodeName}}"
+    bind:close="onNodeNpcFormClose" />
+
+  <chapter-node-form
+    show="{{chapterNodeFormVisible}}"
+    chapterId="{{selectedChapterId}}"
+    chapterName="{{selectedChapterText}}"
+    presetNode="{{presetChapterNode}}"
+    presetTemplateId="{{selectedTemplateId}}"
+    presetTemplateName="{{selectedTemplateName}}"
+    termsMode="{{selectedChapterTermsMode}}"
+    circleMode="{{selectedChapterCircleMode}}"
+    formMode="{{chapterNodeFormMode}}"
+    submitting="{{chapterNodeSubmitting}}"
+    bind:close="closeChapterNodeForm"
+    bind:submit="onChapterNodeFormSubmit" />
+
+  <!-- 一个主题开了多个场次时,「本站」入口先选一个。原来是系统 ActionSheet,
+       2026-09-10 合流 master 后统一走 cy-option-sheet。
+       ⚠️ 必须挂在 .theme-merchant 容器**里**——挂到外面商家浅色页会弹出玩家的黑弹窗。 -->
+  <cy-option-sheet show="{{stationSheetShow}}" title="选择场次" items="{{stationSheetItems}}"
+                   bind:select="onStationSheetSelect" bind:cancel="onStationSheetCancel" />
+</view>
+</view>
+
+<cy-qr-voucher wx:if="{{checkinVisible}}"
+  show="{{true}}"
+  state="{{checkinQrState}}"
+  qr="{{checkinQrUrl}}"
+  title="本站打卡码"
+  desc="请让玩家扫这一张。可下载到相册，贴在店里长期使用。"
+  countdown=""
+  error-text="{{checkinErr || '打卡码暂时没能生成'}}"
+  secondary-text="{{checkinQrState === 'ready' ? '保存到相册' : ''}}"
+  mask-closable="{{true}}"
+  bind:close="closeLiveCheckin"
+  bind:retry="issueStationPoster"
+  bind:secondary="downloadCheckinQr" />
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />
+
+<!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key -->
+<!-- 同一个 #dc 现在承两条不可逆写(撤回申请 / 结束本章),按 e.detail.key 分流 -->
+<cy-danger-confirm id="dc" bind:confirm="onDangerConfirm" bind:alt="onDangerAlt" />

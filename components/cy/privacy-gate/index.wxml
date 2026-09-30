@@ -1,0 +1,21 @@
+<!-- 真弹窗:页内组件 + wx:if,不压页面栈。待决策态强制闸 ⇒ mask 不可关、无关闭叉。 -->
+<cy-scene-sheet
+  wx:if="{{show}}"
+  show="{{true}}"
+  variant="peek"
+  theme="player"
+  title="隐私与定位"
+  mask-closable="{{false}}"
+>
+  <view class="pg">
+    <text class="pg__body">城瘾会在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。</text>
+    <view class="pg__link" bindtap="openPrivacyContract" aria-role="button" aria-label="查看用户隐私保护指引" hover-class="cy-pressed" hover-stay-time="80">查看《用户隐私保护指引》</view>
+    <!-- 微信强制:同意必须是原生 button open-type,不能收编 cy-btn。
+         2026-09-18 对齐 pages/privacy 已定方案:两颗并排,不同意在左(secondary 描边)、同意在右;
+         原来竖排 + ghost 玻璃底与卡面同色,「暂不同意」根本看不清。 -->
+    <view class="pg__actions">
+      <cy-btn variant="secondary" disabled="{{submitting}}" class="pg__action" bindtap="disagreePrivacy">暂不同意</cy-btn>
+      <button class="pg__agree" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="agreePrivacy" loading="{{submitting}}">同意并继续</button>
+    </view>
+  </view>
+</cy-scene-sheet>

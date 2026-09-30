@@ -1,0 +1,151 @@
+@import '../../../style/merchant-light.wxss';
+
+page { background: var(--cy-bg-page); }
+
+/* flex 列 + 100vh 是空态 fill 链的第一环(见文末 .fill-slot)。
+   订单和经营动态共用它，让 cy-empty fill 能拿到真实的剩余空间。
+   ⚠️ 改 flex 后兄弟 margin 不再折叠,所以下面各节的节间距一律改成"只由上一节的
+   margin-bottom 给"的单边写法,避免上下 margin 相加把节距悄悄撑成两倍。 */
+.ledger { min-height: 100vh; display: flex; flex-direction: column; background: var(--cy-bg-page); padding: 0 var(--cy-page-x) 48rpx; box-sizing: border-box; }
+
+.ledger-inline-state { margin-bottom: var(--cy-space-3); }
+.ledger-sync {
+  display: block;
+  margin-bottom: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* CU-M-123 摘掉「经营动态」标题块后,原本的 .ledger-heading / .heading-title / .heading-sub
+   三行随之失效,一并删掉(全页再无引用)。 */
+.coop-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--cy-space-2); margin-bottom: var(--cy-space-3); }
+.coop-reminder { margin-bottom: var(--cy-space-3); }
+.coop-summary { display: block; margin-bottom: var(--cy-space-3); }
+.coop-withdraw { margin-bottom: var(--cy-space-5); }
+.coop-record-heading { margin-top: 0; }
+/* 筛选行已收编 cy-tabs chip 档(2026-08-20 画板04 7:96),几何/触达在组件层统一 */
+.ledger-filter { margin-bottom: var(--cy-space-4); }
+.ledger-redemption-content { display: flex; flex: 1; min-height: 0; flex-direction: column; }
+
+.ledger-action {
+  min-height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  margin-bottom: var(--cy-space-5);
+  padding: var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.ledger-action--secondary { margin-top: var(--cy-space-4); }
+.ledger-action--tap { opacity: .72; }
+.ledger-action-icon {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-subtle);
+  color: var(--cy-text-title);
+}
+.ledger-action-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.ledger-action-title { font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); }
+.ledger-action-sub { margin-top: var(--cy-space-1); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.ledger-action-arrow { flex-shrink: 0; color: var(--cy-text-secondary); }
+.fin-kv__v--neutral { color: var(--cy-text-secondary); }
+.fin-assets-cta { display: block; margin: 0 0 var(--cy-space-3); }
+.fin-alert-row { min-height: calc(var(--cy-btn-h) + var(--cy-space-4)); display: flex; align-items: center; gap: var(--cy-space-3); margin-bottom: var(--cy-space-5); padding: var(--cy-space-3) var(--cy-space-4); border-radius: var(--cy-radius-lg); background: var(--cy-bg-card); box-sizing: border-box; }
+.fin-alert-copy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.fin-alert-title { font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); }
+.fin-alert-sub { margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+
+.settlement-overview {
+  padding: var(--cy-space-4);
+  margin-bottom: var(--cy-space-5);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.settlement-primary { display: grid; grid-template-columns: 1fr auto; gap: var(--cy-space-1-5) var(--cy-space-2); align-items: center; padding: var(--cy-space-2) 0; color: var(--cy-text-body); font-size: var(--cy-font-label); }
+.settlement-primary + .settlement-primary { border-top: 1rpx solid var(--cy-color-border-subtle); }
+.settlement-primary .settlement-amount { grid-column: 2; grid-row: 1; margin: 0; font-size: var(--cy-font-body); }
+.settlement-link { grid-column: 1; color: var(--cy-text-secondary); }
+.settlement-meta { margin-top: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.settlement-label { display: block; font-size: var(--cy-font-body); color: var(--cy-text-body); }
+.settlement-amount {
+  display: block;
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-data-xl);
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--cy-text-title);
+  font-variant-numeric: tabular-nums;
+}
+.settlement-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+.settlement-secondary-value { color: var(--cy-text-title); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-2);
+  overflow: hidden;
+  padding: var(--cy-space-2);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.rec { padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-bg-card); }
+.rec--tap { opacity: .72; }
+.rec-top { display: flex; align-items: baseline; justify-content: space-between; }
+.rec-title { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+/* 金额列:右对齐 + 等宽数字,收入墨色、支出/冲销 danger(处方 H) */
+.rec-amt { flex-shrink: 0; margin-left: var(--cy-space-2-5); text-align: right; font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); font-variant-numeric: tabular-nums; }
+.rec-amt-neutral { flex-shrink: 0; margin-left: var(--cy-space-2-5); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.rec-amt--negative { color: var(--cy-color-status-danger); }
+
+/* 结算批次卡状态表达 = 左缘 8rpx 色带,单一载体(待结算 warning / 已结算 success / 冲销作废 danger)。
+   ★不要再补 status-*-soft 整卡底色:那层底把白卡换成合成米/绿/粉底,同卡的 .rec-sub
+   (24rpx=12px 正文,取 --cy-text-secondary)对比度会从 5.32:1 掉到 4.31~4.41:1,低于 AA 4.5,
+   而同一列表里未知状态卡仍是白底 ⇒ 一张列表两种合规性。状态靠色带表达已足够,且更克制统一。
+   padding-left 不再单独加宽:与普通 .rec 同为 --cy-space-3(24rpx,2026-07-31 随订单行
+   padding 一并收到量表内档),色带占左 8rpx,文字仍留 16rpx(8px)间隔;这样带色带与
+   不带色带的卡首字左缘齐平,列表不抖。契约锚点随之从 space-3-5 改到 space-3(改锚不放宽:
+   "齐平"与"色带 8rpx"两条断言原样保留)。 */
+.rec--band { position: relative; overflow: hidden; }
+.rec--band::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 8rpx; background: var(--cy-color-border-subtle); } /* ds-ok: 8rpx 状态色带宽度,处方 H 指定 */
+.rec--pending::before { background: var(--cy-color-status-warning); }
+.rec--settled::before { background: var(--cy-color-status-success); }
+.rec--void::before { background: var(--cy-color-status-danger); }
+.rec-ok { font-size: var(--cy-font-label); color: var(--cy-success); }
+.rec-sub { margin-top: var(--cy-legacy-10); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+.coop-settlement-list { display: flex; flex-direction: column; gap: var(--cy-space-2); overflow: hidden; padding: var(--cy-space-2); border-radius: var(--cy-radius-lg); background: var(--cy-bg-card); }
+.coop-settlement-row { display: flex; align-items: center; gap: var(--cy-space-2); min-height: calc(var(--cy-btn-h) + var(--cy-space-4)); padding: var(--cy-space-3); box-sizing: border-box; border-radius: var(--cy-radius-md); }
+.coop-settlement-row--tap { opacity: .72; }
+.coop-settlement-main { min-width: 0; flex: 1; }
+.coop-settlement-top,
+.coop-settlement-bottom { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.coop-settlement-bottom { margin-top: var(--cy-space-1-5); }
+.coop-settlement-topic { min-width: 0; flex: 1; font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.coop-settlement-amount { flex-shrink: 0; text-align: right; font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); font-variant-numeric: tabular-nums; }
+.coop-settlement-meta { min-width: 0; flex: 1; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.coop-settlement-arrow { flex-shrink: 0; color: var(--cy-text-secondary); }
+
+.load-more { margin: 24rpx 0; text-align: center; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.empty { display: flex; justify-content: center; gap: 16rpx; text-align: center; color: var(--cy-text-secondary); font-size: var(--cy-font-label); padding: var(--cy-space-7) 0; }
+
+/* fill 链最后一环:cy-empty 的 .cy-empty--fill{flex:1} 长在组件内部根节点上,够不到
+   宿主 <cy-empty> 标签(默认 display:block / flex:0 1 auto,不撑开就没有剩余空间可居中)。
+   链路:.ledger(flex 列 + min-height:100vh) → 本条(tab 内容与 .ledger 同级,
+   wx:if 的 <block> 不产生节点)。 */
+.fill-slot { display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+
+@import '../style/merchant-finance.wxss';

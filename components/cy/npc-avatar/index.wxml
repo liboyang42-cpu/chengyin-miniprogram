@@ -1,0 +1,5 @@
+<view class="npc-avatar">
+  <text wx:if="{{failed || !src}}" class="npc-avatar-fallback">角色</text>
+  <canvas class="npc-avatar-media" wx:elif="{{preset}}" type="2d" id="avatar" />
+  <image class="npc-avatar-media" wx:else src="{{src}}" mode="aspectFit" binderror="fail" />
+</view>

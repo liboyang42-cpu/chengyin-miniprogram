@@ -1,0 +1,82 @@
+@import "/pages/play/style/playkit.wxss";
+
+/* cy-playkit-musiccorner · 治愈音乐角(Figma v5.1,node 47:289)
+ * 这一站的玩法就是「什么都不做,听完」——所以主视觉给播放器,不给按钮阵列。 */
+.mc { padding-top: var(--cy-space-2); }
+.mc__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+}
+.mc__player {
+  position: relative;
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+}
+.mc__pause {
+  display: flex;
+  gap: 8rpx;
+}
+.mc__pause-bar {
+  width: 8rpx;
+  height: 36rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-text-primary);
+}
+.mc__play {
+  flex: none;
+  width: 112rpx;
+  height: 112rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  border: 2rpx solid var(--cy-color-play-line);
+  color: var(--cy-color-text-primary);
+}
+/* 波形:等宽小竖条,已播段落走信息蓝,未播是低对比白 —— 它同时是进度示意 */
+.mc__wave {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  overflow: hidden;
+}
+.mc__bar {
+  flex: none;
+  width: 8rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-play-accent-soft);
+}
+.mc__bar--on { background: var(--cy-color-status-info); }
+.mc__meta {
+  position: absolute;
+  left: 190rpx;
+  bottom: var(--cy-space-2);
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-secondary);
+}
+.mc__track {
+  margin-top: var(--cy-space-3);
+  height: 12rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-play-accent-soft);
+  overflow: hidden;
+}
+.mc__track-fill {
+  height: 100%;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-status-info);
+  transition: width var(--cy-motion-standard) var(--cy-ease-out);
+}
+
+/* 夜曲紫:波形与进度条走玩法主题色 */
+.mc__bar--on { background: var(--cy-color-playkit-music); }
+.mc__track-fill { background: var(--cy-color-playkit-music); }
+.mc__play { border-color: var(--cy-color-playkit-music); }
+.mc__pause-bar { background: var(--cy-color-playkit-music); }

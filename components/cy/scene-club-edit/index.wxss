@@ -1,0 +1,161 @@
+/* 俱乐部编辑表单样式沿用原页面;去掉页面 chrome(顶部交给 scene-sheet)。 */
+:host { display: block; height: 100%; }
+.cle { width:100%; min-height:100%; box-sizing:border-box; }
+/* 复用申请页的全套 iOS 浅色样式(card/frow/fl/fi/chip/h1/mt/last/sec-label/bottom…) */
+@import "../../../style/club-apply-form.wxss";
+
+/* edit 专属:底栏比申请页多一个「解散俱乐部」,共享的 .body-pad(180rpx)是按单按钮量的,
+   在这里不够高 —— 最后一个字段「俱乐部介绍」会被固定底栏压住(2026-08-19 C46 实拍坐实:
+   占位文字从白色「保存修改」按钮左侧透出来)。只在本组件加高,不动申请页。 */
+.body-pad { height: 360rpx; }
+
+.frow-action { min-height: 96rpx; }
+
+/* edit 专属:状态栏占位 + 头像/封面选择 */
+.statusbar { width: 100%; }
+
+.avatar-pick { margin-left: auto; width: 96rpx; height: 96rpx; border-radius: 50%; overflow: hidden; }
+/* 右缘编辑箭头,与列表项「可进入编辑」的通用语义一致 */
+.edit-arrow { flex-shrink: 0; margin-left: var(--cy-space-2); color: var(--cy-text-secondary); font-size: var(--cy-font-subtitle); }
+.avatar-img { width: 100%; height: 100%; }
+.avatar-ph {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-bg-surface-subtle); border: 3rpx dashed var(--cy-color-border-subtle);
+  color: var(--cy-color-text-tertiary); font-size: var(--cy-font-page-title); box-sizing: border-box; border-radius: 50%;
+}
+
+/* 两行行距 space-3(.frow 来自 apply/index.wxss,是共享样式,只在本页加间距不改它) */
+.cover-row { align-items: center; margin-top: var(--cy-space-3); }
+.cover-pick { margin-left: auto; width: 160rpx; height: 90rpx; border-radius: var(--cy-radius-md); overflow: hidden; }
+.cover-img { width: 100%; height: 100%; }
+/* 占位框只有 160x90rpx,塞不下整句说明 —— 说明挪到字段标签下,框里只留「＋」。
+   原写法(框内 + 图标 + 「上传封面 · 16:9 横图」)会被 overflow:hidden 直接裁掉半句。 */
+.cover-label { display: flex; flex-direction: column; gap: 4rpx; flex-shrink: 0; }  /* ds-ok: 标签与 hint 两行贴合,与 .post-club 同口径 */
+.cover-hint { font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+.cover-ph {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-bg-surface-subtle); border: 3rpx dashed var(--cy-color-border-subtle);
+  color: var(--cy-color-text-tertiary); box-sizing: border-box; border-radius: var(--cy-radius-md);
+}
+
+.operation-hint { display: block; margin-top: var(--cy-legacy-6); color: var(--cy-color-text-secondary); font-size: var(--cy-font-caption); }
+.operation-input { display: flex; align-items: center; gap: var(--cy-legacy-10); margin-left: auto; color: var(--cy-color-text-secondary); }
+.operation-input .fi { width: 180rpx; text-align: right; }
+
+
+.dissolution-confirm { padding: 0 var(--cy-space-4) var(--cy-space-4); }
+.dissolution-confirm-copy, .dissolution-blocker-copy {
+  display: block; color: var(--cy-color-text-secondary); font-size: var(--cy-font-body); line-height: var(--cy-leading-normal);
+}
+.dissolution-confirm-actions { margin-top: var(--cy-space-4); display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.dissolution-blocker-list { max-height: 60vh; overflow-y: auto; padding: 0 var(--cy-space-4) var(--cy-space-4); box-sizing: border-box; }
+.dissolution-blocker-copy { margin-bottom: var(--cy-space-2); }
+.dissolution-blocker-note {
+  display: block; margin-bottom: var(--cy-space-2);
+  color: var(--cy-color-text-secondary); font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal);
+}
+.dissolution-blocker-section {
+  display: block; margin: var(--cy-space-4) 0 var(--cy-space-2);
+  color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); letter-spacing: 0.08em;
+}
+/* 稿 P6 一条 = 标题+状态 / 金额·主题 / 动作钮,三行竖排。 */
+.dissolution-blocker-item {
+  display: flex; flex-direction: column; gap: var(--cy-space-1);
+  padding: var(--cy-space-3) 0;
+  border-bottom: 1rpx solid var(--cy-color-border-subtle); color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+}
+.dissolution-blocker-head { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.dissolution-blocker-title { color: var(--cy-color-text-primary); font-size: var(--cy-font-body); }
+.dissolution-blocker-status { color: var(--cy-color-text-secondary); font-size: var(--cy-font-caption); }
+.dissolution-blocker-meta { color: var(--cy-color-text-secondary); font-size: var(--cy-font-caption); }
+.dissolution-blocker-act {
+  margin-top: var(--cy-space-1); min-height: 72rpx;
+  display: flex; align-items: center; justify-content: space-between;
+  color: var(--cy-color-text-primary); font-size: var(--cy-font-body);
+}
+.dissolution-blocker-arrow { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-page-title); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }
+
+/* 管理员态:经营配置锁 */
+.op-locked { padding: var(--cy-space-3) var(--cy-space-3-5); }
+.op-locked-title { display: block; font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-color-text-secondary); }
+.op-locked-sub { display: block; margin-top: var(--cy-space-1-5); font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); line-height: var(--cy-leading-normal); }
+
+/* ===== 2026-09-02 Figma 27:3 / 29:2 对齐 =====
+   共用真源 style/club-apply-form.wxss 同时服务申请页,不就地改它的 .card ——
+   这里只给本组件加一层作用域覆盖(申请页维持原样)。 */
+
+/* 整页上的卡 = bg-elevated(#1C1C1E)。原 --cy-bg-card 解析到 bg-surface(#0A0A0B),
+   跟页黑几乎同色 —— 卡的边界只能靠阴影猜。 */
+.cle .card { background: var(--cy-color-bg-elevated); }
+/* 字段值走 text/secondary(#B7B7B7),比左侧标签(primary)低一档 —— 稿上就是这个层级,
+   一行里「字段名」和「填的值」不该一样亮。同样只在本组件覆盖,申请页不动。 */
+.cle .fi { color: var(--cy-text-body); }
+
+/* 管理员副标题(Figma 29:145) */
+.admin-note {
+  padding: 0 8rpx var(--cy-space-3);
+  font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* 定位:disclosure 行 */
+.disc-row { justify-content: space-between; }
+.disc-label { display: flex; flex-direction: column; gap: 6rpx; flex-shrink: 0; }
+.disc-sub { font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+.disc-value { display: flex; align-items: center; gap: var(--cy-space-1-5); margin-left: auto; min-width: 0; }
+.disc-value-text {
+  font-size: var(--cy-font-label); font-weight: 500; color: var(--cy-text-body);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+/* 「›」是字符不是图标 —— slide-arrow 才是纯箭头,arrow-right 带横杠。 */
+.disc-arrow { flex-shrink: 0; color: var(--cy-color-text-tertiary); }
+
+/* T1 半屏选择器 */
+.pk { padding: 0 var(--cy-space-4) var(--cy-space-4); }
+/* ≤70vh 由 cy-sheet 兜;这里只保证选项区自己能滚,「应用」不会被顶出屏幕 */
+.pk-opts { max-height: 52vh; overflow-y: auto; }
+.pk-hint { padding-bottom: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+.pk-chips { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); max-height: 52vh; overflow-y: auto; }
+.pk-opt {
+  display: flex; align-items: center; gap: var(--cy-space-2); min-height: 104rpx;
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.pk-opt:last-child { border-bottom: none; }
+.pk-opt-main { display: flex; flex-direction: column; gap: 6rpx; flex: 1; min-width: 0; }
+.pk-opt-name { font-size: var(--cy-font-subtitle); color: var(--cy-color-text-primary); }
+.pk-opt-sub { font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+.pk-opt.on .pk-opt-name { font-weight: 600; }
+.pk-opt-tick { flex-shrink: 0; color: var(--cy-color-text-primary); }
+.pk-apply {
+  margin-top: var(--cy-space-4); min-height: var(--cy-btn-h);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+  font-size: var(--cy-font-body); font-weight: 600;
+}
+
+/* 危险操作(Figma 28:68):红标签 + danger-soft 底卡 + 整宽描边 danger 胶囊 */
+.danger-label { color: var(--cy-color-status-danger); }
+.danger-card {
+  display: flex; flex-direction: column; gap: var(--cy-space-2);
+  padding: var(--cy-space-3-5); border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-status-danger-soft);
+}
+.danger-title { font-size: var(--cy-font-subtitle); font-weight: 600; color: var(--cy-color-status-danger); }
+.danger-copy { font-size: var(--cy-font-label); color: var(--cy-text-body); line-height: var(--cy-leading-normal); }
+/* 描边而非实心:解散是终局动作,实心 danger 会把它做成页面上最响的按钮 */
+.danger-btn {
+  min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center;
+  border: 2rpx solid var(--cy-color-status-danger); border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-status-danger); font-size: var(--cy-font-label); font-weight: 600;
+}
+.danger-btn.is-disabled { opacity: var(--cy-opacity-disabled); }
+
+/* 锁态卡第三行:现值回显比说明亮一档,它是「数据」不是「解释」 */
+.op-locked-cur { display: block; margin-top: var(--cy-space-1-5); font-size: var(--cy-font-caption); color: var(--cy-text-body); line-height: var(--cy-leading-normal); }

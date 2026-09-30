@@ -1,0 +1,193 @@
+/* 勋章墙:暗场数字装置。canvas 全屏,cover-view 悬浮层;设计参数已在原型 v5 定稿。 */
+page { background: var(--cy-color-bg-page); }
+
+.bw { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: var(--cy-color-bg-page);
+      font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+
+.bw-gl { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; }
+
+/* 悬浮顶栏:cover-view 置于 WebGL 原生层之上,不用普通 cy-nav-bar。 */
+.bw-top { position: fixed; left: 0; top: 0; right: 0; z-index: 30;
+          background: linear-gradient(rgba(5,5,6,.85), rgba(5,5,6,0)); }
+.bw-top-bar { position: relative; display: flex; align-items: center; }
+.bw-back-hit { position: absolute; left: 0; top: 0; bottom: 0; width: 88rpx; min-width: 88rpx; min-height: 88rpx;
+               display: flex; align-items: center; justify-content: center; color: #FFFFFF; }
+.bw-back-inner { display: flex; align-items: center; justify-content: center; width: 64rpx; height: 64rpx;
+                border-radius: 50%; background: rgba(0,0,0,.42); border: 1rpx solid rgba(255,255,255,.14); }
+.bw-back-icon { width: 20rpx; height: 34rpx; filter: brightness(0) invert(1); opacity: .92; }
+
+/* 底部字幕层 */
+.bw-cap { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; pointer-events: none;
+          padding: 88rpx 40rpx calc(36rpx + env(safe-area-inset-bottom)); /* ds-ok: v5 定稿字幕层留白,与 safe-area-inset-bottom 联动精调,不套用间距量表 */
+          background: linear-gradient(rgba(5,5,6,0) 0%, rgba(5,5,6,.62) 42%, rgba(5,5,6,.92) 100%); }
+.bw-cap-t { font-size: 44rpx; /* ds-ok: 勋章墙 v5 定稿字号,配合专属 letter-spacing/monospace 字体,不套用正文字号量表 */
+            font-weight: 600; letter-spacing: .14em; color: #edeff3; }
+.bw-cap-s { margin-top: var(--cy-space-1-5); font-size: 22rpx; letter-spacing: .04em; color: #8b919b; /* ds-ok */
+            font-family: -apple-system, 'PingFang SC', sans-serif; }
+
+/* 请求失败态:canvas 失败时改由 L0 scroll-view 承接,cy-error 是正常 DOM 层的唯一出口。 */
+.bw-error-state { position: fixed; left: 0; right: 0; top: 20%; bottom: 20%; z-index: 31;
+                  display: flex !important; flex-direction: column !important; min-height: 0; }
+
+/* 详情 veil + sheet:外观照玩家场景弹窗 cy-scene-sheet(Figma 量的那套,9-24 用户两轮指正)。
+   这里压在 WebGL 原生层上只能用 cover-view(chrome-spec 登记的例外),套不了组件,所以逐项抄它的令牌:
+   满宽贴底、只有顶部圆角、顶边 0.714px 细线、标题 28px/42px、叉号 32px 视觉框 + 88rpx 热区、正文左右 16px。
+   cover-view 做不了毛玻璃 ⇒ 底色取玩家弹层的实色档(--cy-comp-sheet-player-bg),不用半透明玻璃档。
+   缓动仍是用户指定的 Spring Animation。 */
+.bw-veil { position: fixed; inset: 0; z-index: 40; background: var(--cy-comp-sheet-player-overlay);
+           opacity: 0; pointer-events: none; transition: opacity .28s ease; }
+.bw-veil.on { opacity: 1; pointer-events: auto; }
+.bw-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; box-sizing: border-box;
+            transform: translateY(110%);
+            background: var(--cy-comp-sheet-player-bg);
+            border-top: var(--cy-comp-sheet-border-width) solid var(--cy-comp-sheet-player-border);
+            border-left: var(--cy-comp-sheet-border-width) solid var(--cy-comp-sheet-player-border);
+            border-right: var(--cy-comp-sheet-border-width) solid var(--cy-comp-sheet-player-border);
+            border-radius: var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0;
+            box-shadow: var(--cy-comp-sheet-player-inset-shadow);
+            /* 页面根 .bw 是等宽字体(墙面字幕用),弹窗照场景弹窗改回系统字体 */
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", sans-serif;
+            /* 与 .ss__panel 同:不越过胶囊,正文超长时在 .bw-sh-body 里滚。
+               场景弹窗是 js 量胶囊底再算;这页根上已挂 --sbh/--nbh(状态栏 + 导航栏 = 胶囊底之下),直接用。
+               token 版 --cy-comp-sheet-max-height 靠 env() 反算,模拟器/无刘海机上会顶过胶囊(实拍抓到)。 */
+            max-height: calc(100vh - var(--sbh) - var(--nbh)); display: flex; flex-direction: column;
+            transition: transform .42s cubic-bezier(.34,1.28,.44,1); }
+.bw-sheet.on { transform: translateY(0); }
+/* 标题行 = .ss__head:只放标题与叉,标题占满剩余宽度 */
+.bw-sh-hd { flex: none; display: flex; align-items: center; gap: var(--cy-space-2);
+            padding: var(--cy-comp-sheet-header-pad-top) var(--cy-comp-sheet-header-pad-x) var(--cy-comp-sheet-header-pad-bottom); }
+.bw-sh-name { flex: 1; min-width: 0; font-size: var(--cy-comp-sheet-title-size); line-height: var(--cy-comp-sheet-title-leading);
+              font-weight: 700; letter-spacing: var(--cy-comp-sheet-title-tracking); color: var(--cy-comp-sheet-player-text);
+              overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* 叉号 = .ss__close / .ss__control:88rpx 热区在外层,32px 视觉框不带圆底 */
+.bw-sh-x { position: relative; flex: none; width: 88rpx; height: 88rpx; display: flex;
+           align-items: center; justify-content: center; }
+.bw-sh-x-visual { position: relative; width: var(--cy-comp-sheet-close-size); height: var(--cy-comp-sheet-close-size);
+                  display: flex; align-items: center; justify-content: center; }
+/* 叉号图照 cy-icon close-sm(24 画布两条 2px 圆头线、--cy-comp-sheet-player-close-fg 70% 白)出的 PNG,同 44rpx 显示 */
+.bw-sh-x-icon { width: 44rpx; height: 44rpx; }
+/* 正文 = .ss__body */
+.bw-sh-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column;
+               padding: 0 var(--cy-comp-sheet-body-pad-x) calc(48rpx + env(safe-area-inset-bottom)); }
+/* 类别小胶囊:标题下一行,按内容宽 */
+/* 正文是纵向 flex:子项一律不许被压扁(否则长说明把描述挤成半行,实拍抓到),超出的高度交给 .bw-sh-body 滚 */
+.bw-sh-rar, .bw-sh-desc, .bw-sh-meta, .bw-sh-3d { flex: none; }
+.bw-sh-rar { align-self: flex-start; margin-bottom: var(--cy-space-3); font-size: var(--cy-font-caption); padding: 4rpx 14rpx; /* ds-ok: 类别小胶囊,内距随字号 */
+             border: 1rpx solid currentColor; border-radius: var(--cy-radius-pill); }
+.bw-sh-desc { margin: 0 0 var(--cy-space-4); font-size: var(--cy-font-body); line-height: 1.6;
+              color: var(--cy-comp-sheet-player-text-secondary); white-space: normal; word-break: break-all; }
+/* 信息卡 = 场景弹窗里的记录卡(--cy-comp-sheet-player-history-card / 32rpx 圆角):标签在左、值在右,行间一条分隔线。
+   cover-view 不认 grid,原来的双列网格在这里会把标签和值挤成一列。 */
+.bw-sh-meta { background: var(--cy-comp-sheet-player-history-card); border-radius: var(--cy-comp-sheet-history-card-radius);
+              padding: 0 var(--cy-space-4); }
+.bw-sm { display: flex; align-items: center; justify-content: space-between; min-height: 96rpx; gap: var(--cy-space-3); }
+.bw-sm + .bw-sm { border-top: 1rpx solid var(--cy-comp-sheet-player-divider); }
+.bw-sm--wide { flex-direction: column; align-items: flex-start; justify-content: center; padding: var(--cy-space-3-5) 0; gap: var(--cy-space-1); }
+.bw-sm-k { flex: none; font-size: var(--cy-font-body); color: var(--cy-comp-sheet-player-text); }
+.bw-sm-v { font-size: var(--cy-font-body); color: var(--cy-comp-sheet-player-text-secondary); text-align: right;
+           white-space: normal; word-break: break-all; }
+.bw-sm--wide .bw-sm-v { text-align: left; }
+
+/* L0 降级:静态网格 */
+.bw-fallback { position: fixed; inset: 0; }
+.bw-fb-grid { display: flex; flex-wrap: wrap; gap: 24rpx; padding: 24rpx var(--cy-space-5) 240rpx; } /* ds-ok: 240rpx 是底部悬浮元素的滚动净空,刻意留白非随手数值 */
+.bw-fb-item { width: 148rpx; display: flex; flex-direction: column; align-items: center; gap: var(--cy-legacy-10); }
+.bw-fb-img { width: 120rpx; height: 120rpx; border-radius: 20rpx; background: #0c0d10; }
+.bw-fb-ph { display: flex; align-items: center; justify-content: center; font-size: 48rpx; /* ds-ok: 默认勋章图标字形尺寸,非文本层级 */ }
+.bw-fb-name { font-size: var(--cy-type-micro); color: #8b919b; text-align: center;
+              font-family: -apple-system, 'PingFang SC', sans-serif; }
+
+/* B67 信息框架：标题紧跟导航，统计与双视图控制收在同一层。 */
+.bw-top .bw-cap {
+  position: static;
+  padding: 0;
+  background: transparent;
+  pointer-events: auto;
+}
+.bw-head {
+  position: relative;
+  padding: 0 var(--cy-page-x) var(--cy-space-3);
+  background: var(--cy-color-bg-page);
+}
+.bw-page-title {
+  font-size: var(--cy-type-page-title);
+  line-height: var(--cy-leading-tight);
+  color: var(--cy-color-text-primary);
+}
+.bw-head .bw-cap-t { font-size: inherit; color: inherit; letter-spacing: 0; font-family: -apple-system, 'PingFang SC', sans-serif; }
+.bw-head .bw-cap-s { margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-family: -apple-system, 'PingFang SC', sans-serif; }
+.bw-view-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-1);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface);
+}
+.bw-view-option {
+  flex: 1;
+  min-height: var(--cy-btn-h-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+}
+.bw-view-option.is-active { background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-primary); font-weight: 700; }
+
+.bw-list {
+  position: fixed;
+  inset: 0;
+  /* 9-24 删掉图例后顶部少了约 40rpx,260 → 220,列表首行紧跟墙/列表切换 */
+  padding: calc(var(--sbh) + var(--nbh) + 220rpx) var(--cy-page-x) calc(var(--cy-space-5) + var(--cy-safe-bottom));
+  box-sizing: border-box;
+  background: var(--cy-color-bg-page);
+}
+.bw-list-h {
+  display: block;
+  padding: var(--cy-space-4) 0 var(--cy-space-2);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+  font-weight: 650;
+  letter-spacing: .08em;
+}
+.bw-list-h:first-child { padding-top: 0; }
+.bw-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  min-height: calc(var(--cy-space-8) + var(--cy-space-3));
+  padding: var(--cy-space-3) 0;
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.bw-list-mark {
+  width: var(--cy-space-7);
+  height: var(--cy-space-7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-primary);
+  flex: none;
+}
+.bw-list-mark image { width: 100%; height: 100%; }
+.bw-list-mark.is-locked { opacity: .48; }
+.bw-list-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: var(--cy-space-1); }
+.bw-list-name { color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 650; }
+.bw-list-meta { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.bw-list-state { color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+.bw-empty-state { position: fixed; inset: calc(var(--sbh) + var(--nbh) + 220rpx) 0 0; display: flex !important; flex-direction: column; min-height: 0; }
+
+.bw-sh-3d{ margin-top:23rpx; min-height:88rpx; padding:0 32rpx; border-radius:var(--cy-radius-pill); /* ds-ok Figma 实测(用户裁决字面值) */
+  display:flex; align-items:center; justify-content:center; gap:12rpx;
+  background:#FFFFFF; color:#0A0A0A; font-size:27rpx; font-weight:700; } /* ds-ok Figma 实测(用户裁决字面值) */
+.bw-sh-3d-icon { width: 14rpx; height: 22rpx; }
+
+/* 玩法侧跳进来的回读结论条:压在 canvas 之上,所以必须是 cover-view。 */
+.bw-focus{display:inline-flex;align-items:center;margin-top:14rpx;padding:10rpx 22rpx;border-radius:var(--cy-radius-pill);background:rgba(255,255,255,.10);color:rgba(255,255,255,.92);font-size:var(--cy-font-caption);line-height:1.4}

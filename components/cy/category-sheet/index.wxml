@@ -1,0 +1,19 @@
+<cy-sheet show="{{show}}" title="选择分类" bind:close="onClose" footer="{{true}}">
+  <view class="cs-list" wx:if="{{categoryList.length}}">
+    <view class="cs-li {{item.checked ? 'cs-li--on' : ''}} {{item.disabled ? 'cs-li--disabled' : ''}}"
+          wx:for="{{categoryList}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="toggleCategory" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="cs-li-ico"><cy-icon name="{{item.iconName}}" size="40" /></view>
+      <view class="cs-li-txt">{{item.categoryName}}</view>
+      <cy-icon class="cs-li-ok" name="check" size="32" wx:if="{{item.checked}}" />
+    </view>
+  </view>
+  <cy-empty wx:elif="{{loaded}}" kind="empty" title="暂无可选分类" sub="当前类型下还没有配置分类，可稍后再试。" />
+  <cy-inline-error wx:elif="{{loadError}}" kind="network" title="{{loadError}}" sub="分类没拉到时先别保存，可重试" action="重试" bind:action="getCategoryList" />
+  <cy-skeleton wx:else type="list" count="4" />
+  <view slot="footer">
+    <cy-btn variant="primary" bindtap="onSave">保存</cy-btn>
+  </view>
+</cy-sheet>

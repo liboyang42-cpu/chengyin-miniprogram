@@ -1,0 +1,30 @@
+// 已核销分段圆环(自由探索通行证头)。
+// 一家一段弧、段间留 10° 空隙、核销一家亮一段。段数与亮暗由 JS 的 ringSegs 给,
+// 这里只把它拼成一张 SVG 的 data URL 交给 <image> —— WXML 拼不了字符串,WXSS 不能循环,
+// 而 conic-gradient 小程序渲染层不认(渲成实心灰盘,见 index.wxss 旧注),SVG 是稳的一条路。
+var GAP = 10;
+var R = 45;                                 // viewBox 100 里的半径,描边 6 → 外缘贴到 48
+var C = 2 * 3.14159265 * R;                 // 周长,弧长按角度占比取
+var ON = '%2300B503';                       // 开始绿:已核销(与旧 .fx-ring__seg.is-on 同色;# 必须转义)
+var OFF = 'rgba(255,255,255,0.2)';          // 未点亮
+// data URL 里只手动转义 < > " # 和空格 —— WXS 没有 encodeURIComponent
+var esc = function (s) {
+  return s.replace(getRegExp('<', 'g'), '%3C').replace(getRegExp('>', 'g'), '%3E')
+    .replace(getRegExp('"', 'g'), '%22').replace(getRegExp(' ', 'g'), '%20');
+};
+var svg = function (segs) {
+  var n = segs ? segs.length : 0;
+  if (!n) return '';
+  var step = 360 / n;
+  var arc = Math.max(step - GAP, 4);        // 家数多到弧比空隙还短时,至少留 4° 看得见
+  var dash = (arc / 360 * C).toFixed(2) + ' ' + C.toFixed(2);
+  var body = '';
+  for (var i = 0; i < n; i++) {
+    var start = i * step + GAP / 2 - 90;    // -90:第一段从 12 点钟方向开始
+    body += '<circle cx="50" cy="50" r="' + R + '" fill="none" stroke-width="6" stroke-linecap="round"'
+      + ' stroke="' + (segs[i].on ? ON : OFF) + '" stroke-dasharray="' + dash + '"'
+      + ' transform="rotate(' + start.toFixed(2) + ' 50 50)"/>';
+  }
+  return 'data:image/svg+xml;charset=utf-8,' + esc('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' + body + '</svg>');
+};
+module.exports = { svg: svg };

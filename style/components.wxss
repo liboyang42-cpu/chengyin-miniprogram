@@ -1,0 +1,547 @@
+/* ============================================================
+ * 城瘾 组件库 components.wxss —— 依赖 tokens.wxss(《城瘾设计系统.md》§4)
+ *
+ * 形态:一套跨页复用的 WXSS class 体系(轻量、无需 usingComponents 注册)。
+ * 复杂交互件(sheet/pin)可再包成自定义组件(见 components/cy/*)。
+ * 所有色值走 token,禁止硬编码。
+ * ============================================================ */
+
+/* 加载结束后内容挂载淡入:定义在 style/fade-in.wxss(隔离组件也要 @import 同一份,见该文件抬头) */
+@import './fade-in.wxss';
+@import './motion-entry.wxss';
+
+/* —— 按钮 —— */
+.cy-btn {
+  height: var(--cy-btn-h);
+  padding: 0 var(--cy-btn-pad-x);
+  border-radius: var(--cy-radius-lg);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: transform var(--cy-dur-fast) var(--cy-ease), opacity var(--cy-dur-fast);
+}
+.cy-btn::after { border: none; }            /* 去掉小程序 button 默认边框 */
+.cy-btn--primary { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }   /* ★反色中性主行动(暗底白药丸/浅底墨黑),非品牌紫 */
+/* ⚠️ 这是 cy-btn 的**全局 class 版本**，与组件 components/cy/btn 是两份实现。
+   2026-08-05 改「secondary 去描边改灰填充」时只改了组件那份，这里漏了 ——
+   于是同一个 secondary 在组件里是灰填充、在 class 版里是空心描边，两种长相。
+   现在对齐到组件版用的同一组 token（--cy-comp-btn-secondary-*）。
+   用户定：只有填充没有描边。 */
+.cy-btn--secondary {
+  background: var(--cy-comp-btn-secondary-bg);
+  color: var(--cy-comp-btn-secondary-fg);
+}
+.cy-btn--ghost { background: var(--cy-bg-glass); color: var(--cy-text-title); }
+.cy-btn--danger { background: var(--cy-danger); color: #fff; }
+.cy-btn--sm {
+  height: var(--cy-btn-h-sm);
+  font-size: var(--cy-font-label);
+  padding: 0 var(--cy-space-3-5);
+}
+.cy-btn--block { width: 100%; }
+/* 禁用态:与组件层 components/cy/btn 的 .btn--disabled **同源**(占位色字 + 中性底)。
+ * ⚠️ 别改回 opacity —— 旧写法 `opacity: .4` 是 R1 缺口 G7 的另一半:
+ *   ① 它把已调过对比度的文字色整体压暗,禁用文案在两端主题下都掉到 4.5:1 以下,
+ *      而 --cy-text-placeholder 是各主题块**逐块调过**的可读占位色;
+ *   ② 全站于是有两套禁用视觉(组件层换色 / 全局类降透明度),同一个"不可用"长两种样子。
+ * border: none 是同源的必要一笔:variant 在组件层是互斥的(disabled 不带描边),
+ *   而全局类里 .cy-btn--secondary 的 2rpx 描边会与本规则叠着生效,不清掉就还是两种样子。 */
+.cy-btn[disabled], .cy-btn.is-disabled {
+  color: var(--cy-text-placeholder);
+  background: var(--cy-bg-subtle);
+  border: none;
+}
+.cy-btn--press { transform: scale(.97); opacity: .9; }     /* 配 hover-class 用 */
+
+/* —— 卡片 —— */
+.cy-card {
+  background: var(--cy-bg-card);
+  border: 2rpx solid var(--cy-border-card);
+  border-radius: var(--cy-radius-md);
+  padding: var(--cy-space-3);
+}
+.cy-card--glass {
+  background: var(--cy-bg-glass);
+  backdrop-filter: blur(24rpx);
+  -webkit-backdrop-filter: blur(24rpx);
+  border: 2rpx solid var(--cy-border-card);
+}
+
+/* —— 区块标题 —— */
+.cy-sec-title {
+  font-size: var(--cy-font-title);
+  font-weight: 800;
+  color: var(--cy-text-title);
+  margin: var(--cy-space-4) var(--cy-page-x) var(--cy-space-2);
+}
+
+/* —— 标签 / 筛选 chip —— */
+.cy-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 44rpx;
+  padding: 0 var(--cy-legacy-18);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-body);
+  background: var(--cy-bg-subtle);
+}
+.cy-tag--brand { color: var(--cy-brand); background: var(--cy-brand-soft); }
+.cy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 64rpx;
+  padding: 0 var(--cy-legacy-26);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-label);
+  white-space: nowrap;
+  color: var(--cy-text-body);
+  background: var(--cy-bg-glass);
+  border: 2rpx solid var(--cy-border-card);
+}
+.cy-chip--on {
+  color: var(--cy-text-inverse);
+  background: var(--cy-brand);
+  border-color: var(--cy-brand);
+}                                                          /* 选中=橙实心 */
+/* 筛选条:游玩页/LA地图顶部 全部/路线/挑战/社交/正在玩 */
+.cy-chip-rail {
+  display: flex;
+  gap: 16rpx;
+  padding: 0 var(--cy-page-x);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* —— 玻璃态底部导航(LA 地图底部:两侧药丸 + 中央凸起定位主键) —— */
+.cy-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 160rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 32rpx var(--cy-legacy-36);
+  z-index: var(--cy-z-tabbar);   /* T9 */
+}
+.cy-tabbar__pill {
+  height: 88rpx;
+  padding: 0 32rpx;
+  border-radius: var(--cy-radius-pill);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-legacy-10);
+  color: var(--cy-text-title);
+  background: var(--cy-bg-glass);
+  backdrop-filter: blur(24rpx);
+  -webkit-backdrop-filter: blur(24rpx);
+  border: 2rpx solid var(--cy-border-card);
+}
+.cy-tabbar__fab {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-top: -40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-inverse);
+  background: var(--cy-brand);
+  box-shadow: 0 0 36rpx rgba(122, 92, 255, .5);
+}                                                          /* 中央凸起=橙 */
+
+/* —— 地图节点 pin(贯通编辑/游玩) —— */
+.cy-pin {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4rpx solid #fff;
+}
+.cy-pin text { transform: rotate(45deg); font-weight: 800; color: #fff; }
+.cy-pin--done { background: var(--cy-brand); }
+.cy-pin--current { background: var(--cy-brand); animation: cy-pulse 1.4s infinite; }
+.cy-pin--locked { background: var(--cy-text-secondary); }
+@keyframes cy-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(122, 92, 255, .5); }
+  100% { box-shadow: 0 0 0 28rpx rgba(122, 92, 255, 0); }
+}
+
+/* —— 底部 Sheet + 遮罩 —— */
+.cy-mask { position: fixed; inset: 0; background: var(--cy-color-overlay); z-index: var(--cy-z-sheet); }   /* T9+T4(.6→.56 统一遮罩档) */
+.cy-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: calc(var(--cy-z-sheet) + 1);   /* T9:面板压自身遮罩 */
+  background: var(--cy-bg-card);
+  border-radius: var(--cy-radius-lg) var(--cy-radius-lg) 0 0;
+  padding: var(--cy-space-4) var(--cy-page-x) calc(var(--cy-space-5) + env(safe-area-inset-bottom));
+  animation: cy-rise var(--cy-dur) var(--cy-ease);
+}
+.cy-sheet__grab {
+  width: var(--cy-legacy-72);
+  height: 8rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-border-line);
+  margin: 0 auto var(--cy-space-3);
+}
+@keyframes cy-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* —— 表单 + 内联 AI 按钮 —— */
+.cy-field { margin-bottom: var(--cy-space-3); }
+.cy-label {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  margin-bottom: var(--cy-space-1-5);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cy-input, .cy-textarea {
+  width: 100%;
+  background: var(--cy-bg-card-2);
+  border: 2rpx solid var(--cy-border-line);
+  border-radius: var(--cy-radius-sm);
+  padding: 24rpx;
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+  box-sizing: border-box;
+}
+.cy-textarea { min-height: 160rpx; }
+.cy-input::placeholder, .cy-textarea::placeholder { color: var(--cy-text-secondary); }
+.cy-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cy-legacy-6);
+  height: 48rpx;
+  padding: 0 var(--cy-legacy-18);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-brand);
+  background: var(--cy-brand-soft);
+}                                                          /* "✨AI 帮我写" 放 label 右侧 */
+
+/* —— 本月排名渐变卡(Xbox 159 身份中心) —— */
+.cy-rank {
+  border-radius: var(--cy-radius-md);
+  padding: var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(100deg, #7048E8 0%, #2F74FF 45%, #12B886 100%);
+  color: #fff;
+}
+.cy-rank__no { font-size: var(--cy-font-display); font-weight: 800; }
+
+/* —— 成就/徽章行 + 进度条 —— */
+.cy-achi { display: flex; align-items: center; gap: var(--cy-space-2); padding: var(--cy-space-2) 0; }
+.cy-achi__badge {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-card-2);
+  flex: none;
+}
+.cy-bar { height: var(--cy-space-1-5); border-radius: 6rpx; background: var(--cy-bg-subtle); overflow: hidden; } /* ds-ok */
+.cy-bar__fill { height: 100%; background: var(--cy-brand); border-radius: 6rpx; }
+.cy-badge-grid { display: flex; flex-wrap: wrap; gap: var(--cy-space-3); }          /* 徽章网格 */
+.cy-badge { width: 140rpx; text-align: center; }
+.cy-badge__coin {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: var(--cy-bg-card-2);
+  border: 2rpx solid var(--cy-border-card);
+}
+.cy-badge--locked { opacity: .4; filter: grayscale(1); }
+
+/* —— 全屏主题 Hero(首页第1屏 HBOMax21) —— */
+.cy-hero { position: relative; height: 100vh; }
+.cy-hero__img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cy-hero__mask {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(2, 1, 4, .1) 40%, rgba(2, 1, 4, .95) 100%);
+}
+.cy-hero__copy {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: 160rpx;
+  text-align: center;
+}
+.cy-hero__title { font-size: 56rpx; font-weight: 800; color: var(--cy-text-title); }   /* 可用 serif 增强故事感 */
+
+/* —— 空态 —— */
+.cy-empty {
+  padding: 120rpx var(--cy-page-x);
+  text-align: center;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+
+/* ============================================================
+ * 实心 CTA + 历史按钮修复
+ * 暗底页禁止纯黑按钮(与 --cy-text-inverse 同色会不可见);统一白底深字
+ * ============================================================ */
+.cy-btn--solid {
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+}
+
+button.fbox_but,
+button.pfbut,
+button.tpbut_ok,
+button.tkbox_but,
+.yaobut,
+.orbut_view,
+.cyinfobottom_box_but,
+.david_alltk_but,
+.pub-btn-primary,
+.modal-confirm,
+.david_nplok,
+.ib-cta,
+.it-cta,
+.ii-cta,
+.pc-primary,
+.ic-primary,
+.btn-cancel,
+.btn-service,
+.btn-signup,
+.bm-btn button,
+.bm-btn1 button,
+.bm-btn2 button,
+.bm-btndavid button,
+.topic .bm-btn button,
+.topic .bm-btn2 button,
+.pop-topic .bm-btn1 button,
+.pop-topic .dd.check,
+.fabu .fabu-btn .btn2,
+.project .fenxi .tx-btn button,
+.sz-bottom-btn,
+.list .li .item .btns button.btn1,
+.david_tkb_li_con_ly_right_but,
+.david_jia,
+.david_yhqadd,
+.david_nsadd,
+.index .tkbox button.tkbox_but {
+  background: var(--cy-btn-solid-bg) !important;
+  color: var(--cy-btn-solid-fg) !important;
+}
+
+/* v2:上面矫正层里语义为"取消 / 客服"的次要键,翻紫会误当主行动 —— 摘为 secondary 描边(与 .cy-btn--secondary 同值)。
+ * .btn-cancel=取消参与 · .btn-service=联系客服 · .cyinfobottom_box_but=取消参与 */
+.btn-cancel,
+.btn-service,
+.cyinfobottom_box_but {
+  background: transparent !important;
+  color: var(--cy-text-title) !important;
+  border: 2rpx solid var(--cy-border-line) !important;
+}
+
+/* v2:退出账号 = 不可逆动作,挂 danger 红实心(与 .cy-btn--danger 同值) */
+.sz-bottom-btn {
+  background: var(--cy-danger) !important;
+  color: #ffffff !important;
+}
+
+.ib-cta text,
+.it-cta text,
+.ii-cta text,
+.pub-btn-primary .pub-btn-name {
+  color: var(--cy-btn-solid-fg) !important;
+}
+.pub-btn-primary .pub-btn-desc {
+  color: var(--cy-text-secondary) !important;
+}
+
+.hong .david_tkb_li_con_ly_right_but {
+  background: var(--cy-danger) !important;
+  color: #ffffff !important;
+}
+
+/* ============================================================
+ * 排版角色 class(《文档2 · 颜色·文字·图片》§2.2)
+ * 命名角色一次锁死 font-size + line-height + weight,页面禁写裸 font-size。
+ * 色随主题(text-title/body/secondary 已双主题定义)。
+ * ============================================================ */
+.cy-h1 {          /* 一级标题(页标题 H1)—— L1 页标题左上 */
+  font-size: var(--cy-font-page-title);   /* 48rpx */
+  line-height: 1.22;
+  font-weight: 800;
+  letter-spacing: 0;                       /* 中文大字不加负字距 */
+  color: var(--cy-text-title);
+}
+.cy-h2 {          /* 二级标题(区块 / L2 导航标题) */
+  font-size: var(--cy-font-title);        /* 36rpx */
+  line-height: 1.28;
+  font-weight: 800;
+  color: var(--cy-text-title);
+}
+.cy-body {        /* 正文段落 */
+  font-size: var(--cy-font-body);         /* 28rpx */
+  line-height: var(--cy-leading-normal);  /* 1.6 */
+  font-weight: 400;
+  color: var(--cy-text-body);
+}
+.cy-caption {     /* 辅助 / 角标 */
+  font-size: var(--cy-font-caption);      /* 22rpx */
+  line-height: 1.4;
+  color: var(--cy-text-secondary);
+}
+
+/* ============================================================
+ * 页内 Tab（归一 david_ctab / pc-tabs / tab2 / oe-tabs;文档1 §5.2）
+ * 激活=标题色 + 6rpx 下划线;未激活=secondary。色随主题。
+ * 下划线兜底色是 --cy-text-title（黑白基调），不是 --cy-brand（品牌紫）——紫色只做强调，
+ * 要紫必须显式传 --cy-tabs-accent，不能靠不传就吃到默认紫。
+ * 模式:default（下划线）/ sticky（吸顶）/ segmented（分段胶囊）。
+ * 结构:<view class="cy-tabs"><view class="cy-tabs__item cy-tabs__item--on">…</view>…</view>
+ * ============================================================ */
+.cy-tabs {
+  display: flex;
+  align-items: stretch;
+  height: 88rpx;
+  border-bottom: 2rpx solid var(--cy-border-card);
+}
+.cy-tabs--sticky {
+  position: sticky;
+  top: 0;
+  z-index: var(--cy-z-nav);   /* T9 */
+  background: var(--cy-bg-page);
+}
+.cy-tabs__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--cy-space-3);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-secondary);
+  transition: color var(--cy-dur-fast) var(--cy-ease);
+}
+.cy-tabs__item--on {
+  color: var(--cy-text-title);
+  font-weight: 700;
+}
+/* fill:item 等宽铺满(member/topic 等全宽 Tab 用) */
+.cy-tabs--fill .cy-tabs__item { flex: 1; }
+.cy-tabs__item--on::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: var(--cy-legacy-6);
+  border-radius: 3rpx;
+  background: var(--cy-tabs-accent, var(--cy-brand));   /* 强调色可被页面覆盖:topic 传经典定向绿 */
+}
+/* wide:全宽下划线(保留 topic/经典定向等页原有全宽绿条观感) */
+.cy-tabs--wide .cy-tabs__item--on::after {
+  left: 0;
+  right: 0;
+  width: auto;
+  transform: none;
+  height: var(--cy-legacy-4);
+}
+/* segmented 分段:胶囊底,选中实心反色字(兜底 --cy-text-title,要紫须显式传 --cy-tabs-accent) */
+.cy-tabs--segmented {
+  height: auto;
+  border-bottom: none;
+  padding: var(--cy-legacy-6);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2);
+}
+.cy-tabs--segmented .cy-tabs__item {
+  height: var(--cy-legacy-72);
+  border-radius: var(--cy-radius-pill);
+}
+.cy-tabs--segmented .cy-tabs__item--on {
+  background: var(--cy-tabs-accent, var(--cy-text-title));
+  color: var(--cy-text-inverse);
+}
+.cy-tabs--segmented .cy-tabs__item--on::after { display: none; }
+
+
+/* cy-btn 内联形态:sheet/弹窗顶栏文字钮等非通栏场景,挂在组件 host 上收缩为内容宽。
+ * 组件内层规格由 size="xs" 管(--cy-btn-h-xs),布局归此类,一处定义全站复用。 */
+.cy-btn-inline { display: inline-flex; width: auto; }
+
+/* ============================================================
+ * T11 字排原子类(2026-07-14;DS §2.6 字阶表,size+weight+line-height 成套)
+ * 迁移页/新页面用类,不再散写三件套;标题字重封顶 700(禁 800/900);
+ * 颜色不在此层(文字色由语义 token 按上下文定)。
+ * ============================================================ */
+.cy-text-data-xl       { font-size: var(--cy-type-data-xl);       font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.cy-text-display       { font-size: var(--cy-type-display);       font-weight: 700; line-height: 1.15; }
+.cy-text-page-title    { font-size: var(--cy-type-page-title);    font-weight: 700; line-height: 1.2; }
+.cy-text-section-title { font-size: var(--cy-type-section-title); font-weight: 700; line-height: 1.25; }
+.cy-text-card-title    { font-size: var(--cy-type-card-title);    font-weight: 600; line-height: 1.3; }
+.cy-text-button        { font-size: var(--cy-type-button);        font-weight: 600; line-height: 1.2; }
+.cy-text-body-strong   { font-size: var(--cy-type-body);          font-weight: 600; line-height: 1.6; }
+.cy-text-body          { font-size: var(--cy-type-body);          font-weight: 400; line-height: 1.6; }
+.cy-text-label         { font-size: var(--cy-type-label);         font-weight: 500; line-height: 1.35; }
+.cy-text-caption       { font-size: var(--cy-type-caption);       font-weight: 400; line-height: 1.45; }
+.cy-text-micro         { font-size: var(--cy-type-micro);         font-weight: 500; line-height: 1.3; }
+
+/* ============================================================
+ * T4 通用按压态(2026-07-14):页面级可点元素统一 hover-class,禁自造按压视觉。
+ * 用法:hover-class="cy-pressed"(整体减淡,默认选择)或 "cy-pressed-bg"(列表行换底),
+ * 配 hover-stay-time="80"(=--cy-motion-press 档);组件内部 *--press 类视觉与此对齐。
+ * ============================================================ */
+.cy-pressed    { opacity: .88; transform: scale(.98); transition: transform var(--cy-motion-press) var(--cy-ease-out), opacity var(--cy-motion-press) var(--cy-ease-out); }
+.cy-pressed-bg { background: var(--cy-color-state-pressed); }
+/* 只减淡不位移的按压是「变暗」不是「按下去」——补一档 scale 才有物理反馈(Emil 的
+   按压区间 0.95–0.98;这里取最轻的 .98,因为 .cy-pressed 也用在整行宽元素上,
+   收得太狠会变成明显的挤压)。列表行换底仍走 .cy-pressed-bg,不叠位移。
+   ⚠️ 减少动态效果时只撤位移、保留减淡 —— 反馈不能归零,否则按下去毫无回应。 */
+/* 减少动态效果:半屏弹窗整块上滑是前庭敏感用户最难受的一类,直接到位;
+   玻璃底与内容照常渲染,反馈不归零。 */
+.cy-motion-reduced .cy-sheet { animation: none; }
+.cy-motion-reduced .cy-pressed { transform: none; transition: opacity var(--cy-motion-press) var(--cy-ease-out); }
+
+/* ============================================================
+ * 底部创建 CTA(2026-07-28 导航统一批):创建/发起类主操作一律沉底,
+ * 不放页头。用法:<view class="cy-footer-cta"><cy-btn ...>xxx</cy-btn></view>,
+ * 页面滚动容器补 padding-bottom ≥ 168rpx + env(safe-area-inset-bottom)。
+ * ============================================================ */
+.cy-footer-cta {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--cy-z-nav);
+  padding: 20rpx 40rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: var(--cy-bg-page);
+}
+
+/* ============================================================
+ * cy-fill-state(2026-07-31 总控根因修复配套):cy-empty/cy-error 传 fill 时,
+ * 组件内部的 .cy-empty--fill/.cy-error--fill{flex:1} 只对组件自己 shadow 内容生效——
+ * 这两个组件 styleIsolation:isolated,:host 自带 display:block,是个断点:
+ * 宿主标签本身不会跟着父级 flex 容器伸展,里面的 flex:1 无从谈起(用 automator 读
+ * computed style 实测坐实:宿主 height 恒等于 min-height:60vh 兜底值,从没吃到过真正的
+ * 剩余空间)。这条类挂在 <cy-empty fill class="cy-fill-state">/<cy-error fill class="cy-fill-state">
+ * 标签本身上,从页面侧把宿主也纳入 flex 链条:display:flex(默认 row + align-items:stretch
+ * 拉伸唯一子节点占满宿主高度)+ flex:1(宿主自己在页面的 flex column 里占满剩余空间)。
+ * 不改组件本身,只在调用处追加这层。cherry-pick 自批3 afebcfef0,原样搬入(不改逻辑),
+ * 用于让批5 分支的 tixianjilu 断言在本地也能跑绿,不是重新设计。
+ * ============================================================ */
+.cy-fill-state {
+  display: flex !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}

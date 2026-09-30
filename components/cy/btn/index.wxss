@@ -1,0 +1,101 @@
+/* cy-btn · 语义按钮(文档1 §2):variant = primary / secondary / ghost / danger / accent / disabled
+ * 旧 kind(blue/black/red/secondary/disabled)经 index.js observer 映射到 variant,向后兼容。
+ * 全走 token,浅/深主题自动适配(token 由 page 注入,穿透 isolated)。 */
+/* host 默认块级铺满容器(适配底部 CTA 条);并排场景由外层 flex 控制 */
+:host { display: block; }
+.btn {
+  display: flex;
+  position: relative;      /* 供 .btn--sm::after 触控热区定位 */
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1-5);
+  height: var(--cy-btn-h);
+  padding: 0 var(--cy-btn-pad-x);
+  border-radius: var(--cy-comp-btn-radius);
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  line-height: 1;
+  box-sizing: border-box;
+  /* T3:按压=press 档。transform 用 spring 而不是 ease —— hover-class 移除(松手)时
+     走的是「基态」这条 transition,过冲曲线在这里表现为按完轻弹一下回位;
+     按下去那一程由 .btn--press 自己的 80ms 负责,不受影响。
+     ⚠️ 全局 .cy-pressed 拿不到这个:它的宿主是任意元素、基态没有 transform 过渡,
+        松手一律瞬时跳回。要让那些也回弹得逐个给宿主加基态过渡,不值,见施工单 §3.1②。 */
+  transition: transform var(--cy-motion-press) var(--cy-ease-spring), box-shadow var(--cy-motion-standard) var(--cy-ease), opacity var(--cy-motion-standard) var(--cy-ease);
+}
+.btn--sm {
+  height: var(--cy-btn-h-sm);
+  padding: 0 var(--cy-space-4);
+  font-size: var(--cy-font-label);
+}
+/* sm 视觉高度 64rpx 不变,透明 ::after 把纵向触控区抬到 88rpx(微信/Apple 最小可点)。
+ * 事件冒泡到 <cy-btn> host,页面 bindtap 零改动。注:祖先 overflow:hidden 会裁热区(见交接) */
+.btn--sm::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc((var(--cy-btn-h-sm) - 88rpx) / 2);
+  bottom: calc((var(--cy-btn-h-sm) - 88rpx) / 2);
+}
+/* xs:sheet/弹窗顶栏文字钮(取消/完成)。配合全局 .cy-btn-inline(host 内联收缩)使用 */
+.btn--xs {
+  height: var(--cy-btn-h-xs);
+  width: auto;
+  padding: 0 var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+}
+
+/* secondary 次级:浅灰填充,无描边(规范真源 §2.2)。
+   原来是「中性表面 + 1rpx 描边」——描边被规范废止,层级改由填充深浅表达:
+   primary 反色实心、secondary 抬升面灰。参考 Revolut 弹窗里 Confirm(白实心)
+   与 Go back(中灰实心)的关系。 */
+.btn--secondary {
+  color: var(--cy-comp-btn-secondary-fg);
+  background: var(--cy-comp-btn-secondary-bg);
+  font-weight: 600;
+}
+/* disabled 禁用:占位色 + 中性底,无手势 */
+.btn--disabled {
+  color: var(--cy-text-placeholder);
+  background: var(--cy-bg-subtle);
+}
+
+/* —— 语义 variant(文档1 §2;旧 kind 经 observer 映射到此) —— */
+.btn--primary {   /* 反色中性:暗底星白药丸墨字 / 浅底墨黑白字(= 旧 black) */
+  color: var(--cy-comp-btn-primary-fg);
+  background: var(--cy-comp-btn-primary-bg);
+}
+/* accent(品牌紫渐变)已按规范真源 §2.1 废止 —— 变体本身删除,index.js 的 observer
+   把 accent / 旧 kind="blue" 一并映射到 primary，避免调用点漏改后落到无样式的
+   .btn--accent 上变成一个没有背景的透明按钮。 */
+.btn--ghost {     /* 弱操作 / 工具:玻璃底 */
+  color: var(--cy-text-title);
+  background: var(--cy-bg-glass);
+}
+/* danger:实心红底白字(规范真源 §2.1,用户裁决)。原来是「红描边 + 透明底」，
+   描边已废止;危险操作要在一屏里一眼可辨,实心比描边更强。 */
+.btn--danger {
+  color: var(--cy-color-action-danger-fg);
+  background: var(--cy-color-action-danger-bg);
+}
+
+/* 盖章式点击下沉(主题无关) */
+.btn--press { transform: translateY(2rpx) scale(0.985); opacity: 0.92; }
+.btn--primary.btn--press { background: var(--cy-color-text-secondary); }
+
+/* loading:提交转圈,替代原生 <button loading>;spinner 用 currentColor 适配各 variant */
+.btn--loading { opacity: 0.75; }
+.btn__spinner {
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  border: 4rpx solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%; /* ds-ok */
+  /* 转速走 --cy-motion-spinner-cycle,与 cy-empty 同一入口:两个 spinner 同屏出现时
+     转速不一致肉眼可见,字面量散在各组件里则调转速必漏一处。契约有负控盯这一条。 */
+  animation: cy-btn-spin var(--cy-motion-spinner-cycle) linear infinite;
+}
+@keyframes cy-btn-spin { to { transform: rotate(360deg); } }

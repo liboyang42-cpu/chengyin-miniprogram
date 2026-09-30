@@ -1,0 +1,256 @@
+/* cy-playkit-dailysign · 今日城市签(2026-09-05 重做:打印机 + 热敏小票)
+ *
+ * 这一屏是**纸的世界**:浅灰台面、拉丝银打印机、白色热敏小票、黑字。它刻意不跟深/浅主题走 ——
+ * 换了色就不是一张小票了,所以下面的色值是标注过的刻意值(ds-ok),不是漏掉的 token。
+ * 尺寸按 375px 稿 ×2 映射到 rpx;字号能落 token 的落 token。 */
+.ds {
+  position: fixed;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: var(--cy-z-modal);
+  display: flex;
+  flex-direction: column;
+}
+.ds__bg {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: linear-gradient(180deg, #F6F7F9 0%, #EEF0F3 45%, #E6E8EC 100%);   /* ds-ok 纸的台面,浅灰渐变 */
+}
+.ds__stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: calc(var(--cy-safe-top, 0px) + 96rpx) var(--cy-page-x) calc(var(--cy-space-4) + var(--cy-safe-bottom, 0px));
+  box-sizing: border-box;
+  color: #17191C;                                   /* ds-ok 纸上的墨 */
+}
+
+/* ── 顶栏:圆按钮 + 居中标题 ── */
+.ds__nav { display: flex; align-items: center; justify-content: space-between; }
+.ds__navbtn {
+  width: 88rpx; height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: #FFFFFF;                              /* ds-ok 台面上的白圆钮 */
+  box-shadow: 0 2rpx 8rpx rgba(20, 22, 26, .12);    /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+  color: #17191C;                                   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+}
+.ds__navbtn--ghost { background: transparent; box-shadow: none; }
+.ds__navt { display: flex; flex-direction: column; align-items: center; }
+.ds__navb { font-size: var(--cy-type-card-title); font-weight: 600; }
+.ds__navs { margin-top: 4rpx; font-size: var(--cy-type-label); color: #8A9099; }   /* ds-ok 纸上的淡墨 */
+
+/* ── 打印机:拉丝银厚板 + 内凹出纸槽 ── */
+.ds__printer {
+  position: relative;
+  z-index: 3;
+  height: 112rpx;
+  margin: 24rpx 8rpx 0;
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+  background: #B9BCC2 url(data:image/jpeg;base64,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) 0 0 / 256rpx 132rpx repeat;   /* ds-ok 拉丝银:横向无缝颗粒 tile 平铺(3.5KB,走 wxss 不占「图片/音频」那条主包棘轮;受光在 .ds__sheen) */
+  box-shadow: 0 36rpx 60rpx -20rpx rgba(20, 22, 26, .45),   /* ds-ok 板落在台面上的影 */
+              0 2rpx 0 rgba(255, 255, 255, .55) inset,       /* ds-ok 上沿倒角高光 */
+              0 -2rpx 0 rgba(0, 0, 0, .22) inset,            /* ds-ok 下沿暗线 */
+              0 0 0 2rpx rgba(60, 64, 70, .55);              /* ds-ok 边框 */
+}
+.ds__sheen {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,0) 22%, rgba(0,0,0,0) 60%, rgba(0,0,0,.16) 100%),   /* ds-ok 金属受光:上亮下暗是材质,不是主题色 */
+              linear-gradient(90deg, rgba(0,0,0,.14), rgba(0,0,0,0) 8%, rgba(0,0,0,0) 92%, rgba(0,0,0,.14));                        /* ds-ok 两侧收暗:同上,金属板的边缘 */
+}
+.ds__slot {
+  position: absolute; left: 32rpx; right: 32rpx; top: 41rpx; height: 30rpx;
+  border-radius: 4rpx;                              /* ds-ok 出纸槽是机加工硬边,不该吃圆角档位 */
+  overflow: hidden;
+  background: #141517;                              /* ds-ok 槽底 */
+  box-shadow: inset 0 6rpx 10rpx rgba(0, 0, 0, .95),    /* ds-ok 槽内深阴影:金属件的凹槽,不是主题色 */
+              inset 0 -2rpx 0 rgba(255, 255, 255, .08),  /* ds-ok 槽底反光,同上 */
+              0 2rpx 0 rgba(255, 255, 255, .65),         /* ds-ok 槽口一线高光,同上 */
+              0 -2rpx 0 rgba(0, 0, 0, .35);              /* ds-ok 槽口上沿暗线,同上 */
+}
+/* 撕完槽里留的一截锯齿纸头 */
+.ds__stub {
+  position: absolute; left: 40rpx; right: 40rpx; top: 57rpx; height: 14rpx;
+  background: linear-gradient(-45deg, transparent 8rpx, #FFFFFF 0) 0 100% / 16rpx 12rpx repeat-x,   /* ds-ok 纸 */
+              linear-gradient(45deg, transparent 8rpx, #FFFFFF 0) 8rpx 100% / 16rpx 12rpx repeat-x,   /* ds-ok 纸 */
+              linear-gradient(#FFFFFF, #FFFFFF) 0 0 / 100% 4rpx no-repeat;                             /* ds-ok 纸 */
+}
+/* 四颗埋头螺丝:金属件才有的细节 */
+.ds__screw {
+  position: absolute; width: 12rpx; height: 12rpx; border-radius: var(--cy-radius-pill);
+  background: radial-gradient(circle at 40% 35%, #EEF0F3, #8E939A 60%, #5C6168);   /* ds-ok 螺丝头 */
+  box-shadow: 0 2rpx 0 rgba(255, 255, 255, .5), inset 0 0 0 2rpx rgba(0, 0, 0, .25);   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+}
+.ds__screw--tl { left: 18rpx; top: 12rpx; }
+.ds__screw--tr { right: 18rpx; top: 12rpx; }
+.ds__screw--bl { left: 18rpx; bottom: 12rpx; }
+.ds__screw--br { right: 18rpx; bottom: 12rpx; }
+
+/* ── 小票 ── */
+/* 出纸口下面的窗:纸在窗里滚出来,窗外看不见 */
+.ds__paperwrap {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  margin: -56rpx 44rpx 0;
+  padding: 56rpx 16rpx 52rpx;   /* 底部留白 ≥ 撕下后的下移量 + 底边锯齿,签号别被窗底裁掉 */
+  overflow: hidden;
+}
+.ds__paper {
+  position: relative;
+  transform: translateY(-110%);                     /* 还在机器里 */
+  transform-origin: 50% 0;
+  transition: transform var(--cy-dur) var(--cy-ease-out);   /* 回弹 / 撕断甩落:标准档 */
+}
+.ds__paper.is-printing { transition-duration: 1.5s; }   /* ds-ok 出纸节奏照 @heydamir 视频定的 1.5s,不是 UI 过渡档位 */
+.ds__paper.is-printed { transform: translateY(0); }
+.ds__paper.is-dragging { transition: none; }       /* 手按着的时候纸跟手,不要过渡 */
+.ds__paper.is-torn { transform: translateY(10rpx); }   /* 撕下来了,离开出纸口(用 transform,不动 margin:布局属性动画每帧触发 layout) */
+.ds__slip {
+  position: relative;
+  padding: 20rpx 28rpx 14rpx;
+  background: #FFFFFF;                              /* ds-ok 热敏纸 */
+  color: #17191C;                                   /* ds-ok 热敏字 */
+  box-shadow: 0 28rpx 56rpx -12rpx rgba(20, 22, 26, .35), 0 2rpx 4rpx rgba(20, 22, 26, .12);   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+}
+/* 底边锯齿(撕之前就有:上一张撕走留下的) */
+.ds__slip::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: -16rpx; height: 18rpx;
+  background: linear-gradient(-45deg, transparent 12rpx, #FFFFFF 0) 0 0 / 24rpx 18rpx,     /* ds-ok 纸 */
+              linear-gradient(45deg, transparent 12rpx, #FFFFFF 0) 12rpx 0 / 24rpx 18rpx;   /* ds-ok 纸 */
+}
+/* 撕下来之后顶边也是锯齿(撕口) */
+.ds__paper.is-torn .ds__slip::before {
+  content: '';
+  position: absolute; left: 0; right: 0; top: -16rpx; height: 18rpx;
+  background: linear-gradient(135deg, transparent 12rpx, #FFFFFF 0) 0 0 / 24rpx 18rpx,     /* ds-ok 纸 */
+              linear-gradient(225deg, transparent 12rpx, #FFFFFF 0) 12rpx 0 / 24rpx 18rpx;  /* ds-ok 纸 */
+}
+.ds__row { display: flex; justify-content: space-between; align-items: baseline; }
+.ds__t { font-size: var(--cy-type-body); font-weight: 600; }
+.ds__d { font-family: var(--cy-font-numeric); font-size: var(--cy-type-label); color: #5B6169; }   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+.ds__hr { height: 0; border-top: 2rpx dashed #D7DAE0; margin: 12rpx 0; }   /* ds-ok 热敏纸上的虚线 */
+.ds__od { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.ds__od-c { display: flex; flex-direction: column; }
+.ds__od-c--r { align-items: flex-end; text-align: right; }
+.ds__k { font-size: var(--cy-type-micro); color: #8A9099; }   /* ds-ok 纸上的淡墨 */
+.ds__addr { margin-top: 2rpx; font-size: var(--cy-type-body); font-weight: 700; line-height: 1.3; word-break: break-all; }
+.ds__big { margin-top: 2rpx; font-size: 44rpx; font-weight: 700; letter-spacing: -1rpx; line-height: 1.1; }   /* ds-ok 票面主视觉,稿 26px */
+.ds__sm { margin-top: 4rpx; font-family: var(--cy-font-numeric); font-size: var(--cy-type-caption); color: #5B6169; }   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+.ds__ar { display: flex; align-items: center; color: #8A9099; }   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+.ds__grid { display: flex; gap: 16rpx; }
+.ds__cell { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ds__v { margin-top: 4rpx; font-size: var(--cy-type-body); font-weight: 600; }
+.ds__photo { display: block; width: 100%; height: 200rpx; border-radius: 6rpx; }   /* ds-ok 热敏纸上印的照片只切一点角,sm(16rpx) 会像贴纸 */
+.ds__photo-k { display: flex; justify-content: space-between; margin-top: 8rpx; font-size: var(--cy-type-micro); color: #8A9099; }   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+.ds__poemwrap { position: relative; margin-top: 12rpx; }
+.ds__scratch {
+  display: block;
+  min-height: 92rpx;            /* lines 还没到时刮层别塌成 0 高 */
+  border-radius: var(--cy-radius-sm);
+  background: #F5F6F8;          /* ds-ok 签文那块的淡底 */
+}
+.ds__poem {
+  padding: 12rpx 18rpx 10rpx;
+  font-family: "Noto Serif SC", serif;
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  line-height: 1.8;
+  color: #17191C;               /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+}
+/* 撕之前盖在刮层上:把触摸交给拖拽,顺便说明为什么刮不动 */
+.ds__lock {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 3;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-radius-sm);
+  background: #C9CDD3;          /* ds-ok 和刮层同色,看起来就是那层 */
+  font-size: var(--cy-type-label);
+  color: #6E747D;               /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+}
+.ds__barcode { display: flex; align-items: flex-end; justify-content: center; height: 36rpx; margin: 2rpx auto 0; width: 82%; }
+.ds__bar { height: 100%; background: #17191C; }   /* ds-ok 条码 */
+
+.ds__hint { display: flex; align-items: center; justify-content: center; gap: 12rpx; min-height: 44rpx; text-align: center; font-size: var(--cy-type-label); color: #8A9099; }   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+
+/* ── 底部 ── */
+.ds__foot { margin-top: auto; padding-top: var(--cy-space-1); }
+.ds__alt {
+  padding: 8rpx 12rpx;
+  font-size: var(--cy-type-label);
+  color: #6E747D;               /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+  text-decoration: underline;
+  text-underline-offset: 6rpx;
+}
+.ds__save {
+  padding: var(--cy-space-1);
+  text-align: center;
+  font-size: var(--cy-type-label);
+  color: #6E747D;               /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+  text-decoration: underline;
+  text-underline-offset: 6rpx;
+}
+/* 生成中的禁用态:文案已经变成「生成中…」,这颗钮要同时看得出按不动。
+   只压透明度、不去新增色值;真正拦连点的是 js(onSave 首行),这里只负责看得见。 */
+.ds__save.is-off { opacity: .45; text-decoration: none; }
+
+/* 离屏画布:点「保存到相册」时在这儿按票面复刻一张再导出。
+   ⚠️ 不能用 display:none / visibility:hidden —— 那样 selector query 取不到 node,canvas 2d 画不了;
+   照 pages/roam 的 .sharecv 整块挪出屏外。这里的尺寸只是版面占位:
+   出图分辨率由 js 按票面 750 设计宽 × dpr 重设 canvas.width/height。 */
+.ds__cv { position: fixed; left: -3000px; top: -3000px; width: 375px; height: 500px; }
+
+/* ── 留言条:压在小票下半段上的第二张纸,从底部滑上来(只动 transform,键盘弹起也是 transform 抬) ── */
+.ds__note {
+  position: absolute;
+  left: var(--cy-page-x); right: var(--cy-page-x);
+  bottom: calc(var(--cy-space-2) + var(--cy-safe-bottom, 0px));
+  z-index: 4;
+  padding: var(--cy-space-2);
+  border-radius: var(--cy-radius-md);
+  background: #FFFFFF;                                    /* ds-ok 纸的世界:第二张纸 */
+  box-shadow: 0 -12rpx 40rpx rgba(20, 22, 26, .18),       /* ds-ok 纸压纸的影 */
+              0 2rpx 0 rgba(0, 0, 0, .06);                /* ds-ok 纸压纸的影 */
+  transform: translateY(130%);
+  transition: transform var(--cy-dur) var(--cy-ease-out);
+}
+.ds__note.is-on { transform: translateY(0); }
+.ds__note-h { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.ds__note-hl { display: flex; flex-direction: column; min-width: 0; }
+.ds__note-t { font-size: var(--cy-type-label); font-weight: 600; }
+.ds__note-c { margin-top: 2rpx; font-family: var(--cy-font-numeric); font-size: var(--cy-type-micro); color: #8A9099; }   /* ds-ok 纸上的淡墨 */
+.ds__ta {
+  width: 100%;
+  height: 96rpx;
+  margin-top: var(--cy-space-1);
+  padding: 8rpx 0;
+  box-sizing: border-box;
+  font-size: var(--cy-type-body);
+  line-height: 1.5;
+  color: #17191C;                                         /* ds-ok 纸上的墨 */
+  border-bottom: 2rpx dashed #C9CDD3;                     /* ds-ok 留言条的虚线 */
+}
+.ds__ta-ph { color: #B3B8C0; }                            /* ds-ok 纸上的淡墨(占位) */
+.ds__shot {
+  flex: none;
+  width: 88rpx; height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  border-radius: var(--cy-radius-sm);
+  border: 2rpx dashed #C9CDD3;                            /* ds-ok 留言条的虚线 */
+  color: #5B6169;                                         /* ds-ok 纸上的次级墨 */
+}
+.ds__shot-img { width: 88rpx; height: 88rpx; }
+.ds__note-my { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-type-body); line-height: 1.5; }
+.ds__note-img { display: block; width: 100%; height: 160rpx; margin-top: var(--cy-space-1); border-radius: var(--cy-radius-sm); }
+.ds__cta { margin-top: var(--cy-space-1); }
+/* 纸的世界里主 CTA 是深墨底白字(反色中性,同规范「主按钮=背景反色」,只是这页背景是浅的) */
+.ds__cta {
+  --cy-comp-btn-primary-bg: #17191C;   /* ds-ok 浅台面上的反色 */
+  --cy-comp-btn-primary-fg: #FFFFFF;   /* ds-ok 纸的世界:热敏纸/台面/墨,刻意不随主题 */
+}
+.cy-pressed { opacity: .88; }

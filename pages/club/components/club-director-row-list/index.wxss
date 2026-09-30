@@ -1,0 +1,49 @@
+:host { display: block; }
+.cdrl {
+  display: flex;
+  flex-direction: column;
+  padding: 8rpx 28rpx;
+  border-radius: var(--cy-comp-sheet-card-radius);
+}
+.cdrl--elevated { background: var(--cy-color-bg-elevated); }
+.cdrl--raised { background: var(--cy-color-bg-raised); }
+.cdrl__row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 26rpx 0;
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.cdrl__row:last-child { border-bottom: none; }
+.cdrl__row.is-disabled { opacity: .5; }
+.cdrl__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+.cdrl__title {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+}
+.cdrl__subtitle {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption);
+}
+.cdrl__value {
+  flex: none;
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+  white-space: nowrap;
+}
+.cdrl__value--success { color: var(--cy-color-status-success); }
+.cdrl__value--warning { color: var(--cy-color-status-warning); }
+.cdrl__value--danger  { color: var(--cy-color-status-danger); }
+.cdrl__value--muted   { color: var(--cy-color-text-tertiary); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,按仓库既有组件做法本地定义一份 */
+.cy-pressed { opacity: .88; }
+
+.cdrl__details { display: flex; flex-direction: column; gap: var(--cy-space-1); margin-top: var(--cy-space-1); }
+.cdrl__detail { font-size: var(--cy-type-caption); line-height: 1.4; color: var(--cy-color-text-tertiary); }

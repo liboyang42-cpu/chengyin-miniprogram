@@ -1,0 +1,223 @@
+<view class="dp-page dc-page theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="canManageCoop" />
+  <cy-nav-bar title="{{formVisible ? '添加常备权益' : '常备权益'}}" custom-back bind:back="onNavBack" />
+  <view style="height: {{statusBarHeight + navBarHeight}}px; flex-shrink: 0;"></view>
+  <!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key -->
+  <cy-danger-confirm id="dc" bind:confirm="confirmDelete" bind:cancel="cancelDelete" />
+
+  <cy-skeleton type="list" count="3" wx:if="{{loadState === 'loading'}}" />
+  <cy-empty
+    size="lg"
+    fill
+    wx:elif="{{loadState === 'permission'}}"
+    kind="no-permission"
+    title="暂无编辑权限"
+    sub="请切换到已审核通过的商家账号后再试"
+  />
+  <cy-error
+    class="dp-retry cy-fade-in"
+    size="lg"
+    fill
+    wx:elif="{{loadState === 'error'}}"
+    icon="/images/no_data.svg"
+    title="权益加载失败"
+    sub="{{loadError || '检查网络后重试'}}"
+    retry="重试"
+    bind:retry="retryLoad" auto-back
+  />
+
+  <scroll-view
+    scroll-y
+    class="dp-scroll"
+    wx:elif="{{loadState === 'ready' && !formVisible}}"
+    enhanced
+    show-scrollbar="{{false}}"
+  >
+    <cy-inline-error
+      wx:if="{{deleteError}}"
+      kind="{{deleteErrorKind}}"
+      title="常备权益暂未删除"
+      sub="{{deleteError}}"
+      action="重试删除"
+      bind:action="retryDelete"
+    />
+    <view wx:if="{{refreshing}}" class="dp-refreshing" aria-role="status" aria-live="polite">
+      正在刷新权益…
+    </view>
+    <cy-empty
+      size="lg"
+      fill
+      wx:if="{{!perks.length}}"
+      kind="empty"
+      title="还没有常备权益"
+      sub="把可核销的礼品、优惠券或折扣整理成清单"
+    />
+    <view class="dp-card" wx:for="{{perks}}" wx:key="id">
+      <view class="dp-main">
+        <!-- ⚠️「需删除重建」是内部术语,商家看不懂该做什么(2026-08-19 E10 实拍)。
+             改成说清后果 + 下一步动作。 -->
+        <view class="dp-head">
+          <text class="dp-name">{{item.name}}</text>
+          <cy-badge
+            type="status"
+            variant="{{item.usable ? item.typeVariant : 'warning'}}"
+            label="{{item.usable ? item.typeText : '已失效 · 请重新添加'}}"
+          />
+        </view>
+        <!-- CU-M-172:四个事实原来挤在一条自然折行的 text 里、分隔点写在文案里,
+             断行只认空格 ⇒「· 至」挂在上一行末、日期独行,读起来像被截断。
+             改成一档一个不换行事实 + flex-wrap(与 club/event-ops 的 .roster-summary 同形):
+             排不开就整档换行,「有效期至 2100-01-01」永远是一个整体。 -->
+        <view class="dp-meta">
+          <text class="dp-meta-item" wx:if="{{item.retailValue != null}}">零售价 {{money.amount(item.retailValue)}}</text>
+          <text class="dp-meta-item" wx:if="{{item.unitCost != null}}">成本 {{money.amount(item.unitCost)}}</text>
+          <text class="dp-meta-item" wx:if="{{item.quotaText}}">{{item.quotaText}}</text>
+          <text class="dp-meta-item" wx:if="{{item.validText}}">有效期至 {{item.validText}}</text>
+        </view>
+      </view>
+      <text
+        class="dp-delete"
+        data-id="{{item.id}}"
+        data-name="{{item.name}}"
+        bindtap="askDelete"
+        aria-role="button"
+        aria-disabled="{{saving || deleting}}"
+        aria-label="删除{{item.name}}"
+        hover-class="{{saving || deleting ? 'none' : 'cy-pressed'}}"
+        hover-stay-time="80"
+      >
+        删除
+      </text>
+    </view>
+    <view class="dp-pad"></view>
+  </scroll-view>
+
+  <view class="dp-cta" wx:if="{{loadState === 'ready' && !formVisible}}">
+    <view wx:if="{{saveReceipt}}" class="dp-save-receipt" aria-role="status" aria-live="polite">
+      {{saveReceipt}}
+    </view>
+    <cy-btn variant="primary" bindtap="openForm" disabled="{{deleting}}" accessibilityLabel="添加常备权益">
+      添加权益
+    </cy-btn>
+  </view>
+
+  <scroll-view wx:if="{{formVisible}}" scroll-y enhanced show-scrollbar="{{false}}" class="dp-editor-page">
+    <view class="dp-form" style="padding-bottom:{{calendarOpen ? 410 : 24}}px;">
+      <view class="dp-field-label">
+        权益类型
+        <text class="dp-field-required">*</text></view>
+      <cy-dropdown
+        merchant
+        range="{{perkTypes}}"
+        value="{{form.perkType}}"
+        below
+        gap="4"
+        disabled="{{saving || refreshing || saveReadbackPending}}"
+        bind:change="onTypeChange"
+      >
+        <view class="dp-input dp-date">{{perkTypes[form.perkType]}} <cy-icon name="chevron-right" size="24" /></view>
+      </cy-dropdown>
+      <view class="dp-field">
+        <view class="dp-field-label">
+          权益名称
+          <text class="dp-field-required">*</text></view>
+        <input
+          class="dp-input"
+          value="{{form.name}}"
+          placeholder="例如：双人咖啡券"
+          disabled="{{saving || refreshing || saveReadbackPending}}"
+          data-key="name"
+          bindinput="onInput"
+          aria-label="权益名称"
+        />
+      </view>
+      <view class="dp-pair">
+        <view class="dp-field">
+          <view class="dp-field-label" aria-label="权益零售价（必填）">
+            权益零售价
+            <text class="dp-field-required">*</text></view>
+          <input
+            class="dp-input"
+            type="digit"
+            value="{{form.retailValue}}"
+            placeholder="请输入金额"
+            disabled="{{saving || refreshing || saveReadbackPending}}"
+            data-key="retailValue"
+            bindinput="onInput"
+            aria-label="权益零售价"
+          />
+        </view>
+        <view class="dp-field">
+          <view class="dp-field-label" aria-label="成本价（可选，仅自己可见）">
+            成本价
+            <text class="dp-field-optional">· 仅自己可见</text></view>
+          <input
+            class="dp-input"
+            type="digit"
+            value="{{form.unitCost}}"
+            placeholder="请输入金额"
+            disabled="{{saving || refreshing || saveReadbackPending}}"
+            data-key="unitCost"
+            bindinput="onInput"
+            aria-label="成本价"
+          />
+        </view>
+      </view>
+      <view class="dp-pair">
+        <view class="dp-field">
+          <view class="dp-field-label" aria-label="可接待份数（必填）">
+            可接待份数
+            <text class="dp-field-required">*</text></view>
+          <input
+            class="dp-input"
+            type="number"
+            value="{{form.quota}}"
+            placeholder="请输入正整数"
+            disabled="{{saving || refreshing || saveReadbackPending}}"
+            data-key="quota"
+            bindinput="onInput"
+            aria-label="可接待份数"
+          />
+        </view>
+        <view class="dp-field">
+          <view class="dp-field-label">有效期</view>
+          <cy-date-field
+            presentation="dropdown"
+            bind:open="openCalendar"
+            bind:close="closeCalendar"
+            mode="date"
+            value="{{form.validEnd}}"
+            start="{{minValidEnd}}"
+            disabled="{{saving || refreshing || saveReadbackPending}}"
+            bind:change="onDate"
+            aria-label="有效期"
+          >
+            <view class="dp-input dp-date">{{form.validEnd || '请选择日期'}}</view>
+          </cy-date-field>
+        </view>
+      </view>
+      <cy-inline-error
+        wx:if="{{saveError}}"
+        kind="{{saveErrorKind}}"
+        title="常备权益保存状态待确认"
+        sub="{{saveError}}"
+        action="{{saveReadbackPending ? '重新查询' : '重试'}}"
+        bind:action="retrySave"
+      />
+      <cy-btn
+        variant="primary"
+        loading="{{saving}}"
+        disabled="{{!canSave || saveReadbackPending}}"
+        bindtap="save"
+        accessibilityLabel="保存常备权益"
+      >
+        保存权益
+      </cy-btn>
+    </view>
+  </scroll-view>
+<cy-sheet inset show="{{discardVisible}}" title="还没有保存" bind:close="keepForm"><view class="dc-sheet-content"><view class="dc-sheet-actions"><cy-btn variant="secondary" bindtap="discardForm">放弃修改</cy-btn><cy-btn bindtap="keepForm">继续编辑</cy-btn></view></view></cy-sheet>
+</view>
+<wxs src="../../../../utils/wxs/money.wxs" module="money" />

@@ -1,0 +1,103 @@
+<view class="sz-page {{isMerchantView ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar plain custom-back bind:back="onBack" />
+  <view style="height:{{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="设置" safe-top="{{false}}" />
+
+  <view class="sz-menu">
+    <!-- 个人资料排第一(2026-08-08 用户定)。它一度只剩 profile 里那个
+         `shezhi?scene=settings-profile` 弹窗入口 —— 那是 scene-route-content 的通用表单,
+         只有昵称+邮箱两个字段,比 pages/gerenziliao 这个 390 行的真页少一大截。
+         这里接回真页,goUserInfo 本来就指着它,缺的只是列表里的这一行。 -->
+    <cy-cell id="settings-profile" tint="{{isMerchantView ? '' : 'mono'}}" icon="/images/icon_qa_person.svg" title="{{isMerchantView ? '品牌中心' : '个人资料'}}" description="{{isMerchantView ? 'Logo、店铺名称与品牌资料' : '昵称、头像与介绍'}}" bind:tap="goUserInfo" />
+    <!-- 成为主理人 / 成为商家 直接摆出来(2026-08-08 用户提「设置之前的成为主理人/商家没了」)。
+         原来收成一个「申请身份」cell + 一层选择弹窗:入口是在的,但要多点一次才看得见,
+         用户读到的就是「没了」。两个 handler 原样复用,只是不再经过中间那层。 -->
+    <cy-cell id="settings-club-apply" wx:if="{{!isMerchantView && !isClubView}}" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_flag_blue.svg" title="成为俱乐部主理人" description="主理人身份 · 之后可创建俱乐部带团" bind:tap="pickClub" />
+    <cy-cell id="settings-merchant-apply" wx:if="{{!isMerchantView && !isClubView}}" tint="{{isMerchantView ? '' : 'mono'}}" icon="/images/icon_shop.svg" title="成为商家" description="提供场地 · 参与招募 · 发布优惠" bind:tap="pickMerchant" />
+    <cy-cell id="settings-how-to-play" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_globe.svg" title="城瘾玩法" description="城市探索说明" bind:tap="goInfomation" />
+    <cy-cell id="settings-likes" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_heart.svg" title="我的收藏" description="已收藏的帖文和主题" bind:tap="goMylike" />
+    <cy-cell id="settings-privacy" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_privacy.svg" title="隐私与定位" description="管理漫游定位同意" bind:tap="goPrivacy" />
+    <cy-cell id="settings-marketing-consent" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_privacy.svg"
+             title="营销消息与优惠券" description="按商家管理同意与退订" bind:tap="openMarketingConsent" />
+    <cy-cell id="settings-service-agreement" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_agreement.svg" title="用户服务协议" description="查看服务条款" bind:tap="goUserAgreement" />
+    <cy-cell id="settings-deregister" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_deregister.svg" title="账号注销" description="申请或撤销注销,注销后账号不可恢复" bind:tap="goDeregister" />
+    <cy-cell id="settings-about" tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_info_circle.svg" title="关于" description="版本、协议、联系与我的二维码" bind:tap="goAbout" />
+  </view>
+
+  <!-- 退出账号 = **可逆**操作(随时可重新登录)⇒ 中性动作语义,不用红。
+       红(danger)只留给不可逆破坏:注销走 pages/deregister,那里仍是 variant="danger"。
+       ⚠️ 类名不要改回 .sz-bottom-btn:style/components.wxss 有一条 !important 会把它钉成
+          红实底(那条共享规则把「退出登录」误当不可逆动作),共享文件禁改,故页面侧换类名规避。 -->
+  <view class="sz-logout">
+    <cy-btn variant="secondary" bindtap="logout">
+      <image lazy-load="true" class="sz-logout-icon" src="/pages/shezhi/images/icon_logout.svg" mode="widthFix" />
+      <text>退出账号</text>
+    </cy-btn>
+  </view>
+
+  <!-- 署名是 game-icons.net 的 CC BY 3.0 许可条件，必须离线可见；
+       独立页退役后直接放在设置页底部，避免再造一层导航。 -->
+  <view class="sz-attribution" aria-label="素材署名">
+    <view class="sz-attribution__title">素材署名</view>
+    <view class="sz-attribution__block">
+      <view class="sz-attribution__name">game-icons.net 游戏图标 · Creative Commons BY 3.0（要求署名）</view>
+      <view class="sz-attribution__body">作者：Delapouite、Lorc、Skoll、Sbed、Quoting、Lord Berandas</view>
+      <view class="sz-attribution__link" data-link="https://game-icons.net/" bindtap="copyAttributionLink" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="复制 game-icons.net 来源地址">复制来源地址 · game-icons.net</view>
+    </view>
+    <view class="sz-attribution__divider"></view>
+    <view class="sz-attribution__block">
+      <view class="sz-attribution__name">像素城市场景 · Luis Zuno（ansimuz）· CC0 1.0</view>
+      <view class="sz-attribution__body">底图：Synth Cities、Warped City、Warped Miami Synth</view>
+      <view class="sz-attribution__link" data-link="https://ansimuz.itch.io/" bindtap="copyAttributionLink" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="复制 ansimuz 来源地址">复制来源地址 · ansimuz.itch.io</view>
+    </view>
+  </view>
+
+  <!-- 用户服务协议:全屏弹窗(协议类长文),不再 navigateTo 跳走 -->
+  <cy-agreement-sheet show="{{showAgreementSheet}}" type="service" theme="{{settingsTheme}}" bind:close="closeAgreementSheet" />
+  <!-- 隐私与定位:半屏弹窗;微信隐私授权待决策那一路仍留在 pages/privacy 路由页 -->
+  <cy-privacy-sheet show="{{showPrivacySheet}}" theme="{{settingsTheme}}" bind:close="closePrivacySheet" />
+  <cy-sheet show="{{showMarketingConsent}}" title="营销消息与优惠券" bind:close="closeMarketingConsent">
+    <cy-marketing-consent show="{{showMarketingConsent}}" />
+  </cy-sheet>
+
+  <!-- 选择注册身份 sheet(Figma 3625-11444) -->
+  <view class="scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'settings-identity-picker'}}" catchtouchmove="blockSceneTouch">
+    <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeRegPicker">
+    <view class="reg-opt" bindtap="pickClub" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="reg-ic club"><image src="/pages/shezhi/images/icon_flag_blue.svg" mode="aspectFit" /></view>
+      <view class="reg-opt-body">
+        <view class="reg-opt-t">成为俱乐部主理人</view>
+        <view class="reg-opt-s">主理人身份 · 之后可创建俱乐部带团</view>
+      </view>
+      <cy-icon class="reg-arrow" name="arrow-right" size="28" />
+    </view>
+    <view class="reg-opt" bindtap="pickMerchant" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="reg-ic shop"><image src="/images/icon_shop.svg" mode="aspectFit" /></view>
+      <view class="reg-opt-body">
+        <view class="reg-opt-t">商家</view>
+        <view class="reg-opt-s">提供场地 · 参与招募 · 发布优惠</view>
+      </view>
+      <cy-icon class="reg-arrow" name="arrow-right" size="28" />
+    </view>
+  </cy-scene-sheet>
+  </view>
+</view>
+
+<!-- 设置内三级/四级与身份申请全部由同一宿主承载；深链路由仍保留给外部打开。 -->
+<view class="settings-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id !== 'settings-identity-picker'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" dirty="{{sceneCurrent.dirty}}" mask-closable="{{sceneCurrent.maskClosable}}" footer="{{sceneCurrent.footer}}" bind:requestclose="requestSceneClose" bind:back="backScene">
+    <cy-scene-route-content id="sceneRouteContent" scene-id="{{sceneCurrent.id}}" params="{{sceneCurrent.params}}" theme="{{sceneCurrent.theme}}" bind:open="openChildScene" bind:back="backScene" bind:close="closeScene" bind:dirtychange="onSceneDirtyChange" />
+    <view wx:if="{{sceneCurrent.footer}}" slot="footer" class="settings-scene-footer">
+      <cy-btn variant="primary" bindtap="submitSceneForm">{{sceneCurrent.id === 'member-withdraw' ? '确认提现' : sceneCurrent.id === 'settings-profile' ? '保存资料' : sceneCurrent.id === 'settings-feedback' ? '提交建议' : sceneCurrent.id === 'merchant-apply' ? '提交入驻申请' : sceneCurrent.id === 'club-apply' ? '提交申请' : sceneCurrent.id === 'merchant-citynode' ? '提交互动模板' : '保存'}}</cy-btn>
+    </view>
+  </cy-scene-sheet>
+</view>
+<cy-modal class="{{isMerchantView ? 'theme-merchant' : 'theme-dark'}}" show="{{sceneConfirm.show}}" title="放弃未保存修改？" content="关闭后，本次修改不会保留。" confirm-text="放弃修改" cancel-text="继续编辑" danger bind:confirm="confirmSceneDiscard" bind:cancel="cancelSceneDiscard" />
+
+<!-- 隐私授权闸(真弹窗):页内组件,不压页面栈。app.js 在需要授权时调本页 showPrivacyGate()。 -->
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />
+<!-- 危险动作三段式确认(文案在 utils/danger-actions.js) -->
+<cy-danger-confirm id="dc" bind:confirm="onDangerConfirm" />

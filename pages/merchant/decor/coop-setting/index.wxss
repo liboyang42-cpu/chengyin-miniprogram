@@ -1,0 +1,4 @@
+@import "../../../../style/merchant-light.wxss";
+@import "../design.wxss";
+.cs-demand{height:200rpx;}
+.cs-state{flex:1;display:flex;flex-direction:column;}

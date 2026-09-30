@@ -1,0 +1,45 @@
+<view class="theme-topic-editor">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="ti {{reducedMotion ? 'ti--reduced-motion' : ''}}">
+  <!-- custom 导航:系统返回钮被关掉,必须自带 cy-nav-bar 才退得出去 -->
+  <cy-nav-bar />
+  <!-- 本页不挂返回钮下的导航级大标题(主张文案在页面正中),
+       所以顶部让位用显式 spacer,而不是靠标题组件自带的 safeTop -->
+  <view style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+
+  <view class="ti-skip" hover-class="cy-pressed" hover-stay-time="80"
+        aria-role="button" aria-label="跳过" bindtap="onSkip">跳过</view>
+
+  <!-- 扇形叠放:左卡后倾、右卡前倾、中卡正面压在最上。
+       卡片数据是真实精选玩法,拉不到就整块不画(不塞占位模板冒充现网内容) -->
+  <view class="ti-stage" wx:if="{{cards.length}}">
+    <view wx:for="{{cards}}" wx:key="key"
+          class="ti-card ti-card--{{index}}"
+          style="border-color:{{item.accent}}">
+      <view class="ti-card-cat" style="background:{{item.accent}}">{{item.catName}}</view>
+      <cy-cover-fallback class="ti-card-cover" src="{{item.imgUrl}}" title="{{item.title}}" />
+    </view>
+  </view>
+  <view class="ti-stage ti-stage--state" wx:elif="{{cardsLoading}}">
+    <cy-skeleton type="card" count="3" />
+  </view>
+  <view class="ti-stage ti-stage--state" wx:elif="{{cardsError}}">
+    <cy-inline-error title="精选示例暂未加载" sub="{{cardsError}}" action="重试" bind:action="loadCards" />
+  </view>
+  <view class="ti-stage ti-stage--state ti-stage--empty" wx:else>
+    暂时没有精选示例，你仍可直接创建自己的节点玩法。
+  </view>
+
+  <view class="ti-copy">
+    <view class="ti-copy-a">把你玩过的一段路</view>
+    <view class="ti-copy-b">做成别人也能走的玩法</view>
+  </view>
+
+  <view class="ti-cta">
+    <cy-inline-error wx:if="{{navigationError}}" title="创建页面没有打开" sub="{{navigationError}}" action="重试" bind:action="goCreate" />
+    <cy-btn variant="primary" style="width:100%" loading="{{navigating}}" disabled="{{navigating}}" bindtap="goCreate">开始创建</cy-btn>
+  </view>
+</view>
+</view>

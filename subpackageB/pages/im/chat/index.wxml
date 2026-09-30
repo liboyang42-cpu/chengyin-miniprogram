@@ -1,0 +1,220 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="im-chat">
+  <!-- 顶栏:仅返回 + 更多药丸(对齐 Airbnb),标题留空——名字挪到下方 hero 区。
+       CU-C-142:入口名必须和它打开的面板同名,原来写「详情」点开却是标题「更多」的举报/拉黑/清空面板。 -->
+  <cy-nav-bar>
+    <view slot="actions" class="hd-info-hit" hover-class="cy-pressed" hover-stay-time="80" bindtap="onMore" aria-role="button" aria-label="更多">
+      <view class="hd-details">更多</view>
+    </view>
+  </cy-nav-bar>
+
+  <!-- 顶栏下方 hero 区:只留会话名,不再重复放头像(头像已在每条消息气泡旁展示)。 -->
+  <view class="chat-hero" style="top: {{headerH}}px;">
+    <text class="hero-name">{{heroName}}</text>
+  </view>
+
+  <!-- 消息流 -->
+  <scroll-view class="msgs" scroll-y enhanced show-scrollbar="{{false}}"
+               scroll-into-view="{{toView}}" scroll-with-animation
+               style="top: {{headerH + heroH}}px; bottom: {{inputH}}px;">
+    <cy-inline-error wx:if="{{loadMoreError}}" class="load-more-error" kind="network"
+                     title="更早消息没有加载" sub="{{loadMoreError}}" action="重试"
+                     bind:action="retryLoadMore" />
+    <view wx:elif="{{loadingMore}}" class="load-more" aria-live="polite">正在加载更早消息</view>
+    <view wx:elif="{{hasMore}}" class="load-more" hover-class="cy-pressed" hover-stay-time="80" bindtap="loadMore" aria-role="button" aria-label="加载更早消息">加载更早消息</view>
+
+    <!-- 四态分流:加载中 / 坏链接 / 失败 / 真的没消息。原来只有最后一条,前三种全被说成「还没有消息」。 -->
+    <cy-skeleton wx:if="{{loadState === 'loading'}}" type="list" count="{{4}}" />
+    <cy-empty wx:elif="{{loadState === 'missing'}}" class="chat-empty cy-fade-in" kind="missing-param" title="这个会话打不开" sub="链接可能已失效，回消息列表重新进入" />
+    <cy-empty wx:elif="{{loadState === 'closed'}}" class="chat-empty cy-fade-in" fill="{{true}}" size="lg" kind="not-found" title="这个组局已结束" sub="聊天已关闭。如有平台处置，可在消息列表的系统通知中查看处理结果。" cta="返回消息列表" bind:cta="returnToMessageList" />
+    <cy-error wx:elif="{{loadState === 'error'}}" class="chat-empty" title="消息没加载出来" sub="{{loadErrorText || '网络或服务暂时不可用，已发出的消息不会丢'}}" retry="重试" bind:retry="retryLoad" />
+    <cy-empty wx:elif="{{!msgs.length}}" class="chat-empty" kind="empty" title="还没有消息" sub="{{readOnly ? '平台通知会出现在这里' : '发送第一条消息，和对方确认路线、集合点或合作细节'}}" />
+
+    <block wx:for="{{msgs}}" wx:key="id">
+      <!-- 卡片/系统消息仍走居中时间分隔(与改动前一致);普通文字/图片气泡改用贴气泡的行内时间(见下方),
+           两处若都渲染会对同一时刻重复显示,故这里限定 msgType==3 -->
+      <view wx:if="{{item.timeDivider && item.msgType == 3}}" class="time-div">{{item.timeDivider}}</view>
+
+      <!-- 卡片:location/route/signup 是用户或系统可发、有明确发送方 → 遵守左收右发(唯一不可协商的语义);
+           generic 仅系统可发,无发送人概念,渲染路径不变(居左无头像) -->
+      <block wx:if="{{item.msgType == 3 && (item.card.cardType === 'location' || item.card.cardType === 'route' || item.card.cardType === 'signup')}}">
+        <view class="row row--card {{item.senderId == myId ? 'right' : 'left'}}">
+          <cy-avatar wx:if="{{item.senderId != myId}}" class="row-avatar" size="{{64}}" src="{{item.senderAvatar || avatar || '/images/d_profile.png'}}" />
+          <view class="bubble-wrap">
+            <!-- 位置卡(用户可发) -->
+            <cy-card wx:if="{{item.card.cardType === 'location'}}" class="rcard" interactive="{{true}}" accessibility-label="导航到{{item.card.name || '共享位置'}}" hover-class="cy-pressed" hover-stay-time="80" catchtap="onLocationTap"
+                  data-lat="{{item.card.lat}}" data-lng="{{item.card.lng}}"
+                  data-name="{{item.card.name}}" data-address="{{item.card.address}}">
+              <view class="rcard-row">
+                <cy-icon class="location-icon" name="pin" size="48" />
+                <view class="rcard-tt">
+                  <view class="rcard-title">{{item.card.name}}</view>
+                  <view class="rcard-sub" wx:if="{{item.card.address}}">{{item.card.address}}</view>
+                </view>
+              </view>
+              <view class="rcard-foot">导航过去</view>
+            </cy-card>
+
+            <!-- 路线卡 / 报名卡(同构:都是 {cardType,topicId},都现拉、永远最新) -->
+            <cy-card wx:else class="rcard" interactive="{{true}}" accessibility-label="查看路线或报名详情" hover-class="cy-pressed" hover-stay-time="80" catchtap="onRouteTap" data-topicid="{{item.card.topicId}}">
+              <view wx:if="{{item.card.cardType === 'signup'}}" class="rcard-flag">报名成功</view>
+              <block wx:if="{{topicCache[item.card.topicId]}}">
+                <!-- CU-C-121:imgUrl 为空时 <image> 仍按 270rpx 渲染,卡面一半是死黑块。
+                     没图就不是"图在加载",给一个说得清的缺图占位。 -->
+                <image wx:if="{{topicCache[item.card.topicId].imgUrl}}" class="rcard-img" src="{{topicCache[item.card.topicId].imgUrl}}" mode="aspectFill" lazy-load="true" />
+                <view wx:else class="rcard-img rcard-img--nocover" aria-role="img" aria-label="该主题暂无封面">
+                  <image class="rcard-nocover-icon" src="/images/no_data.svg" mode="aspectFit" />
+                  <text class="rcard-nocover-txt">封面暂不可用</text>
+                </view>
+                <view class="rcard-tt">
+                  <view class="rcard-title">{{topicCache[item.card.topicId].name}}</view>
+                  <view class="rcard-sub">{{topicCache[item.card.topicId].totalMileage || 0}} km · {{ topicCache[item.card.topicId].locationCount || 0 }} 个点</view>
+                </view>
+              </block>
+              <!-- 降级态:主题已下架/已删(现拉的必付代价)。只认 === null,不能与「加载中」混为一谈 -->
+              <block wx:elif="{{topicCache[item.card.topicId] === null}}">
+                <view class="rcard-img rcard-img--ph"></view>
+                <view class="rcard-tt">
+                  <view class="rcard-sub">{{item.card.cardType === 'signup' ? '该活动已下架' : '该路线已下架'}}</view>
+                </view>
+              </block>
+              <!-- 加载中(undefined,尚未 fetch 回来):骨架占位,shimmer 本身即为「加载中」语义(DS §5:禁裸文字) -->
+              <block wx:else>
+                <view class="rcard-img rcard-img--loading"></view>
+                <view class="rcard-tt">
+                  <view class="rcard-sk-line rcard-sk-line--title"></view>
+                  <view class="rcard-sk-line rcard-sk-line--sub"></view>
+                </view>
+              </block>
+            </cy-card>
+          </view>
+        </view>
+      </block>
+
+      <!-- 通用卡(仅系统可发;渲染路径与改动前一致)。CU-M-124:可点性按卡真有的动作给,
+           没有去处、没有结果可查的通知不再报成「查看卡片详情」按钮。 -->
+      <cy-card wx:elif="{{item.msgType == 3}}" class="card" interactive="{{item.cardTarget}}" accessibility-label="{{item.card.title || '查看卡片详情'}}" hover-class="{{item.cardTarget ? 'cy-pressed' : 'none'}}" hover-stay-time="80" bindtap="onCardTap" data-msg="{{item.id}}" data-bcid="{{item.card.bcId}}" data-url="{{item.card.action}}">
+        <view class="card-hd">
+          <view class="card-icon" aria-hidden="true"><cy-icon name="info" size="36" /></view>
+          <view class="card-tt">
+            <view class="card-title">{{item.card.title}}</view>
+            <view class="card-sub">{{item.card.sub}}</view>
+          </view>
+        </view>
+        <view class="card-meta" wx:if="{{item.card.meta}}">{{item.card.meta}}</view>
+        <view class="card-btns" wx:if="{{item.card.result && item.senderId == 0}}">
+          <view class="card-btn full" hover-class="cy-pressed" catchtap="onCardTap" data-msg="{{item.id}}" aria-role="button" aria-label="查看处理结果">查看处理结果</view>
+        </view>
+        <view class="card-btns" wx:elif="{{item.card.buttons.length}}">
+          <view class="card-btn {{btn.type === 'reject' ? 'reject' : ''}}"
+                wx:for="{{item.card.buttons}}" wx:for-item="btn" wx:key="text"
+                hover-class="cy-pressed" hover-stay-time="80"
+                catchtap="onCardBtn" data-action="{{btn.action}}" data-key="{{btn.key}}" data-msg="{{item.id}}" hover-stop-propagation="true">{{btn.text}}</view>
+        </view>
+        <view class="card-btns" wx:elif="{{item.card.action}}">
+          <view class="card-btn full" hover-class="cy-pressed" hover-stay-time="80" catchtap="onCardTap" data-url="{{item.card.action}}" hover-stop-propagation="true">查看详情</view>
+        </view>
+      </cy-card>
+
+      <!-- 自己(右,反色实底)。对齐 Airbnb:自己一侧不放头像;时间贴在气泡正上方、右对齐 -->
+      <view wx:elif="{{item.msgType != 3 && item.senderId == myId}}" class="row right">
+        <view class="bubble-wrap bubble-wrap--self">
+          <text wx:if="{{item.timeDivider}}" class="msg-time">{{item.timeDivider}}</text>
+          <view class="bubble me {{item.failed?'failed':''}}">
+            <image wx:if="{{item.msgType==2}}" class="b-img" src="{{item.content}}" mode="widthFix" lazy-load="true" />
+            <text wx:else>{{item.content}}</text>
+          </view>
+        </view>
+        <view wx:if="{{item.sending}}" class="sending"></view>
+        <view wx:if="{{item.failed}}" class="fail-hit" hover-class="cy-pressed" hover-stay-time="80" catchtap="onResend" data-index="{{index}}" aria-role="button" aria-label="发送失败，点此重试">
+          <cy-icon class="fail-icon" name="warning" size="36" />
+        </view>
+      </view>
+
+      <!-- 对方(左,浅灰底)。名字·时间贴气泡正上方一行,用会话对方名 name -->
+      <view wx:elif="{{item.msgType != 3}}" class="row left">
+        <cy-avatar class="row-avatar" size="{{64}}" src="{{item.senderAvatar || avatar || '/images/d_profile.png'}}" />
+        <view class="bubble-wrap">
+          <text wx:if="{{item.displayName || item.timeDivider}}" class="sender-name">{{item.displayName}}{{item.displayName && item.timeDivider ? ' · ' : ''}}{{item.timeDivider}}</text>
+          <view class="bubble other">
+            <image wx:if="{{item.msgType==2}}" class="b-img" src="{{item.content}}" mode="widthFix" lazy-load="true" />
+            <text wx:else>{{item.content}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{item.msgType == 3 && item.senderId == myId && (item.sending || item.failed)}}" class="row right">
+        <view wx:if="{{item.sending}}" class="sending"></view>
+        <view wx:if="{{item.failed}}" class="fail-hit" hover-class="cy-pressed" hover-stay-time="80" catchtap="onResend" data-index="{{index}}" aria-role="button" aria-label="卡片发送失败，点此重试">
+          <cy-icon class="fail-icon" name="warning" size="36" />
+        </view>
+      </view>
+    </block>
+    <view id="bottom-anchor" style="height: 20rpx;"></view>
+  </scroll-view>
+
+  <!-- 禁用态提示。R2:原来只看 disabled(拉黑),不看 loadState ⇒ 缺参/失败时输入栏照常亮着、
+       用户看不到任何原因,视觉上等于"这会话可以发消息"。现在两类原因共用这一行。 -->
+  <view wx:if="{{disabled || loadState !== 'ready'}}" class="disabled-tip" style="bottom: {{inputH}}px;">{{disabled ? disabledText : sendBlockedMap[loadState]}}</view>
+
+  <!-- 输入栏。「+」仍留在框外(位置/路线等城瘾特有发送项,Airbnb 无对应物,保留原位不臆造新位置);
+       输入框改大圆角矩形,发送键收进框内右侧、圆形箭头,随「有无文字」在灰底灰箭头/反色实底间切换 -->
+  <!-- R2:非 ready 时整条输入栏走可见禁用态(--off),placeholder 也换成不可用文案。
+       行为层的闸(input disabled + _canSend 守 onSend/sendCard)早已正确,这里补的是可供性那一半:
+       不让一条点不动的输入栏看起来像能发消息。不整条隐藏 —— ready 回来会布局跳动,也会藏掉"这是会话页"。 -->
+  <view class="input-bar {{(disabled || loadState !== 'ready') ? 'input-bar--off' : ''}}" style="padding-bottom: {{safeBottom}}px;">
+    <!-- CU-C-120:只读会话根本不给输入控件 —— 「点不动的输入栏」是一种邀请,不是约束。
+         整条栏保留(高度/让位不变),里面换成一句说明现在能做什么。 -->
+    <block wx:if="{{!readOnly}}">
+      <view wx:if="{{!disabled}}" class="plus" hover-class="cy-pressed" hover-stay-time="80" bindtap="onPlus" aria-role="button" aria-label="添加图片、位置或路线"><cy-icon name="plus" size="40" /></view>
+      <view class="inp-wrap">
+        <input class="inp" value="{{text}}" placeholder="{{disabled ? '不可回复' : loadState === 'ready' ? '发消息...' : '会话不可用'}}" confirm-type="send"
+               bindinput="onInput" bindconfirm="onSend" disabled="{{disabled || loadState !== 'ready'}}" />
+        <view class="send-hit" hover-class="cy-pressed" hover-stay-time="80" bindtap="onSend" aria-role="button" aria-label="发送">
+          <view class="send-circle {{text && !disabled && loadState === 'ready' ? 'active' : ''}} {{sending?'busy':''}}">
+            <cy-icon name="arrow-right" size="{{32}}" style="transform: rotate(-90deg);"></cy-icon>
+          </view>
+        </view>
+      </view>
+    </block>
+    <text wx:else class="input-notice">{{readOnlyTip}}</text>
+  </view>
+
+  <cy-sheet show="{{!!reviewResult}}" title="处理结果" bind:close="closeReviewResult">
+    <view class="review-result" wx:if="{{reviewResult}}">
+      <view>审核任务 #{{reviewResult.taskId}} · 业务 #{{reviewResult.bizId}}</view>
+      <view>{{reviewResult.outcome}}</view>
+      <view>原因：{{reviewResult.reason}}</view>
+      <view>{{reviewResult.followUp}}</view>
+    </view>
+  </cy-sheet>
+
+  <!-- 路线选择器:复用 /api/topic/list,零新端点 -->
+  <cy-sheet show="{{routePickerOpen}}" title="选择路线" bind:close="closeRoutePicker">
+    <cy-search placeholder="搜索路线" value="{{routeKeyword}}" bind:input="onRouteSearch" />
+    <cy-skeleton wx:if="{{routeLoading}}" type="list" count="{{4}}" />
+    <cy-inline-error wx:elif="{{routeError}}" kind="network" title="路线没有加载" sub="{{routeError}}" action="重试" bind:action="retryRoutes" />
+    <cy-empty class="cy-fade-in" wx:elif="{{!routeList.length}}" title="没有找到路线" sub="换个关键词试试" />
+    <scroll-view wx:else class="route-picker" scroll-y enhanced show-scrollbar="{{false}}">
+      <view class="route-item" wx:for="{{routeList}}" wx:key="id"
+            hover-class="cy-pressed-bg" hover-stay-time="80"
+            bindtap="onRoutePick" data-id="{{item.id}}" aria-role="button" aria-label="选择路线{{item.name}}">
+        <image class="route-item-img" src="{{item.imgUrl || '/images/route_free_cover.png'}}" mode="aspectFill" lazy-load="true" />
+        <view class="route-item-tt">
+          <view class="route-item-name">{{item.name}}</view>
+          <view class="route-item-sub">{{item.totalMileage || 0}} km · {{ item.locationCount || 0 }} 个点</view>
+        </view>
+      </view>
+    </scroll-view>
+  </cy-sheet>
+</view>
+  <cy-option-sheet show="{{plusSheetShow}}" title="发送" items="{{plusSheetItems}}" immediate="{{true}}"
+                   bind:select="onPlusSelect" bind:cancel="onPlusCancel" />
+  <cy-option-sheet show="{{moreSheetShow}}" title="更多" items="{{moreSheetItems}}" immediate="{{true}}"
+                   bind:select="onMoreSelect" bind:cancel="onMoreCancel" />
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />
+<!-- 危险动作三段式确认(文案在 utils/danger-actions.js) -->
+<cy-danger-confirm id="dc" bind:confirm="onDangerConfirm" />

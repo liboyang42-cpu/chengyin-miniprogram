@@ -1,0 +1,123 @@
+<view class="ds" wx:if="{{show}}">
+  <!-- 这一屏是「纸的世界」:浅灰底、拉丝银打印机、白色热敏小票。刻意不跟深色主题走(见 wxss 头注)。 -->
+  <view class="ds__bg" aria-hidden="true"></view>
+  <view class="ds__stage" style="{{stagePadTop ? 'padding-top:' + stagePadTop + 'px;' : ''}}" catchtap="noop">
+    <view class="ds__nav">
+      <view class="ds__navbtn" bindtap="onClose"
+            aria-role="button" aria-label="关闭今日城市签" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="back" size="32" />
+      </view>
+      <view class="ds__navt">
+        <text class="ds__navb">今日城市签</text>
+        <text class="ds__navs">{{dateLabel}}</text>
+      </view>
+      <view class="ds__navbtn ds__navbtn--ghost" aria-hidden="true"></view>
+    </view>
+
+    <!-- 打印机:拉丝银的颗粒是一块横向无缝的位图 tile(base64 在 wxss 里平铺;主包资源预算只剩 4KB,
+         进 images/ 会顶爆),受光/倒角由 .ds__sheen 叠;中间一道内凹出纸槽,撕完槽里留一小截锯齿纸头 -->
+    <view class="ds__printer" aria-hidden="true">
+      <view class="ds__sheen"></view>
+      <view class="ds__screw ds__screw--tl"></view>
+      <view class="ds__screw ds__screw--tr"></view>
+      <view class="ds__screw ds__screw--bl"></view>
+      <view class="ds__screw ds__screw--br"></view>
+      <view class="ds__slot"></view>
+      <view class="ds__stub" wx:if="{{torn}}"></view>
+    </view>
+
+    <!-- 小票:从槽里打出来(is-printed),按住往下拉会跟着手歪,拉过阈值松手撕断(is-torn)。
+         票面全是服务端给的:地址来自这一站,那句话和照片来自上一个来这里的人(没人来过是发起人的开场签) -->
+    <view class="ds__paperwrap">
+      <view class="ds__paper {{printing ? 'is-printing' : ''}} {{printed ? 'is-printed' : ''}} {{torn ? 'is-torn' : ''}} {{dragging ? 'is-dragging' : ''}}"
+            style="{{paperStyle}}"
+            bindtouchstart="onPaperStart" bindtouchmove="onPaperMove"
+            bindtouchend="onPaperEnd" bindtouchcancel="onPaperEnd">
+        <view class="ds__slip">
+          <view class="ds__row"><text class="ds__t">今日城市签</text><text class="ds__d">{{dateLabel}}</text></view>
+          <view class="ds__hr"></view>
+          <view class="ds__od">
+            <view class="ds__od-c"><text class="ds__k">出发</text><text class="ds__addr">{{address}}</text><text class="ds__sm">{{timeLabel}}</text></view>
+            <view class="ds__od-c ds__od-c--r"><text class="ds__k">签号</text><text class="ds__big">{{serialLabel}}</text><text class="ds__sm">你是第几位</text></view>
+          </view>
+          <view class="ds__hr"></view>
+          <view class="ds__grid">
+            <view class="ds__cell"><text class="ds__k">留签人</text><text class="ds__v">{{signer || '这一站的发起人'}}</text></view>
+            <view class="ds__cell"><text class="ds__k">留于</text><text class="ds__v">{{leftAt || '这一站开场'}}</text></view>
+          </view>
+          <!-- 上一个人拍的那张:服务端给了才印,没给就没有这一段,不放占位图 -->
+          <block wx:if="{{photoUrl}}">
+            <view class="ds__hr"></view>
+            <image class="ds__photo" src="{{photoUrl}}" mode="aspectFill" aria-label="上一个人拍的照片" />
+            <view class="ds__photo-k"><text>{{signer || 'TA'}} 拍的</text><text>{{leftAt}}</text></view>
+          </block>
+          <view class="ds__hr"></view>
+          <text class="ds__k">留给你的一句</text>
+          <view class="ds__poemwrap">
+            <!-- 签文盖在刮层下(Figma UX 借鉴板 · ADA C「过程即满足」)。
+                 ⚠️ 内容始终在 DOM 里只是被盖住;开了「减少动态效果」整层不挂(见 cy-scratch 文件头)。 -->
+            <cy-scratch class="ds__scratch" cover-color="#C9CDD3" label="留给你的一句" revealed="{{revealed}}" bind:reveal="onReveal">
+              <view class="ds__poem">
+                <view class="ds__poem-line" wx:for="{{lines}}" wx:key="*this">{{item}}</view>
+              </view>
+            </cy-scratch>
+            <!-- 撕下来之前刮不动:纸还连在机器上。这层把触摸转交给拖拽,不是挡板 -->
+            <view class="ds__lock" wx:if="{{!torn && !revealed}}" aria-hidden="true"
+                  catchtouchstart="onPaperStart" catchtouchmove="onPaperMove"
+                  catchtouchend="onPaperEnd" catchtouchcancel="onPaperEnd">
+              <text>先撕下来</text>
+            </view>
+          </view>
+          <view class="ds__hr"></view>
+          <view class="ds__barcode" aria-hidden="true">
+            <view class="ds__bar" wx:for="{{bars}}" wx:key="index" style="width:{{item.w}}rpx;margin-right:{{item.g}}rpx"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 提示和「拉不动」的可见出口同一行(拉是运动能力要求,出口同 cy-scratch 的「直接揭示」) -->
+    <view class="ds__hint">
+      <text>{{hint}}</text>
+      <view class="ds__alt" wx:if="{{printed && !printing && !torn}}" bindtap="onTearTap"
+            aria-role="button" aria-label="直接撕下小票" hover-class="cy-pressed" hover-stay-time="80">撕不下来?点这里</view>
+    </view>
+
+    <!-- 留言条:压在小票下半段上的第二张纸,刮开之后从底部滑上来。
+         写的时候是 textarea + 顺手拍一张;留过之后只读回看,按钮变「出发」。
+         adjust-position 关掉、自己按键盘高度抬(fixed 浮层不跟系统的页面上推走) -->
+    <view class="ds__note {{(writing || claimed) ? 'is-on' : ''}}" style="{{noteStyle}}" wx:if="{{torn}}">
+      <view class="ds__note-h">
+        <view class="ds__note-hl">
+          <text class="ds__note-t">{{claimed ? '你留给下一个人的' : '给下一个来这里的人留一句'}}</text>
+          <text class="ds__note-c" wx:if="{{!claimed}}">{{text.length}}/{{textMax}}</text>
+        </view>
+        <!-- 顺手拍一张(可不拍):收成标题行右侧一个小方钮,留言条才压不到上一个人那句 -->
+        <view class="ds__shot" wx:if="{{!claimed}}" bindtap="onShoot"
+              aria-role="button" aria-label="{{shotUrl ? '重拍一张' : '顺手拍一张给下一个人看'}}" hover-class="cy-pressed" hover-stay-time="80">
+          <image wx:if="{{shotUrl}}" class="ds__shot-img" src="{{shotUrl}}" mode="aspectFill" />
+          <cy-icon wx:else name="camera" size="32" />
+        </view>
+      </view>
+      <block wx:if="{{claimed}}">
+        <text class="ds__note-my">{{myText}}</text>
+        <image wx:if="{{myPhotoUrl}}" class="ds__note-img" src="{{myPhotoUrl}}" mode="aspectFill" aria-label="你拍的照片" />
+        <view class="ds__save {{saving ? 'is-off' : ''}}" bindtap="onSave"
+              aria-role="button" aria-label="{{saving ? '签卡生成中，请稍候' : '保存签卡到相册'}}"
+              hover-class="cy-pressed" hover-stay-time="80">{{saving ? '生成中…' : '保存到相册'}}</view>
+      </block>
+      <textarea wx:else class="ds__ta" value="{{text}}" maxlength="{{textMax}}" placeholder="比如：巷口那家豆浆七点才开，别去早了"
+                placeholder-class="ds__ta-ph" adjust-position="{{false}}" fixed="{{true}}"
+                bindinput="onTextInput" bindkeyboardheightchange="onKeyboard" aria-label="给下一个人留一句" />
+      <view class="ds__cta">
+        <cy-btn variant="primary" disabled="{{ctaDisabled}}" bindtap="onAccept">{{cta}}</cy-btn>
+      </view>
+    </view>
+  </view>
+
+  <!-- 离屏画布:点「保存到相册」时在这张画布上按票面复刻一张,导出后再写相册(js 的 onSave)。
+       ⚠️ 不能用 display:none / wx:if —— 那样 selector query 取不到 node,canvas 2d 就没法画;
+       照 pages/roam 的 .sharecv 那样整块挪出屏外。这里的尺寸只是版面占位:
+       真正的出图分辨率由 js 按 dpr 设 canvas.width/height,与票面 750 设计宽同一把尺。 -->
+  <canvas type="2d" id="dsSignCv" class="ds__cv" aria-hidden="true"></canvas>
+</view>

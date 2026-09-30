@@ -1,0 +1,28 @@
+<cy-sheet show="{{show}}" title="选择合作者" handle closable bind:close="onClose">
+  <!-- 稿 K10(151:545):标题下要写清「合作者可编辑内容,不参与结算」。
+       这是这一步唯一会被误解的地方 —— 不写,发布者会以为加了人就要分钱,
+       于是该加的不敢加;真正的分润关系在承接与结算那条线上,与这里无关。 -->
+  <text class="cp-note">合作者可编辑内容，不参与结算</text>
+  <cy-search class="cp-search" value="{{searchKeyword}}" placeholder="搜索" bind:input="onSearchInput" />
+
+  <scroll-view class="cp-scroll" scroll-y bindscrolltolower="onReachBottom">
+    <cy-skeleton wx:if="{{loading && !list.length}}" type="list" count="4" />
+    <cy-error class="cy-fade-in" wx:elif="{{loadError && !list.length}}" title="合作者列表没能加载出来" sub="{{loadError}}" bind:retry="onRetry" />
+    <cy-empty wx:elif="{{nodata && !list.length}}" kind="empty" title="还没有可邀请的合作者" sub="等有创作者注册后会出现在这里；也可以先返回，稍后再来添加合作者。" cta="稍后添加" bind:cta="onClose" />
+
+    <view class="cp-li" wx:for="{{list}}" wx:key="id">
+      <cy-avatar class="cp-li-avatar" src="{{item.avatar}}" name="{{item.displayName}}" size="72" />
+      <view class="cp-li-body">
+        <view class="cp-li-name">{{item.displayName}}</view>
+        <view class="cp-li-meta">关注：{{item.followText}}</view>
+      </view>
+      <cy-btn class="cp-li-btn" variant="secondary" size="sm" bindtap="selectMember" data-item="{{item}}" wx:if="{{!item.isDisabled}}">邀请</cy-btn>
+      <cy-btn class="cp-li-btn" variant="secondary" size="sm" disabled wx:else>{{item.isSelected ? '已邀请' : '无法邀请'}}</cy-btn>
+    </view>
+
+    <view class="cp-tail" wx:if="{{list.length}}">
+      <view class="cp-tail__loading" wx:if="{{loading}}">正在加载更多合作者…</view>
+      <cy-error wx:elif="{{loadError}}" title="更多合作者没能加载出来" sub="{{loadError}}" bind:retry="onRetry" />
+    </view>
+  </scroll-view>
+</cy-sheet>

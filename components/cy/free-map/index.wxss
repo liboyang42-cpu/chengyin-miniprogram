@@ -1,0 +1,39 @@
+:host { display: block; position: absolute; inset: 0; width: 100%; height: 100%; }
+.fmap-wrap { position: absolute; inset: 0; }
+.fmap { width: 100%; height: 100%; }
+/* 浮动退出钮 = 「退出」文字胶囊(2026-07-29 复核裁决,恢复显式标签)。
+   ⚠️ 别再把它收成裸箭头:全站裸 chevron 的语义是「返回上一页」,而这一颗按下去是
+   **退出整局游玩**——两者后果不可逆地不同。7-29 早些时候按「返回钮统一成圆 chip / 裸
+   chevron」把「退出」二字删掉,是把一个显式特殊控制降级成了普通返回,复核判为阻塞。
+   ⇒ 本钮是全站导航范式的**显式例外**:保留文字,不与二级页返回钮共用形态。
+   注:cover-view 不支持 backdrop-filter,玻璃感靠 play-surface 半透明底 + 描边表达。 */
+/* 命中区与视觉分层:视觉胶囊高 64rpx(--cy-comp-nav-back-size,与返回钮同一档),
+   真实触控**横纵都必须 ≥88rpx(=44pt)**。
+   ⚠️ 横向绝不能靠文案宽度碰巧满足 —— 文案一改,命中区就
+   悄悄缩水且无人发现。所以内外层各写一条 min-width: 88rpx,横纵各配负控。
+   ⚠️ 左原点保持 24rpx,与改动前同位;纵向由 align-items:center 把 64rpx 胶囊居中在
+   88rpx 命中区里,扩出去的是空白地图,不压任何控件。
+   ⚠️ 别把 bindtap 挪回 .fmap-exit:那样命中区又缩回视觉尺寸(契约负控盯着)。 */
+.fmap-exit-hit { position: absolute; left: 24rpx; min-width: 88rpx; min-height: 88rpx; display: flex; align-items: center; z-index: 130; }
+.fmap-exit { min-width: 88rpx; height: var(--cy-comp-nav-back-size); padding: 0 var(--cy-space-4); box-sizing: border-box; border-radius: var(--cy-radius-pill); background: var(--cy-color-play-surface); border: 1rpx solid var(--cy-color-play-line); color: var(--cy-color-text-primary); font-size: var(--cy-type-label); font-weight: 700; line-height: var(--cy-comp-nav-back-size); text-align: center; white-space: nowrap; }
+.fmap-photo { position: relative; width: 108rpx; height: 108rpx; overflow: hidden; border: 5rpx solid var(--cy-color-text-primary); border-radius: 26rpx; background: var(--cy-color-play-surface-solid); box-shadow: 0 10rpx 28rpx rgba(0,0,0,.35); } /* ds-ok 地图照片邮票按 54pt 实测槽位定制 */
+.fmap-photo__image { width: 100%; height: 100%; }
+.fmap-photo__badge { position: absolute; right: 7rpx; bottom: 7rpx; min-width: 34rpx; height: 34rpx; padding: 0 var(--cy-legacy-6); box-sizing: border-box; display: flex; align-items: center; justify-content: center; color: var(--cy-color-action-primary-fg); background: var(--cy-color-action-primary-bg); border-radius: var(--cy-radius-pill); font-size: var(--cy-type-micro); font-weight: 700; }
+.iconcv { position: absolute; width: 54px; height: 54px; left: -9999px; top: -9999px; } /* 离屏 */
+/* 抬到底部主行动卡之上。2026-08-04 减法后底部 HUD 横条收成了顶部芯片,卡片基线从 196rpx 降到
+   space-4(32rpx),卡高实测约 282rpx ⇒ 顶缘落在 ~314rpx,轨底留到 360rpx 即可(原来是 520rpx,
+   现在会在卡片上方留一大片空)。⚠️ 卡片高度变了要跟着改这个数,_verify_hud_slots.js 有量坐标的断言。 */
+.fmap-ctrl { position: absolute; right: 24rpx; bottom: calc(360rpx + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 16rpx; }
+.fmap-btn { width: 88rpx; height: 88rpx; border-radius: var(--cy-radius-pill); background: var(--cy-color-play-surface);
+  /* 用户定:只有填充没有描边。地图浮层上这颗圆钮已有 play-surface 填充，描边多余 */
+  color: var(--cy-color-text-primary); display: flex; align-items: center; justify-content: center; }
+/* 缩放两枚合成一条竖轨:共用一个外框,内部两枚去掉自己的边框和圆角,仍各自保 88rpx 点击区 */
+.fmap-zoom { display: flex; flex-direction: column; border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-play-surface); border: 1rpx solid var(--cy-color-play-line); overflow: hidden; }
+.fmap-btn--flush { border: 0; border-radius: 0; background: transparent; }
+.fmap-zoom__sep { height: 1rpx; background: var(--cy-color-play-line); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

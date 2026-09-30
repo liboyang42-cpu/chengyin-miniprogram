@@ -1,0 +1,71 @@
+<!-- 拍物成卡 · 当场揭晓(施工文档第四版 §3.1 §3.2,样稿 artifact 9U7HFWDfbinjmt2tppvVGp)。
+     整屏(不是弹窗,9-24 用户定)走完四步:取景 → 处理中 → 背景碎成点阵散掉、物品留在原位 → 物品上移 + 信息卡。
+     判定全在服务端:这里只拍、只报临时路径(bind:shoot),回来的结果由页面经 kit 属性送回。 -->
+<view class="oc {{reducedMotion ? 'oc--reduced' : ''}}" wx:if="{{show}}">
+  <view class="oc__sheet" style="top:{{topSafe}}px">
+    <canvas type="2d" id="ocStage" class="oc__stage"></canvas>
+
+    <view class="oc__head {{headOn ? '' : 'is-off'}}">
+      <view class="oc__title">{{head}}</view>
+      <view class="oc__hints" wx:if="{{phase === 'cam'}}">
+        <view class="oc__hint oc__hint--center">居中</view>
+        <view class="oc__hint oc__hint--bright">明亮</view>
+        <view class="oc__hint oc__hint--clear">清晰</view>
+      </view>
+      <view class="oc__sub" wx:elif="{{sub}}">{{sub}}</view>
+    </view>
+
+    <view class="oc__vf" wx:if="{{phase === 'cam' || phase === 'proc' || phase === 'retry' || phase === 'note' || (phase === 'reveal' && !shotHidden)}}">
+      <camera wx:if="{{phase === 'cam' && camOn}}" class="oc__live" device-position="back" flash="off" binderror="onCamError"></camera>
+      <view wx:elif="{{phase === 'cam'}}" class="oc__live oc__live--off">相机没打开，可以从相册选一张</view>
+      <image wx:else class="oc__live {{phase === 'retry' || phase === 'note' ? 'is-dim' : ''}}" src="{{shot}}" mode="aspectFill"
+             aria-role="img" aria-label="刚拍的照片" />
+    </view>
+
+    <view class="oc__ctrls" wx:if="{{phase === 'cam' || phase === 'retry'}}">
+      <view class="oc__sq" bindtap="onAlbum" aria-role="button" aria-label="从相册选" hover-class="oc--press" hover-stay-time="80">
+        <cy-icon name="image" size="36" />
+      </view>
+      <view class="oc__shutter {{busy ? 'is-busy' : ''}}" bindtap="onShutter" aria-role="button"
+            aria-label="{{phase === 'retry' ? '再拍一张' : '拍下'}}" hover-class="oc--press" hover-stay-time="80">
+        <view class="oc__shutter-in"></view>
+      </view>
+      <view class="oc__sq" bindtap="onClose" aria-role="button" aria-label="关闭" hover-class="oc--press" hover-stay-time="80">
+        <cy-icon name="close" size="32" />
+      </view>
+    </view>
+
+    <view class="oc__spin" wx:if="{{phase === 'proc'}}" style="transform:rotate({{spin * 45}}deg)" aria-role="img" aria-label="正在处理">
+      <view wx:for="{{spokes}}" wx:key="*this" class="oc__spoke" style="transform:rotate({{item * 45}}deg);opacity:{{0.25 + item * 0.1}}"></view>
+    </view>
+
+    <view class="oc__pill {{pill ? 'is-on' : ''}} {{pillReady ? 'is-ready' : ''}}" bindtap="onPill"
+          aria-role="button" aria-label="{{pill}}" hover-class="oc--press" hover-stay-time="80">{{pill}}</view>
+
+    <image wx:if="{{objSrc}}" class="oc__obj" src="{{objSrc}}" mode="aspectFit" aria-role="img" aria-label="{{cardView.title}}" />
+    <view class="oc__pdot {{formOn ? 'is-on' : ''}}"></view>
+
+    <view class="oc__form {{formOn ? 'is-on' : ''}}" wx:if="{{cardView}}">
+      <view class="oc__group">
+        <view class="oc__row">
+          <view class="oc__dot oc__dot--name"><cy-icon name="edit" size="24" /></view>
+          <text class="oc__k">名称</text><text class="oc__v">{{cardView.title}}</text>
+        </view>
+        <view class="oc__row" wx:if="{{cardView.category}}">
+          <view class="oc__dot oc__dot--cat"><cy-icon name="list" size="24" /></view>
+          <text class="oc__k">分类</text><text class="oc__v oc__v--dim">{{cardView.category}}</text>
+        </view>
+      </view>
+      <block wx:if="{{place}}">
+        <view class="oc__sec">物品信息</view>
+        <view class="oc__group">
+          <view class="oc__row">
+            <view class="oc__dot oc__dot--place"><cy-icon name="gps" size="24" /></view>
+            <text class="oc__k">地点</text><text class="oc__v oc__v--dim">{{place}}</text>
+          </view>
+        </view>
+      </block>
+      <view class="oc__saved">已收进藏品册{{cardView.generating ? ' · 3D 生成中，稍后在藏品册里转着看' : ''}}</view>
+    </view>
+  </view>
+</view>

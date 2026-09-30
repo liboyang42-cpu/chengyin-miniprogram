@@ -1,0 +1,49 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="davidbox">
+  <!-- 真实 caller 是 activity/baoming/baoming.js:321 的 navigateTo(?mode=participant)⇒ 真·二级页。
+       栈首页时组件内建返回不动 ⇒ 接管。caller 需要参数不能盲跳,兜底走无参且必达的 member tab。 -->
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <!-- A46 基准：显式 nav 等高占位后紧接标题，不再由各页混用 safeTop 推算。 -->
+  <view class="title-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="参与人信息" safe-top="{{false}}" />
+  <view class="dz">
+    <cy-skeleton wx:if="{{loadState === 'loading'}}" type="list" count="4" />
+    <view class="dz-refreshing" wx:if="{{refreshing}}" aria-role="status" aria-live="polite">正在更新参与人信息…</view>
+    <block wx:if="{{loadState === 'ready' && list.length}}">
+      <view class="dz_li" wx:for="{{list}}" wx:key="id" bindtap="selectAddress" data-address="{{item}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="dz_li_left">
+          <view class="dz_li_left_name">
+            <text>{{item.fullName}}</text>
+            <text>{{item.mobilePhone}}</text>
+            <!--<text class="default-tag" wx:if="{{item.isDefault == 1}}"> 默认</text>-->
+          </view>
+          <view class="dz_li_left_txt">用于报名联系和到场核验</view>
+        </view>
+        <view class="dz_li_edit" catchtap="goEditAddress" data-id="{{item.id}}" aria-role="button" aria-label="编辑{{item.fullName}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">编辑</view>
+        <view class="dz_li_right {{deletingIds[item.id] ? 'is-disabled' : ''}}" catchtap="deleteAddress" data-id="{{item.id}}" aria-role="button" aria-disabled="{{deletingIds[item.id]}}" aria-label="删除{{item.fullName}}" hover-class="{{deletingIds[item.id] ? 'none' : 'cy-pressed'}}" hover-stay-time="80" hover-stop-propagation="true">
+          <image lazy-load="true" src="/pages/address/images/d_close.png" mode="widthFix" />
+        </view>
+      </view>
+    </block>
+
+    <!-- aaa 标准:fill + size="lg" 撑满剩余空间并放大;.fill-slot 让宿主节点本身也成为 flex 项
+         (光有组件内部的 fill 不够,宿主默认 display:block 吃不到父级给的 flex:1) -->
+    <cy-empty wx:if="{{loadState === 'ready' && !list.length}}" kind="empty" fill size="lg" class="fill-slot" title="还没有参与人信息"
+              sub="报名活动需要填写联系人；新增后可在报名时直接选用" />
+    <cy-error wx:if="{{loadState === 'error'}}" fill size="lg" class="fill-slot" title="{{loadErrorMsg}}"
+              sub="请检查网络后再进来，数据不会丢失" retry="重试" bind:retry="getList" auto-back />
+  </view>
+</view>
+
+<cy-footer-bar wx:if="{{loadState === 'ready'}}">
+  <navigator url="/pages/addressinfo/addressinfo" hover-class="none">
+    <cy-btn variant="primary">新增参与人信息</cy-btn>
+  </navigator>
+</cy-footer-bar>
+</view>
+
+<!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key -->
+<cy-danger-confirm id="dc" bind:confirm="onConfirmDeleteAddress" />

@@ -1,0 +1,76 @@
+<!-- 精准停表。原型真源不在主手机那一套皮肤里,而在试玩台的 #kit2 —— 那是一块浅色玻璃屏
+     (#F2F4F6 + 一层散开的背景光),按钮是黑的,不是别的玩法那颗白胶囊。
+     ⚠️ 逐值抄自 playkit.html 的 #kit2 .phone/.screen/.mid/.chip/.giant/.pill/.cap/.bar。
+     台面那三件(退出 / 还能错几次 / 判定屏)仍走 cy-play-stage:十九个玩法共用一套,
+     这是先前的产品拍板,不因这一屏例外。原型 375px 画布,1px = 2rpx。 -->
+<cy-play-stage id="cy-play-stage" skin="glass" show="{{show}}" back-label="退出" tries="{{tries}}" count-in
+               bind:back="onClose" bind:run="onRun" bind:verdict="onVerdict">
+  <view class="sw">
+    <!-- 背景景深:玻璃要有东西可透,不然「毛玻璃」只是一块灰 -->
+    <view class="sw__amb"></view>
+
+    <!-- 01 准备 · 开局不套白框:这一屏只有两个数,框住反而像一段说明文字 -->
+    <block wx:if="{{phase === 'intro'}}">
+      <view class="sw__mid sw__mid--intro">
+        <view class="sw__eyebrow">{{eyebrow}}</view>
+        <view class="sw__lbl sw__lbl--target">目标</view>
+        <view class="sw__target">{{targetText}}<text class="sw__unit">秒</text></view>
+        <view class="sw__lbl sw__lbl--tol">误差</view>
+        <view class="sw__tol">±{{tolText}}<text class="sw__unit2">秒</text></view>
+        <view class="sw__tip">
+          <view>开跑 1 秒后数字会消失</view>
+          <view>点屏幕任意处停</view>
+        </view>
+      </view>
+      <view class="sw__foot">
+        <view class="sw__btn" bindtap="onStart" aria-role="button" aria-label="开始"
+              hover-class="sw__btn--press" hover-stay-time="80">开始</view>
+      </view>
+    </block>
+
+    <!-- 03 / 04 计时中 · 整个舞台就是「停」的按钮 -->
+    <block wx:else>
+      <view class="sw__mid" bindtap="onStop"
+            hover-class="sw__mid--press" hover-stay-time="60"
+            aria-role="button" aria-label="{{phase === 'over' ? '再来一局' : '点屏幕任意处停'}}">
+        <!-- 暂停卡片放在内容区里,不和退出 / 胶囊挤导航那一行 -->
+        <view class="sw__hat" wx:if="{{phase === 'paused'}}">
+          <view class="sw__hat-t">已暂停</view>
+          <view class="sw__hat-s">数字不会放出来</view>
+        </view>
+        <view class="sw__read {{phase === 'paused' ? 'sw__mid--dim' : ''}}">
+          <view class="sw__miss" wx:if="{{phase === 'over'}}"><view class="sw__miss-i"><cy-icon name="close-sm" size="28" /></view>没停准</view>
+          <view class="sw__chip" wx:else>第 {{round}} 局</view>
+          <!-- 盲停:1 秒后只藏走动的数字,目标和容差一直挂着 -->
+          <view class="sw__giant" wx:if="{{!hidden}}">{{big}}</view>
+          <view class="sw__dash" wx:else>—— · ——</view>
+          <view class="sw__pill">目标 {{targetText}} 秒 · 容差 ±{{tolText}}</view>
+          <block wx:if="{{phase === 'over'}}">
+            <view class="sw__dev">{{dev}}</view>
+            <view class="sw__cap" wx:if="{{left > 0}}">还有 {{left}} 次机会</view>
+          </block>
+          <view class="sw__cap" wx:else>{{cap}}</view>
+        </view>
+      </view>
+
+      <!-- 没停准还有机会:底部换成「再来一局」,暂停在这一屏已经没有意义 -->
+      <view class="sw__foot" wx:if="{{phase === 'over'}}">
+        <view class="sw__btn" bindtap="onStop" aria-role="button" aria-label="再来一局"
+              hover-class="sw__btn--press" hover-stay-time="80">再来一局</view>
+      </view>
+      <!-- 底部计时跟着一起藏 —— 大数字藏了、这里还在走秒,等于没藏 -->
+      <view class="sw__bar" wx:else>
+        <view class="sw__time">
+          <cy-icon name="clock" size="32" />
+          <text class="{{hidden ? 'sw__masked' : ''}}">{{timeText}}</text>
+        </view>
+        <view class="sw__ico" bindtap="onPause" aria-role="button"
+              aria-label="{{phase === 'paused' ? '继续' : '暂停'}}"
+              hover-class="sw__ico--press" hover-stay-time="80">
+          <cy-icon wx:if="{{phase === 'paused'}}" name="play" size="32" />
+          <view wx:else class="sw__pause"><view class="sw__pause-b"></view><view class="sw__pause-b"></view></view>
+        </view>
+      </view>
+    </block>
+  </view>
+</cy-play-stage>

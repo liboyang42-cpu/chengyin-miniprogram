@@ -1,0 +1,452 @@
+@import '../../style/merchant-light-scope.wxss';
+
+/* ============================================
+   Template Library — App Store Style
+   Figma 390px canvas → rpx (×750/390 ≈ ×2)
+   Section order: Banner → 世纪一刻 → 最好插件 → 必玩精选 → 热门榜
+   ============================================ */
+
+/* 页面外露区域也跟随当前主题:merchant-day 灰底 / consumer-night 深空底。
+   旧 --cy-bg-card 在 page 节点先求值,共享页商家作用域无法覆盖,会形成横向色带。 */
+page { background: var(--cy-color-bg-page) !important; }
+/* 共享发布页:商家(.theme-merchant)时根容器撑满并吃浅底,盖住 page{} 的暗底 */
+.tpl-page {
+  min-height: 100vh;
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+/* cy-empty/cy-error 是 styleIsolation:isolated 组件,宿主标签默认 display:block,
+   组件内部的 flex:1 要宿主自己也是 flex 容器才生效,从页面外部补一层。 */
+.fill-slot{ display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+
+/* ---------- Color Tokens ----------
+   Text primary: #1c1c1e
+   Text secondary:  #8e8e93
+   Chip bg:         #f2f2f7
+   Button bg:       #e5e5ea
+   Button accent:   var(--cy-accent)
+   Badge:           var(--cy-danger)
+   Divider:         #e5e5ea
+   Gold:            #f5a623
+   Silver:          #a8a8ad
+   Bronze:          #cd7f32
+*/
+
+/* ========== TOP BAR (胶囊避让) ========== */
+.topbar {
+  width: 100%; position: fixed; left: 0; top: 0; z-index: 22;
+  background: var(--cy-color-bg-page);
+}
+.titBar {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 var(--cy-page-x);
+  position: relative;
+}
+
+/* ========== PAGE HEADER(画板05 2026-08-20:头像+铃铛+搜索+分类,玩家态页标题撤销;
+   商家态 2026-08-25 补回居中标题,见 .tpl-hd-title。头像 2026-09-19 两态均撤) ========== */
+.tpl-hd-space { flex: 1; }
+/* 商家「模板」tab 的居中标题:绝对定位跨满 .titBar 的 padding box ⇒ 几何居中,
+   头像/铃铛再宽也推不偏(与 cy-nav-bar 的 .nav__title 同度量:36rpx / 700)。
+   左右留 96rpx 让位给头像与铃铛的命中区。 */
+.tpl-hd-title {
+  position: absolute;
+  left: 96rpx;
+  right: 96rpx;
+  text-align: center;
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.tpl-bell { width: 44rpx; height: 44rpx; box-sizing: content-box; padding: 22rpx; flex-shrink: 0; }
+.tpl-page.theme-dark .tpl-bell { filter: invert(1); }
+
+/* ========== 顶部 chrome:L1 文字 tab + 搜索(同一行)==========
+   2026-08-26 画板 16:一级从胶囊分段器改成文字 tab —— 参考图里一级是纯文字、
+   只有二级上色,两层因此不会读成「两条筛选栏并排」。 */
+.tpl-toprow {
+  display: flex; align-items: flex-end; gap: var(--cy-space-3);
+  padding: 0 var(--cy-page-x);
+  margin-top: var(--cy-space-2);
+}
+/* 一级 tab 走 cy-tabs 的 attached 变体(§9:tab 一律走组件,不许手写)。
+   页面只负责把「面色」传进去 —— 组件不知道也不该知道模板页的紫。 */
+.tpl-l1 {
+  flex: none;
+  /* 2026-09-01:把整个 tab 组件往下压 2rpx 去盖住面板顶边,消掉接缝那条暗线。
+     暗的是 tab 自己底边的抗锯齿行 —— 它压在黑色 tab 行背景上,和下方紫面板之间留了
+     一行混合像素(实测 #4A2883,比 tab #552D97 与面板 #542C94 都暗)。
+     ⚠️ 两条走不通的路,别再试:
+       · 组件内部 .cy-tabs__item--on 的 margin-bottom —— 跨不过组件边界,宿主这里是
+         align-items:flex-end,组件盒子底边不动(加到 -6rpx 只把标签推下 3px,线没变)。
+       · .tpl-panel 的 margin-top —— 只是把边界整体上移,线跟着一起走(232 → 230)。
+     必须压组件本身,并抬 z-index 让它盖在面板上面。 */
+  margin-bottom: -2rpx;
+  position: relative;
+  z-index: 1;
+  --cy-tabs-attached-bg: var(--cy-color-panel-accent-top);
+  --cy-tabs-attached-gap: 0rpx;
+  --cy-tabs-attached-item-min-w: 136rpx;
+}
+
+.tpl-search {
+  display: flex; align-items: center; gap: var(--cy-space-2);
+  flex: 1; min-width: 0;
+  padding: var(--cy-space-2) var(--cy-space-3);
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2);
+}
+.tpl-search-ico { width: 34rpx; height: 34rpx; flex-shrink: 0; }
+.tpl-search-ph { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+/* CU-M-64 页内搜索状态条:露出「在搜什么」与唯一出口(清掉搜索)。 */
+.tpl-on-search { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); padding: 0 var(--cy-page-x) var(--cy-space-2); }
+.tpl-on-search__txt { flex: 1; min-width: 0; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.tpl-on-search__clear { display: flex; align-items: center; justify-content: center; min-height: 88rpx; padding: 0 var(--cy-space-3); font-size: var(--cy-font-caption); color: var(--cy-color-text-primary); }
+
+/* ========== 内容面(紫)==========
+   紫是「面」不是 brand:--cy-brand 的约 70 个消费点一个都不动。
+   渐变只在顶部 640rpx 内淡出 —— 紫落在 tab 连接处 / chips / banner,列表区回到近黑。
+   封面是大地色系自绘 key art,压在高彩紫上会互相打架,所以不能整屏铺满。 */
+.tpl-panel {
+  position: relative;
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  /* ⚠️ 渐变**不能**用 ::before 铺 —— 那样面里的内容要逐个抬 z-index,而抬 z-index 先得
+     position:relative,又会把 .sec-hd 的 sticky 覆盖掉、让它的 top:safeTop 变成相对偏移
+     (实测每个分组标题因此下移 51px 压住后面内容:257+51=308)。
+     直接做成背景的两层,零副作用:第一层渐变只铺顶部 640rpx,第二层是兜底底色。 */
+  background-color: var(--cy-color-panel-accent-base);
+  background-image: linear-gradient(180deg,
+    var(--cy-color-panel-accent-top) 0,
+    var(--cy-color-panel-accent-mid) 26%,
+    var(--cy-color-panel-accent-deep) 62%,
+    var(--cy-color-panel-accent-base) 100%);
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: 100% 640rpx;
+}
+
+/* ========== L2 卡片式标签 ==========
+   未选 = 浅色轮廓(描边不填色)· 选中 = 白实心 + 字重
+   ⚠️ 选中给了两个线索(实心 + 字重),不只靠颜色;不用 checkmark 是因为
+   加图标会让 chip 宽度跳变,与「只动 transform」的动效约束冲突。 */
+.tpl-chips { white-space: nowrap; padding: var(--cy-space-3) 0 var(--cy-space-2); }
+.tpl-chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 72rpx; padding: 0 var(--cy-space-4);
+  margin-left: var(--cy-space-2);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  border: 1rpx solid var(--cy-color-border-strong);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-primary);
+  vertical-align: top;
+}
+.tpl-chip:first-child { margin-left: var(--cy-page-x); }
+.tpl-chip:last-child { margin-right: var(--cy-page-x); }
+.tpl-chip--on {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  border-color: transparent;
+  font-weight: 700;
+}
+
+/* ========== FEATURED CAROUSEL (Banner) ========== */
+/* 顶部黑洞:sec-hd 的 padding-bottom 之外,这里又叠了 margin-top 24rpx + padding-top 24rpx,
+   模块标题与首卡之间空出近 100rpx 纯黑。留给卡片的呼吸位由 sec-hd 一处负责即可。 */
+.feat-swiper {
+  height: 560rpx;   /* 图 350 + 图下文字区 ~170 + 底部呼吸 40 */
+  padding: 0 0 40rpx;  /* ds-ok: 40rpx 介于 --cy-space-4(32)/--cy-space-5(48) 正中间,量表无半步 token,保留字面值 */
+  box-sizing: border-box;
+}
+
+/* P2-15:previous-margin 归 0 + slide 左右内边距取页边距 ⇒ 当前卡左缘恒对齐页面边距(对齐基准)。
+   右侧 next-margin 56rpx 减去下一张 slide 的 32rpx 内边距 = 露出 24rpx —— 刻意只到卡片自身
+   左内边距(.feat-text padding-left 24rpx)为止,所以露的是卡沿不是半个字。
+   ⚠️ 与隔壁 .cml-list 的 54rpx 露出不同号,是因为那条轨露的是图、这条轨露出去就是标题文字,
+   两者要各自「不切字」,不是漏改。 */
+.feat-slide {
+  height: 100%;
+  padding: 0 var(--cy-page-x);
+  box-sizing: border-box;
+}
+
+/* 画板05(2026-08-20):卡体=大圆角图本身,文字直接排页底上,不再套白卡描边盒 */
+.feat-card {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* --- 图下文字行(标题/描述 + 去参与) --- */
+.feat-text {
+  padding: var(--cy-space-3) var(--cy-space-1) 0;
+  display: flex; align-items: center; gap: var(--cy-space-3);
+}
+.feat-txtcol { flex: 1; min-width: 0; }
+/* .feat-label 已删:与模块标题「主题推荐」逐字重复,见 wxml 注释 */
+.feat-title {
+  display: block;
+  font-size: var(--cy-font-subtitle);         /* Figma: 17px */
+  font-weight: 700;
+  color: var(--cy-text-title);
+  line-height: 1.3;
+}
+.feat-sub {
+  display: block;
+  font-size: var(--cy-font-label);         /* Figma: 13px */
+  color: var(--cy-text-secondary);
+  margin-top: var(--cy-legacy-6);
+}
+
+/* --- 大圆角图区(正常文档流,图上只压一枚人数徽记) --- */
+.feat-media {
+  position: relative;
+  width: 100%;
+  height: 350rpx;
+  border-radius: 48rpx;   /* ds-ok: 画板05 的图卡大圆角档 */
+  overflow: hidden;
+  background: var(--cy-bg-page);
+}
+.feat-chip {
+  position: absolute;
+  left: var(--cy-space-3); bottom: var(--cy-space-3);
+  z-index: 5;
+  padding: var(--cy-space-1) var(--cy-space-2-5);
+  border-radius: var(--cy-radius-pill);
+  background: rgba(0, 0, 0, 0.45);   /* ds-ok: 压图玻璃底,两主题下都压在图上,不随主题走 */
+  color: #FFFFFF;   /* ds-ok: 压图白字,同上 */
+  font-size: var(--cy-font-caption);
+  font-weight: 600;
+}
+.feat-bgimg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
+/* 远端封面为空或加载失败时,显示真实错误态而非另一张业务内容图。 */
+.cover-error {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1);
+  background: var(--cy-bg-card-2);
+  color: var(--cy-text-secondary);
+}
+.cover-error .cover-error-icon { width: 96rpx; height: 72rpx; flex: 0 0 auto; }
+.cover-error-text { font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal); }
+.feat-media .cover-error { z-index: 4; }
+/* 画板05(2026-08-20):渐变蒙层/装饰色块/蒙层信息条/整图铺满变体整套退役 */
+
+
+
+
+
+/* ========== SECTION HEADER ========== */
+.sec-hd {
+  display: flex; align-items: center;
+  padding: 0 var(--cy-page-x);
+  margin-top: var(--cy-space-4);
+  /* 2026-08-26:分组标题**不再吸顶**。原来 sticky 需要一个不透明底(--cy-color-bg-page 纯黑)
+     才不让内容透上来,而这条黑带铺在紫渐变面上会把渐变整条切断 —— 实拍确认「下面都是黑色」
+     就是它。新版一屏只有两三个标题、单列表单 banner,吸顶收益远小于毁掉整面渐变的代价。
+     ⚠️ 这是对 2026-07-31「吸顶到 topbar 正下方」那条的有意推翻,不是漏改。 */
+  background: transparent;
+  padding-top: var(--cy-space-1-5);
+  padding-bottom: var(--cy-space-3); /* 2026-07-31:标题与下方卡片间距加大 */
+}
+/* 2026-08-04 用户定:板块标题回落到模块标题号(36rpx),与页标题同号,原 58rpx 过大 */
+.sec-title {
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  line-height: 1.2;
+}
+.sec-chev {
+  width: 24rpx; height: 24rpx;
+  margin-left: var(--cy-space-1);
+  opacity: 0.35;
+}
+
+/* ========== 最新主题(画板05 2026-08-20:横滑轨改纵向列表行,rail/渐隐罩退役) ========== */
+.cml-list { padding: var(--cy-space-1) var(--cy-page-x) var(--cy-space-2); }
+.cml-card {
+  display: flex; align-items: center; gap: var(--cy-space-3);
+  padding: var(--cy-space-1-5) 0;
+}
+.cml-pic {
+  width: 176rpx; height: 132rpx;   /* ds-ok: 行内小图几何,画板05 的 88×66pt */
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-page);
+  flex-shrink: 0;
+}
+.cml-info { flex: 1; min-width: 0; }
+.cml-name {
+  display: block;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+  line-height: 1.2;
+}
+.cml-meta {
+  display: flex; align-items: center;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  margin-top: var(--cy-space-1);
+}
+.cml-dot { margin: 0 var(--cy-space-1-5); }
+
+/* ========== APP ICON (通用 54px→104rpx) ========== */
+.appicon-54 {
+  width: 104rpx; height: 104rpx;
+  border-radius: var(--cy-radius-md);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-bg-subtle);
+}
+.appicon-54--art,
+.template-game-icon { width: 100%; height: 100%; display: block; }
+
+/* ========== WHAT WE'RE PLAYING 最好插件 ========== */
+.wwp-row {
+  display: flex; align-items: center;
+  padding: var(--cy-legacy-22) var(--cy-page-x);
+  min-height: 150rpx;
+  box-sizing: border-box;
+}
+.wwp-divider {
+  height: 1rpx;
+  background: var(--cy-bg-subtle);
+  margin-left: 168rpx;  /* ds-ok: 对齐榜单序号列宽度,量表外 */
+  margin-right: var(--cy-space-4);
+}
+
+.wwp-meta {
+  flex: 1; margin: 0 var(--cy-space-3);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  justify-content: center;
+}
+.wwp-name {
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+  line-height: 1.3;
+}
+.wwp-sub {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  line-height: 1.3;
+  margin-top: var(--cy-legacy-4);
+}
+
+
+/* ========== UTILITY ========== */
+.ep1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* P2-16:页尾安全占位。原 120rpx 比 tabBar(104rpx + 安全区)还矮,末条内容必被压住;
+   这里 = tabBar 占位 + 上下各一个 float-gap + 悬浮发布钮自身高度(84rpx,同 .fab),
+   保证滚到底时最后一行既不进 tabBar 也不进浮钮的覆盖带。 */
+.tpl-bottom-safe {
+  height: calc(var(--cy-tabbar-h) + var(--cy-float-gap) * 2 + 84rpx);
+}
+
+/* ===== 悬浮发布按钮(C3:原 components/touch 胶囊收编进页面,弹窗换 cy-publish-sheet) ===== */
+.fab {
+  position: fixed;
+  width: var(--cy-comp-publish-trigger);
+  height: var(--cy-comp-publish-trigger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-inverse);
+  background: var(--cy-color-text-primary);
+  border-radius: var(--cy-radius-pill);
+  bottom: calc(var(--cy-tabbar-h) + var(--cy-float-gap));
+  right: var(--cy-page-x);
+  z-index: var(--cy-z-tabbar);
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition: transform var(--cy-comp-publish-float) var(--cy-comp-publish-ease), opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+
+/* ========== 主题模板货架 ========== */
+/* 无封面时使用设计系统图标，复用 cml-pic 几何。 */
+.cml-pic--tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cy-bg-subtle);
+}
+.merchant-readonly-note {
+  margin: 12rpx 32rpx 8rpx;
+  padding: 18rpx 22rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-card-2);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+  line-height: 1.45;
+}
+
+/* ========== Banner 扫光描边(画板 17)==========
+   ⚠️ 不能用 conic-gradient —— pages/play/index.wxss:898 已经踩过:小程序渲染层不认,
+   渲成实心灰盘。这里改用「比对角线还大的普通线性渐变层匀速 rotate + 内层卡面盖住中心」,
+   露出来的那 2rpx 就是描边,亮带扫过去就是扫光。只动 transform,不动 width/height。
+   ⚠️ 扫光必须比它所在的面亮,否则是一圈自己看不见的动画;换面色时要连它一起重算。 */
+.feat-glow {
+  position: relative;
+  padding: 2rpx;
+  border-radius: var(--cy-radius-2xl);
+  overflow: hidden;
+  transform: translateZ(0);   /* 安卓上 radius + overflow 要提合成层才裁得干净 */
+}
+/* 一道光顺时针绕边,不是整圈均匀光晕。
+   ⚠️ 两件事决定「像不像一道光」:
+   ① 亮带必须**窄**且其余全透明 —— 之前 40%→60% 都是亮的,转起来是一片糊光;
+      现在只有前 8% 是亮的,34% 之后完全透明,读起来是一颗有拖尾的彗星。
+   ② 不能再叠静态 box-shadow —— 那是均匀光晕(边缘色散),会把「转动」这件事盖掉。
+   顺时针:CSS 正角度即顺时针,rotate(0→360deg)。 */
+.feat-glow__sweep {
+  position: absolute; left: -50%; top: -50%; width: 200%; height: 200%;
+  background: linear-gradient(90deg,
+    var(--cy-color-glow-sweep) 0%,
+    var(--cy-color-glow-sweep-soft) 8%,
+    transparent 34%,
+    transparent 100%);
+  animation: tpl-glow-spin 3.6s linear infinite;
+}
+.feat-glow__face { position: relative; z-index: 1; border-radius: var(--cy-radius-xl); overflow: hidden; }
+@keyframes tpl-glow-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* 减动效:必须显式关掉。只靠全局「时长压到 0.01ms」会让亮带停在一个随机角度,
+   看起来像渲染坏了 —— 要停成一圈静态描边。 */
+@media (prefers-reduced-motion: reduce) {
+  .feat-glow__sweep { animation: none; background: var(--cy-color-glow-sweep-soft); }
+}
+
+/* 已登记玩法用具象图标位(复用 .cml-pic 几何,只换成图标容器)——
+   未知玩法不生成首字/渐变假资产,落到封面或 cy-icon 兜底。 */
+.cml-pic--art {
+  background: var(--cy-bg-card-2);
+  padding: var(--cy-space-2);
+  box-sizing: border-box;
+}
+
+.fab--open {
+  opacity: 0;
+  transform: translate3d(0, var(--cy-space-3), 0) scale(.55);
+  pointer-events: none;
+  transition: transform var(--cy-motion-standard) var(--cy-ease-out), opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+.fab--reduced { transition: none; }

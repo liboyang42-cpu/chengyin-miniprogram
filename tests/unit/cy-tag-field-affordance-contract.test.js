@@ -1,0 +1,31 @@
+const assert = require('node:assert/strict')
+const { test } = require('node:test')
+const fs = require('node:fs')
+const path = require('node:path')
+
+const ROOT = path.resolve(__dirname, '../..')
+const read = p => fs.readFileSync(path.join(ROOT, p), 'utf8')
+
+test('状态标签默认带左图标,mono 分类标签不带', () => {
+  const js = read('components/cy/tag/index.js')
+  const wxml = read('components/cy/tag/index.wxml')
+  const json = read('components/cy/tag/index.json')
+  assert.match(wxml, /cy-icon wx:if="\{\{_icon\}\}"/)
+  assert.match(json, /"cy-icon"/)
+  assert.match(js, /green:\s*'check'/)
+  assert.match(js, /blue:\s*'info'/)
+  assert.match(js, /red:\s*'warning'/)
+  assert.match(js, /done:\s*'close-sm'/)
+  assert.match(js, /mono:\s*''/)
+})
+
+test('cy-field 空态灰描边,填写态换深描边', () => {
+  const wxss = read('components/cy/field/index.wxss')
+  const wxml = read('components/cy/field/index.wxml')
+  assert.match(wxss, /background:\s*var\(--cy-color-input-idle-bg\)/)
+  assert.match(wxss, /box-shadow:\s*inset 0 0 0 2rpx var\(--cy-color-border-subtle\)/)
+  assert.match(wxss, /\.is-filled \.fd__control/)
+  assert.match(wxss, /var\(--cy-color-input-filled-bg\)/)
+  assert.match(wxss, /var\(--cy-color-text-primary\)/)
+  assert.match(wxml, /_filled \? 'is-filled'/)
+})

@@ -1,0 +1,32 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "cy-club-director-broadcast-sheet": "/pages/club/components/club-director-broadcast-sheet/index",
+    "cy-club-director-chapter-sheet": "/pages/club/components/club-director-chapter-sheet/index",
+    "cy-club-director-end-confirm": "/pages/club/components/club-director-end-confirm/index",
+    "cy-club-director-incident-sheet": "/pages/club/components/club-director-incident-sheet/index",
+    "cy-club-director-ready": "/pages/club/components/club-director-ready/index",
+    "cy-club-director-recap": "/pages/club/components/club-director-recap/index",
+    "cy-club-director-role-sheet": "/pages/club/components/club-director-role-sheet/index",
+    "cy-club-director-team-sheet": "/pages/club/components/club-director-team-sheet/index",
+    "cy-dropdown": "/components/cy/dropdown/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-switch": "/components/cy/switch/index",
+    "cy-club-director-row-list": "/pages/club/components/club-director-row-list/index",
+    "cy-club-director-chip-group": "/pages/club/components/club-director-chip-group/index",
+    "cy-club-topic-end-confirm": "/pages/club/components/cy/club-topic-end-confirm/index",
+    "cy-date-field": "/components/cy/date-field/index",
+    "cy-result-sheet": "/components/cy/result-sheet/index"
+  },
+  "navigationBarTitleText": "活动详情",
+  "navigationBarBackgroundColor": "#000000",
+  "navigationBarTextStyle": "white"
+}

@@ -1,0 +1,78 @@
+/* 出示团码 · T1 底部弹层(Figma 335:1275)
+   稿上的死数:卡内 pad 20/24、gap 14、二维码 259×258 r12、主题名 15 Medium、download 24。
+   1px = 2rpx。 */
+.cgcs { padding: 0 var(--cy-space-1); }
+
+.cgcs__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28rpx;                       /* 稿 gap 14 */
+  padding: 0 40rpx 48rpx;           /* 稿 px20 / pb24 */
+  border-radius: var(--cy-radius-lg);
+}
+
+/* 二维码底恒为浅色 —— 深色底扫不出来,这条与主题无关,不许跟着暗色走 */
+.cgcs__qr {
+  width: 518rpx;                    /* 稿 259 */
+  height: 516rpx;                   /* 稿 258 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-md);   /* 稿 r12 = 24rpx,正好是 md 档 */
+  background: #F8F8F8;              /* ds-ok: 扫码底必须浅色,不能用暗色 token */
+  overflow: hidden;
+}
+.cgcs__qr-img { width: 100%; height: 100%; }
+.cgcs__qr.is-placeholder { background: var(--cy-color-bg-raised); }
+.cgcs__qr-hint { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+
+/* CU-C-148:错误态自成一行,高度由文案决定,不再撑那张 518×516 的死码格。
+   文案允许自然换行(word-break),但它是独立成段的说明,不和「重试」挤在同一个热区里,
+   所以不会再出现「重／试」被硬拆到两行。 */
+.cgcs__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-4);
+  width: 100%;
+  padding: var(--cy-space-6) var(--cy-space-4);
+}
+.cgcs__error-text {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-secondary);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.cgcs__name {
+  font-size: var(--cy-type-body);   /* 稿 15 Medium ≈ body */
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+  text-align: center;
+}
+
+.cgcs__save {
+  width: var(--cy-comp-sheet-close-hit-size);   /* 88rpx 热区,与弹层关闭键同档 */
+  height: var(--cy-comp-sheet-close-hit-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-text-primary);
+}
+.cgcs__retry {
+  min-height: var(--cy-btn-h-sm);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--cy-space-4);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-info);
+  font-size: var(--cy-type-label);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

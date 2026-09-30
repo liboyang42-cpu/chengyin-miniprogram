@@ -1,0 +1,31 @@
+page { background: var(--cy-color-bg-page); }
+.session-shell { height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.session-shell__body { flex: 1; min-height: 0; }
+
+/* 深链页专用足迹分享卡；主正文样式只在 scene-roam-session。 */
+.ss-share-sheet { padding: var(--cy-space-2) 0; }
+.ss-share-loading { padding: var(--cy-space-8) 0; color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); text-align: center; }
+.ss-card { width: 630rpx; max-width: 100%; margin: var(--cy-space-2) auto 0; box-sizing: border-box; text-align: center; --cy-comp-card-pad: var(--cy-space-3); --cy-comp-card-radius: var(--cy-radius-lg); --cy-comp-card-bg:var(--cy-color-play-story-page); --cy-color-text-primary:var(--cy-color-play-story-text); --cy-color-text-secondary:var(--cy-color-play-story-muted); --cy-color-text-tertiary:var(--cy-color-play-story-muted); }
+.ss-card-map { position: relative; height: 360rpx; overflow: hidden; border-radius: var(--cy-radius-md); background: var(--cy-color-play-story-surface); }
+.ss-card-route { position: absolute; left: 50%; top: 50%; width: 670rpx; height: 520rpx; transform: translate(-50%, -50%) scale(.68); }
+.ss-card-seg { position: absolute; height: 5rpx; border-radius: var(--cy-radius-pill); transform-origin: 0 50%; background: var(--cy-color-play-story-accent); box-shadow: 0 0 14rpx var(--cy-color-play-story-accent-soft); }
+.ss-card-poi { position: absolute; width: 16rpx; height: 16rpx; border: 3rpx solid var(--cy-color-play-story-page); border-radius: var(--cy-radius-pill); transform: translate(-50%, -50%); }
+.ss-card-map-tip { position: absolute; left: 0; right: 0; top: 46%; color: var(--cy-color-text-tertiary); font-size: var(--cy-type-label); }
+.ss-card-name { margin-top: var(--cy-space-3); color: var(--cy-color-text-primary); font-size: var(--cy-type-section-title); font-weight: 700; }
+.ss-card-fact { margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); }
+.ss-card-date { margin-top: var(--cy-space-1); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-label); }
+.ss-card-stats { display: flex; justify-content: space-around; margin-top: var(--cy-space-3); padding-top: var(--cy-space-3); border-top: 1rpx solid var(--cy-color-border-subtle); }
+.ss-card-stats view { display: flex; flex-direction: column; gap: var(--cy-space-1); color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 700; }
+.ss-card-stats text + text { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); font-weight: 500; }
+.ss-card-brand { margin-top: var(--cy-space-3); color: var(--cy-color-text-disabled); font-size: var(--cy-type-caption); letter-spacing: 3rpx; }
+.ss-share-error { margin-top: var(--cy-space-2); }
+.session-status { padding: var(--cy-space-8) 0; color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); text-align: center; }
+.ss-share-link { display: flex; align-items: center; justify-content: center; gap: var(--cy-space-2); margin-top: var(--cy-space-2); color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+.ss-share-link__retry { min-height: 88rpx; line-height: 88rpx; padding: 0 var(--cy-space-2); color: var(--cy-color-text-primary); font-weight: 600; }
+.ss-share-actions { display: flex; gap: var(--cy-space-2); margin-top: var(--cy-space-3); }
+.ss-share-action { flex: 1; min-width: 0; }
+.ss-share-action--native { min-height: var(--cy-btn-h); margin: 0; padding: 0 var(--cy-space-2); display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1); border: 1rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-comp-btn-radius); background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-primary); font-size: var(--cy-type-button); font-weight: 600; line-height: var(--cy-btn-h); }
+.ss-share-action--native::after { border: none; }
+.ss-share-action__label { color: inherit; line-height: var(--cy-leading-tight); }
+.ss-share-back { min-height: var(--cy-btn-h); margin-top: var(--cy-space-2); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-body); line-height: var(--cy-btn-h); text-align: center; }
+.ss-share-canvas { position: fixed; left: -3000px; top: -3000px; width: 750px; height: 1000px; }

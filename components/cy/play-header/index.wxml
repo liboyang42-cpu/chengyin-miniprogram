@@ -1,0 +1,16 @@
+<view wx:if="{{model}}" class="play-header {{hasExit ? 'play-header--with-exit' : ''}}">
+  <view class="play-header__copy">
+    <text class="play-header__eyebrow">{{model.eyebrow}}</text>
+    <text class="play-header__title">{{model.title}}</text>
+  </view>
+  <view class="play-header__status">
+    <view wx:if="{{model.actionLabel}}" class="play-header__action" catchtap="onAction" aria-role="button" aria-label="{{model.actionLabel}}" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="play-header__action-label">{{model.actionLabel}}</text>
+    </view>
+    <text class="play-header__progress-text">{{model.progressText}}</text>
+    <view class="play-header__track">
+      <view class="play-header__fill" style="width:{{ model.progressPct || 0 }}%"></view>
+      <view class="play-header__dot" style="left:{{ model.progressPct || 0 }}%"></view>
+    </view>
+  </view>
+</view>

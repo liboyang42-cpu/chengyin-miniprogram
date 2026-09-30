@@ -1,0 +1,741 @@
+/* ============================================================
+ * 首页 · v3(HBO Banner + Apple Games 下半区)—— 玩家端深色
+ *
+ * 色/字一律读 v2 语义层(DS §2.1:页面只读 --cy-color-* / --cy-type-*,
+ * 禁读 --cy-ref-* / --cy-comp-*)。
+ * 2026-07-17 W13:清掉 v2 / idx* / david_* / city-* / sticky / hero 骨架等零命中死码,
+ * 并把「浅色时代基础层 + 暗色补丁层各改一半」的重复定义连根合并为一处。
+ * ============================================================ */
+
+page {
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-secondary);
+}
+
+/* 原 .index / .index.theme-dark / .index.v3 三处同名规则合并:
+   .index.v3 的纯黑底本就压掉了 .index.theme-dark 的 transparent(同特异度、在后),
+   合并后统一取 bg-page,与原渲染等价。 */
+.index {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  background: var(--cy-color-bg-page);
+}
+
+/* ============================================================
+ * 手机号弹窗
+ * 不收编 cy-modal:cy-modal 的确认键是 <view>,而本弹窗唯一动作必须是
+ * 原生 <button open-type="getPhoneNumber">,组件无法承载。
+ * ============================================================ */
+.tkbg {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--cy-z-modal);
+  background: var(--cy-color-overlay);
+  backdrop-filter: blur(4px);
+}
+.tkbox {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--cy-z-modal);
+  width: 660rpx;
+  overflow: hidden;
+  border-radius: 80rpx;
+  background: var(--cy-color-bg-glass);
+  backdrop-filter: blur(48rpx);
+  border: 1rpx solid var(--cy-color-border-strong);
+}
+.tkbox_tpis {
+  margin: var(--cy-space-5) var(--cy-space-5) var(--cy-space-7) var(--cy-space-5);
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--cy-type-card-title);
+  color: var(--cy-color-text-primary);
+}
+.tkbox button.tkbox_but {
+  width: 560rpx;
+  height: 100rpx;
+  line-height: 100rpx;
+  margin: var(--cy-space-3-5) var(--cy-space-5);
+  overflow: hidden;
+  text-align: center;
+  font-size: var(--cy-type-button);
+  font-weight: bolder;
+  color: var(--cy-color-action-primary-fg);
+  background: var(--cy-color-action-primary-bg);
+  border-radius: var(--cy-radius-lg);
+}
+.tkbox_skip {
+  text-align: center;
+  min-height: 88rpx;
+  line-height: 88rpx;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-secondary);
+}
+
+/* ============================================================
+ * v3 骨架:滚动容器
+ * ============================================================ */
+.v3-scroll { width: 100%; }
+.v3-scroll-inner { box-sizing: border-box; }
+.v3-scroll-pad { height: calc(140rpx + env(safe-area-inset-bottom)); }
+
+/* ============================================================
+ * HBO Banner:顶到页面顶部,高度覆盖原页头 + 轮播 + 文案区
+ * ============================================================ */
+.v3-hero-banner {
+  position: relative;
+  width: 100%;
+  background: var(--cy-color-bg-page);
+  overflow: hidden;
+}
+/* ADA:hero 是这一页唯一的主角,进入时描一次。现 hero 是静态封面轮播(不是矢量路线),
+   按处方给的替代路径做「透明度 + 位移」入场,不硬上 canvas 描线。 */
+@keyframes v3HeroEnter {
+  from { opacity: 0; transform: translateY(32rpx) scale(1.02); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.v3-hero-banner--enter { animation: v3HeroEnter 800ms var(--cy-ease-out) both; }
+/* 动效偏好 = 减少时整页不播(与 play/roam 同一开关 play_reduced_motion) */
+.v3--reduced-motion .v3-hero-banner--enter,
+.v3--reduced-motion view,
+.v3--reduced-motion image,
+.v3--reduced-motion swiper { animation: none !important; transition: none !important; }
+.v3-hero-swiper { width: 100%; }
+.v3-hero-slide {
+  width: 100%;
+  display: block;
+}
+.v3-hero-action { position: relative; background: #000; }
+.v3-hero-motion {
+  position: absolute;
+  left: 16%;
+  top: 23%;
+  width: 68%;
+  height: 58.3vw;
+  display: block;
+  pointer-events: none;
+}
+/* 品牌封面是整屏比例的竖图(Figma @3x 导出 1125x2436 = 375x812 逻辑像素),
+   文案已经烧在图里。hero 只有 60vh,所以满铺 + aspectFill:上下各裁掉约两成,
+   紫色字牌在正中 43%-55%,裁不到。 */
+.v3-hero-art {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.v3-hero-copy {
+  position: absolute;
+  left: var(--cy-space-4);
+  right: var(--cy-space-4);
+  bottom: 168rpx;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  text-align: center;
+}
+.v3-hero-action-title {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-page-title);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.v3-hero-action-subtitle {
+  margin-top: var(--cy-space-5);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-card-title);
+  line-height: 1.45;
+}
+.v3-hero-fade {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.22) 22%, rgba(0,0,0,0.02) 45%, rgba(0,0,0,0.45) 78%, rgba(0,0,0,0.88) 100%); /* ds-ok banner 压深渐变:五段压深让顶栏与白点压住任意封面照片(含浅底插画),token 层无渐变表达 */
+}
+.v3-hero-fade--action {
+  /* 底部收到纯黑:页面底色就是 #000,收满之后 banner 下沿与「推荐主题」之间没有硬边,
+     竖版封面被 hero 裁断的图形也一起化掉。顶部两段仍只为浮层顶栏可读。 */
+  background: linear-gradient(180deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.04) 32%, rgba(0,0,0,0) 58%, rgba(0,0,0,0.55) 82%, rgba(0,0,0,1) 100%); /* ds-ok:只保障浮层顶栏与轮播点可读 + 底部与页面底色无缝衔接；主体动态素材保持原始黑底 */
+}
+
+/* —— 顶栏浮层:品牌 + Hi + 铃铛/头像 + 会员/位置 —— */
+.v3-hero-head {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  pointer-events: none;
+  padding-left: var(--cy-space-2-5);
+  box-sizing: border-box;
+}
+.v3-home-logo {
+  position: absolute;
+  left: var(--cy-space-4);
+  z-index: 12;
+  width: 64rpx;
+  height: 56.83rpx;
+  filter: brightness(0) invert(1);
+  pointer-events: none;
+}
+.v3-hero-actions {
+  position: absolute;
+  z-index: 12;
+  gap: var(--cy-space-2);
+  flex: none;
+  align-items: center;
+  pointer-events: auto;
+}
+.v3-hero-greet-row {
+  position: absolute;
+  left: var(--cy-space-2-5);
+  right: 0;
+  z-index: 11;
+  /* 与右侧头像同高并垂直居中:两者 top 相同,文字块矮于头像时会显得偏上。 */
+  min-height: var(--cy-btn-h);
+  /* 纯文案层横跨整行；必须透传点击，否则右侧透明盒会盖住头像热区。 */
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+/* 字阶:原字面 64rpx。同值 token 是 data-xl,但 DS §2.6 把它限定为金额/里程/核心数字;
+   本行是页面 Hero 问候语 = display(「Hero / 完成时刻,低频」)的原义,故按语义取 display 56。 */
+.v3-hero-hi {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--cy-type-display);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--cy-color-text-primary);
+}
+.v3-hero-bell {
+  position: relative;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 38rpx;
+  border: 3rpx solid var(--cy-color-border-strong);
+  background: rgba(0,0,0,0.12); /* ds-ok 图标底二次压深:在 banner 渐变之上再压一层弱黑,白铃铛压最亮封面实测 2.83→3.59:1(过图形阈值);scrim 只有组件层 token,页面禁读 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-primary);   /* cy-icon 走 currentColor */
+}
+.v3-hero-mem {
+  flex: none;
+  gap: var(--cy-space-1-5);
+  pointer-events: auto;
+}
+.v3-hero-mem-badge {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 20rpx;
+  background: var(--cy-color-rare);
+  flex: none;
+}
+.v3-hero-mem-ic { width: var(--cy-legacy-22); height: var(--cy-legacy-22); }
+.v3-hero-mem-txt {
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--cy-color-text-secondary);
+}
+.v3-hero-mem-loc {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+.v3-avatar {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-pill);
+  overflow: hidden;
+  border: 4rpx solid var(--cy-color-border-strong);
+  flex: none;
+}
+.v3-avatar image { width: 100%; height: 100%; }
+
+/* 白点贴在 Banner 图最底部(HBO) */
+.v3-hero-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* ADA:推荐卡上移 -48rpx 后会盖住原 36rpx 处的白点,抬到 96rpx 留 48rpx 净空 */
+  bottom: var(--cy-space-8);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+  pointer-events: none;
+}
+.v3-hero-dot {
+  width: var(--cy-space-1-5);
+  height: var(--cy-space-1-5);
+  border-radius: 50%;
+  background: var(--cy-color-text-disabled);
+  /* .on 只改 width/border-radius/background */
+  transition: width var(--cy-motion-standard) var(--cy-ease), border-radius var(--cy-motion-standard) var(--cy-ease), background-color var(--cy-motion-standard) var(--cy-ease);
+}
+.v3-hero-dot.on {
+  width: var(--cy-space-4);
+  border-radius: 6rpx;
+  background: var(--cy-color-text-primary);
+}
+.v3-hero-sync {
+  position: absolute;
+  left: var(--cy-space-4);
+  right: var(--cy-space-4);
+  bottom: calc(var(--cy-space-8) + var(--cy-space-4));
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--cy-space-4));
+  min-height: var(--cy-btn-h-sm);
+  box-sizing: border-box;
+  padding: var(--cy-space-1-5) var(--cy-space-3);
+  border: 1rpx solid var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-glass);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+}
+.v3-hero-sync-copy { min-width: 0; }
+.v3-hero-sync-action {
+  flex: none;
+  min-height: var(--cy-btn-h-sm);
+  padding: 0 var(--cy-space-2);
+  display: flex;
+  align-items: center;
+  color: var(--cy-color-text-primary);
+  font-weight: 600;
+}
+.v3-hero-sync-spinner {
+  width: var(--cy-space-3);
+  height: var(--cy-space-3);
+  flex: none;
+  border: 3rpx solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: v3HeroSyncSpin var(--cy-motion-spinner-cycle) linear infinite;
+}
+@keyframes v3HeroSyncSpin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+ * 通用区块
+ * ============================================================ */
+.v3-sec-first { margin-top: 0; padding-top: var(--cy-space-6); }
+/* ADA 8pt:section 间距恒 64rpx(2026-08-20 由 48 加大;标题到自己卡片 20rpx 保持不变,
+   保证「离自己的卡近、离别人的卡远」的亲密性关系) */
+.v3-sec { margin-top: var(--cy-space-6); }
+.v3-sec-reco { margin-top: var(--cy-space-6); }
+.v3-continue {
+  min-height: 152rpx;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  margin: var(--cy-space-5) var(--cy-space-4) 0;
+  padding: var(--cy-space-4);
+  border: 1rpx solid var(--cy-color-brand);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface);
+  box-sizing: border-box;
+}
+.v3-continue-cover { flex: none; width: 112rpx; height: 112rpx; border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-elevated); }
+.v3-continue-cover--fallback { display: flex; align-items: center; justify-content: center; color: var(--cy-color-brand); }
+.v3-continue-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.v3-continue-kicker { color: var(--cy-color-brand); font-size: var(--cy-type-micro); font-weight: 600; }
+.v3-continue-title { margin-top: var(--cy-legacy-4); color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 700; }
+.v3-continue-sub { margin-top: var(--cy-legacy-6); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.v3-continue-cta { flex: none; color: var(--cy-color-text-primary); font-size: var(--cy-type-label); }
+.v3-sec-head { padding: 0 var(--cy-space-4) var(--cy-space-4); align-items: baseline; }
+/* 字阶:2026-08-20 用户要求首页模块标题比 section-title(36) 再大一档 → 回到 40rpx;
+   量表 36 与 44 之间无 token,本页属门禁排除页,字面值即刻意值。 */
+.v3-sec-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: var(--cy-color-text-primary);
+}
+/* 区块内的错误/空态(cy-error / cy-empty 自带内边距,这里只给左右对齐区块标题) */
+.v3-sec-state { padding: 0 var(--cy-space-4); }
+.v3-sec-sync {
+  display: block;
+  padding: 0 var(--cy-space-4) var(--cy-space-2);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+}
+
+/* 横滑 rail */
+.v3-rail { white-space: nowrap; width: 100%; }
+
+/* —— 附近活动:双列竖卡 —— */
+/* ADA 8pt:卡间恒 24rpx */
+.v3-nearby-row { display: inline-flex; gap: var(--cy-space-3); padding: 0 var(--cy-space-4); }
+.v3-nearby-card {
+  position: relative;
+  flex: none;
+  width: 325rpx;
+  height: 440rpx;
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+  background: var(--cy-color-bg-elevated);
+}
+.v3-nearby-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.v3-nearby-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.75) 100%); /* ds-ok 卡面压深渐变:底部压深承载标题(白字压最亮封面实测 9.68:1),token 层无渐变表达 */
+}
+.v3-nearby-body { position: absolute; left: var(--cy-space-2-5); right: var(--cy-space-2-5); bottom: var(--cy-space-2-5); }
+.v3-nearby-title {
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cy-color-text-primary);
+}
+.v3-nearby-meta { margin-top: var(--cy-legacy-14); gap: var(--cy-space-1-5); flex-wrap: wrap; }
+/* LIVE 徽章:白字要达标只能用 action-danger-bg(DS 自陈白字 5.0:1);
+   status-danger 上白字实测仅 3.91:1 ✗,原橙色上白字更只有 2.80:1 ✗。 */
+.v3-nearby-live {
+  flex: none;
+  padding: var(--cy-space-1) var(--cy-legacy-10);
+  border-radius: 8rpx;
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+  background: var(--cy-color-action-danger-bg);
+  color: var(--cy-color-action-danger-fg);
+}
+.v3-nearby-time {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-micro);
+  color: var(--cy-color-text-secondary);
+}
+.v3-nearby-viewers {
+  gap: var(--cy-legacy-4);
+  font-size: var(--cy-type-micro);
+  color: var(--cy-color-text-secondary);
+}
+.v3-nearby-view-ic { width: var(--cy-space-2-5); height: var(--cy-space-2-5); flex: none; }
+
+/* —— 推荐主题:焦点轮播(306px 主卡 + 280px 非焦点卡) —— */
+.v3-reco-swiper {
+  width: 100%;
+  height: 690rpx;
+  overflow: hidden;
+}
+.v3-reco-slide {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.v3-reco-card {
+  position: relative;
+  flex: none;
+  width: 612rpx;
+  height: 690rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: var(--cy-color-bg-elevated);
+  transform-origin: left center;
+  transform: scale(var(--reco-card-scale, 0.915));
+}
+.v3-reco-hero-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.v3-reco-hero-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.15) 35%, rgba(2,1,5,0.94) 100%); /* ds-ok Hero 压深渐变:底端几乎压到页底色,承载标题与元信息(实测 17.69:1),token 层无渐变表达 */
+}
+/* 卡顶三枚 chip 原来都是半透明黑压在照片上,文字对比度随封面漂移
+   (实测最坏白封面:club 3.32:1 ✗、accent 1.03:1 ✗)。改用不透明 bg-elevated,
+   与封面解耦 → 恒定 6.31~16.81:1。 */
+.v3-reco-club {
+  position: absolute;
+  left: var(--cy-space-3);
+  top: var(--cy-space-3);
+  padding: var(--cy-legacy-6) var(--cy-space-2-5) var(--cy-legacy-6) var(--cy-legacy-6);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-elevated);
+  gap: var(--cy-space-1-5);
+}
+.v3-reco-club-av { width: 48rpx; height: 48rpx; border-radius: var(--cy-radius-pill); flex: none; }
+.v3-reco-club text {
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  color: var(--cy-color-text-primary);
+}
+.v3-reco-body { position: absolute; left: var(--cy-space-4); right: var(--cy-space-4); bottom: var(--cy-legacy-36); }
+.v3-reco-tags { gap: var(--cy-space-1-5); margin-bottom: var(--cy-space-2); flex-wrap: wrap; }
+.v3-reco-tag {
+  padding: var(--cy-space-1) var(--cy-legacy-18);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-caption);
+  font-weight: 500;
+}
+/* 原为「电光蓝」一族(与 DS 品牌紫无关的外来色)→ 收回品牌紫:
+   §12.3 品牌紫承担强调;brand 压 brand-soft 只有 1.71:1 ✗,故文字取 brand-strong。 */
+.v3-reco-tag--accent {
+  background: var(--cy-color-bg-elevated);
+  border: 1rpx solid var(--cy-color-brand);
+  color: var(--cy-color-brand-strong);
+}
+/* Beta 试玩:info 语义,与分类(brand 描边)、进行中(中性)三者一眼可分 */
+.v3-reco-tag--beta {
+  background: var(--cy-color-status-info-soft);
+  color: var(--cy-color-text-primary);
+  font-weight: 700;
+}
+.v3-reco-tag--status {
+  background: var(--cy-color-bg-elevated);
+  color: var(--cy-color-text-primary);
+  gap: var(--cy-space-1);
+}
+.v3-reco-status-dot {
+  width: var(--cy-space-1-5);
+  height: var(--cy-space-1-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-status-danger);
+  flex: none;
+}
+/* 字阶:原 --cy-font-display 40rpx。本页最大内容元素(744rpx 整幅 Hero 卡的标题),
+   给 36 会与上方区块标题同级 = 层级塌陷;取 page-title 48,
+   仍低于 hero 问候语 56 → 56 > 48 > 36 > 32 四档不塌。 */
+.v3-reco-title {
+  font-size: var(--cy-type-page-title);
+  font-weight: 700;
+  line-height: 1.16;
+  color: var(--cy-color-text-primary);
+}
+.v3-reco-meta {
+  display: block;
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-secondary);
+}
+.v3-reco-focus-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  border-radius: 20rpx;
+  pointer-events: none;
+  opacity: var(--reco-mask-opacity, 1);
+  background: rgba(0,0,0,0.18); /* ds-ok:非焦点卡固定弱黑遮罩,不承载文字语义 */
+  -webkit-backdrop-filter: blur(var(--reco-blur, 8px));
+  backdrop-filter: blur(var(--reco-blur, 8px));
+}
+
+/* —— 即将上线:Figma 3586:13013 图片底卡 —— */
+.v3-upcoming-row { display: inline-flex; gap: var(--cy-space-3); padding: 0 var(--cy-space-4); }
+.v3-upreview {
+  position: relative;
+  flex: none;
+  width: 576rpx;
+  height: 200rpx;
+  border-radius: var(--cy-radius-xl);
+  overflow: hidden;
+  background: var(--cy-color-bg-surface-subtle);
+}
+.v3-upreview-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.v3-upreview-mask { position: absolute; inset: 0; background: var(--cy-color-home-upcoming-mask); }
+.v3-upreview-body {
+  position: relative;
+  height: 100%;
+  padding: var(--cy-space-3) var(--cy-space-3-5);
+  box-sizing: border-box;
+}
+.v3-upreview-txt { min-width: 0; width: 412rpx; }
+.v3-upreview-title {
+  font-size: var(--cy-type-body);
+  font-weight: 800;
+  line-height: 42rpx;
+  color: var(--cy-color-home-upcoming-text);
+}
+.v3-upreview-sub {
+  font-size: var(--cy-type-micro);
+  line-height: 30rpx;
+  color: var(--cy-color-home-upcoming-sub);
+}
+.v3-upreview-desc {
+  font-size: var(--cy-type-micro);
+  line-height: 30rpx;
+  color: var(--cy-color-home-upcoming-desc);
+}
+.v3-upreview-foot { gap: var(--cy-legacy-6); height: 34rpx; align-items: center; }
+.v3-upreview-star { width: 20rpx; height: 20rpx; flex: none; }
+.v3-upreview-djs {
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+  color: var(--cy-color-home-upcoming-text);
+}
+.v3-upreview-djs.is-started { color: var(--cy-color-home-upcoming-accent); }
+
+/* ============================================================
+ * Feed 区
+ * ============================================================ */
+.v3-feed { margin-top: var(--cy-space-6); padding-bottom: var(--cy-space-3); }
+.v3-feed .page-tab { padding: 0 var(--cy-space-4); }
+
+.v2-feed { padding: 0 var(--cy-legacy-36); }
+.v2-fitem { margin-bottom: var(--cy-space-5); }
+/* Figma 3586:13074 / 13132:白卡、左文右图；仅图片区按真实图片数切换。 */
+.v2-fcard {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: var(--cy-space-3-5);
+  padding: var(--cy-legacy-36) var(--cy-space-4);
+  height: 372rpx;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-2xl);
+  overflow: hidden;
+  background: var(--cy-color-home-feed-surface);
+}
+.v2-fcard-l {
+  flex: 1;
+  min-width: 0;
+  min-height: 300rpx;
+  display: flex;
+  flex-direction: column;
+}
+.v2-feyebrow {
+  font-size: var(--cy-type-home-feed-eyebrow);
+  line-height: 39rpx;
+  color: var(--cy-color-home-feed-muted);
+}
+.v2-ftitle {
+  font-size: var(--cy-type-home-feed-title);
+  font-weight: 800;
+  line-height: 66rpx;
+  color: var(--cy-color-home-feed-text);
+}
+.v2-ftags { gap: var(--cy-space-1); margin-top: auto; padding-top: var(--cy-space-1-5); flex-wrap: wrap; }
+.v2-ftag {
+  max-width: 120rpx;
+  padding: var(--cy-legacy-6) var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-home-feed-tag-bg);
+  color: var(--cy-color-home-feed-text);
+  font-size: var(--cy-type-home-feed-tag);
+  font-weight: 600;
+  line-height: 30rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v2-fgrid {
+  flex: none;
+  width: 316rpx;
+  height: 300rpx;
+  display: grid;
+  gap: var(--cy-space-1-5);
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+}
+/* --1/--2/--3/--4 由 wxml 动态拼接(feedGridMode),静态扫描看不到 → 不是死码 */
+.v2-fgrid--1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.v2-fgrid--2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+.v2-fgrid--3,
+.v2-fgrid--4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.v2-fcell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+}
+.v2-fcell image { width: 100%; height: 100%; display: block; }
+/* 「+N」蒙层:原样式只存在于 .v2 作用域(根节点无 .v2)= 从未生效,
+   数字裸渲染在图上。规则搬到活的选择器上补活。 */
+.v2-fmore {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  background: var(--cy-color-overlay);
+  color: var(--cy-color-text-primary);
+}
+.v2-fcount {
+  position: absolute;
+  right: var(--cy-legacy-10);
+  top: var(--cy-legacy-10);
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: var(--cy-radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-type-micro);
+  font-weight: 800;
+  line-height: 30rpx;
+  background: var(--cy-color-home-feed-count);
+  color: var(--cy-color-home-upcoming-text);
+}
+
+/* 状态清单(在卡片外,压页底) */
+.v2-status { margin-top: var(--cy-legacy-6); padding: var(--cy-legacy-4) var(--cy-space-3) 0; }
+.v2-status-row {
+  padding: var(--cy-legacy-22) 0;
+  align-items: center;
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.v2-status-row.last { border-bottom: none; }
+/* 原基础层 k=次级、补丁层把 k/v 拉成同一个白 → 层级被抹平。这里恢复 k<v 的原意。 */
+.v2-status-k {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+.v2-status-v { color: var(--cy-color-text-secondary); }
+/* 价格强调:原意只写在 .v2 死作用域里,从未生效 → 搬到活选择器 */
+.v2-status-v.price {
+  color: var(--cy-color-text-primary);
+  font-weight: 700;
+}
+
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: var(--cy-space-3-5) 0;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+.no-more { color: var(--cy-color-text-secondary); }

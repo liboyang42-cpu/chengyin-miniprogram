@@ -1,0 +1,27 @@
+/* cy-page-title · L1 页标题(文档1 §1.1)
+ * Threads 式左上大标题;色随主题(token 穿透 isolated)。
+ * 顶距对齐微信胶囊 menuButtonInfo.top,--cy-safe-top 兜底。 */
+:host { display: block; }
+.pt {
+  margin-top: var(--cy-space-5); /* aaa v3(2026-08-07):返回→标题 space-5 */
+  margin-bottom: var(--cy-space-2); /* aaa v3:标题→内容 space-2 */
+  padding: 0 var(--cy-page-x);
+}
+.pt--safe { padding-top: var(--cy-safe-top); }
+/* flush:父容器已有横向内边距,关掉自带的,避免标题被推成双倍缩进 */
+.pt--flush { padding-left: 0; padding-right: 0; }
+.pt--center { text-align: center; }
+.pt--right { text-align: right; }
+.pt__title {
+  font-size: var(--cy-font-page-title, 58rpx);   /* ddd 标准(club/apply 主理人实名页) */
+  line-height: 1.22;
+  font-weight: 800;
+  letter-spacing: 0;                              /* 中文大字不加负字距 */
+  color: var(--cy-text-title);
+}
+.pt__sub {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-secondary);
+}

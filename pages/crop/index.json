@@ -1,0 +1,14 @@
+{
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom",
+  "backgroundColor": "#000000",
+  "backgroundTextStyle": "light",
+  "disableScroll": true
+}

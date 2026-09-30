@@ -1,0 +1,19 @@
+<view class="cdf" wx:if="{{presentation !== 'dropdown'}}">
+  <view class="cdf__trigger {{disabled ? 'cdf__trigger--disabled' : ''}}"
+        bindtap="open" hover-class="cdf__trigger--press" hover-stay-time="80" aria-role="button"
+        aria-label="{{value ? '当前 ' + value + '，点击更换' : sheetTitle}}">
+    <slot />
+  </view>
+
+  <cy-date-sheet show="{{show}}" title="{{sheetTitle}}" bind:cancel="onCancel" bind:confirm="onConfirm">
+    <view class="cdf__stage">
+      <picker-view class="cdf__wheel pw-wheel" value="{{index}}" indicator-style="height:88rpx; border-top:1rpx solid rgba(128,128,128,0.45); border-bottom:1rpx solid rgba(128,128,128,0.45);" mask-style="background: transparent;" bindchange="onColumnChange">
+        <picker-view-column wx:for="{{columns}}" wx:for-item="col" wx:for-index="ci" wx:key="ci">
+          <view class="cdf__item" wx:for="{{col}}" wx:key="*this">{{item}}</view>
+        </picker-view-column>
+      </picker-view>
+    </view>
+  </cy-date-sheet>
+</view>
+
+<cy-dropdown merchant wx:else id="calendar" custom-panel below gap="4" panel-height="390" panel-width="{{calendarWidth}}" measure-delay="350" disabled="{{disabled}}" bind:beforeopen="prepareCalendar" bind:close="closeCalendar"><slot/><view slot="panel" class="cdf-calendar"><view class="cdf-month"><view class="cdf-month-button" data-step="-1" bindtap="changeMonth" aria-role="button" aria-label="上个月" hover-class="cdf__trigger--press"><cy-icon name="back" size="32" /></view><text>{{calendarYear || 2026}} 年 {{calendarMonth || 1}} 月</text><view class="cdf-month-button" data-step="1" bindtap="changeMonth" aria-role="button" aria-label="下个月" hover-class="cdf__trigger--press"><cy-icon name="chevron-right" size="32" /></view></view><view class="cdf-grid"><text wx:for="{{weekdays}}" wx:key="*this" class="cdf-weekday">{{item}}</text><view wx:for="{{calendarDays}}" wx:key="key" class="cdf-day {{item.selected ? 'cdf-day--selected' : ''}} {{item.disabled ? 'cdf-day--disabled' : ''}}" data-value="{{item.value}}" bindtap="pickDate" aria-role="button" aria-label="{{item.value}}" aria-disabled="{{item.disabled}}" hover-class="cdf__trigger--press">{{item.label}}</view></view><view bindtap="clearDate" class="cdf-clear" aria-role="button" hover-class="cdf__trigger--press">不设有效期</view></view></cy-dropdown>

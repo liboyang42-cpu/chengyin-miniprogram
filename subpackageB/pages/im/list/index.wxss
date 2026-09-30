@@ -1,0 +1,140 @@
+/* ⚠️ 页底必须读 --cy-bg-page,不能读 --cy-bg-card:
+ * cy-nav-bar 的底色是 --cy-comp-nav-bg → --cy-color-bg-page,而 --cy-bg-card
+ * → --cy-color-bg-surface,比 bg-page 浅一档 ⇒ 顶栏下缘就是一条肉眼可见的色带,
+ * 即"顶栏与正文断层"。会话行(.conv)保留 bg-card 做表面分层,断层点因此离开顶栏。 */
+page { background: var(--cy-bg-page); }
+.im-list { min-height: 100vh; background: var(--cy-bg-page); }
+
+/* 右上角圆形图标按钮(Airbnb 210.png 参照量得直径 80rpx≈40pt;这里用 88rpx 顶到 DS §3 触达区下限,
+   视觉与实测值接近,不额外加 hit-slop padding)。 */
+.hd-icon-btn {
+  width: 88rpx; height: 88rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-bg-elevated); color: var(--cy-color-text-primary);
+}
+/* R4 #3 沿用:全部已读在无未读时是死操作。原 opacity:.4 会把图标和圆底一起冲淡,
+   实测(automator 截图取色)✓ 图标只剩 2.65:1、不达标(见 airbnb-fix2-report.md)。
+   改用 text-tertiary 实色(同 .badge.is-muted「灰化不透明」的既有范式),圆底不变,
+   仍可辨认「已禁用」,且不再靠透明度混色降对比度。 */
+.hd-icon-btn.is-disabled { color: var(--cy-color-text-tertiary); pointer-events: none; }
+
+/* chips 行左对齐留出页边距(48rpx,量自 210.png);右侧不设 padding,让横滑内容自然出血到屏右,
+   横滑手势自身就是溢出提示,不需要额外留白。
+   上边距:标题回到 nav-bar 居中槽后,原 .hero 的 --cy-space-5 上留白由本行承接,
+   否则 chips 会紧贴顶栏分割线。 */
+.tabs-row { display: block; padding: 0 var(--cy-space-4); }
+
+.refresh-error { display: block; margin: var(--cy-space-2) var(--cy-page-x); }
+.refresh-status { min-height: 64rpx; margin: 0 var(--cy-page-x); display: flex; align-items: center; gap: var(--cy-space-1-5); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+
+/* .body 只留左侧页边距;右侧改由 .conv 自己的 padding-right 承担(见下),
+   这样 .conv-actions(position:absolute; right:0)才能顶到物理屏幕右边缘(Airbnb 215/216.png 左滑
+   按钮全出血参照)——若 .body 两侧都留白,.conv-actions 的 right:0 只能到「留白内侧」,到不了真边缘。 */
+.body {
+  width: 100%;
+  padding: 0 0 0 var(--cy-page-x);
+  box-sizing: border-box;
+}
+
+/* 会话行:Airbnb 210.png 参照——去分隔线,靠留白分组(不再用 ::before 画线)。 */
+.conv-wrap { position: relative; overflow: hidden; }
+.conv {
+  position: relative; z-index: 2; display: flex; align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  /* 行内 padding:上下从 var(--cy-legacy-22) 提到 32rpx(=var(--cy-space-4),8rpx 网格对齐)替代原分隔线的视觉分组作用;
+     右侧新增 var(--cy-page-x),补回 .body 不再兜底的右页边距(见 .body 注释),左侧仍由 .body 左 padding
+     承担,净视觉位置与改前一致。 */
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-4) 0;
+  background: var(--cy-bg-card);
+  transition: transform var(--cy-motion-standard) var(--cy-ease);
+}
+.conv.is-dragging { transition: none; } /* 拖拽中关掉缓动,避免每帧 setData 被补间追手指(P1-2) */
+.conv.is-sys {
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-4) 0;
+}
+.avatar { flex-shrink: 0; margin-right: var(--cy-legacy-22); }
+/* 头像直径 92rpx→112rpx:量自 Airbnb 210.png 头像整体(照片+人像圆图叠加)外框宽 168px=56pt=112rpx;
+   城瘾单头像用这个尺寸对齐视觉分量(用户已拍板降级为单圆头像,不做双图层)。 */
+.avatar-img {
+  width: 112rpx; height: 112rpx; border-radius: 50%;
+  background: var(--cy-bg-subtle);
+  border: 1rpx solid var(--cy-border-card);
+}
+.sys-avatar {
+  width: 112rpx; height: 112rpx; border-radius: 50%;
+  background: var(--cy-bg-card-2); display: flex; align-items: center; justify-content: center;
+  color: var(--cy-info);
+}
+
+.conv-body { flex: 1; min-width: 0; overflow: hidden; }
+.conv-top { display: flex; align-items: baseline; min-width: 0; }
+.conv-name {
+  font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title);
+  flex: 0 1 auto; min-width: 0; max-width: 360rpx;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.conv-time { font-size: var(--cy-font-label); color: var(--cy-text-secondary); flex-shrink: 0; margin-left: auto; }
+.conv-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8rpx; }
+.conv-preview {
+  font-size: var(--cy-font-body); color: var(--cy-text-secondary);
+  display: block; flex: 1; min-width: 0; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.badge {
+  flex-shrink: 0; margin-left: var(--cy-legacy-14); min-width: 34rpx; height: 34rpx; padding: 0 var(--cy-legacy-10);
+  box-sizing: border-box; border-radius: 999rpx; background: var(--cy-danger);
+  color: var(--cy-text-inverse); font-size: var(--cy-font-caption); font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* 左滑操作 */
+.conv-actions {
+  position: absolute; z-index: 1; top: 0; right: 0; bottom: 0;
+  display: flex; align-items: stretch;
+  /* 静止态必须 opacity:0 —— automator A/B 实测:去掉它,.act-del 的红会从 .conv 边缘渗出
+     (.conv 带 transform 会另起合成层,z-index:2 + 不透明底在微信渲染器里不足以完全遮挡)。
+     拖拽跟手由 wxml 行内 style 绑 offset 实现:offset≠0 立刻置 1,不等松手判定 is-open。 */
+  opacity: 0;
+}
+.act {
+  width: 120rpx; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: var(--cy-font-label); gap: var(--cy-legacy-6);
+  padding: 0 8rpx; box-sizing: border-box; text-align: center;
+}
+.act + .act { border-left: 1rpx solid var(--cy-color-border-subtle); } /* 同底色三块无边界(P2-3),复用既有分隔范式 */
+.act-label {
+  display: block; width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.act-icon { width: 32rpx; height: 32rpx; }
+.act-read { background: var(--cy-color-bg-elevated); color: var(--cy-color-text-primary); }
+.act-del { background: var(--cy-danger); color: var(--cy-color-text-inverse); }
+
+/* 官方客服标签(私信 tab 内区分真人私信)。DS §2.1:蓝 = 信息/系统消息。 */
+.official-tag {
+  flex-shrink: 0;
+  margin-left: var(--cy-space-1-5);
+  padding: 2rpx var(--cy-legacy-10); /* ds-ok: 2rpx 是徽标上下留白的像素级微调，非布局间距 */
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-status-info-soft);
+  color: var(--cy-color-status-info);
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+}
+
+/* 免打扰:动作图标使用统一 cy-icon，动作极性由紧邻文案与读屏标签说明。 */
+.act-mute { background: var(--cy-color-bg-elevated); color: var(--cy-color-text-primary); }
+/* 会话行内静音图标。 */
+.mute-ico {
+  flex-shrink: 0;
+  width: 32rpx; height: 32rpx;
+  margin-left: var(--cy-legacy-10);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* 静音会话的角标:灰化 + 去阴影(DS §3:暗底阴影 none) */
+.badge.is-muted {
+  background: var(--cy-color-text-tertiary);
+  box-shadow: none;
+}

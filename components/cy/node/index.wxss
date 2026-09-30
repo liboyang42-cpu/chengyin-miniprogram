@@ -1,0 +1,30 @@
+/* cy-node · 节点母题(城市星图 RPG):未激活/进行中/已完成/选中
+   颜色硬编码锁定蓝(单一强调色),不依赖 var 以避免解析问题 */
+.node { position: relative; display: inline-block; line-height: 0; }
+.core { display: block; border-radius: 50%; box-sizing: border-box; }
+
+/* idle 未激活:空心描边环 */
+.node--idle .core { width: var(--cy-legacy-26); height: var(--cy-legacy-26); background: transparent; border: 3rpx solid rgba(255,255,255,0.28); } /* ds-ok */
+
+/* done 已完成:白点 */
+.node--done .core { width: var(--cy-legacy-26); height: var(--cy-legacy-26); background: rgba(255,255,255,0.85); border: 3rpx solid rgba(255,255,255,0.6); } /* ds-ok */
+
+/* active 进行中:蓝填 + 蓝光 */
+.node--active .core { width: 34rpx; height: 34rpx; background: var(--cy-accent); border: 3rpx solid var(--cy-accent); box-shadow: 0 0 16rpx 2rpx rgba(47,116,255,0.8); }
+
+/* selected 已选中:蓝光描边那道光 */
+.node--selected .core { width: 30rpx; height: 30rpx; background: var(--cy-accent); border: 3rpx solid var(--cy-accent); box-shadow: 0 0 14rpx 2rpx rgba(47,116,255,0.7); }
+
+/* 进行中节点的慢脉冲(沉静的呼吸) */
+.pulse {
+  position: absolute; left: 50%; top: 50%;
+  width: 54rpx; height: 54rpx; border-radius: 50%;
+  border: 2rpx solid var(--cy-accent);
+  transform: translate(-50%,-50%);
+  opacity: 0.5;
+  animation: cyPulse 2.4s ease-out infinite;
+}
+@keyframes cyPulse {
+  0%   { transform: translate(-50%,-50%) scale(0.55); opacity: 0.6; }
+  100% { transform: translate(-50%,-50%) scale(1.45); opacity: 0; }
+}

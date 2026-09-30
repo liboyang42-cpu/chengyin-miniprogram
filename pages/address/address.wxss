@@ -1,0 +1,31 @@
+/* aaa 空态要在「标题下方到屏幕底部」的剩余空间里居中,靠的是 cy-empty 的 flex:1。
+   前提是从 page 根到组件的整条父容器链都是 flex column 且有确定高度,断一层就吃不到剩余空间。 */
+page{ display: flex; flex-direction: column; min-height: 100vh; }
+.davidbox{ overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.title-nav-spacer{ flex: none; }
+/* 左右边距统一 --cy-page-x(与 cy-page-title 对齐);底部留出 cy-footer-bar 等高空白(DS §3.11-2) */
+.dz{overflow: hidden; margin: 0 var(--cy-page-x); padding-bottom: var(--cy-comp-footer-h); display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.dz-refreshing{ min-height: var(--cy-btn-h); display: flex; align-items: center; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.dz cy-inline-error{ display: block; margin-bottom: var(--cy-space-2); }
+
+/* .fill-slot:挂在 cy-empty 宿主节点上。组件是 styleIsolation:isolated 且自带 :host{display:block},
+   :host 的选择器优先级压过页面这边的类选择器,所以四件套必须带 !important 才穿得进去。
+   ⚠️ 同时保留下面的裸标签选择器兜底:同一批里实测过标签选择器一定命中宿主节点,
+   类选择器在 isolated 组件上的行为没有实测过(本轮禁开 DevTools 无法验证),两条并存不冲突。 */
+.fill-slot{ display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+cy-empty{ display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+/* 原 float 版靠 550rpx 定宽 + 绝对定位堆右侧动作,边距一改就撑破;改 flex:左内容自适应,右侧动作成列 */
+/* 用户原话"参与人信息字向上":列表整体上收(margin/padding-top 减小),内容更贴近页标题 */
+.dz_li{ display: flex; align-items: flex-start; gap: var(--cy-space-2); border-bottom: 1rpx solid var(--cy-border-line); margin-top: var(--cy-space-3); padding-bottom: var(--cy-space-2); }
+.dz_li_left{ flex: 1; min-width: 0; padding-top: var(--cy-space-1); }
+.dz_li_left_name{ overflow: hidden; margin-bottom: var(--cy-space-1-5);}
+.dz_li_left_name text{ font-size: var(--cy-font-body); font-weight: 700; margin-right: var(--cy-space-4);}
+.dz_li_left_name text{ font-size: var(--cy-font-body); color: var(--cy-text-body);}
+.dz_li_left_txt{ color: var(--cy-text-body); font-size: var(--cy-font-label);}
+/* 命中区 88rpx(DS §3.8 / WCAG 2.2 SC 2.5.8),图标视觉仍 48rpx */
+.dz_li_right{ width: var(--cy-btn-h); height: var(--cy-btn-h); flex-shrink: 0; display: flex; align-items: center; justify-content: center;}
+.dz_li_right image{ width: 48rpx; height: 48rpx; vertical-align:top;}
+.dz_li_edit{ width: var(--cy-btn-h); height: var(--cy-btn-h); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-label); color: var(--cy-text-body); text-decoration: underline;}
+
+button.fbox_but{ width: 686rpx; height: var(--cy-btn-h); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); font-weight: bold; border-radius: var(--cy-radius-lg);position: fixed; bottom: calc(60rpx + env(safe-area-inset-bottom)); left: 32rpx;}
+.is-disabled { opacity: .5; }

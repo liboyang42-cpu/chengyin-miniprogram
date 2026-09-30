@@ -1,0 +1,4 @@
+@import "../team.wxss";
+
+button.team-action { margin: 0; padding: 0; line-height: normal; }
+button.team-action::after { border: 0; }

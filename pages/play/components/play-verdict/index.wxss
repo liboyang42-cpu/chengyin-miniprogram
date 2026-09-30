@@ -1,0 +1,142 @@
+/* cy-play-verdict · 全局判定屏(原型真源:模板编辑页 v2 · playkit liquidWin / failScreen)
+ *
+ * 两张,不是十九张:凡是「猜中了」走 win,其余(时间到 / 次数用完)走 fail。
+ * 颜色隔着桌子就看得出来,不靠文字 —— 所以 fail 屏上只有两个字。
+ *
+ * ⚠️ 液面不能用 clip-path 裁:裁会把液面上方那道弧一起裁掉,涨上来是一条平直边,
+ * 那是进度条不是水。这里是整块 translateY 推上来,弧由 pv__wave 单独画。
+ */
+.pv {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 9;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* 整块液体从底下涌上来。1.05s 是"涌"不是"闪" —— 判定要有落地感 */
+.pv__fill {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  transform: translateY(102%);
+  transition: transform 1.05s cubic-bezier(.5, .02, .28, 1);
+}
+.pv--on .pv__fill { transform: translateY(0); }
+.pv--win .pv__fill { background: var(--cy-color-status-success); }
+.pv--fail .pv__fill { background: var(--cy-color-status-danger); }
+
+/* 液面那道弧:一排半圆骑在色块顶边上,横向平移。
+   两层不同速度、不同相位 —— 同速的话整块像一个刚体在晃,不像水。 */
+.pv__wave {
+  position: absolute;
+  left: -50%;
+  top: -28rpx;
+  width: 200%;
+  height: 30rpx;
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+}
+.pv__wave--a {
+  background-image: radial-gradient(circle at 50% 100%, var(--cy-color-status-success) 30rpx, transparent 31rpx);
+  background-size: 120rpx 30rpx;
+  animation: pv-slide 4.6s linear infinite;
+}
+.pv__wave--b {
+  top: -20rpx;
+  opacity: .55;
+  background-image: radial-gradient(circle at 50% 100%, var(--cy-color-status-success) 22rpx, transparent 23rpx);
+  background-size: 88rpx 22rpx;
+  animation: pv-slide 7.1s linear infinite reverse;
+}
+.pv--fail .pv__wave--a {
+  background-image: radial-gradient(circle at 50% 100%, var(--cy-color-status-danger) 30rpx, transparent 31rpx);
+}
+.pv--fail .pv__wave--b {
+  background-image: radial-gradient(circle at 50% 100%, var(--cy-color-status-danger) 22rpx, transparent 23rpx);
+}
+@keyframes pv-slide { to { transform: translateX(-120rpx); } }
+
+/* 气泡:液体是「冒着泡升上来」的,不是一块色板往上推 */
+.pv__bubble {
+  position: absolute;
+  bottom: -40rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .26);  /* ds-ok 判定屏的水面与判定符号,逐值照原型 */
+  animation: pv-rise 2.6s ease-in infinite;
+}
+@keyframes pv-rise {
+  0%   { transform: translateY(0)      scale(.6); opacity: 0; }
+  22%  { opacity: .9; }
+  100% { transform: translateY(-560rpx) scale(1); opacity: 0; }
+}
+
+.pv__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: 0 var(--cy-space-6);
+  text-align: center;
+  opacity: 0;
+  transition: opacity var(--cy-dur) var(--cy-ease) .52s;
+}
+.pv--on .pv__body { opacity: 1; }
+
+/* 对勾用两根条画,不用 SVG:小程序里 stroke-dasharray 动画要外挂 svg,
+   而这一下只需要「短臂先落、长臂再扫出去」两段。 */
+.pv__tick {
+  position: relative;
+  width: 152rpx;
+  height: 152rpx;
+  transform: rotate(-45deg);
+}
+.pv__tick-short, .pv__tick-long {
+  position: absolute;
+  background: #fff;                       /* ds-ok 整屏色块上的判定符号必须是纯白,不随主题翻转 */
+  border-radius: 6rpx;  /* ds-ok 判定屏的水面与判定符号,逐值照原型 */
+}
+/* 一次性的两笔:短臂先落、长臂再扫出去。用 transition 不用 keyframes ——
+   keyframes 从 0 重启,而这两笔只画一次,transition 由 .pv--on 触发就够。 */
+.pv__tick-short {
+  left: 26rpx; bottom: 30rpx;
+  width: 12rpx; height: 60rpx;
+  transform: scaleY(0); transform-origin: 50% 100%;
+  transition: transform .16s ease-out .58s;
+}
+.pv__tick-long {
+  left: 26rpx; bottom: 30rpx;
+  width: 126rpx; height: 12rpx;
+  transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1) .72s;
+}
+.pv--on .pv__tick-short { transform: scaleY(1); }
+.pv--on .pv__tick-long  { transform: scaleX(1); }
+
+/* 失败:两个字,别的什么都没有 */
+.pv__word {
+  font-size: var(--cy-type-display);
+  font-weight: 900;
+  letter-spacing: 6rpx;
+  color: #fff;                            /* ds-ok 同上:整屏红底上的白字 */
+}
+.pv__text {
+  max-width: 22em;
+  font-size: var(--cy-type-body);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, .92);        /* ds-ok 同上 */
+}
+
+/* 减动效:不涌、不冒泡、不画勾,直接是结果那一屏。
+   ⚠️ 用类兜底不用 @media (prefers-reduced-motion):小程序里那条媒体查询不生效,
+   系统开关要走 wx.getSystemInfo 的 theme/无障碍设置 —— 仓内统一由 reduced-motion
+   behavior 读出来挂 --reduced 类。写成媒体查询等于**看着有兜底,实际一直在动**。 */
+.pv--reduced .pv__fill { transition: none; }
+.pv--reduced .pv__wave { animation: none; }
+.pv--reduced .pv__bubble { animation: none; display: none; }
+.pv--reduced .pv__body { transition: none; opacity: 1; }
+.pv--reduced .pv__tick-short { transform: scaleY(1); transition: none; }
+.pv--reduced .pv__tick-long  { transform: scaleX(1); transition: none; }

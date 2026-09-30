@@ -1,0 +1,6 @@
+<!-- 相册全屏(2026-09-24,效果照 X 上 @insporadesign「3D gradient cards」):整个画面画在一块画布上——
+     照片排成一圈跟手转,屏幕左右边缘套一层固定的弯玻璃,底下经过的画面被拉伸、张开、裂出彩边。轻点两侧切换。 -->
+<view class="ag" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd"
+  bindtap="onTap" aria-role="button" aria-label="相册，左右滑动或轻点两侧切换" hover-class="ag--press" hover-stay-time="80">
+  <canvas type="2d" id="ag" class="ag__canvas"></canvas>
+</view>

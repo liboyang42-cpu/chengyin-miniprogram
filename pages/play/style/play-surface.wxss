@@ -1,0 +1,128 @@
+/* style/play-surface.wxss —— 玩法整屏台面的共享样式
+ * 真源:交互原型「模板编辑页 v2」的 playkit([外部原型链接已移除])
+ *
+ * ⚠️ 这份**不是** style/playkit.wxss 的替代品,两者是两套东西,别混:
+ *   · playkit.wxss = v5.1 那批半屏 sheet 玩法的语言(pk-eyebrow / pk-option / pk-foot);
+ *   · 这一份       = 这批整屏玩法的语言(眉标 / 大数字 / 底部主按钮 / 说明行)。
+ * 混用会让同一个玩法半身是 sheet、半身是整屏。
+ *
+ * 原型是 375px 画布,小程序 1px = 2rpx。能映射到既有 token 的一律映射,不新造档位;
+ * 各玩法自己的皮肤色(红等待、绿变色、白底黑油、骰面米白)留在各自文件里 ——
+ * 那是玩法道具色,不是界面色。
+ */
+
+/* ============ 皮肤表 · 逐字抄自原型 playkit.html 的 .phone[data-skin=...] ============
+ * 每个玩法一套自己的底色/墨色/次级色/软底/强调色,**不是**统一走 DS token ——
+ * 原型里猜图是黑、猜数字是白、九宫格是淡蓝、抽卡是浅灰,把它们统一成玩家暗色
+ * 等于把十九个玩法压成同一张脸。这里的值不许改,要改先改原型。
+ * ⚠️ ds-ok:这一整段是玩法皮肤,不是界面色,不参与主题翻转。
+ */
+.skin-estimate { --bg:#fcfcfc; --ink:#111114; --sub:#6c6c6c; --soft:#e7e7e7; --accent:#fc3f3f; --ok:#12a06f; } /* ds-ok */
+.skin-guess    { --bg:#0e0e0e; --ink:#f0ece5; --sub:#8a857d; --soft:#1b1b1a; --accent:#e4ddd2; --ok:#3ecf8e; } /* ds-ok */
+.skin-hidden   { --bg:#0d0d10; --ink:#f8f8f8; --sub:#919199; --soft:#1c1c1e; --accent:#12b886; --ok:#12b886; } /* ds-ok */
+.skin-predict  { --bg:#08080a; --ink:#f4f4f6; --sub:#78787f; --soft:#141418; --accent:#ffffff; --ok:#ffffff; } /* ds-ok */
+.skin-bingo    { --bg:#cfe2f5; --ink:#111114; --sub:#4d6076; --soft:#b7d2ec; --accent:#fc7ebd; --ok:#3fd2d2; } /* ds-ok */
+.skin-draw     { --bg:#e7e7e7; --ink:#111114; --sub:#5a5f66; --soft:#d6d6d6; --accent:#00bdfc; --ok:#00bdfc; } /* ds-ok */
+.skin-qa       { --bg:#fcfcfc; --ink:#111114; --sub:#6c6c6c; --soft:#ececec; --accent:#fc3f3f; --ok:#12a06f; } /* ds-ok */
+/* 问答只有黑白两版,不给自由配色 —— 一放开,十家店会调出十种对比度不合格的组合 */
+.skin-qadark   { --bg:#0d0d10; --ink:#f6f6f8; --sub:#8a8a92; --soft:#1b1b20; --accent:#ff6b6b; --ok:#3ecf8e; } /* ds-ok */
+.skin-branch   { --bg:#12100e; --ink:#f2efe9; --sub:#8b857a; --soft:#211e1a; --accent:#d8a05a; --ok:#d8a05a; } /* ds-ok */
+/* 浅色玻璃(精准停表):值取自原型 #kit2 那一屏自己的底 / 墨 / 灰,不是新造的色。
+   台面的退出 / 还能错 / 倒数跟着走浅色,不再是暗版字压在浅底上。--ci-* 只给倒数层用 */
+.skin-glass    { --bg:#f2f4f6; --ink:#111111; --sub:#5a5f66; --soft:#cfd4d9; --accent:#111111; --ok:#12a06f; --ci-scrim:rgba(242, 244, 246, .86); --ci-ink:#111111; } /* ds-ok */
+/* 兜底:没指定皮肤时按问答暗版,别落到透明 */
+.skin-none     { --bg:#0d0d10; --ink:#f6f6f8; --sub:#8a8a92; --soft:#1b1b20; --accent:#ff6b6b; --ok:#3ecf8e; } /* ds-ok */
+
+/* 眉标:屏幕最上面那行小字。商家填的「标题」落在这里 */
+.g-kicker {
+  font-size: var(--cy-type-caption);
+  font-weight: 800;
+  letter-spacing: 6rpx;
+  color: var(--ink);
+  opacity: .5;
+}
+
+/* 大数字:秒数 / 点数 / 毫秒。每屏只有一个,它就是这一屏的主体 */
+.g-figure {
+  font-family: var(--cy-font-numeric);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -4rpx;
+  color: var(--ink);
+}
+
+/* 说明行:大数字底下那句。没内容就别渲染这一行 —— 
+   商家没填的地方不要用一句话替他解释为什么没有 */
+.g-sub {
+  font-size: var(--cy-type-body);
+  line-height: 1.6;
+  color: var(--sub);
+}
+
+/* 底部主按钮:贴着屏幕底边,不是跟在内容后面。
+   ★ 白底深字,六个玩法统一 —— 原来它跟着每个皮肤的 accent 走,
+   而 accent 在别处还担着「错了」的意思,同一个颜色又当主按钮又当错误提示,
+   人分不清那是「点我」还是「出事了」。白色不参与语义。 */
+.g-btn {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: calc(env(safe-area-inset-bottom) + 60rpx);
+  z-index: 5;
+  height: 112rpx;                                     /* ds-ok 原型 .cta 56px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 56rpx;                               /* ds-ok 原型 28px:正好是这个高度的胶囊 */
+  background: #FFF;                                   /* ds-ok 玩法屏主按钮:六个皮肤上都是白 */
+  color: #111114;                                     /* ds-ok 同上 */
+  font-size: var(--cy-type-button);
+  font-weight: 800;
+  /* 浅色皮肤上白底会糊进背景 —— 内描边和投影一起把它托起来。
+     原型 .cta 两层影子是**一直都在**的,不分深浅皮肤 */
+  box-shadow: inset 0 0 0 2rpx rgba(0, 0, 0, .10), 0 16rpx 40rpx rgba(0, 0, 0, .14);
+}
+.g-btn--disabled { opacity: .45; box-shadow: inset 0 0 0 2rpx rgba(0, 0, 0, .10); }
+.g-btn--press { opacity: .88; }
+
+/* 玩法内容区:整屏那一列。
+   ★ 2026-09-11 改成顶对齐:原型(playkit.html)的 .phone 是 `padding:52px 20px 26px`
+   + 正常流,题面落在离顶 84px 的位置;整列居中是我们自己加的,实测把题面压到了 340px。
+   哪个玩法要把自己的内容摆到中间,由它自己那块 flex:1 决定,不由这一层统一居中。 */
+.g-col {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--cy-space-3);
+  /* 上边距由 stage 用真实状态栏高算,通过 --pk-top 传进来(CSS 变量能穿组件边界);
+     兜底 120rpx 是「没有 stage 也不至于顶到胶囊上」。左右和底照原型 20/26px。 */
+  padding: var(--pk-top, 120rpx) 40rpx calc(env(safe-area-inset-bottom) + 52rpx);   /* ds-ok */
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* ===== 玩法屏入场(2026-09-22)=====
+ * 为什么用关键帧而不是 transition:这些块都由 wx:if 新建,新节点没有「前一个值」,
+ * transition 不会播 —— 实测过一版 transition,是死的。入场只能靠关键帧。
+ * 值逐条照原型「十九个玩法屏」的 rise:.34s cubic-bezier(.2,.9,.3,1),translateY(18px)+淡入。
+ * 放在这里是为了**五屏共用一条**,不让每屏各加一条把 motion 棘轮顶上去。
+ */
+.pk-in {
+  animation: pk-in .34s cubic-bezier(.2, .9, .3, 1) both;   /* ds-ok 逐值照原型 rise */
+}
+.pk-in--2 { animation-delay: .08s; }                        /* ds-ok */
+.pk-in--3 { animation-delay: .16s; }                        /* ds-ok */
+/* 减弱动效的开关挂在**每个 kit 组件自己的外层 view** 上(.pk--reduced),不是页面根。
+ * 组件都是 styleIsolation:isolated,页面根上的 .cy-motion-reduced 根本选不到组件内部 ——
+ * 写成那样是条永不命中的死规则(2026-09-22 实测,已改)。同 playkit-random 的 .dk--reduced 做法。 */
+.pk--reduced .pk-in { animation: none; }
+/* 重播开关(behaviors/replay-motion.js):摘掉一帧再装回去,animation 从 none 变回具体值
+ * 就重新起播。节点复用、只有内容原地变的场景(重掷/第二次判定/换节点)只能这么补。 */
+.pk--reset .pk-in { animation: none; }
+@keyframes pk-in {
+  from { transform: translateY(36rpx); opacity: 0; }        /* ds-ok 原型 18px */
+  to { transform: none; opacity: 1; }
+}

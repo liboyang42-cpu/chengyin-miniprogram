@@ -1,0 +1,521 @@
+/* H10 详情卡样式沿用原页面。两处改动:
+   ①去掉页面 chrome(nav-bar / 隐形 page-title / statusBar 占位),顶部交给 scene-sheet;
+   ②主 CTA 改成底部 sticky 条(§3.2 固定底部主 CTA)。
+   2026-08-03 场景规范已覆盖旧页面的浅色登机牌例外:H10 属于玩家 scene-full,
+   统一消费玩家深色语义,不在组件内另造 theme-light 桥。 */
+:host { display: block; }
+/* 类名刻意不含 detail —— orderinfo-load-state 的闸检查器用 \bdetail\b 匹配容器,
+   叫 detail-cta-bar 会被当成第二个 .detail 容器,里面的按钮就被误判成漏在闸外。 */
+/* 2026-09-11 用户实拍指出:这颗按钮贴着屏幕左右边缘,和同页的卡片对不齐。
+   左右补 --cy-page-x —— 正文(.body)用的就是这一个值,底栏跟着它,全页一条边。 */
+.bp-cta-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: var(--cy-space-3) var(--cy-page-x) calc(var(--cy-space-3) + env(safe-area-inset-bottom));
+  background: var(--cy-scene-content-bg, var(--cy-color-bg-surface));
+}
+.detail {
+  width: 100%;
+  background: var(--cy-scene-content-bg, var(--cy-color-bg-page));
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* 订单主体不自带滚动面；唯一纵向滚动由 scene-sheet 正文区负责。 */
+.david {
+  width: 100%;
+}
+
+/* 稿 578:2302 的头图高 237px = 474rpx。原来是 360rpx ——
+   那时候头图上只压两行字(状态 + 一句提示),现在按稿压的是「金额 / 路线名 / 时间 / 药丸」
+   四行约 238rpx,贴着底边往上长就会顶进状态栏和微信胶囊里(实拍拍到 ¥69.00 压在胶囊上)。
+   加高到稿值之后,这一摞的顶边落在 98px 左右,正好在返回键那一行的下面。 */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 474rpx;
+  overflow: hidden;
+  background: var(--cy-bg-card);
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 稿 578:2304:遮罩是整幅 0→黑的渐变,不是只盖下半截 ——
+   金额那一行现在坐得比以前高,只盖 55% 的话它会压在没有遮罩的亮处上。 */
+.hero-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.86) 100%); /* ds-ok: 封面图片遮罩渐变,与页面主题无关的常量黑 */
+}
+
+.hero-text {
+  position: absolute;
+  left: 40rpx;
+  right: 40rpx;
+  bottom: 40rpx;
+  z-index: 1;
+}
+
+/* 稿 578:2308-2312:金额 40 / 路线名 18 / 场次时间 12 / 状态药丸。
+   压在封面图与遮罩上,所以这一组用与主题无关的常量白 —— 底下是任意一张照片。 */
+.hero-amt {
+  font-size: 80rpx;            /* ds-ok:稿 40px。display(56rpx)与 data-xl(64rpx)都不到这一档 */
+  line-height: 92rpx;          /* 稿 46px */
+  font-weight: 600;
+  color: #fff; /* ds-ok: 压在封面图片+遮罩上,需要与页面主题无关的常量白 */
+}
+.hero-title {
+  margin-top: 8rpx;
+  font-size: var(--cy-font-title);   /* 稿 18px = 36rpx,正是 section-title 这一档 */
+  font-weight: 600;
+  color: #fff; /* ds-ok: 同上 */
+}
+.hero-when {
+  margin-top: 8rpx;
+  font-size: var(--cy-font-label);   /* 稿 12px Medium */
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.66); /* ds-ok: 同上,稿 #9C9EA8 在照片上的等效 */
+}
+/* 稿 578:2311:92×28 的药丸,底比头图暗一档。按状态换字色,底色不换 —— 
+   底下是照片,再换底色就分不清是药丸还是图。 */
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 16rpx;
+  padding: 0 var(--cy-space-2-5);
+  min-height: 56rpx;           /* 稿 28px */
+  border-radius: var(--cy-radius-pill);
+  background: rgba(0, 0, 0, 0.55); /* ds-ok: 同上,压在照片上的常量暗底 */
+  font-size: var(--cy-font-micro);
+  font-weight: 600;
+  color: #fff; /* ds-ok: 同上 */
+}
+.hero-pill--warning { color: var(--cy-color-status-warning); }
+.hero-pill--success { color: var(--cy-color-status-success); }
+.hero-pill--info    { color: var(--cy-color-status-info); }
+
+.body {
+  margin-top: 0;
+  position: relative;
+  z-index: 2;
+  padding: 0 var(--cy-page-x);
+}
+
+.order-load-loading {
+  margin-top: 200rpx;
+}
+
+.primary-cta {
+  height: var(--cy-btn-h);
+  line-height: var(--cy-btn-h);
+  text-align: center;
+  border-radius: var(--cy-radius-md);
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--cy-btn-solid-fg);
+  background: var(--cy-btn-solid-bg);
+  margin-bottom: 24rpx;
+}
+
+.order-card {
+  margin-bottom: var(--cy-scene-card-gap, var(--cy-space-3));
+  --cy-comp-card-bg: var(--cy-scene-card-bg, var(--cy-color-bg-surface-strong));
+  --cy-comp-card-radius: var(--cy-scene-card-radius, var(--cy-radius-lg));
+  --cy-comp-card-pad: var(--cy-scene-card-pad-y, var(--cy-space-4)) var(--cy-scene-card-pad-x, var(--cy-space-4));
+  --cy-comp-card-highlight: transparent;
+  --cy-comp-card-shadow-day: none;
+}
+.order-timeline { margin-bottom: var(--cy-space-3); padding: var(--cy-space-3) var(--cy-space-4); border-radius: var(--cy-radius-lg); background: var(--cy-scene-card-bg, var(--cy-color-bg-surface-strong)); }
+.order-timeline-step { position: relative; display: grid; grid-template-columns: 28rpx 1fr; gap: var(--cy-space-2); min-height: 86rpx; color: var(--cy-text-secondary); }
+.order-timeline-step::after { content: ''; position: absolute; left: 11rpx; top: 25rpx; bottom: -4rpx; width: 2rpx; background: var(--cy-border-card); }
+.order-timeline-step:last-child::after { display: none; }
+.order-timeline-dot { position: relative; z-index: 1; width: 22rpx; height: 22rpx; margin-top: 4rpx; border: 3rpx solid var(--cy-border-card); border-radius: 50%; background: var(--cy-scene-card-bg, var(--cy-color-bg-surface-strong)); box-sizing: border-box; }
+.order-timeline-copy { display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.order-timeline-title { color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+.order-timeline-time { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.order-timeline-step.is-done .order-timeline-dot { border-color: var(--cy-text-title); background: var(--cy-text-title); }
+.order-timeline-step.is-current .order-timeline-dot { border-color: var(--cy-text-title); }
+
+
+.card-desc {
+  margin-top: 12rpx;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+  line-height: var(--cy-leading-normal);
+}
+
+.section-title {
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  margin-bottom: 20rpx;
+}
+
+
+
+
+
+/* 订单号比「外滩源」长得多:不换行的话它会把后面那颗「复制」顶出格子外 ——
+   实拍确认过,那一格只剩一串号码,复制两个字整个看不见。
+   这一格允许换行,号码占一行、复制落到下一行,两者都在格子里。 */
+
+
+
+
+
+
+
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cy-space-1-5) 0;
+}
+
+.link-label {
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+.link-chevron {
+  font-size: var(--cy-font-title);
+  color: var(--cy-text-secondary);
+  line-height: 1;
+}
+
+.link-divider {
+  height: 1rpx;
+  background: var(--cy-border-card);
+}
+
+.ent-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--cy-border-card);
+}
+
+.ent-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.ent-name {
+  flex: 1;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+  padding-right: 16rpx;
+}
+
+.ent-status {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* 批5 完局面:图鉴 / 通关奖励到账明细 / 回访入口 */
+.stamp-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+}
+
+.stamp {
+  flex: 1 1 40%;
+  min-width: 40%;
+  padding: var(--cy-space-2);
+  border: 1rpx solid var(--cy-border-card);
+  border-radius: var(--cy-radius-md);
+  opacity: 0.55;
+}
+
+/* 已收集才回到全不透明 —— 未收集的格子看得见但明显没拿到,不做成空白 */
+.stamp--on {
+  opacity: 1;
+  border-color: var(--cy-brand);
+}
+
+.stamp-name {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+}
+
+.stamp-sub {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.stamp-progress {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.award-row {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--cy-border-card);
+}
+
+.award-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.award-icon {
+  width: 56rpx;
+  height: 56rpx;
+  margin-right: var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+}
+
+.award-name {
+  flex: 1;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+}
+
+.award-amount {
+  font-size: var(--cy-font-label);
+  color: var(--cy-brand);
+}
+
+.award-empty,
+.revisit-state {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+.revisit-club {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+}
+
+.revisit-actions {
+  display: flex;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-2);
+}
+
+.revisit-btn {
+  flex: 1;
+  height: var(--cy-btn-h-sm);
+  line-height: var(--cy-btn-h-sm);
+  text-align: center;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-title);
+  background: var(--cy-bg-card-2);
+  border-radius: var(--cy-radius-pill);
+}
+
+.revisit-next {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* 有下期才是可点的 —— 没有下期时它是一句说明,不做成看起来能点的钮 */
+.revisit-next--on {
+  color: var(--cy-brand);
+}
+
+.refund-main {
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+}
+
+.refund-sub {
+  margin-top: 12rpx;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-body);
+  line-height: var(--cy-leading-normal);
+}
+
+.refund-org {
+  margin-top: 16rpx;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+}
+
+.secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin: 8rpx 0 24rpx;
+}
+
+/* UI-16(2026-09-18):详情页次级动作原来 88/96rpx 两档混排,用户嫌「太高、格式不对」。
+   统一到 DS 按钮规范的小档 --cy-btn-h-sm(64rpx)+ 同一圆角/字重;主 CTA(.primary-cta)
+   仍走 --cy-btn-h 标准档。 */
+.sec-btn {
+  flex: 1;
+  min-width: 200rpx;
+  height: var(--cy-btn-h-sm);
+  line-height: var(--cy-btn-h-sm);
+  text-align: center;
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  border-radius: var(--cy-radius-md);
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+.sec-btn--disabled {
+  opacity: var(--cy-opacity-disabled);
+}
+
+/* 危险动作描边,不用实底——避免和主 CTA(去支付/查看票夹)抢视觉重量 */
+.sec-danger {
+  color: var(--cy-danger);
+  background: transparent;
+  border: 2rpx solid var(--cy-danger);
+}
+
+.sec-contact {
+  color: var(--cy-text-title);
+  background: var(--cy-bg-card);
+  border: 2rpx solid var(--cy-border-card);
+}
+
+.sec-contact::after {
+  border: none;
+}
+
+.sec-solid {
+  color: var(--cy-btn-solid-fg);
+  background: var(--cy-btn-solid-bg);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }
+
+
+/* ===== 稿 578:2298(D07)的明细语言 =====
+   段标题在卡外(17px 粗),卡内是一串「左标签 右值」的行,行间一条 1px 线。
+   稿上的死数:卡 r18 / 卡内左右 16 / 行高 20 + 上下 14 / 标签 11 次色 / 值 12 主色。 */
+.sec-title {
+  margin: var(--cy-space-5) 0 var(--cy-space-3);
+  font-size: 34rpx;            /* ds-ok:稿 17px,card-title(16)与 sheet-title(22)之间没有这一档 */
+  font-weight: 600;
+  color: var(--cy-color-text-primary);
+}
+.ocard {
+  padding: 0 var(--cy-space-4);
+  border-radius: var(--cy-radius-xl);   /* 稿 r18 = 36rpx;xl(40)最近,lg(32)比稿方 2px */
+  background: var(--cy-color-bg-surface);
+}
+.orow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-3);
+  min-height: 40rpx;
+  padding: 28rpx 0;            /* 稿 14px */
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+/* 最后一行不画线:稿上卡底是留白,不是一条悬空的线 */
+.orow:last-child { border-bottom: none; }
+.orow-k {
+  flex: none;
+  font-size: var(--cy-font-caption);
+  font-weight: 500;                 /* 稿 11px Medium */
+  color: var(--cy-color-text-tertiary);
+}
+.orow-v {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+  word-break: break-all;
+}
+.orow-v--link { color: var(--cy-info); }
+.orow-v--wrap { text-align: left; font-weight: 400; color: var(--cy-color-text-secondary); line-height: var(--cy-leading-normal); }
+/* 稿 578:2338/2339:合计这一行标签加粗、值放大到 17px —— 卡里唯一要被记住的数 */
+.orow--total .orow-k { font-weight: 600; color: var(--cy-color-text-primary); font-size: var(--cy-font-label); }
+.orow--total .orow-v { font-size: 34rpx; font-weight: 600; }  /* ds-ok:稿 17px,同 .sec-title */
+
+/* 稿 578:2313 状态卡 */
+.state-notice { padding: var(--cy-space-3-5) var(--cy-space-4); margin-top: var(--cy-space-4); }.state-notice__head { display: flex; align-items: center; gap: var(--cy-space-3); }
+.state-notice__k {
+  flex: 1; min-width: 0;
+  font-size: var(--cy-font-body);   /* 稿 14px */
+  font-weight: 600;
+  color: var(--cy-color-text-primary);
+}
+/* 右上角那个词跟着状态换色,与头图药丸同一套映射(statusTone) */
+.state-notice__tag {
+  flex: none;
+  font-size: var(--cy-font-caption);
+  font-weight: 600;
+  color: var(--cy-color-text-tertiary);
+}
+.state-notice__tag--warning { color: var(--cy-color-status-warning); }
+.state-notice__tag--success { color: var(--cy-color-status-success); }
+.state-notice__tag--info    { color: var(--cy-color-status-info); }
+.state-notice__s {
+  display: block;
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-color-text-tertiary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* 稿 578:2340/2342:并排两颗次级键,h48 r16 */
+.sec-pair {
+  display: flex;
+  gap: var(--cy-space-3);           /* 稿 gap 12 */
+  margin-top: var(--cy-space-2);
+}
+.sec-pair-btn {
+  flex: 1;
+  min-width: 0;
+  /* UI-16:从稿 48px(96rpx)收到 DS 小档 64rpx,与上面次级动作同高同圆角。 */
+  min-height: var(--cy-btn-h-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border-radius: var(--cy-radius-md);
+  border: none;
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  line-height: normal;
+}
+/* button 元素自带的伪元素边框在小程序里会画出一圈 1px,必须显式抹掉 */
+.sec-pair-btn::after { border: none; }
+
+/* ===== 2026-09-17 拍板第 40 条 A:核销后的可选商家消息同意行 =====
+   与设置页同一件事的轻量入口:默认不勾、失败在原位可重试,不打断订单页任何主流程。 */
+.consent-card { padding: var(--cy-space-2) var(--cy-space-4) var(--cy-space-3); }
+.consent-state { margin-top: var(--cy-space-1); font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.consent-ok { margin-top: var(--cy-space-1); font-size: var(--cy-type-label); color: var(--cy-color-status-success); }
+.consent-err { margin-top: var(--cy-space-1); display: flex; align-items: center; gap: var(--cy-space-2); }
+.consent-err-text { flex: 1; font-size: var(--cy-type-label); color: var(--cy-color-status-danger); }
+.consent-err-act {
+  flex: none;
+  padding: var(--cy-space-1) var(--cy-space-2);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  color: var(--cy-color-brand);
+}

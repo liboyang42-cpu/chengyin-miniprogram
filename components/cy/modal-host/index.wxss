@@ -1,0 +1,17 @@
+/* cy-modal-host · 只在 editable 时有自己的样式:正文说明 + 一行输入框,其余全交给 cy-modal */
+:host { display: block; }
+.mh__editable { display: flex; flex-direction: column; gap: var(--cy-space-3); text-align: left; }
+.mh__content { font-size: var(--cy-font-body); color: var(--cy-color-text-secondary); line-height: 1.5; }
+.mh__input {
+  height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-interactive);
+  border: 2rpx solid var(--cy-border-card);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+}
+.mh__placeholder { color: var(--cy-color-text-tertiary); }
+/* CU-C-56/58/M-49:原位校验提示,跟输入框同列 */
+.mh__error { display: block; }

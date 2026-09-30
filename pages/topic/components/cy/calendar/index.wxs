@@ -1,0 +1,38 @@
+/* cy-calendar 的渲染层计算。
+ *
+ * 这里承担两件事,都是为了「点一下日期不要把整屏格子重新 setData 一遍」:
+ *   ① 把每月 1 号推到它该在的星期几下面(margin-left 百分比,不渲染空占位格 ——
+ *      空格子会进无障碍树,而且每月最多多 6 个节点);
+ *   ② 算每一格的状态 class。
+ *
+ * ② 为什么必须在 WXS 而不是 JS:六个月约 180 格,状态由 [start, end] 决定。
+ * 若在 JS 里算,每点一次日期就要把 180 格的 class 重新 setData 过桥一次 —— 跨线程反模式。
+ * 放这里之后,点选只 setData 两个日期字符串,格子结构一次构建后不再变。
+ *
+ * ⚠️ 本文件的 dayClass 与 utils/calendar.js 的 dayType 是同一套规则的两份实现 ——
+ *    WXS 不能 require 普通 JS 模块,只能各写一份。
+ *    tests/unit/calendar-util.test.js 里有一条契约用 vm 跑本文件,逐个日期比对两份实现,
+ *    漂移即判红。改任何一边都必须同步另一边。 */
+
+function dayStyle(index, offset) {
+  if (index !== 0 || !offset) return '';
+  return 'margin-left:' + (100 * offset) / 7 + '%';
+}
+
+/* 日期串是 'YYYY-MM-DD',字典序即时间序,可以直接比大小 */
+function dayClass(date, start, end, mode, min, max, disabledMap) {
+  if (min && date < min) return 'cyc__day--disabled';
+  if (max && date > max) return 'cyc__day--disabled';
+  if (disabledMap && disabledMap[date]) return 'cyc__day--disabled';
+
+  if (mode === 'range') {
+    if (start && end && start === end && date === start) return 'cyc__day--start-end';
+    if (start && date === start) return 'cyc__day--start';
+    if (end && date === end) return 'cyc__day--end';
+    if (start && end && date > start && date < end) return 'cyc__day--middle';
+    return '';
+  }
+  return start && date === start ? 'cyc__day--selected' : '';
+}
+
+module.exports = { dayStyle: dayStyle, dayClass: dayClass };

@@ -1,0 +1,4 @@
+/* cy-album-glass · 相册全屏:整屏一块画布,尺寸与 index.js 的 H_RPX 一致 */
+.ag { position: relative; width: 750rpx; height: 900rpx; }
+.ag__canvas { width: 750rpx; height: 900rpx; display: block; }
+.ag--press { opacity: .96; }

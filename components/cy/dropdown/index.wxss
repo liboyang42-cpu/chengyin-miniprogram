@@ -1,0 +1,129 @@
+:host { display: block; }
+
+.cdd { position: relative; }
+
+/* 触发器只负责接点击,排版完全交给调用方的 slot 内容 —— 迁移时视觉零变化 */
+.cdd__trigger { display: block; }
+.cdd__trigger--disabled { opacity: 0.5; }
+/* 展开时触发器给一点提亮:面板是 fixed 层,盖在别处,不给反馈的话用户看不出
+   「现在展开的是哪一行」。show 同时也是 exitMotion 观察的那个字段。 */
+.cdd__trigger--open { opacity: 0.72; }
+
+/* 面板走 fixed:调用方常把选择器放在 overflow:hidden 的卡片或 scroll-view 里,
+   absolute 面板会被裁掉半截。坐标由 JS 实测锚点后写进 style。 */
+.cdd__layer {
+  position: fixed;
+  inset: 0;
+  /* 经 root-portal 挂到页面根后必须压过 sheet 档,否则面板落在承接半屏下面。
+     CU-C-46:兜底值 900 与 tokens.wxss 的 --cy-z-modal 同值 —— 变量没继承进来时
+     z-index 会整条作废,面板落到下方字段后面,看着就是「候选文字糊在字段上」。 */
+  z-index: var(--cy-z-modal, 900);
+
+  color: var(--cy-color-text-primary);
+}
+
+/* CU-C-46:只有经 root-portal 挂到页面根时才脱离页面作用域 —— 默认(玩家暗色)镜像只给这种情况。
+   portal=false(如编辑页亮色主题里内联的下拉)照常继承页面 token,不能被这里的暗色值盖掉。 */
+.cdd__layer--portal {
+  /* CU-C-46:面板经 root-portal 脱离页面作用域(取不到页面那几个 --cy-color-*),
+     而组件只为商家亮色镜像过一份,暗色页上底/描边/文字色整组落空 ⇒ 候选文字没有面板底。
+     这里补默认(玩家暗色)镜像,值与 tokens.wxss page{} 的暗色语义真值层逐字对称;
+     商家亮色由下面 .cdd__layer.theme-merchant 覆盖(两个类,特异性更高)。 */
+  --cy-color-bg-elevated: #1C1C1E; /* ds-ok: portal 脱离页面，明确继承玩家暗色主题的同值 token */
+  --cy-color-bg-raised: #2A2A2C; /* ds-ok: portal 脱离页面，镜像玩家主题 token */
+  --cy-color-text-secondary: #B7B7B7; /* ds-ok: portal 脱离页面，镜像玩家主题 token */
+  --cy-color-text-primary: #F8F8F8; /* ds-ok: portal 脱离页面，明确继承玩家暗色主题的同值 token */
+  --cy-color-border-subtle: rgba(255,255,255,.08); /* ds-ok: portal 脱离页面，明确继承玩家暗色主题的同值 token */
+  --cy-color-state-pressed: rgba(255,255,255,.10); /* ds-ok: portal 脱离页面，明确继承玩家暗色主题的同值 token */
+  --cy-color-action-primary-bg: #F8F8F8; /* ds-ok: portal 脱离页面，明确继承玩家暗色主题的同值 token */
+  --cy-comp-card-shadow-day: 0 0 0 0 transparent; /* ds-ok: 暗色档面板不分层,同 tokens.wxss page{} */
+  --cy-radius-md: 24rpx;
+  --cy-space-2: 16rpx;
+  --cy-space-3: 24rpx;
+  /* 字阶带 --cy-type-scale 兜底:变量继承进来时跟着用户的微信字号放大,没继承时用基准值。 */
+  --cy-font-body: calc(28rpx * var(--cy-type-scale, 1));
+  --cy-type-body: calc(28rpx * var(--cy-type-scale, 1));
+  --cy-type-label: calc(24rpx * var(--cy-type-scale, 1));
+  --cy-motion-fast: 140ms;
+  --cy-ease-out: cubic-bezier(.22,.61,.36,1);
+}
+
+/* 遮罩透明:dropdown 是轻量态,压暗整页会让它显得比实际重要;
+   但必须可点收起,否则面板会跟着页面滚走还留在原处。 */
+.cdd__mask {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.cdd__panel {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 8rpx 0;
+  background: var(--cy-color-bg-elevated);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  /* 浮层起层沿用卡片那套主题内投影;暗色主题里它是 transparent —— 暗色 UI 用表面色
+     而不是投影分层,面板本身的 border 已经承担了这个职责,不另造一份硬编码阴影。 */
+  box-shadow: var(--cy-comp-card-shadow-day);
+  overflow: hidden;
+  transform-origin: top left;
+  animation: cdd-in var(--cy-motion-fast) var(--cy-ease-out);
+}
+/* 朝上开时缩放原点跟着翻,否则面板会从远离锚点的一角长出来 */
+.cdd__panel--up { transform-origin: bottom left; }
+
+.cdd__layer--reduced-motion .cdd__panel { animation: none; }
+.cdd__layer--closing { pointer-events: none; }
+.cdd__layer--closing .cdd__panel { animation: cdd-out var(--cy-motion-fast) var(--cy-ease-out) forwards; }
+
+.cdd__scroll { max-height: 100%; }
+
+.cdd__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  min-height: 88rpx;
+  padding: 0 var(--cy-space-3);
+  font-size: var(--cy-font-body);
+  color: var(--cy-color-text-primary);
+}
+.cdd__item--on { color: var(--cy-color-action-primary-bg); font-weight: 600; }
+.cdd__check { width: 28rpx; flex-shrink: 0; display: flex; align-items: center; }
+.cdd__item-txt { flex: 1; min-width: 0; }
+
+@keyframes cdd-in  { from { opacity: 0; transform: scaleY(0.92) translateY(-4rpx); } to { opacity: 1; transform: scaleY(1) translateY(0); } }
+@keyframes cdd-out { from { opacity: 1; transform: scaleY(1); }                     to { opacity: 0; transform: scaleY(0.96); } }
+
+/* 选项按下反馈:面板是浮层,没有反馈时用户分不清「点到了」还是「点空了」 */
+.cdd__item--press { background: var(--cy-color-bg-raised); color: var(--cy-color-text-secondary); }
+
+/* 组件是 styleIsolation:isolated,全局 .cy-pressed 进不来,按压类必须在本组件里定义。
+   遮罩只减淡不位移 —— 整屏挡板做 scale 会让底下的暗层可见地抖一下,那不是「按下去」。 */
+.cdd__trigger--press { background: var(--cy-color-state-pressed); }
+.cdd__mask--press    { opacity: .86; }
+
+/* ds-ok: root-portal does not inherit page variables. Merchant values mirror
+   tokens.wxss; scope these fallbacks to the explicit merchant opt-in. */
+.cdd__layer.theme-merchant {
+  z-index: var(--cy-z-modal, 900);
+  --cy-color-bg-elevated: #FFFFFF; /* ds-ok: portal 脱离页面，明确继承商家明亮主题的同值 token */
+  --cy-color-text-primary: #000000; /* ds-ok: portal 脱离页面，明确继承商家明亮主题的同值 token */
+  --cy-color-bg-raised: #E6E6E6; /* ds-ok: portal 脱离页面，镜像商家主题 token */
+  --cy-color-text-secondary: #404040; /* ds-ok: portal 脱离页面，镜像商家主题 token */
+  --cy-color-text-disabled: #B8B8B8; /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+  --cy-color-border-subtle: #E6E6E6; /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+  --cy-color-action-primary-bg: #000000; /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+  --cy-color-action-primary-fg: #FFFFFF; /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+  --cy-radius-md: 24rpx;
+  --cy-space-2: 16rpx;
+  --cy-space-3: 24rpx;
+  --cy-font-body: 25rpx;
+  --cy-type-body: 25rpx;
+  --cy-type-label: 23rpx;
+  --cy-motion-fast: 140ms;
+  --cy-ease-out: ease-out;
+  --cy-comp-card-shadow-day: 0 8rpx 24rpx rgba(0,0,0,.08); /* ds-ok: portal 脱离页面，明确继承商家明亮主题的同值 token */
+  color: var(--cy-color-text-primary);
+}

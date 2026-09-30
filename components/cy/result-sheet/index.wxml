@@ -1,0 +1,67 @@
+<!-- cy-result-sheet · 一次动作做完之后的结果面板(success / fail / loading)
+     壳复用 cy-sheet:遮罩、上滑、退场、安全区、主题 role 重映射全在那边,这里只画内容。 -->
+<cy-sheet class="rs-shell" inset show="{{show}}" handle mask-closable="{{kind !== 'loading'}}" bind:close="onSheetClose">
+  <view class="rs rs--{{kind}} {{reducedMotion ? 'rs--reduced-motion' : ''}}" aria-role="alert" aria-label="{{title}}">
+
+    <view class="rs__badge">
+      <!-- 成功那一下的三拍(稿 28:98 是 seed→grow→overshoot→burst→settle 五态):
+           徽章弹进来 → 一圈涟漪扩开 → 勾按笔顺画出来。粒子沿用 creation-success
+           已有的做法(八颗点向外飘),不另造一套。 -->
+      <view class="rs__ring" wx:if="{{kind === 'success' && !reducedMotion}}"></view>
+      <view class="rs__spark" wx:if="{{kind === 'success' && !reducedMotion}}">
+        <view class="rs__spark-dot" wx:for="{{sparks}}" wx:key="*this"></view>
+      </view>
+      <cy-icon class="rs__scallop" wx:if="{{kind !== 'loading'}}" name="scallop" size="96" />
+      <!-- 勾:两根条按笔顺画出来(短笔 → 长笔),不是一次性显形 -->
+      <view class="rs__check" wx:if="{{kind === 'success'}}">
+        <view class="rs__arm rs__arm--a"><view class="rs__bar"></view></view>
+        <view class="rs__arm rs__arm--b"><view class="rs__bar"></view></view>
+      </view>
+      <!-- 失败:稿 356-5220 是 info「i」(圆点在上、竖条在下),不是感叹号 -->
+      <view class="rs__bang" wx:elif="{{kind === 'fail'}}">
+        <view class="rs__bang-dot"></view>
+        <view class="rs__bang-stem"></view>
+      </view>
+      <view class="rs__spinner" wx:else></view>
+    </view>
+
+    <view class="rs__copy">
+      <view class="rs__title">{{title}}</view>
+      <view class="rs__sub" wx:if="{{sub}}">{{sub}}</view>
+      <!-- meta:琥珀提示行。稿子每帧都画了,但只在真有信息要带时才传
+           (「今天 21:42 发布」「关联主题 · 城市迷雾」),没信息就别占一行。 -->
+      <view class="rs__meta" wx:if="{{meta}}">
+        <cy-icon class="rs__meta-ico" name="info" size="32" />
+        <text class="rs__meta-text">{{meta}}</text>
+      </view>
+    </view>
+
+    <!-- 可选同意行(2026-09-17 拍板第 40 条 A):默认不勾;不勾不影响面板照常自愈与跳转,
+         勾了才停下等保存结果(见 index.js 的 _schedule)。 -->
+    <view class="rs__consent" wx:if="{{consentName}}">
+      <cy-consent-check checked="{{consentChecked}}"
+        text="接收「{{consentName}}」的活动消息（站内消息，可随时在设置里退订）"
+        bind:change="onConsentChange" />
+      <view class="rs__consent-state" wx:if="{{consentState === 'saving'}}">正在保存…</view>
+      <view class="rs__consent-err" wx:elif="{{consentState === 'failed'}}" aria-role="alert">
+        <text class="rs__consent-err-text">{{consentError}}</text>
+        <text class="rs__consent-err-act" bindtap="onConsentRetry" hover-class="rs__press" hover-stay-time="80"
+              aria-role="button" aria-label="重试">重试</text>
+      </view>
+      <view class="rs__consent-ok" wx:elif="{{consentState === 'saved'}}">已同意，可在设置里随时退订</view>
+    </view>
+
+    <!-- pill:一条中性事实(「等待对方确认」「支付方式 …」),不是可点的东西 -->
+    <view class="rs__pill" wx:if="{{pill}}">{{pill}}</view>
+
+    <!-- 失败态的原因行。标题已经说了「发生了什么」,再压一张「为什么会这样」的标签卡
+         等于用一整张卡说一句废话(2026-09-05 用户裁决删掉),所以这里只留原因本身。 -->
+    <view class="rs__reason" wx:if="{{kind === 'fail' && why}}">{{why}}</view>
+
+    <!-- actions:结果之后还要选一次时才有。有它就不自愈(见 index.js 的 _schedule)。 -->
+    <view class="rs__actions" wx:if="{{primaryText}}">
+      <cy-btn class="rs__act" wx:if="{{secondaryText}}" variant="secondary" bindtap="onSecondary">{{secondaryText}}</cy-btn>
+      <cy-btn class="rs__act" variant="primary" loading="{{primaryLoading}}" bindtap="onPrimary">{{primaryText}}</cy-btn>
+    </view>
+  </view>
+</cy-sheet>

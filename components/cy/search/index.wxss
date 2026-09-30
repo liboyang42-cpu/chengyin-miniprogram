@@ -1,0 +1,80 @@
+/* cy-search · 搜索输入框(DS §3.12)
+ * 高 72rpx 圆角 pill,左侧复用统一 search 图标;
+ * 只读 --cy-color-* 语义 token;host 撑满所在格,并排按钮由页面 flex 控制。 */
+:host { display: block; }
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  height: var(--cy-legacy-72);
+  padding: 0 var(--cy-space-3);
+  box-sizing: border-box;
+  background: var(--cy-comp-search-idle-bg);
+  border-radius: var(--cy-radius-pill);
+  /* 常驻描边不是装饰,是兜底:输入框放进卡片时填充会和卡撞成同色
+   * (商家 idle #FFFFFF vs 卡 #FFFFFF = 1.00:1;玩家 filled #1C1C1E vs 卡 #1C1C1E 同理),
+   * 只靠填充分层的框在卡里整个消失。边界交给描边,填充只表达空/填。 */
+  box-shadow: inset 0 0 0 2rpx var(--cy-color-border-subtle);
+  transition: box-shadow var(--cy-motion-fast) var(--cy-ease);
+}
+.search--filled { background: var(--cy-comp-search-filled-bg); }
+.search--focused { box-shadow: inset 0 0 0 2rpx var(--cy-color-border-strong); }
+.search--disabled { opacity: .5; }
+
+.search__icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+  color: var(--cy-color-text-tertiary);
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  font-size: var(--cy-type-body);
+  color: var(--cy-comp-search-filled-fg);
+}
+.search__placeholder { color: var(--cy-comp-search-placeholder); }
+
+/* loading:联想中 */
+.search__spin {
+  flex-shrink: 0;
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  border: 4rpx solid var(--cy-color-border-strong);
+  border-top-color: var(--cy-color-text-tertiary);
+  border-radius: var(--cy-radius-pill);
+  animation: cy-search-spin .8s linear infinite;
+}
+@keyframes cy-search-spin { to { transform: rotate(360deg); } }
+
+/* 清除钮:88rpx 触控区(负 margin 塞进 72rpx 高容器),视觉 36rpx 圆 */
+.search__clear {
+  flex-shrink: 0;
+  width: 88rpx;
+  height: 88rpx;
+  margin: -8rpx -24rpx -8rpx -16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search__clear:active .search__clear-x { opacity: .7; }
+.search__clear-x {
+  width: var(--cy-legacy-36);
+  height: var(--cy-legacy-36);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-border-strong);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-micro);
+  line-height: 1;
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

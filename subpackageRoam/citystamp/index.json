@@ -1,0 +1,10 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "cy-proto-cam": "/components/cy/proto-cam/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-privacy-gate": "/components/cy/privacy-gate/index"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-album-glass": "../album-glass/index"
+  }
+}

@@ -1,0 +1,31 @@
+<!-- 界面和问答一样,只是选项决定下一段,不判对错。
+     ⚠️ 选项用的是**同一套发丝行**(与问答共用一套读法),不是圆角框 ——
+     框会把每个选项做成一个「东西」,而选项不是东西,是一行字。 -->
+<cy-play-stage id="cy-play-stage" skin="branch" show="{{show}}" back-label="退出"
+               limit-seconds="{{limitSeconds}}"
+               bind:back="onClose" bind:verdict="onVerdict">
+  <view class="g-col br">
+    <view class="br__q">{{title}}</view>
+    <view class="br__story">{{body}}</view>
+
+    <!-- 选了之后接着发生什么,就是它的反馈 —— 不判对错,所以没有对错色 -->
+    <view class="br__fb" wx:if="{{feedback}}">
+      <view class="br__fb-h">{{isEnd ? '结局' : '你选了'}}</view>
+      {{feedback}}
+    </view>
+
+    <block wx:if="{{!isEnd}}">
+      <view class="br__opt {{index === 0 ? 'br__opt--first' : ''}} {{picked === index ? 'is-on' : (picked >= 0 ? 'is-off' : '')}}"
+            wx:for="{{options}}" wx:key="k" data-i="{{index}}" bindtap="onPick"
+            aria-role="button" aria-label="{{item.t}}"
+            hover-class="br__press" hover-stay-time="80">
+        <view class="br__k">{{index + 1}}</view>
+        <view class="br__t">{{item.t}}</view>
+        <view class="br__tail"></view>
+      </view>
+    </block>
+
+    <!-- 走到终点:这一段就是结局本身,正文已经在上面。判定屏由台面出 -->
+    <view class="br__end" wx:if="{{isEnd}}">结局</view>
+  </view>
+</cy-play-stage>

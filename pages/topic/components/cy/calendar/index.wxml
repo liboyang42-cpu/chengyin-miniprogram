@@ -1,0 +1,30 @@
+<wxs src="./index.wxs" module="cyc" />
+
+<view class="cyc {{reducedMotion ? 'cyc--reduced-motion' : ''}} {{_picking ? 'cyc--picking' : ''}}">
+  <view class="cyc__weekhead" aria-hidden="true">
+    <text wx:for="{{_weekLabels}}" wx:key="*this" wx:for-index="wi"
+          class="cyc__wd {{wi >= 5 ? 'cyc__wd--weekend' : ''}}">{{item}}</text>
+  </view>
+
+  <scroll-view class="cyc__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view wx:for="{{_months}}" wx:key="key" wx:for-item="m" class="cyc__month" id="m-{{m.key}}">
+      <view class="cyc__title">{{m.title}}</view>
+      <view class="cyc__days">
+        <view
+          wx:for="{{m.days}}" wx:key="date" wx:for-item="d" wx:for-index="di"
+          class="cyc__day {{cyc.dayClass(d.date, _start, _end, mode, min, max, _disabledMap)}}"
+          style="{{cyc.dayStyle(di, m.offset)}}"
+          data-date="{{d.date}}"
+          bindtap="onDay"
+          hover-class="cyc__day--press"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="{{m.title}}{{d.text || ''}}日"
+        >
+          <view class="cyc__cell">{{d.text}}</view>
+          <text wx:if="{{d.mark}}" class="cyc__mark">{{d.mark}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

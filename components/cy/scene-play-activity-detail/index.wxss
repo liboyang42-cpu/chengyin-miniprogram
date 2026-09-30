@@ -1,0 +1,100 @@
+/* 加载结束后内容挂载淡入:isolated 组件收不到全局 components.wxss,@import 同一份定义 */
+@import '../../../style/fade-in.wxss';
+:host { display: block; height: 100%; }
+.activity-body { min-height: 100%; padding-bottom: var(--cy-space-5); box-sizing: border-box; }
+.activity-hero { position: relative; min-height: 360rpx; overflow: hidden; border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.activity-hero__image { position: absolute; inset: 0; width: 100%; height: 100%; }
+.activity-hero__fallback { position: absolute; inset: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); background: var(--cy-color-bg-surface-subtle); }
+.activity-hero__shade { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--cy-comp-sheet-activity-scrim); }
+.activity-hero__copy { position: relative; z-index: 1; min-height: 360rpx; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; gap: var(--cy-space-1); padding: var(--cy-space-4); color: var(--cy-comp-sheet-player-text); }
+.activity-hero__title { font-size: var(--cy-type-page-title); font-weight: 700; line-height: var(--cy-leading-tight); }
+.activity-hero__date { font-size: var(--cy-type-caption); opacity: .86; }
+.activity-cancelled { display: flex; flex-direction: column; gap: var(--cy-space-1); margin-top: var(--cy-space-3); padding: var(--cy-space-3); border: 1rpx solid var(--cy-color-status-danger); border-radius: var(--cy-radius-lg); background: var(--cy-color-status-danger-soft); }
+.activity-cancelled__title { color: var(--cy-color-status-danger); font-size: var(--cy-type-card-title); font-weight: 700; }
+.activity-cancelled__reason { color: var(--cy-color-text-primary); font-size: var(--cy-type-body); }
+.activity-cancelled__sub { color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.activity-section { margin-top: var(--cy-space-4); }
+.activity-section__title { display: block; margin-bottom: var(--cy-space-2); color: var(--cy-color-text-primary); font-size: var(--cy-type-section-title); font-weight: 700; }
+.activity-meta { overflow: hidden; border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.activity-row { display: flex; justify-content: space-between; gap: var(--cy-space-3); padding: var(--cy-space-3); border-bottom: 1rpx solid var(--cy-color-border-subtle); color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); }
+.activity-row__key { flex: none; }
+.activity-row__value { min-width: 0; color: var(--cy-color-text-primary); text-align: right; }
+.activity-row__link { text-decoration: underline; }
+.activity-copy { display: block; color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); line-height: var(--cy-leading-normal); white-space: pre-wrap; }
+.activity-host__row { display: flex; align-items: center; gap: var(--cy-space-2); min-height: 88rpx; }
+.activity-host__copy { min-width: 0; display: flex; flex: 1; flex-direction: column; gap: var(--cy-space-1); }
+.activity-host__name { color: var(--cy-color-text-primary); font-size: var(--cy-type-body); font-weight: 650; }
+.activity-host__role { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.activity-people { display: flex; flex-wrap: wrap; gap: var(--cy-space-1); }
+.activity-person { width: var(--cy-btn-h); height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; }
+.activity-node-list { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.activity-node { display: flex; align-items: center; gap: var(--cy-space-2); min-height: 104rpx; padding: var(--cy-space-2); box-sizing: border-box; border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.activity-node__image { width: 88rpx; height: 88rpx; flex: none; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface); }
+.activity-node__placeholder { width: 88rpx; height: 88rpx; flex: none; display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface); color: var(--cy-color-text-tertiary); }
+.activity-node__copy { min-width: 0; display: flex; flex: 1; flex-direction: column; gap: var(--cy-space-1); }
+.activity-node__name { overflow: hidden; color: var(--cy-color-text-primary); font-size: var(--cy-type-body); font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.activity-node__meta { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.activity-node__arrow { flex: none; color: var(--cy-color-text-tertiary); }
+.ticket-list { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.ticket { padding: var(--cy-space-3); border: 2rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.ticket--selected { border-color: var(--cy-color-action-primary-bg); box-shadow: inset 0 0 0 2rpx var(--cy-color-action-primary-bg); }
+.ticket--disabled { opacity: .52; }
+.ticket__head { display: flex; justify-content: space-between; gap: var(--cy-space-2); color: var(--cy-color-text-primary); }
+.ticket__name { font-size: var(--cy-type-card-title); font-weight: 700; }
+.ticket__price { font-size: var(--cy-type-card-title); font-weight: 700; }
+.ticket__meta { display: block; margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.ticket__more { min-height: var(--cy-btn-h); margin-top: var(--cy-space-1); display: flex; align-items: center; justify-content: space-between; color: var(--cy-color-text-primary); }
+.ticket__more-label { font-size: var(--cy-type-caption); }
+.ticket__more-icon { color: var(--cy-color-text-tertiary); }
+.ticket__detail { padding-top: var(--cy-space-2); border-top: 1rpx solid var(--cy-color-border-subtle); }
+.ticket__desc { display: block; color: var(--cy-color-text-primary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.ticket__limit { display: block; margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.ticket__people { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); margin-top: var(--cy-space-2); }
+.ticket__person { width: 88rpx; display: flex; flex-direction: column; align-items: center; gap: var(--cy-space-1); }
+.ticket__person-name { width: 100%; overflow: hidden; color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.activity-review-head { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.activity-review-score { display: flex; align-items: baseline; gap: var(--cy-space-1); }
+.activity-review-score__value { color: var(--cy-color-text-primary); font-size: var(--cy-type-data-xl); font-weight: 750; }
+.activity-review-score__meta { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.activity-comment-list { display: flex; flex-direction: column; gap: var(--cy-space-2); margin-top: var(--cy-space-2); }
+.activity-comment { padding: var(--cy-space-3); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.activity-comment__head { display: flex; justify-content: space-between; gap: var(--cy-space-2); }
+.activity-comment__name { color: var(--cy-color-text-primary); font-size: var(--cy-type-body); font-weight: 650; }
+.activity-comment__time { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.activity-comment__stars { display: flex; gap: 2rpx; margin-top: var(--cy-space-1); }
+.activity-comment__star { color: var(--cy-color-status-warning); }
+.activity-comment__text { display: block; margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); line-height: var(--cy-leading-normal); }
+.activity-points { display: flex; align-items: center; gap: var(--cy-space-2); margin-top: var(--cy-space-4); padding: var(--cy-space-3); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.activity-points__icon { flex: none; color: var(--cy-color-text-secondary); }
+.activity-points__text { color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.activity-form { display: flex; flex-direction: column; gap: var(--cy-space-3); margin-top: var(--cy-space-4); padding: var(--cy-space-3); border: 1rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.activity-form--danger { border-color: var(--cy-color-status-danger); }
+.activity-form__head { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.activity-form__title { color: var(--cy-color-text-primary); font-size: var(--cy-type-section-title); font-weight: 700; }
+.activity-form__close { min-width: 88rpx; min-height: 88rpx; display: flex; align-items: center; justify-content: flex-end; color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.activity-form__hint { color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.activity-form__textarea { width: 100%; min-height: 176rpx; padding: var(--cy-space-2); box-sizing: border-box; border: 1rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); line-height: var(--cy-leading-normal); }
+.activity-rating { display: flex; justify-content: center; gap: var(--cy-space-1); }
+.activity-rating__target { width: 88rpx; height: 88rpx; display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-disabled); }
+.activity-rating__target--on { color: var(--cy-color-status-warning); }
+.activity-upload-list { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); }
+.activity-upload { position: relative; width: 112rpx; height: 112rpx; overflow: hidden; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface); }
+.activity-upload--add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--cy-space-1); color: var(--cy-color-text-secondary); }
+.activity-upload__image { width: 100%; height: 100%; }
+.activity-upload__delete { position: absolute; top: 0; right: 0; width: 88rpx; height: 88rpx; display: flex; align-items: flex-start; justify-content: flex-end; padding: 10rpx; box-sizing: border-box; color: var(--cy-color-text-inverse); }
+.activity-upload__delete-icon { width: 40rpx; height: 40rpx; display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-pill); background: var(--cy-color-overlay); }
+.activity-upload__label { font-size: var(--cy-type-caption); }
+.activity-action { display: flex; align-items: stretch; gap: var(--cy-space-2); margin-top: var(--cy-space-5); }
+.activity-action__main { min-width: 0; flex: 1; }
+.activity-share { min-width: 112rpx; min-height: var(--cy-btn-h); margin: 0; padding: 0 var(--cy-space-2); display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1); box-sizing: border-box; border: 1rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-comp-btn-radius); background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-primary); font-size: var(--cy-type-button); font-weight: 600; line-height: var(--cy-leading-tight); }
+.activity-share::after { border: none; }
+.activity-share__icon { color: inherit; }
+.activity-share__label { color: inherit; font-size: var(--cy-type-button); }
+
+/* 详情页里几处整行/整卡可点(集合点、主办人、参与者、节点),统一按压反馈 */
+.activity-row--press { opacity: 0.78; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

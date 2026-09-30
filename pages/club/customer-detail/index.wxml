@@ -1,0 +1,115 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- E-13(2026-09-16):与列表页同口径 —— 后端三条线都走 canGovernClub(MEMBER_MANAGE)。 -->
+  <cy-access-gate id="cy-access-gate" kind="club" need="club:member:manage" club-id="{{clubId}}" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar title="客户" custom-back bind:back="goBack" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="card" count="4" loading-label="正在加载客户详情" />
+  <!-- K2-D 无客户权限 -->
+  <cy-error wx:elif="{{state === 'no-permission'}}" fill size="lg"
+            title="当前岗位没有客户查看权限" sub="{{errorText || '当前账号没有查看权限'}}"
+            retry="" bind:back="goBack" auto-back custom-back />
+  <!-- K2-E 加载失败 -->
+  <cy-error wx:elif="{{state === 'network-error'}}" fill size="lg" title="客户详情加载失败"
+            sub="{{errorText}}" retry="重试加载" bind:retry="retry" auto-back />
+  <cy-error wx:elif="{{state === 'error'}}" fill size="lg" title="客户详情加载失败"
+            sub="{{errorText}}" retry="重试加载" bind:retry="retry" auto-back />
+
+  <block wx:elif="{{state === 'ready'}}">
+    <!-- 客户名就是本页 L1 大标题(稿子里 26px 那行),交给共享的 cy-page-title 出间距;
+         头像按稿贴右上,绝对定位到标题行上,不参与标题的上下基准。 -->
+    <view class="cd-head">
+      <cy-page-title title="{{detail.summary.displayName}}" safe-top="{{false}}" flush />
+      <cy-avatar class="cd-head-ava" size="112" src="{{detail.summary.avatar}}" name="{{detail.summary.displayName}}" />
+    </view>
+    <text class="cd-last">{{detail.summary.lastInteractionText}}</text>
+
+    <view class="cd-amount">
+      <text class="cd-amount-label">累计实付</text>
+      <!-- K2-B:服务端不下发金额时这里是「无查看权限」,不是 ¥0 -->
+      <text class="cd-amount-value {{detail.summary.amountVisible ? '' : 'cd-amount-value--locked'}}">{{detail.summary.paidAmountText}}</text>
+    </view>
+    <text wx:if="{{detail.summary.phoneText}}" class="cd-phone">{{detail.summary.phoneText}}</text>
+
+    <text class="cd-section">客户概览</text>
+    <view class="cd-stats">
+      <view class="cd-stat">
+        <text class="cd-stat-num">{{detail.summary.arrivedCount}}</text>
+        <text class="cd-stat-label">到店次数</text>
+      </view>
+      <view class="cd-stat">
+        <text class="cd-stat-num">{{detail.summary.pendingCount}}</text>
+        <text class="cd-stat-label">待核销</text>
+      </view>
+      <view class="cd-stat">
+        <text class="cd-stat-num">{{detail.summary.refundedCount}}</text>
+        <text class="cd-stat-label">已退款</text>
+      </view>
+    </view>
+
+    <text class="cd-section">参与记录</text>
+    <view wx:if="{{detail.records.length}}" class="cd-records">
+      <view class="cd-record" wx:for="{{detail.records}}" wx:key="key" data-topic-id="{{item.topicId}}"
+            bindtap="openRecord" aria-role="button" aria-label="查看活动 {{item.title}}"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cd-record-date">
+          <text class="cd-record-day">{{item.dayText}}</text>
+          <text class="cd-record-month">{{item.monthText}}</text>
+        </view>
+        <view class="cd-record-main">
+          <text class="cd-record-title">{{item.title}}</text>
+          <view class="cd-record-sub">
+            <text class="cd-record-status cd-record-status--{{item.tone}}">{{item.statusLabel}}</text>
+            <!-- CU-C-06:这一行落地是活动介绍页(topic/index),不是这笔报名的明细 —— 名实相符写「查看活动」 -->
+            <text class="cd-record-kind"> · 查看活动</text>
+          </view>
+        </view>
+        <cy-icon class="cd-record-arrow" name="arrow-right" size="28" />
+      </view>
+    </view>
+    <!-- K2-C 暂无记录 -->
+    <cy-empty wx:else class="cd-record-empty" title="暂无参与记录" sub="该客户还没有报名或核销过" />
+
+    <!-- K2-F:编辑态就地替换「标签与备注」这一段,不另开弹层 -->
+    <view class="cd-section-row">
+      <text class="cd-section {{editing ? 'cd-section--editing' : ''}}">{{editing ? '编辑标签与备注' : '标签与备注'}}</text>
+      <text wx:if="{{editing}}" class="cd-section-cancel" bindtap="cancelEdit"
+            aria-role="button" aria-label="取消编辑标签与备注" hover-class="cy-pressed" hover-stay-time="80">取消</text>
+    </view>
+
+    <view wx:if="{{!editing}}" class="cd-tagcard">
+      <view class="cd-tags" wx:if="{{detail.tags.length}}">
+        <text class="cd-tag" wx:for="{{detail.tags}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="cd-tagcard-foot">
+        <text class="cd-remark">{{detail.remarkText}}</text>
+        <view wx:if="{{detail.canEdit}}" class="cd-edit-btn" bindtap="startEdit"
+              aria-role="button" aria-label="编辑标签与备注" hover-class="cy-pressed" hover-stay-time="80">编辑</view>
+      </view>
+    </view>
+
+    <view wx:else class="cd-tagcard">
+      <view class="cd-tags" wx:if="{{draftTags.length}}">
+        <view class="cd-tag cd-tag--editable" wx:for="{{draftTags}}" wx:key="*this" data-index="{{index}}"
+              bindtap="removeTag" aria-role="button" aria-label="移除标签 {{item}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text>{{item}}</text><text class="cd-tag-x">×</text>
+        </view>
+      </view>
+      <view class="cd-tagform">
+        <input class="cd-input" value="{{draftTagInput}}" maxlength="12" placeholder="加个标签，例如：常客"
+               placeholder-class="cd-placeholder" bindinput="onTagInput" bindconfirm="addTag" />
+        <view class="cd-add-btn" bindtap="addTag" aria-role="button" aria-label="添加标签"
+              hover-class="cy-pressed" hover-stay-time="80">添加</view>
+      </view>
+      <textarea class="cd-textarea" value="{{draftRemark}}" maxlength="200" bindinput="onRemarkInput"
+                placeholder="备注：口味偏好、常带谁、下次要留意什么" placeholder-class="cd-placeholder" />
+      <cy-inline-error wx:if="{{draftError}}" class="cd-draft-error" kind="error"
+                       title="标签与备注没保存成功" sub="{{draftError}}" action="重试保存" bind:action="saveTagRemark" />
+      <cy-btn class="cd-save" variant="primary" loading="{{saving}}" bindtap="saveTagRemark">保存</cy-btn>
+    </view>
+  </block>
+</view>
+</view>

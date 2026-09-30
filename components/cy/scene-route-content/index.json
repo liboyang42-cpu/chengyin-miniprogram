@@ -1,0 +1,12 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-scene-club-edit": "/components/cy/scene-club-edit/index",
+    "cy-scene-settings-deregister": "/components/cy/scene-settings-deregister/index",
+    "cy-consent-check": "/components/cy/consent-check/index"
+  }
+}

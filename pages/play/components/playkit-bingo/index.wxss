@@ -1,0 +1,114 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-bingo · 九宫格(逐像素照原型 playkit.html 的 .board / .cellbtn / .ribbon)
+ *
+ * 每一格自己是一块**有厚度的棋子**:2px 黑描边 + 实心投影当侧壁 + 一层柔影落到板面上。
+ * 整块板不做透视 —— 板歪了,九个格子的字也跟着歪,反而看不清。
+ * ⚠️ 这一段全是玩法皮肤,ds-ok。值照抄原型,要改先改原型。
+ */
+.bg { color: var(--ink); }
+.bg__q {
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+}
+.bg__board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18rpx;                    /* ds-ok 原型 9px */
+  width: 100%;
+  padding: 8rpx 4rpx 28rpx;
+  box-sizing: border-box;
+}
+.bg__cell {
+  aspect-ratio: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 12rpx 8rpx;
+  box-sizing: border-box;
+  border: 4rpx solid #000;                                     /* ds-ok */
+  border-radius: 6rpx;                                         /* ds-ok 原型 3px,硬角是这套语言的记号 */
+  /* 厚度在每一格上:实心投影当侧壁,再压一层柔影 */
+  box-shadow: 0 8rpx 0 #000, 0 14rpx 18rpx rgba(0, 0, 0, .28); /* ds-ok */
+  transform: translateY(0);
+  transition: transform .14s cubic-bezier(.2, .8, .2, 1), box-shadow .14s, background .18s;
+}
+.bg__cell.pale { background: #ffffff; color: #111114; }        /* ds-ok */
+.bg__cell.dark { background: #111114; color: #ffffff; }        /* ds-ok */
+/* 填过的格子被**按下去**:厚度收掉一半,一眼看出这格已经踩实了 */
+.bg__cell.done {
+  background: #3fd2d2;                                         /* ds-ok */
+  color: #00363a;                                              /* ds-ok */
+  transform: translateY(6rpx);
+  box-shadow: 0 2rpx 0 #000, 0 4rpx 8rpx rgba(0, 0, 0, .3);    /* ds-ok */
+}
+.bg__cell.line { background: #fc7ebd; color: #5c0030; }        /* ds-ok 连成线的那三格 */
+.bg--reduced .bg__cell { transition: none; }
+
+.bg__lock { font-size: var(--cy-type-body); line-height: 1; }                /* ds-ok 原型 15px */
+.bg__t {
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+.bg__how {
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  opacity: .6;
+}
+
+/* 奖励是一条横幅,不是两枚胶囊:它宣布的是「你换到了什么」,那是一句话不是两个标签 */
+.bg__ribbon {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fc7ebd;                                         /* ds-ok */
+  color: #111114;                                              /* ds-ok */
+  border: 4rpx solid #000;                                     /* ds-ok */
+  border-radius: 6rpx;                                         /* ds-ok */
+  padding: 18rpx 24rpx;
+  font-size: var(--cy-type-body);
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 0 8rpx 0 #000;                                   /* ds-ok */
+}
+.bg__tally { font-size: var(--cy-type-label); color: var(--sub); }            /* ds-ok 原型 13px */
+.bg__foot {
+  font-size: var(--cy-type-body);
+  line-height: 1.6;
+  color: var(--sub);
+  max-width: 24em;
+}
+/* 点一格弹出来的说明。扫码格要说清楚为什么只认扫码 —— GPS 可以伪造 */
+.bg__panel {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 6;
+  background: #ffffff;                                         /* ds-ok 原型 .unlock */
+  color: #111114;                                              /* ds-ok */
+  border-top: 6rpx solid #000;                                 /* ds-ok */
+  border-radius: 40rpx 40rpx 0 0;  /* ds-ok 九宫格面板,逐值照原型 */
+  padding: 40rpx var(--cy-page-x) calc(env(safe-area-inset-bottom) + 40rpx);
+  text-align: left;
+}
+.bg__panel-h { font-size: var(--cy-type-section-title); font-weight: 900; }  /* ds-ok 九宫格面板,逐值照原型 */
+.bg__panel-p { margin-top: 16rpx; font-size: var(--cy-type-body); line-height: 1.75; color: #3c4043; }  /* ds-ok */
+.bg__panel-x {
+  margin-top: 28rpx;
+  height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  border: 4rpx solid #000;                                     /* ds-ok */
+  border-radius: 6rpx;  /* ds-ok 九宫格面板,逐值照原型 */
+  font-size: var(--cy-type-body); font-weight: 800;  /* ds-ok 九宫格面板,逐值照原型 */
+  box-shadow: 0 8rpx 0 #000;                                   /* ds-ok */
+}
+
+/* isolated 组件里全局 .cy-pressed 进不来,本地补一份(只减淡不位移 ——
+   格子本身靠 translateY 表达「按下去了」,再位移一次会打架) */
+.cy-pressed { opacity: .88; }

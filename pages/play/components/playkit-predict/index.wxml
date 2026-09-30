@@ -1,0 +1,53 @@
+<!-- 竞猜是**转盘**:选项排在一个圆柱面上慢慢转过来,不是竖排列表。
+     押完不当场出结果 —— 到点由商家公布,所以这一屏没有判定屏。 -->
+<cy-play-stage id="cy-play-stage" skin="predict" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="pd {{reducedMotion ? 'pd--reduced' : ''}}">
+    <view class="pd__q">{{question}}</view>
+
+    <view class="pd__ring">
+      <view class="pd__inner">
+        <!-- 一张卡 = 一个 0×0 的支架 + 若干竖条。支架只管「转到哪个角度、放多大」,
+             竖条各自贴在圆柱面上拼出弯曲的卡面。
+             每条里放一份**整张卡**的拷贝,只往左错开自己那一格再裁掉多余的 ——
+             这样文字是连续流过整张卡的,不会被切成十段各自排版。 -->
+        <view class="pd__card {{item.sel ? 'is-sel' : ''}}" wx:for="{{cards}}" wx:key="key"
+              data-i="{{index}}" bindtap="onPick" style="{{item.wrap}}"
+              aria-role="button" aria-label="押 {{item.label}}"
+              hover-class="pd__card--press" hover-stay-time="60">
+          <view class="pd__sl" wx:for="{{item.slices}}" wx:for-item="sl" wx:key="i" style="{{sl.box}}">
+            <view class="pd__fc" style="{{sl.face}}">
+              <view class="pd__k">{{item.key}}</view>
+              <view class="pd__l">{{item.label}}</view>
+              <view class="pd__m">{{item.meta}}</view>
+              <view class="pd__edge"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 揭晓:商家给出答案之后才有。三种态各说各的话,不合并成一句 ——
+       「等揭晓」和「这一轮作废了」对玩家是两件完全不同的事。 -->
+  <view class="pd__reveal pd__reveal--{{revealKind}}" wx:if="{{revealKind}}">
+    <view class="pd__reveal-h">{{revealHead}}</view>
+    <view class="pd__reveal-t">{{revealText}}</view>
+  </view>
+
+  <!-- 押定的火漆印:歪着砸下去、压扁、回弹(原型 .pvseal + sealdrop)。
+       正着盖看着像个标签,歪的才像章;淡入的印章像贴纸。 -->
+  <view class="pd__seal" wx:if="{{committed}}" aria-hidden="true">
+    <view class="pd__seal-wax"></view>
+    <view class="pd__seal-rim"></view>
+    <view class="pd__seal-ch">押</view>
+  </view>
+
+  <!-- 提示单独放在按钮上方,不跟着内容流 —— 跟着流的话会被绝对定位的按钮压住 -->
+  <view class="pd__hint" wx:if="{{!revealKind}}">{{committed ? waitLabel : '转到想押的那张，点它'}}</view>
+
+  <view class="g-btn {{(committed || picked < 0) ? 'g-btn--disabled' : ''}}" bindtap="onCommit"
+        aria-role="button" aria-label="押定这一个" hover-class="g-btn--press" hover-stay-time="80">
+    {{committed ? '已经押了' : '就押这个'}}
+  </view>
+</cy-play-stage>

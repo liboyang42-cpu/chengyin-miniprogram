@@ -1,0 +1,11 @@
+<view class="asc">
+  <view class="asc__left">
+    <text class="asc__score">{{score}}</text>
+    <text class="asc__label">{{label}}</text>
+  </view>
+  <view class="asc__rule" aria-hidden="true"></view>
+  <view class="asc__right">
+    <text class="asc__comment">{{comment}}</text>
+    <text class="asc__note">{{note}}</text>
+  </view>
+</view>

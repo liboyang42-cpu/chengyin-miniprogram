@@ -1,0 +1,183 @@
+<view class="mp-page theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar />
+  <cy-page-title title="我的项目" />
+  <!-- C6:主结构 = 类型三 tab(主题 / 活动 / 模板) -->
+  <view class="mp-tabs">
+    <cy-tabs variant="fill" wide="{{true}}" tabs="{{typeTabs}}" active="{{typeTab}}" bind:change="switchTypeTab" />
+  </view>
+
+  <!-- ===== 主题 / 活动 ===== -->
+  <block wx:if="{{typeTab !== 'template'}}">
+    <view class="mp-state" wx:if="{{projectState === 'loading'}}">
+      <cy-empty kind="loading" title="项目加载中" fill size="lg" />
+    </view>
+    <view class="mp-state" wx:elif="{{projectState === 'error'}}">
+      <cy-error title="项目暂时没能加载" sub="{{projectErrorMsg}}" bind:retry="loadProjects" fill size="lg" auto-back />
+    </view>
+    <view wx:if="{{loading && loaded}}" class="mp-refreshing" aria-role="status" aria-live="polite">正在同步最新项目…</view>
+
+    <!-- 身份切换:多身份才显示(单身份自动隐藏) -->
+    <scroll-view class="mp-filter" scroll-x show-scrollbar="{{false}}" wx:if="{{projectState === 'ready' && ownerChips.length}}">
+      <view class="mp-chip mp-chip-sm {{owner===item.key?'on':''}}" wx:for="{{ownerChips}}" wx:key="key" data-k="{{item.key}}" bindtap="switchOwner" hover-class="cy-pressed" hover-stay-time="80">{{item.label}}</view>
+    </scroll-view>
+
+    <!-- 待处理摘要(承接原发布页四态速查)+ 状态筛选下拉 -->
+    <view class="mp-toolbar" wx:if="{{projectState === 'ready'}}">
+      <view class="mp-summary" wx:if="{{pendingSummary.total > 0}}">
+        <view class="mp-summary-dot"></view>
+        <text class="mp-summary-total">待处理 {{pendingSummary.total}}</text>
+        <text class="mp-summary-seg" wx:if="{{pendingSummary.rejected}}" data-k="rejected" bindtap="tapSummary" hover-class="cy-pressed" hover-stay-time="80">未通过 {{pendingSummary.rejected}}</text>
+        <text class="mp-summary-seg" wx:if="{{pendingSummary.draft}}" data-k="draft" bindtap="tapSummary" hover-class="cy-pressed" hover-stay-time="80">草稿 {{pendingSummary.draft}}</text>
+        <text class="mp-summary-seg" wx:if="{{pendingSummary.pending}}" data-k="pending" bindtap="tapSummary" hover-class="cy-pressed" hover-stay-time="80">审核中 {{pendingSummary.pending}}</text>
+      </view>
+      <view class="mp-summary mp-summary-clear" wx:else>
+        <text>没有待处理事项</text>
+      </view>
+    </view>
+
+    <!-- 稿 260:277:状态筛选是**横排 chip**(全部 / 未开始 / 进行中 / 已结束 / 未通过),
+         不是一个要点开才知道有哪些选项的下拉。八个态里草稿/已下架是编辑态,
+         按稿收进「全部」不单列 —— 五个 chip 一屏放得下,下拉却要两次点击才换一个筛选。 -->
+    <scroll-view class="mp-filter" scroll-x show-scrollbar="{{false}}" wx:if="{{projectState === 'ready'}}">
+      <view class="mp-chip mp-chip-sm {{stateIndex === item.i ? 'on' : ''}}" wx:for="{{stateChips}}" wx:key="key"
+            data-index="{{item.i}}" bindtap="onStatePick" aria-role="button"
+            aria-label="按{{item.label}}筛选" hover-class="cy-pressed" hover-stay-time="80">{{item.label}}</view>
+    </scroll-view>
+
+    <view class="mp-create-row" wx:if="{{projectState === 'ready' && typeTab === 'activity' && canPublishActivity && list.length > 0}}"
+          bindtap="goCreateActivity" aria-role="button" aria-label="发布单场活动" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-icon name="plus" size="28" /><text>发布单场活动</text>
+    </view>
+    <!-- 上下架 / 删除按稿撤出卡面后,长按是它们唯一的入口 —— 藏起来的入口要写出来,
+         否则一条已下架的路线就再也回不到上架。列表里一张卡都不可操作时不出这行。 -->
+    <view class="mp-longtip" wx:if="{{projectState === 'ready' && list.length > 0 && hasRowOps}}">长按卡片可上下架 / 删除</view>
+    <view class="mp-list" wx:if="{{projectState === 'ready'}}">
+      <!-- 稿 260:277 的裁决(节点 260:369):「单列列表的行**整行可点,不放按钮**(连箭头都不放)。
+           每张卡的下一步动作不同(去核销 / 承接进度 / 去管理),进项目页再做」。
+           所以卡面上原来那排 候选池 / 上下架 / 删除 / 「继续编辑」药丸全部撤掉:
+           · 候选池已下线 → 申请与报名统一进协作列表「收到的」处理(本面板入口同指那里);
+           · 下一步动作 → 就是点这一行本身(onCardTap 按状态分流:草稿进编辑器、其余进项目页);
+           · 上下架 / 删除 → 长按这张卡打开操作面板。这两个是列表管理动作,不是「下一步」,
+             把它们留在卡面上就是稿里明确不要的那排按钮;但也不能删掉 —— 已下架的路线
+             除了这里没有别的路能重新上架。长按是它们唯一的入口,所以列表上方那行提示要写出来。
+           卡内顺序也按稿改:tag 行在最上面(整行,状态 tag 靠右),再是「封面 | 档期/标题」,
+           最后是底行统计。稿里标题下面那行地址后端没有下发,按稿自己的规矩缺就不出。 -->
+      <view class="mp-card" wx:for="{{list}}" wx:key="id" data-item="{{item}}" bindtap="onCardTap" bindlongpress="onCardLong" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="mp-tags">
+          <text class="mp-type">{{item._roleText}}</text>
+          <text class="mp-type">{{item.projectTypeText}}</text>
+          <view class="mp-tags-gap"></view>
+          <cy-badge type="status" variant="{{item._stateVariant}}" label="{{item.stateText}}" />
+        </view>
+        <view class="mp-main">
+          <image lazy-load="true" class="mp-cover" src="{{item.cover || '/images/route_free_cover.png'}}" mode="aspectFill" />
+          <view class="mp-body">
+            <view class="mp-when" wx:if="{{item._whenText}}">{{item._whenText}}</view>
+            <view class="mp-tit-row">
+              <view class="mp-dot" wx:if="{{item._dot}}"></view>
+              <view class="mp-tit">{{item.title}}</view>
+            </view>
+            <!-- 稿 260:277 标题下那行地址。后端 cms_topic.address_name / cms_activity.address_name
+                 一直有,只是 /api/project/my 以前没往外送;缺就整行不出。 -->
+            <view class="mp-addr" wx:if="{{item._address}}">{{item._address}}</view>
+          </view>
+        </view>
+        <!-- 稿 260:277 底行按角色给不同内容:承办方看「等主理人审核 / 待核销」,
+             主办方看「N 报名 · N 浏览」。末尾都缀身份(商家 / 俱乐部 / 个人)。
+             ⚠️ 稿上「待核销 2」的数字后端没有下发(/api/project/my 无该字段),
+                所以承办方这行只给 acceptStatusText,不编一个数出来。 -->
+        <view class="mp-stats">
+          <!-- 稿 260:277 底行按角色分:承办看「待核销 N / 等主理人审核」,主办看「N 报名 · N 浏览」 -->
+          <text class="mp-stat" wx:if="{{item._showPendingVerify}}">{{item._pendingVerifyText}}</text>
+          <text class="mp-stat" wx:elif="{{item._showAccept}}">{{item.acceptStatusText}}</text>
+          <block wx:else>
+            <text class="mp-stat">{{item.signupCount || 0}} 报名</text>
+            <text class="mp-stat">{{item.viewCount || 0}} 浏览</text>
+          </block>
+          <text class="mp-owner" wx:if="{{item.ownerType==='club'}}">俱乐部</text>
+          <text class="mp-owner" wx:elif="{{item.ownerType==='merchant'}}">商家</text>
+          <text class="mp-owner" wx:else>个人</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="mp-state" wx:if="{{projectState === 'ready' && list.length === 0}}">
+      <cy-empty kind="empty" title="{{emptyTit}}" sub="{{emptySub}}"
+        cta="{{stateIndex === 0 && owner === 'all' ? (typeTab === 'topic' ? '去发布' : (typeTab === 'activity' && canPublishActivity ? '发布单场活动' : '')) : ''}}"
+        bind:cta="onEmptyCta" fill size="lg" />
+    </view>
+
+    <view class="mp-more" wx:if="{{projectState === 'ready' && capped}}">仅显示最近 200 条</view>
+  </block>
+
+  <!-- ===== 模板(原 mytemplate 节点玩法列表收编) ===== -->
+  <block wx:else>
+    <view class="mp-list">
+      <view class="mp-card" wx:for="{{tplList}}" wx:key="id" data-id="{{item.id}}" bindtap="tplTap" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="mp-main">
+          <image lazy-load="true" class="mp-cover" src="{{item.imgUrl || '/images/route_city_cover.png'}}" mode="aspectFill" />
+          <view class="mp-body">
+            <view class="mp-tit">{{item.title}}</view>
+            <view class="mp-tags">
+              <text class="mp-type">节点玩法</text>
+              <cy-badge type="status" variant="{{item._stateVariant}}" label="{{item._statusText}}" />
+              <text class="mp-owner" wx:if="{{item.publishStatus == 1}}">已在玩法库</text>
+            </view>
+            <view class="mp-stats">
+              <text class="mp-stat" wx:if="{{item.useNum != null && item.useNum !== ''}}">{{ item.useNum || 0 }} 次引用</text>
+              <text class="mp-stat" wx:if="{{item.duration}}">{{ item.duration || 0 }} 分钟</text>
+            </view>
+          </view>
+        </view>
+        <view class="mp-ops">
+          <!-- 上架要求「已发布且已同步到玩法库」(与后端 updateTemplateLibraryStatus 同口径)，否则必败(M-06)：不给按钮；已上架的仍可下架 -->
+          <view wx:if="{{item.publishStatus == 1 || (item.draftStatus == 1 && item.isSync == 1)}}" class="mp-op mp-op-toggle" catchtap="tplToggle" data-id="{{item.id}}" data-pub="{{item.publishStatus}}" aria-role="button" aria-label="{{item.publishStatus == 1 ? '从玩法库下架' : '发布到玩法库'}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">{{item.publishStatus == 1 ? '从玩法库下架' : '发布到玩法库'}}</view>
+          <view class="mp-op mp-op-del" catchtap="tplDelete" data-id="{{item.id}}" data-title="{{item.title}}" data-pub="{{item.publishStatus}}" aria-role="button" aria-label="删除{{item.title}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">删除</view>
+        </view>
+      </view>
+    </view>
+
+    <cy-skeleton wx:if="{{tplLoading && !tplLoaded}}" type="card" count="{{skeletonItems.length}}" />
+    <cy-error wx:if="{{!tplLoading && tplErrorMsg && !tplLoaded}}" title="{{tplErrorMsg}}" sub="" retry="重试" bind:retry="retryTemplates" />
+    <view wx:if="{{tplLoading && tplLoaded}}" class="mp-refreshing" aria-role="status" aria-live="polite">正在同步最新节点玩法…</view>
+    <cy-empty wx:if="{{tplLoaded && !tplErrorMsg && tplList.length===0}}" title="还没有节点玩法" sub="发布路线时可以沉淀自己的节点互动，之后在这里复用和管理" />
+  </block>
+
+</view>
+
+<!-- 长按卡片打开的操作面板:装稿里不许放在卡面上的那两个列表管理动作。
+     行是按这张卡的 _canToggle / _canDelete 现算的,不可用的动作整行不出,不置灰。 -->
+<cy-sheet show="{{opsSheet.show}}" title="{{opsSheet.title}}" bind:close="closeOpsSheet">
+  <view class="mp-ops-sheet">
+    <view class="mp-ops-row" wx:if="{{opsSheet.canViewApplies}}" bindtap="onOpsPick" data-k="received" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="mp-ops-label">收到的申请</text>
+      <text class="mp-ops-sub">看谁申请了承接、谁已经接了</text>
+    </view>
+    <view class="mp-ops-row" wx:if="{{opsSheet.canEdit}}" bindtap="onOpsPick" data-k="edit" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="mp-ops-label">编辑</text>
+      <text class="mp-ops-sub">还没人买票，可以改这场活动</text>
+    </view>
+    <view class="mp-ops-row" wx:if="{{opsSheet.canToggle}}" bindtap="onOpsPick" data-k="toggle" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="mp-ops-label">{{opsSheet.toggleLabel}}</text>
+      <text class="mp-ops-sub">{{opsSheet.online ? '玩家看不到，内容和数据都留着' : '重新对玩家开放'}}</text>
+    </view>
+    <view class="mp-ops-row" wx:if="{{opsSheet.canCancel}}" bindtap="onOpsPick" data-k="cancel" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="mp-ops-label">{{opsSheet.biz === 'topic' ? '取消主题并退款' : '取消活动'}}</text>
+      <text class="mp-ops-sub">已有人买票会走退款，报名作废</text>
+    </view>
+    <view class="mp-ops-row mp-ops-row--danger" wx:if="{{opsSheet.canDelete}}" bindtap="onOpsPick" data-k="delete" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="mp-ops-label">删除</text>
+      <text class="mp-ops-sub">不可撤销，内容无法找回</text>
+    </view>
+  </view>
+</cy-sheet>
+
+<!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key -->
+<cy-danger-confirm id="dcActivity" bind:confirm="onConfirmDeleteActivity" bind:alt="onDeleteItemAlt" />
+<cy-danger-confirm id="dcCancel" bind:confirm="onConfirmCancelActivity" />
+<cy-danger-confirm id="dcCancelTopic" bind:confirm="onConfirmCancelTopic" />
+<cy-danger-confirm id="dcRoute" bind:confirm="onConfirmDeleteRoute" bind:alt="onDeleteItemAlt" />
+<cy-danger-confirm id="dcTpl" bind:confirm="onConfirmDeleteTemplate" bind:alt="onDeleteTemplateAlt" />

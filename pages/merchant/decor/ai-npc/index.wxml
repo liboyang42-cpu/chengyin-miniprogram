@@ -1,0 +1,243 @@
+<view class="dc-page theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-loading-mask id="cy-loading" />
+  <!-- 4-07:门店 AI 形象 /api/merchant/npc/* 要 PROFILE_WRITE,门禁留空会放行到 403。 -->
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="canWriteProfile" />
+  <cy-nav-bar title="{{view === 'home' ? 'AI 店铺角色' : '上传角色形象'}}" custom-back bind:back="onNavBack" />
+  <view style="height:{{statusBarHeight + navBarHeight}}px;flex-shrink:0;" />
+  <cy-skeleton wx:if="{{loading}}" type="detail" />
+  <cy-error
+    wx:elif="{{loadError}}"
+    title="角色资料没能打开"
+    sub="{{loadError}}"
+    retry="重试"
+    bind:retry="_loadProfile"
+  />
+  <scroll-view wx:else scroll-y class="dc-scroll">
+    <view class="dc-content">
+      <view class="{{view === 'home' ? 'npc-hero' : 'npc-stage'}}">
+        <view class="npc-preview {{view === 'avatar' ? 'npc-preview--large' : ''}}">
+          <image wx:if="{{source === 'photo' && uploadedUrl}}" src="{{uploadedUrl}}" mode="aspectFill" />
+          <canvas wx:else type="2d" id="npc-preview" class="npc-canvas" />
+        </view>
+        <block wx:if="{{view === 'home'}}">
+          <text class="dc-name">{{name || '给角色起个名字'}}</text>
+          <view wx:if="{{hasProfile}}">
+            <cy-badge type="status"
+              variant="{{auditStatus === 1 ? 'success' : (auditStatus === 2 ? 'warning' : 'neutral')}}"
+              label="{{auditStatus === 1 ? '已上线' : (auditStatus === 2 ? '已驳回' : '审核中')}}" />
+            <text class="dc-muted" wx:if="{{auditStatus === 2 && auditReason}}">驳回理由：{{auditReason}}</text>
+          </view>
+        </block>
+        <block wx:else>
+          <text class="dc-muted">{{processing ? '正在处理形象，请稍候' : '预览效果'}}</text>
+          <view class="npc-sources">
+            <view
+              bindtap="choosePhoto"
+              aria-role="button"
+              aria-disabled="{{saving || processing}}"
+              hover-class="cy-pressed"
+            >
+              上传照片
+            </view>
+            <view
+              bindtap="openPresets"
+              aria-role="button"
+              aria-disabled="{{saving || processing}}"
+              hover-class="cy-pressed"
+            >
+              选现成的
+            </view>
+          </view>
+        </block>
+      </view>
+      <cy-inline-error kind="error" wx:if="{{photoError || previewError}}" title="暂未完成" sub="{{photoError || previewError}}" />
+      <block wx:if="{{view === 'home'}}">
+        <view class="dc-card">
+          <cy-cell arrow-icon="chevron-right" title="角色形象" value="上传 / 更换" bind:tap="openAvatar" />
+          <cy-cell arrow-icon="chevron-right"
+            title="角色声音"
+            value="{{voiceStatus === 1 ? '声音生成中' : voiceStatus === 2 ? '声音可用' : voiceStatus === 3 ? '生成失败 · 重试' : '上传语音'}}"
+            bind:tap="openVoice"
+            hairline="{{false}}"
+          />
+        </view>
+        <view class="dc-card">
+          <cy-cell arrow-icon="chevron-right" title="名字" value="{{name || '填写名字'}}" bind:tap="editField" data-key="name" />
+          <cy-cell arrow-icon="chevron-right"
+            title="招呼语"
+            value="{{greeting || '填写招呼语'}}"
+            bind:tap="editField"
+            data-key="greeting"
+          />
+          <cy-cell arrow-icon="chevron-right"
+            title="性格设定"
+            value="{{persona || '填写性格设定'}}"
+            bind:tap="editField"
+            data-key="persona"
+          />
+          <cy-cell arrow-icon="chevron-right"
+            title="店铺知识"
+            value="{{knowledge || '填写菜单、招牌与营业信息'}}"
+            bind:tap="editField"
+            data-key="knowledge"
+          />
+          <cy-cell arrow-icon="chevron-right"
+            title="漫游落点"
+            value="{{storePointText}}"
+            bind:tap="chooseStorePoint"
+            hairline="{{false}}"
+          />
+        </view>
+        <view class="dc-muted npc-persona-note">性格设定决定玩家「和 TA 聊聊」时角色的性格与语气；不填写，玩家会看到「这家店的分身还没上线」。</view>
+      </block>
+      <block wx:else>
+        <cy-inline-error kind="error" wx:if="{{saveError}}" title="暂未完成" sub="{{saveError}}" />
+        <cy-btn
+          bindtap="save"
+          loading="{{saving}}"
+          disabled="{{processing || (!photoReady && source === 'photo')}}"
+        >
+          {{saveError ? '重试保存' : '保存形象'}}
+        </cy-btn>
+      </block>
+    </view>
+  </scroll-view>
+  <cy-sheet show="{{presetVisible}}" title="选现成的" bind:close="closePresets">
+    <view class="dc-sheet-content">
+      <view class="npc-grid">
+        <view
+          class="npc-option"
+          wx:for="{{presetIds}}"
+          wx:key="*this"
+          data-id="{{item}}"
+          bindtap="pickPreset"
+          aria-role="radio"
+          aria-checked="{{pickId === item}}"
+          aria-label="{{presetNames[item]}}"
+          hover-class="cy-pressed"
+        >
+          <view class="npc-tile {{pickId === item ? 'npc-tile--selected' : ''}}"><canvas id="{{'tile-' + item}}" type="2d" class="npc-tile-canvas" /></view><text class="npc-tile-name">{{presetNames[item]}}</text>
+        </view>
+      </view>
+      <cy-btn bindtap="confirmPreset">使用这个形象</cy-btn>
+    </view>
+  </cy-sheet>
+  <cy-sheet
+    show="{{field !== null && !discardVisible}}"
+    title="{{field.label}}"
+    bind:close="closeField"
+    mask-closable="{{!saving}}"
+    closable="{{!saving}}"
+  >
+    <view class="dc-sheet-content">
+      <textarea
+        wx:if="{{field.multiline}}"
+        class="dc-textarea"
+        value="{{field.value}}"
+        maxlength="{{field.max}}"
+        bindinput="onFieldInput"
+        disabled="{{saving}}"
+        aria-label="{{field.label}}"
+      />
+      <input
+        wx:else
+        class="dc-input"
+        value="{{field.value}}"
+        maxlength="{{field.max}}"
+        bindinput="onFieldInput"
+        disabled="{{saving}}"
+        aria-label="{{field.label}}"
+      />
+      <text class="dc-counter">{{field.value.length}}/{{field.max}}</text>
+      <cy-inline-error kind="error" wx:if="{{saveError}}" title="暂未完成" sub="{{saveError}}" />
+      <cy-btn bindtap="saveField" loading="{{saving}}">保存</cy-btn>
+    </view>
+  </cy-sheet>
+  <cy-sheet inset show="{{discardVisible}}" title="还没有保存" bind:close="keepEditing">
+    <view class="dc-sheet-content">
+      <text class="dc-muted">离开后，本次修改不会保留。</text>
+      <view class="dc-sheet-actions">
+        <cy-btn variant="secondary" bindtap="discardChanges">放弃修改</cy-btn>
+        <cy-btn bindtap="keepEditing">继续编辑</cy-btn>
+      </view>
+    </view>
+  </cy-sheet>
+  <cy-sheet
+    handle show="{{voiceVisible}}"
+    title="{{voiceFile ? '确认录音' : voiceStatus === 1 ? '声音生成中' : voiceStatus === 2 ? '声音可用' : '录制角色声音'}}"
+    bind:close="closeVoice"
+    closable="{{!voiceBusy && !voiceSessionActive && !voiceFinalizing}}"
+    mask-closable="{{!voiceBusy && !voiceSessionActive && !voiceFinalizing}}"
+  >
+    <view class="dc-sheet-content npc-voice">
+      <text class="dc-heading">让店铺角色用你的声音说话</text>
+      <cy-consent-check
+        wx:if="{{voiceStatus !== 1}}"
+        checked="{{voiceConsent}}"
+        text="我确认这是本人声音，或已获得声音权利人的明确授权；同意将本段录音提供给阿里云百炼生成店铺角色音色。"
+        bind:change="onVoiceConsentChange"
+      />
+      <block wx:if="{{voiceStatus === 1}}">
+        <cy-skeleton type="text" />
+        <text class="dc-muted">声音正在生成，可以先返回继续装修店铺。</text>
+        <cy-btn variant="secondary" bindtap="refreshVoice">刷新状态</cy-btn>
+      </block>
+      <block wx:elif="{{voiceStatus === 2}}">
+        <text class="dc-muted">角色的声音已准备好。</text>
+        <view class="dc-sheet-actions">
+          <cy-btn variant="secondary" bindtap="playVoice" wx:if="{{voiceSample}}">
+            {{voicePlaying ? '暂停试听' : '试听原录音'}}
+          </cy-btn>
+          <cy-btn bindtap="resetVoiceRecording">重新录音</cy-btn>
+        </view>
+      </block>
+      <block wx:else>
+        <text wx:if="{{voiceStatus === 3}}" class="dc-error">声音生成失败，请重新录一段清晰的声音。</text>
+        <view wx:if="{{!voiceFile}}" class="npc-voice-mode {{voiceHolding ? 'npc-voice-mode--listening' : ''}}">
+          <text class="npc-voice-mode__title">Voice mode</text>
+          <view class="npc-voice-progress" aria-label="三句录音进度">
+            <view wx:for="{{voiceSentences}}" wx:key="*this" class="npc-voice-progress__step {{index < voiceSentenceConfirmed ? 'npc-voice-progress__step--done' : index === voiceSentenceIndex ? 'npc-voice-progress__step--active' : ''}}"></view>
+          </view>
+          <view class="npc-voice-stage">
+            <text class="npc-voice-prompt">{{voiceSentenceText}}</text>
+            <view class="npc-voice-ring npc-voice-ring--outer"></view>
+            <view class="npc-voice-ring npc-voice-ring--inner"></view>
+            <view class="npc-voice-orb" aria-hidden="true">
+              <view class="npc-wave">
+                <view></view><view></view><view></view><view></view><view></view><view></view>
+                <view></view><view></view><view></view><view></view><view></view>
+              </view>
+            </view>
+          </view>
+          <button wx:if="{{voiceFinalizing}}" class="npc-voice-hold" disabled>正在保存…</button>
+          <button wx:elif="{{voiceSentenceReady}}" class="npc-voice-hold" bindtap="confirmVoiceSentence" aria-label="确认这句">确认这句</button>
+          <button wx:else class="npc-voice-hold {{voiceHolding ? 'npc-voice-hold--active' : ''}}" hover-class="none" bindtouchstart="onVoiceHoldStart" bindtouchend="onVoiceHoldEnd" bindtouchcancel="onVoiceHoldEnd" aria-label="{{voiceHolding ? '松开结束' : '按住说话'}}">
+            {{voiceHolding ? '松开结束' : '按住说话'}}
+          </button>
+        </view>
+        <view wx:else class="npc-voice-complete">
+          <text class="npc-voice-complete__title">三句已录好</text>
+          <text class="dc-muted">{{voiceFile.duration || 0}} 秒 · 确认声音清晰、没有背景音乐</text>
+          <button class="npc-voice-hold" bindtap="playVoice" aria-label="{{voicePlaying ? '暂停试听录音' : '试听录音'}}">{{voicePlaying ? '暂停试听' : '试听录音'}}</button>
+        </view>
+        <view wx:if="{{voiceFile}}" class="dc-sheet-actions">
+          <cy-btn variant="secondary" bindtap="resetVoiceRecording" disabled="{{voiceBusy || voiceUnknown}}">
+            重新录音
+          </cy-btn>
+          <cy-btn bindtap="uploadVoice" loading="{{voiceBusy}}" disabled="{{voiceUnknown || !voiceConsent}}">
+            确认并生成声音
+          </cy-btn>
+        </view>
+      </block>
+      <cy-inline-error kind="error" wx:if="{{voiceError}}" title="暂未完成" sub="{{voiceError}}" />
+      <cy-btn wx:if="{{voiceUnknown}}" variant="secondary" bindtap="refreshVoice">查询生成状态</cy-btn>
+    </view>
+  </cy-sheet>
+  <canvas type="2d" id="npc-work" class="npc-work" />
+  <cy-privacy-gate
+    show="{{privacyGateShow}}"
+    bind:settled="onPrivacyGateSettled"
+  />
+</view>

@@ -1,0 +1,140 @@
+:host {
+  display: block;
+  width: 100%;
+  /* 2026-09-02 Figma 297:1827:14pt 的卡间距只给 Roam variant,Template 是 12pt。 */
+  margin-bottom: var(--cy-space-3);
+}
+
+.feed-play-card {
+  position: relative;
+  width: 100%;
+  /* 2026-09-02 Figma 297:1827:封面高 248pt = 496rpx,文案与按钮叠在封面内、
+     封面下方没有内容。原 820rpx 是旧「全幅竖版分享图」口径,已作废。 */
+  height: 496rpx;
+  overflow: hidden;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.feed-play-card__cover {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 稿 297:1827 的三段渐变:transparent → 55% 处 rgba(0,0,0,.55) → 底部 rgba(0,0,0,.92)。
+   这层是压在【照片】上的黑纱,不能走主题 token:浅色档翻转成白纱后,封面上的白字全糊。 */
+.feed-play-card__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .55) 55%, rgba(0, 0, 0, .92) 100%); /* ds-ok: 压在照片上的黑纱,恒黑不随主题翻转,理由见上 */
+  pointer-events: none;
+}
+
+/* 模板角标:稿上在左上角,距左/距顶各 14pt。 */
+.feed-play-card__badge {
+  position: absolute;
+  top: var(--cy-space-3-5);
+  left: var(--cy-space-3-5);
+  padding: 10rpx var(--cy-space-2-5);   /* 稿 上下 5pt / 左右 10pt;5pt=10rpx 无对应 space 档 */
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-caption);    /* 22rpx = 11pt */
+  font-weight: 500;                     /* 稿 Medium */
+  color: var(--cy-color-text-primary);
+  background: rgba(0, 0, 0, .55); /* ds-ok: 与 __scrim 同源的照片黑纱,恒黑不随主题翻转 */
+}
+
+.feed-play-card__trophy {
+  position: absolute;
+  top: var(--cy-space-3-5);
+  right: var(--cy-space-3-5);
+  display: flex;
+  align-items: center;
+  padding: 10rpx var(--cy-space-2-5);   /* 与 __badge 同一枚药丸的几何:稿 上下 5pt / 左右 10pt */
+  color: #ffffff; /* ds-ok: 图上完成态恒用白字 */
+  background: rgba(0, 0, 0, .55); /* ds-ok: 图上徽章保护层 */
+  border-radius: var(--cy-radius-pill);
+}
+
+.feed-play-card__trophy-icon {
+  margin-right: var(--cy-space-1);
+  color: var(--cy-color-rare);
+}
+
+.feed-play-card__trophy-count {
+  font-size: var(--cy-font-caption);    /* 22rpx = 11pt,与 __badge 对齐 */
+  font-weight: 700;
+}
+
+/* 稿 297:1827:封面文案+按钮绝对定位,距左/右/底各 14pt ⇒ 宽度 = 封面宽 − 28pt,左对齐。 */
+.feed-play-card__body {
+  position: absolute;
+  right: var(--cy-space-3-5);
+  bottom: var(--cy-space-3-5);
+  left: var(--cy-space-3-5);
+  text-align: left;
+}
+
+.feed-play-card__title {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  /* 44rpx = 22pt。取 home-feed-title 而非等值的 sheet-title:语义是「Feed 卡标题」,
+     且它不参与 --cy-type-scale —— 本行是 nowrap+省略号的封面单行标题,放大即破版。 */
+  font-size: var(--cy-type-home-feed-title);
+  font-weight: 700;
+  line-height: var(--cy-leading-tight);
+  color: #ffffff; /* ds-ok: 标题压在图片上恒用白字 */
+}
+
+.feed-play-card__subtitle {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: var(--cy-space-1);        /* 稿 标题↔副标题 4pt */
+  font-size: var(--cy-font-label);      /* 24rpx = 12pt */
+  color: rgba(255, 255, 255, .82); /* ds-ok: 图上次级说明 */
+}
+
+.feed-play-card__actions {
+  display: flex;
+  gap: var(--cy-space-2-5);             /* 稿 两颗按钮间距 10pt */
+  margin-top: var(--cy-space-3);        /* 稿 文案区↔按钮组 12pt */
+}
+
+.feed-play-card__btn {
+  flex: 1;
+  box-sizing: border-box;
+  /* 稿给的是「上下 12pt 内边距」(24rpx),不是固定高度;padding 决定视觉高度。
+     min-height 保留 88rpx(44pt)不是冗余:它是 a11y 触达下限,当系统字号被调小、
+     padding+行高算出来不足 88rpx 时兜底。两者并存 —— 不能为了对稿把它降到 48rpx。 */
+  padding: var(--cy-space-3) 0;
+  min-height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-button);     /* 32rpx = 16pt */
+  font-weight: 500;                     /* 稿 Medium */
+}
+
+/* 「看看模板」:稿 底 play-accent-soft、字 primary(不再是自造的玻璃白 + 高光描边)。 */
+.feed-play-card__btn--ghost {
+  color: var(--cy-color-text-primary);
+  background: var(--cy-color-play-accent-soft);
+}
+
+/* 「试玩」:稿 底 action-primary-bg、字 text-inverse。 */
+.feed-play-card__btn--solid {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-text-inverse);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

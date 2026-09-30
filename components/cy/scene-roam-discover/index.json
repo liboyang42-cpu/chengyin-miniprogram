@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-merchant-card": "/components/cy/merchant-card/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-skeleton": "/components/cy/skeleton/index"
+  },
+  "styleIsolation": "isolated"
+}

@@ -1,0 +1,47 @@
+/* cy-tag · 状态标签。variant: green/blue/red/done/mono
+ *
+ * 2026-08-05 按规范真源改造(§4 状态色映射 + §5 只填充无描边):
+ * - 全部去掉 `border: 1rpx solid` —— 描边已废止,层级靠填充表达
+ * - 颜色从硬编码 rgba 换成 --cy-color-status-* 四件套 + 对应的 -soft 软底,
+ *   原来 blue 用的是 --cy-accent(品牌色),语义上应该是 status-info
+ * - 新增 green(进行中),用户裁决:进行中=绿
+ */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  height: var(--cy-comp-tag-h);
+  padding: 0 var(--cy-comp-tag-pad-x);
+  border-radius: var(--cy-comp-tag-radius);
+  font-size: var(--cy-font-caption);
+  font-weight: 600;
+  line-height: 1;
+  box-sizing: border-box;
+}
+.tag__icon { flex: none; color: currentColor; }
+.dot { width: var(--cy-legacy-10); height: var(--cy-legacy-10); border-radius: 50%; }
+
+.tag--green { color: var(--cy-color-status-success); background: var(--cy-color-status-success-soft); }
+.tag--green .dot { background: var(--cy-color-status-success); }
+
+.tag--blue { color: var(--cy-color-status-info); background: var(--cy-color-status-info-soft); }
+.tag--blue .dot { background: var(--cy-color-status-info); }
+
+.tag--red { color: var(--cy-color-status-danger); background: var(--cy-color-status-danger-soft); }
+.tag--red .dot { background: var(--cy-color-status-danger); }
+
+.tag--warning { color: var(--cy-color-status-warning); background: var(--cy-color-status-warning-soft); }
+.tag--warning .dot { background: var(--cy-color-status-warning); }
+
+.tag--rare { color: var(--cy-color-rare); background: var(--cy-comp-rare-soft); }
+.tag--rare .dot { background: var(--cy-color-rare); }
+
+/* done / mono 都是中性态(已结束 / 未开始),用文字色分主次,不用状态色 */
+.tag--done { color: var(--cy-text-body); background: var(--cy-color-bg-surface-subtle); }
+.tag--done .dot { background: var(--cy-color-text-tertiary); }
+
+.tag--mono { color: var(--cy-text-secondary); background: var(--cy-color-bg-surface-subtle); }
+.tag--mono .dot { background: var(--cy-color-text-tertiary); }
+
+/* 选中态:靠内描边(填充的一部分)而不是外 border,与 §5 一致 */
+.tag.is-selected { color: var(--cy-color-text-primary); box-shadow: inset 0 0 0 2rpx var(--cy-color-border-strong); }

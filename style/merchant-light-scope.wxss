@@ -1,0 +1,49 @@
+/* ============================================================
+ * 商家浅色 · 类作用域版(.theme-merchant)
+ * 给「玩家/商家同页」的共享页(发布流 template/publish 等)条件套用:
+ *   根节点在 mode=merchant 时加 `theme-merchant` 类 → 整块变亮;
+ *   玩家不加类,继续吃默认暗色(tokens.wxss)。
+ *
+ * 2026-07-14 T1 单真源收敛:
+ *   日间键值不再驻留本文件——`.theme-merchant` 已并入 tokens.wxss 日间块选择器
+ *   (page.theme-light, .theme-light, .theme-merchant),值只有一处真源。
+ *   本文件只剩:①商家过渡黑 CTA(与 merchant-light.wxss ②段一致,由
+ *   scripts/ds-theme-sync-check.sh 锁定;Batch 3 迁移后随之删除)
+ *   ②共享页仍消费的旧 alias 桥接 ③isolated fallback ④根 view 自身着色
+ *   (覆盖页 page{} 暗底)。
+ * ============================================================ */
+.theme-merchant {
+  /* —— ① 商家过渡:黑 CTA(与 merchant-light.wxss ②段镜像,勿单独改) —— */
+  --cy-brand:          var(--cy-color-selection);
+  --cy-brand-soft:     rgba(15,23,43,0.08);
+  --cy-accent:         var(--cy-color-selection);
+  --cy-accent-strong:  #1a1a1a;
+  --cy-accent-soft:    rgba(15,23,43,0.08);
+  --cy-bg-accent-weak: rgba(15,23,43,0.06);
+
+  /* —— ② 共享页旧 alias 桥接:子选择器在此节点重新求值,避免沿用 page 的暗色快照 —— */
+  --cy-bg-page:        var(--cy-color-bg-page);
+  --cy-bg-card:        var(--cy-color-bg-surface);
+  --cy-bg-card-2:      var(--cy-color-bg-surface-subtle);
+  --cy-bg-subtle:      #f8fafc; /* ds-ok: 商家日间旧 alias 保留既定字面契约,与 tokens.wxss 同值 */
+  --cy-text-title:     var(--cy-color-text-primary);
+  --cy-text-body:      var(--cy-color-text-secondary);
+  --cy-text-secondary: var(--cy-color-text-tertiary);
+  --cy-text-inverse:   var(--cy-color-text-inverse);
+  --cy-border-card:    var(--cy-color-border-subtle);
+  --cy-border-line:    var(--cy-color-border-strong);
+  --cy-btn-solid-bg:   var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg:   var(--cy-color-action-primary-fg);
+  --cy-danger:         var(--cy-color-status-danger);
+  --cy-white-16:       var(--cy-color-border-strong);
+
+  /* —— ③ cy-btn isolated 组件 fallback(历史保险,保留) —— */
+  --cy-btn-h: 88rpx;
+  --cy-btn-pad-x: 40rpx;
+  --cy-font-body: 28rpx;
+  --cy-radius-md: 24rpx;
+
+  /* —— ④ 根 view 自身着色 —— */
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}

@@ -1,0 +1,19 @@
+@import '../../../style/fade-in.wxss';
+
+:host { display: block; min-height: 100%; }
+.ae { min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; padding-bottom: calc(var(--cy-space-4) + env(safe-area-inset-bottom)); }
+.ae-fill { display: flex; flex: 1; flex-direction: column; justify-content: center; }
+.ae-hero { display: flex; flex-direction: column; gap: var(--cy-space-3); padding: var(--cy-space-3) var(--cy-space-5) var(--cy-space-4); }
+
+/* D33：余额卡白色实底；下方动作与选项使用灰色层级。 */
+.ae-card { display: flex; flex-direction: column; gap: var(--cy-space-2); padding: var(--cy-space-4); border: 0; border-radius: var(--cy-radius-md); background: var(--cy-btn-solid-bg); box-shadow: none; }
+.ae-card__label { color: var(--cy-btn-solid-fg); font-size: var(--cy-font-label); font-weight: 500; }
+.ae-card__amount { color: var(--cy-btn-solid-fg); font-size: var(--cy-type-data-xl); font-weight: 700; line-height: 1.15; }
+.ae-actions { display: flex; gap: var(--cy-space-2); }
+.ae-action { flex: 1; min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; box-sizing: border-box; border-radius: var(--cy-radius-pill); background: var(--cy-color-action-secondary-bg); color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+.ae-section { margin: 0 var(--cy-page-x) var(--cy-space-3); padding: var(--cy-space-1) var(--cy-space-2); border-radius: var(--cy-radius-lg); background: var(--cy-color-action-secondary-bg); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

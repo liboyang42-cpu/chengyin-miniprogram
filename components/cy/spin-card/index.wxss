@@ -1,0 +1,181 @@
+/* cy-spin-card · 立体藏品卡
+ *
+ * 姿态由根节点的一段内联样式喂进来(--rx/--ry/--px/--py/--fx/--fy/--fo),
+ * 下面每一层只读这几个变量。**没有任何一层动 width/left/top** —— 那是每帧
+ * layout+paint,30fps 直接掉帧;transform / opacity 只走合成层。
+ * 也**没有一组 keyframes 动画**:高光是持续跟随姿态的状态,不是播一次的动画,
+ * 用 keyframes 反而会在快速重触发时从 0 重启(本仓动效棘轮拦的就是这个)。
+ */
+
+:host { display: block; width: 100%; }
+
+.sc {
+  position: relative;
+  /* 视点距离:越小立体感越猛。900rpx 在 6:4 的卡上是「一张立着的卡」,
+     再小就成了鱼眼。整张卡的 3D 只有这一处声明透视。 */
+  perspective: 900rpx;
+}
+
+.sc__stage {
+  position: relative;
+  width: 100%;
+  padding-bottom: 132%;          /* 卡面比例:竖着的明信片,不是正方形 */
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  will-change: transform;
+}
+
+.sc__face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;              /* 裁切下沉到这里:三层都在这扇窗里让位 */
+  border-radius: var(--cy-radius-xl);
+  background-color: var(--cy-color-play-surface-solid);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  /* 抬起时的投影。深色域的 --cy-shadow-card 是 none(该域靠边框分层),
+     而这张卡的价值恰恰是「它离开了桌面」,投影是承重的一半。 */
+  box-shadow: 0 24rpx 60rpx rgba(0, 0, 0, .5); /* ds-ok 卡体投影,非主题色 */
+}
+
+/* —— 三层 —— */
+
+.sc__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* scale 1.08 是给让位留的余量:不放大,倾斜时窗口边缘就会露出底色。 */
+  transform: translate3d(var(--px, 0px), var(--py, 0px), 0) scale(1.08);
+  will-change: transform;
+}
+
+
+/* 高光带:一条斜着的亮带,横向跟着倾斜跑。整条比卡宽出一截,
+   所以它从卡外进、从卡外出,像光扫过膜,而不是一片白雾在呼吸。 */
+.sc__foil {
+  position: absolute;
+  top: -40%;
+  left: -60%;
+  width: 220%;
+  height: 180%;
+  pointer-events: none;
+  background: linear-gradient(104deg,
+    transparent 42%,
+    rgba(255, 255, 255, .10) 47%, /* ds-ok 镜面高光是白光不是品牌色 */
+    rgba(255, 255, 255, .42) 50%, /* ds-ok 同上:亮带峰值只此一档 */
+    rgba(255, 255, 255, .10) 53%, /* ds-ok 同上:亮带两侧对称收口 */
+    transparent 58%); /* ds-ok 整条亮带是光学效果,不进主题 token */
+  opacity: var(--fo, 0);
+  transform: translate3d(var(--fx, 0px), var(--fy, 0px), 0);
+  will-change: transform, opacity;
+}
+
+/* 常驻的那层膜:不倾斜时也得有点「卡是厚的是覆了膜的」的意思,
+   不然静态档(不支持加速度计 / 减弱动效)看着就是一张被裁了圆角的照片。 */
+.sc__sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(160deg, var(--cy-comp-card-highlight) 0, transparent 46%);
+  border-radius: var(--cy-radius-xl);
+}
+
+/* —— 卡上印的字 —— */
+
+.sc__cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1);
+  padding: var(--cy-space-7) var(--cy-space-4) var(--cy-space-4);
+  background: var(--cy-comp-cover-scrim);
+}
+
+.sc__title {
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--cy-comp-oncover-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sc__caption {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-comp-oncover-fg-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* —— 降级态 —— */
+
+/* 图挂了:卡壳还在,名字还在,只是不假装照片在路上。 */
+.sc__ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-2);
+  background-color: var(--cy-color-play-surface-subtle);
+}
+
+.sc__ph-t {
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  color: var(--cy-comp-oncover-fg-dim);
+}
+
+.sc__ph-s {
+  font-size: var(--cy-type-micro);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* 卡片边缘在「正被倾斜」时亮一点点:让人知道这卡是活的、跟着手机在动。
+   静态档没有这条边 —— 不动的卡不该装作自己能动。 */
+.sc--live .sc__face {
+  border-color: var(--cy-color-play-line);
+}
+
+/* plain 档:没有高光带。膜那层留着 —— 去掉它就成了一张普通圆角照片。 */
+.sc--plain .sc__foil {
+  opacity: 0;
+}
+
+/* —— 转台预载:透明、1rpx、不接收触摸。不能 display:none —— 那样图可能根本不去加载 —— */
+
+.sc__pre {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1rpx;
+  height: 1rpx;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sc__pre-img {
+  width: 1rpx;
+  height: 1rpx;
+  opacity: 0;
+}
+
+/* —— 转台提示(L1 才有,单帧时那行 wx:if 就不成立) —— */
+
+.sc__hint {
+  margin-top: var(--cy-space-2);
+  display: flex;
+  justify-content: center;
+}
+
+.sc__hint-t {
+  font-size: var(--cy-type-micro);
+  color: var(--cy-color-text-tertiary);
+}

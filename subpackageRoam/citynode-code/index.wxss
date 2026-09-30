@@ -1,0 +1,12 @@
+/* C2 玩家据点核销码 · 出示 UI 已收编进 cy-qr-voucher(DS §5.9),本页只保留缺参态的整屏容器。 */
+
+/* 缺参态由页面自渲染(见 wxml 注释):撑满整屏居中,暗底与本页 custom 导航一致。 */
+.cc-missing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cy-color-bg-page);
+  padding: var(--cy-space-4);
+  box-sizing: border-box;
+}

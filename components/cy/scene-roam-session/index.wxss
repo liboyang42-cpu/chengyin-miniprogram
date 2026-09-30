@@ -1,0 +1,51 @@
+:host { display: block; height: 100%; }
+.ss { position: relative; width: 100%; height: 100%; min-height: 0; box-sizing: border-box; color: var(--cy-color-text-primary); }
+.session-status { min-height: 240rpx; display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); }
+.session-skeleton { padding: 0 38rpx; }
+.session-skeleton__row { height: 110rpx; margin-bottom: var(--cy-space-2); border-radius: var(--cy-radius-lg); background: var(--cy-color-skeleton-base); animation: session-pulse var(--cy-motion-spinner-cycle) ease-in-out infinite alternate; }
+.session-state-fill { display: flex !important; flex: 1 !important; flex-direction: column !important; min-height: 0 !important; }
+
+/* Figma 220:1415：浅色统计总览 → 路线逐段显现 → 进度同步。路线只来自本机真实 track。 */
+.route-replay { margin: var(--cy-space-2) 38rpx 0; padding: var(--cy-space-3); overflow: hidden; border: 1rpx solid var(--cy-color-play-story-line); border-radius: var(--cy-radius-xl); background: var(--cy-color-play-story-page); color: var(--cy-color-play-story-text); }
+.route-replay__head { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.route-replay__copy { min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.route-replay__eyebrow { color: var(--cy-color-play-story-text); font-size: var(--cy-type-card-title); font-weight: 700; }
+.route-replay__date { color: var(--cy-color-play-story-muted); font-size: var(--cy-type-caption); }
+.route-replay__play, .route-replay__skip { min-height: var(--cy-btn-h-sm); display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1); padding: 0 var(--cy-space-2-5); border-radius: var(--cy-radius-pill); background: var(--cy-color-play-story-accent); color: var(--cy-color-play-story-cta-fg); font-size: var(--cy-type-label); font-weight: 700; }
+.route-replay__skip { background: var(--cy-color-play-story-surface); color: var(--cy-color-play-story-text); }
+.route-replay__play-icon { display: flex; flex-shrink: 0; }
+.route-replay__map { position: relative; height: 360rpx; margin-top: var(--cy-space-3); overflow: hidden; border-radius: var(--cy-radius-lg); background: var(--cy-color-play-story-surface); }
+.route-replay__canvas { position: absolute; left: 50%; top: 50%; width: 670rpx; height: 520rpx; transform: translate(-50%, -50%) scale(.72); }
+.route-replay__segment { position: absolute; height: 7rpx; border-radius: var(--cy-radius-pill); transform-origin: 0 50%; background: var(--cy-color-play-story-accent); }
+.route-replay__poi { position: absolute; width: 20rpx; height: 20rpx; border: 5rpx solid var(--cy-color-play-story-page); border-radius: var(--cy-radius-pill); transform: translate(-50%, -50%); background: var(--cy-color-play-story-accent); box-shadow: var(--cy-comp-sheet-shadow-card); }
+.route-replay__poi--1 { background: var(--cy-color-play-story-accent-fade); }
+.route-replay__poi--2 { background: var(--cy-color-play-story-muted); }
+.route-replay__poi--3 { background: var(--cy-color-play-story-text); }
+.route-replay__empty { height: 100%; display: flex; align-items: center; justify-content: center; color: var(--cy-color-play-story-muted); font-size: var(--cy-type-label); }
+.route-replay__progress { margin-top: var(--cy-space-2); display: flex; align-items: center; gap: var(--cy-space-2); color: var(--cy-color-play-story-muted); font-size: var(--cy-type-caption); }
+.route-replay__track { flex: 1; min-width: 120rpx; height: var(--cy-space-1); overflow: hidden; border-radius: var(--cy-radius-pill); background: var(--cy-color-play-story-accent-soft); }
+.route-replay__fill { height: 100%; border-radius: inherit; background: var(--cy-color-play-story-accent); transition: width var(--cy-motion-fast) var(--cy-ease-out); }
+
+.kv { margin: 23rpx 38rpx 0; }
+.kv__row { min-height: 110rpx; display: flex; align-items: center; justify-content: space-between; border-bottom: 1rpx solid var(--cy-color-border-subtle); }
+.kv__k { color: var(--cy-color-text-secondary); font-size: 31rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.kv__v { color: var(--cy-color-text-primary); font-size: 31rpx; font-weight: 700; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rw__hd { margin: 62rpx 38rpx 23rpx; color: var(--cy-color-text-primary); font-size: 42rpx; font-weight: 700; } /* ds-ok Figma 实测 */
+.rw { margin: 0 38rpx; }
+.rw__row { min-height: 131rpx; display: flex; align-items: center; gap: 31rpx; }
+.rw__hex { width: 115rpx; height: 131rpx; flex: none; display: flex; align-items: center; justify-content: center; background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-primary); clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); } /* ds-ok 稿 HexBadge 六边形 60×68 */
+.rw__hex--gold { background: #D4AF37; color: #0A0A0A; } /* ds-ok 成就金 */
+.rw__copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.rw__name { overflow: hidden; color: var(--cy-color-text-primary); font-size: 31rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rw__cat { color: var(--cy-color-text-tertiary); font-size: 25rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rw__empty { margin: 0 38rpx; color: var(--cy-color-text-tertiary); font-size: 27rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.ss-ctaw { padding: 46rpx 38rpx 0; }
+.ss-cta { height: 108rpx; display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-pill); background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); font-size: 32rpx; font-weight: 700; } /* ds-ok Figma 实测(用户裁决字面值) */
+.ss-tail { height: 40rpx; }
+
+@keyframes session-pulse { from { opacity: .62; } to { opacity: 1; } }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

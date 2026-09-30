@@ -1,0 +1,19 @@
+<view class="scr">
+  <!-- 内容始终在 DOM 里:遮罩只是盖在上面的一层。
+       ⚠️ 不做「擦完才渲染」—— 那样读屏会在擦开前读不到任何东西,等于内容不存在。 -->
+  <view class="scr__content"><slot /></view>
+
+  <!-- 遮罩层。revealed / reducedMotion / 已擦完 任一为真都不挂(见 index.js 的 observer) -->
+  <block wx:if="{{_masked}}">
+    <canvas id="scratchCanvas" type="2d" class="scr__canvas"
+            disable-scroll="{{true}}"
+            catchtouchstart="onTouchStart" catchtouchmove="onTouchMove"></canvas>
+    <!-- 读屏用户听到的是「擦开看看:<label>」,不是「一块灰色」;
+         直接揭示按钮是给擦不动的人的兜底出口 -->
+    <view class="scr__a11y" aria-role="button"
+          aria-label="{{label ? '擦开看看：' + label : '擦开看看'}}"></view>
+    <view class="scr__direct" bindtap="onDirectReveal"
+          aria-role="button" aria-label="直接揭示{{label ? '：' + label : ''}}"
+          hover-class="cy-pressed" hover-stay-time="80">直接揭示</view>
+  </block>
+</view>

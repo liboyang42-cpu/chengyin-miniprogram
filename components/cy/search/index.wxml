@@ -1,0 +1,22 @@
+<view class="search {{value ? 'search--filled' : ''}} {{focused ? 'search--focused' : ''}} {{disabled ? 'search--disabled' : ''}}">
+  <view class="search__icon"><cy-icon name="search" size="32" /></view>
+  <input
+    class="search__input"
+    type="text"
+    confirm-type="search"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    placeholder-class="search__placeholder"
+    focus="{{focus}}"
+    disabled="{{disabled}}"
+    bindinput="onInput"
+    bindconfirm="onConfirm"
+    bindfocus="onFocus"
+    bindblur="onBlur"
+  />
+  <view wx:if="{{loading}}" class="search__spin"></view>
+  <!-- filled 态(§3.12)呈现为清除钮:88rpx 触控区 -->
+  <view wx:if="{{value && !disabled}}" class="search__clear" catchtap="onClear" aria-label="清除" hover-class="cy-pressed" hover-stay-time="80">
+    <view class="search__clear-x"><cy-icon name="close-sm" size="28" /></view>
+  </view>
+</view>

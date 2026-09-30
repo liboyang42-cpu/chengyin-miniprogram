@@ -1,0 +1,31 @@
+<view class="wk wk--{{variant}} wk--{{status}}" hover-class="{{variant === 'row' && status !== 'blocked' && status !== 'loading' ? 'wk--press' : ''}}" hover-stay-time="80" catchtap="onTap">
+  <view class="wk__rail"></view>
+  <view class="wk__inner">
+    <view wx:if="{{status === 'loading'}}" class="wk__sk">
+      <view class="wk__sk-line"></view>
+      <view class="wk__sk-line short"></view>
+    </view>
+
+    <block wx:else>
+      <view class="wk__row">
+        <view wx:if="{{showCalendar && dateBadge}}" class="wk__cal">
+          <view class="wk__cal-m">{{dateBadge.month}}</view>
+          <view class="wk__cal-d">{{dateBadge.day}}</view>
+          <view class="wk__cal-w">{{dateBadge.weekday}}</view>
+        </view>
+        <view class="wk__main">
+          <view class="wk__title-row">
+            <text class="wk__title">{{title}}</text>
+            <cy-badge type="status" variant="{{_pv}}" icon="{{_pi}}" label="{{_pl}}" />
+          </view>
+          <view wx:if="{{taskType || object}}" class="wk__meta"><cy-icon name="discover-shop" size="24" /><text class="wk__meta-text">{{taskType}}{{taskType && object ? ' · ' : ''}}{{object}}</text></view>
+          <view wx:if="{{deadlineText}}" class="wk__due"><cy-icon name="clock" size="24" /><text>{{deadlineText}}</text></view>
+          <text wx:if="{{status === 'blocked' && note}}" class="wk__note">{{note}}</text>
+        </view>
+        <cy-icon wx:if="{{variant === 'row'}}" name="arrow-right" size="32" class="wk__chev" />
+      </view>
+
+      <view wx:if="{{variant === 'card' && actionText}}" class="wk__cta wk__cta--{{_cta}}" catchtap="onAction" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">{{actionText}}</view>
+    </block>
+  </view>
+</view>

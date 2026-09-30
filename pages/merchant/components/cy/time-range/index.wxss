@@ -1,0 +1,126 @@
+/* cy-time-range · 时段选择
+ * 壳、遮罩、进退场全交给 cy-date-sheet;这里只排时长徽章 + 两块调节器 + 提示。 */
+:host { display: block; }
+
+.ctr { padding: 0 var(--cy-space-4) var(--cy-space-2); }
+
+/* —— 时长徽章 —— */
+.ctr__badge-row {
+  display: flex;
+  justify-content: center;
+  padding: var(--cy-space-2) 0;
+}
+.ctr__badge {
+  padding: var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-brand-soft);
+  color: var(--cy-color-brand-strong);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+  line-height: 1.4;
+  transition: background var(--cy-motion-fast) var(--cy-ease-out),
+              color var(--cy-motion-fast) var(--cy-ease-out);
+}
+/* 不合法时徽章本身变红:用户的视线在数值上,提示文字在下面容易看漏,
+   而时长是他正在改的那个数 —— 让它自己说话 */
+.ctr__badge--bad {
+  background: var(--cy-color-status-danger-soft);
+  color: var(--cy-color-status-danger);
+}
+
+/* —— 调节器卡 ——
+   底色比面板本身更沉(surface-subtle vs comp-sheet-bg),读起来是「嵌进去的一块表盘」;
+   ± 按钮用 surface-strong 浮上来。两档都是 token,深浅主题各自成立。 */
+.ctr__dial {
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-3) var(--cy-space-4) var(--cy-space-2);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+/* 单位/归属显式标出来:数值本身是 19:00,不写「开始」就只能靠位置猜 */
+.ctr__unit {
+  display: block;
+  text-align: center;
+  font-size: var(--cy-type-micro);
+  letter-spacing: 6rpx;
+  color: var(--cy-color-text-tertiary);
+}
+
+.ctr__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cy-space-1) 0;
+}
+
+.ctr__step {
+  position: relative;
+  flex: none;
+  width: 88rpx;               /* 与 --cy-btn-h 同档:触达区不低于 88rpx */
+  height: 88rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-strong);
+  color: var(--cy-color-text-primary);
+  transition: opacity var(--cy-motion-press) var(--cy-ease-out),
+              transform var(--cy-motion-press) var(--cy-ease-out);
+}
+/* 加减号用两条实线画,不用「+」「−」字符 —— 全局图标契约(tests/unit/global-real-icon-contract)
+   明确禁止拿字符充当可见图标,而 cy-icon 的 56 枚里有 plus 没有 minus,
+   为一个减号去改自动生成的图标集不值当。画出来的还顺带解决了 ± 粗细不一致。
+   按钮本身没有文字,含义由 aria-label 承担。 */
+.ctr__step::before,
+.ctr__step::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32rpx;
+  height: 4rpx;
+  margin: -2rpx 0 0 -16rpx;
+  background: currentColor;
+}
+.ctr__step--minus::after { display: none; }
+.ctr__step--plus::after { transform: rotate(90deg); }
+.ctr__step--press { opacity: .72; transform: scale(.94); }
+/* 减少动态效果:撤位移,保留减淡 —— 反馈不能归零,否则按下去毫无回应 */
+.ctr--reduced-motion .ctr__step--press { transform: none; }
+
+.ctr__value {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-size: var(--cy-type-data-xl);   /* 核心数字档 */
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 2rpx;
+  color: var(--cy-color-text-primary);
+}
+
+/* 可滑动这件事不写出来就没人会试 —— 参考图那行 SLIDE TO ADJUST 是提示不是装饰。
+   参考图两侧还各有一排书名号箭头,这里不照搬:全局图标契约禁止字符伪图标,
+   而「滑动」二字本身已经把可拖这件事说清楚了。 */
+.ctr__slide {
+  display: block;
+  text-align: center;
+  font-size: var(--cy-type-micro);
+  letter-spacing: 4rpx;
+  color: var(--cy-color-text-tertiary);
+}
+
+/* —— 提示 —— */
+/* 常驻等高的空行:提示出现/消失时如果撑开高度,底下的完成按钮会跳 */
+.ctr__hint {
+  min-height: 40rpx;
+  padding-top: var(--cy-space-2);
+  text-align: center;
+  font-size: var(--cy-type-caption);
+  line-height: 1.4;
+  color: transparent;
+  transition: color var(--cy-motion-fast) var(--cy-ease-out);
+}
+.ctr__hint--on { color: var(--cy-color-status-danger); }
+
+.ctr--reduced-motion .ctr__badge,
+.ctr--reduced-motion .ctr__step,
+.ctr--reduced-motion .ctr__hint { transition: none; }

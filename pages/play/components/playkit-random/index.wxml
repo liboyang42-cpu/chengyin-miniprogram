@@ -1,0 +1,57 @@
+<cy-play-stage id="cy-play-stage" skin="draw" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="dk {{reducedMotion ? 'dk--reduced' : ''}}" style="background:{{bg}}">
+    <!-- 换色是满高椭圆横向撑开,不是淡入淡出 —— 淡入淡出读起来像页面在加载 -->
+    <!-- 换色的擦除面:从**正中**往两边撑开(原型写的是 38%,那是照它自己那张卡的位置定的;
+         我们这副牌在屏幕正中,照抄 38% 会先把左边吃掉,读成「从左边刷过来」)。 -->
+    <view class="dk__wipe" style="background:{{wipeCol}};opacity:{{wipeOn ? 1 : 0}};clip-path:ellipse({{wipeP}}% 132% at 50% 50%);transition:{{wipeTr}}"></view>
+
+    <view class="dk__stage">
+      <view class="dk__deckname">{{deckName}}</view>
+
+      <!-- 一副牌摊成扇形。左滑换一张、右滑翻开 —— 手势是这个玩法的操作方式,
+           不是锦上添花:一副牌就该是甩出去的 -->
+      <view class="dk__deck" bindtouchstart="onStart" bindtouchmove="onMove"
+            bindtouchend="onEnd" bindtouchcancel="onEnd">
+        <view class="dk__card {{item.cls}}" wx:for="{{deck}}" wx:key="id"
+              style="{{item.style}}">
+          <view class="dk__tag">{{item.tag}}</view>
+          <view class="dk__h">{{item.title}}</view>
+          <!-- 图案是这张卡唯一的「脸」:四张摞在一起时,玩家靠它分辨新旧 -->
+          <image class="dk__art" src="{{item.art}}" mode="widthFix" aria-hidden="true" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 右滑/点「就这张」推上来的详情。背面就是「标题 + 一段正文」——
+       之前原型里堆过 TL;DR、完成条件、两组数字,后来砍掉了:
+       一张抽到的卡是让人读一句就去做的,不是一个产品介绍页。 -->
+  <view class="dk__detail {{detailOn ? 'dk__detail--on' : ''}}" wx:if="{{detailOn}}">
+    <view class="dk__pill dk__up">这一关</view>
+    <view class="dk__dh dk__up dk__up--2">{{detail.title}}</view>
+    <view class="dk__rule dk__up dk__up--3" style="background:{{bg}}"></view>
+    <view class="dk__dbody dk__up dk__up--4">{{detail.body}}</view>
+    <view class="dk__dback" bindtap="onCloseDetail" aria-role="button" aria-label="收起详情"
+          hover-class="dk__press" hover-stay-time="80">
+      <cy-icon name="back" size="34" /><text>回到牌堆</text>
+    </view>
+  </view>
+
+  <view class="dk__act" wx:if="{{!detailOn}}">
+    <!-- 手势提示做进按钮本身:「换一张」在左、「就这张」在右 —— 按钮的位置就在说往哪儿滑。
+         方向用图标不用字符箭头(‹ › 是伪图标,门禁不收,读屏器也读不出方向) -->
+    <view class="dk__actbtn dk__actbtn--l" bindtap="onNext" aria-role="button" aria-label="换一张"
+          hover-class="dk__press" hover-stay-time="80">
+      <!-- 三个尖角依次亮起,像往那个方向流(原型 chflow,延迟 0 / .16 / .32s) -->
+      <view class="dk__ch dk__ch--l" aria-hidden="true">
+        <cy-icon class="dk__chi dk__chi--1" name="back" size="22" /><cy-icon class="dk__chi dk__chi--2" name="back" size="22" /><cy-icon class="dk__chi dk__chi--3" name="back" size="22" />
+      </view><text>换一张</text>
+    </view>
+    <view class="dk__actbtn dk__actbtn--r" bindtap="onOpen" aria-role="button" aria-label="就这张"
+          hover-class="dk__press" hover-stay-time="80">
+      <text>就这张</text><view class="dk__ch" aria-hidden="true">
+        <cy-icon class="dk__chi dk__chi--1" name="arrow-right" size="22" /><cy-icon class="dk__chi dk__chi--2" name="arrow-right" size="22" /><cy-icon class="dk__chi dk__chi--3" name="arrow-right" size="22" />
+      </view>
+    </view>
+  </view>
+</cy-play-stage>

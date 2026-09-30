@@ -1,0 +1,97 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-branch · 分支剧情(逐值照抄原型 playkit.html 的 .qastory / .qaopt)
+ * 值来自在浏览器里对着原型读回来的 computed style。原型 375px 画布,1px = 2rpx。
+ */
+.br { color: var(--ink); }
+
+/* 分支的题干比问答更重:它是一段故事的开头,不是一道题 */
+.br__q {
+  font-size: var(--cy-type-display);
+  font-weight: 900;
+  line-height: 1.32;
+}
+/* 正文保留换行:商家写的分段是叙事节奏的一部分 */
+.br__story {
+  /* 正文占住题面和选项之间那块空当并居中(原型正文落在 276~417,不是贴着题面)。
+     顶着题面排的话,一屏的下半截全是空的。 */
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+  font-size: var(--cy-type-section-title);
+  line-height: 1.85;
+  color: var(--ink);
+  white-space: pre-wrap;
+  text-align: left;
+}
+/* 反馈是一块实心的话,不是一行浮字 —— 与问答同一块 .qafb。
+   浮字会和正文混成一段,读的人分不清哪句是「你选了之后发生的事」。 */
+.br__fb {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 30rpx;                         /* ds-ok 原型 .qafb 15px */
+  border-radius: 28rpx;                   /* ds-ok 原型 14px */
+  background: var(--soft);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--ink);
+  text-align: left;
+}
+.br__fb-h {
+  margin-bottom: 8rpx;                    /* ds-ok 原型 4px */
+  font-size: var(--cy-type-label);
+  font-weight: 800;
+  letter-spacing: 1rpx;                   /* ds-ok 原型 .04em */
+  color: var(--sub);
+}
+
+/* 选项:与问答同一套发丝行。没有卡片、没有圆角框,就是几条细横线 */
+.br__opt {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;                             /* ds-ok 原型 14px */
+  width: 100%;
+  padding: 38rpx 4rpx;                    /* ds-ok 原型 19px 2px */
+  border-bottom: 2rpx solid var(--soft);
+  box-sizing: border-box;
+  text-align: left;
+  font-size: var(--cy-type-card-title);
+  font-weight: 500;
+  color: var(--sub);
+  transition: color .18s ease;
+}
+.br__opt--first { border-top: 2rpx solid var(--soft); }
+.br__k {
+  flex: none;
+  width: 28rpx;                           /* ds-ok 原型 .qaopt .k 14px */
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  color: var(--sub);
+}
+.br__opt.is-on .br__k { color: inherit; }
+.br__t { flex: 1; min-width: 0; }
+/* 选中不是换底色,是换字色 + 右端点亮一个小方点 */
+.br__tail {
+  margin-left: auto;
+  width: 14rpx; height: 14rpx;
+  border-radius: 2rpx;  /* ds-ok 剧情屏的细线与眉标,逐值照原型 */
+  background: transparent;
+  flex: none;
+  transition: background .18s;
+}
+.br__opt.is-on { color: var(--ink); font-weight: 700; }
+.br__opt.is-on .br__tail { background: var(--ink); }
+/* 选中只是「你选了这条」,其余的压暗 —— 分支没有对错,所以没有红绿两色 */
+.br__opt.is-off { color: var(--soft); }   /* ds-ok 原型 .qaopt.off */
+.br__press { opacity: .88; }
+
+.br__end {
+  font-size: var(--cy-type-caption);
+  font-weight: 900;
+  letter-spacing: 6rpx;
+  opacity: .5;
+}

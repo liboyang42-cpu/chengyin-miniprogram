@@ -1,0 +1,10 @@
+<switch
+  class="cs"
+  checked="{{checked}}"
+  disabled="{{disabled}}"
+  color="{{_color}}"
+  bindchange="onChange"
+  aria-role="switch"
+  aria-checked="{{checked}}"
+  aria-label="{{accessibilityLabel}}"
+/>

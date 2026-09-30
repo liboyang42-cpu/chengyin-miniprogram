@@ -1,0 +1,2 @@
+page { background: var(--cy-color-bg-page); }
+.coupon-wallet-page { min-height: 100vh; background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }

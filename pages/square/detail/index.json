@@ -1,0 +1,25 @@
+{
+  "usingComponents": {
+    "cy-popover": "/pages/square/components/cy/popover/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-feed-play-card": "/components/cy/feed-play-card/index",
+    "cy-completion-share-card": "/components/cy/completion-share-card/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-post-actions": "/pages/square/components/cy/post-actions/index",
+    "cy-post-compose": "/pages/square/components/cy/post-compose/index"
+  },
+  "navigationBarTitleText": "动态",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#000000",
+  "backgroundTextStyle": "light",
+  "navigationStyle": "custom"
+}

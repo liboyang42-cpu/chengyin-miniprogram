@@ -1,0 +1,246 @@
+<view class="detail theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- 分享/扫码直达时栈首只有本页,组件内建 navigateBack 会不动;交给 goBack(有回列表兜底) -->
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <view class="detail-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+
+  <view class="detail-state" wx:if="{{detailState === 'loading'}}">
+    <cy-skeleton type="detail" count="1" />
+  </view>
+  <view class="detail-state" wx:elif="{{detailState === 'error'}}">
+    <cy-error class="fill-slot" fill="{{true}}" size="lg" title="动态没能加载出来" sub="{{detailError}}" bind:retry="onRetryDetail" auto-back />
+    <cy-btn variant="ghost" bindtap="goBack">返回上一页</cy-btn>
+  </view>
+  <view class="detail-state" wx:elif="{{detailState === 'missing-param'}}">
+    <cy-empty class="fill-slot" fill="{{true}}" size="lg" kind="missing-param" title="没有找到这条动态" sub="这个链接可能已失效，请返回上一页，从动态列表重新打开。" cta="返回上一页" bind:cta="goBack" />
+  </view>
+  <view class="detail-state" wx:elif="{{detailState === 'empty'}}">
+    <cy-empty class="fill-slot" fill="{{true}}" size="lg" kind="empty" title="这条动态暂不可用" sub="它可能已被删除或暂时无法访问，返回列表看看其他内容。" cta="返回上一页" bind:cta="goBack" />
+  </view>
+  <block wx:else>
+  <view class="gbox1">
+    <view class="wp">
+      <!-- 关联卡头部按参考图收成头像 + @昵称 + 溢出入口；纯文本帖保留原名/时间。 -->
+      <view class="post-head flex-ac {{info.hasPlayCover ? 'post-head--immersive' : ''}}">
+        <view class="ph-avatar" bindtap="goUserInfoClcik" aria-role="button" aria-label="打开用户主页" hover-class="cy-pressed" hover-stay-time="80">
+          <image lazy-load="true" src="{{info.memberAvatar || '/images/d_profile.png'}}" mode="aspectFill" />
+        </view>
+        <view class="ph-mid">
+          <view class="ph-name ph-name--handle ep1" wx:if="{{info.hasPlayCover}}">@{{ info.memberNickname }}</view>
+          <view class="ph-name ep1" wx:else>{{info.memberNickname}}</view>
+          <!-- 时间无条件出:原来它被裹在 wx:else 里,只有 !hasPlayCover 才显示。
+               2026-09-02 Roam 卡按稿重做后正文不再渲染时间(稿上时间归头部),
+               活动完赛帖(hasPlayCover=true)于是两边都没有时间 —— 把它提出来兜住。 -->
+          <view class="ph-time">{{info.formattedCreateTime}}</view>
+        </view>
+        <button class="gz" hover-class="none" catchtap="followClick" aria-label="关注{{info.memberNickname ? '：' + info.memberNickname : ''}}" wx:if="{{!info.hasPlayCover && info.isFollowTheUser==0 && info.memberId!=userId}}">关注</button>
+        <!-- 溢出入口:所有人都给(A-09)。非本人纯文本帖原先没有入口,详情页想举报只能回列表找;
+             组件在 owner=false 时只渲染「举报」一行,不会露出编辑/删除。 -->
+        <view class="ph-more" catchtap="openPostActions" aria-role="button" aria-label="更多操作" hover-class="cy-pressed" hover-stay-time="80">
+          <cy-icon name="more" size="40" />
+        </view>
+      </view>
+
+      <!-- Figma 379:2571:正文 / 媒体 / 动作同属一条内容列,左缘对齐头像右侧(稿上 x=64pt=128rpx)。 -->
+      <view class="post-body">
+        <!-- 用户正文；纯文本帖仍只走这条简洁分支。 -->
+        <view class="post-text" wx:if="{{ info.contents }}">{{info.contents}}</view>
+
+        <cy-completion-share-card
+          wx:if="{{info.isCompletionShare}}"
+          cover="{{info.completionImage}}"
+          title="{{info.sportName}}"
+          time="{{info.formattedCreateTime}}"
+          node-total="{{info.nodeTotal}}"
+          roam-result="{{info.isRoamResultShare}}"
+          medal-gold="{{info.medalGold}}"
+          medal-silver="{{info.medalSilver}}"
+          medal-bronze="{{info.medalBronze}}"
+          comment-count="{{info.commentCount}}"
+          distance-text="{{info.distanceText}}"
+          shop-text="{{info.shopText}}"
+          duration-text="{{info.durationText}}"
+          kudos-avatars="{{info.kudosAvatars}}"
+          kudos-text="{{info.kudosText}}"
+          comment-nick="{{info.commentNick}}"
+          comment-text="{{info.commentText}}"
+          bind:detail="goSportTopic"
+        />
+
+        <cy-feed-play-card
+          wx:if="{{ info.hasPlayCover && !info.isCompletionShare }}"
+          cover="{{ info.playCover }}"
+          title="{{ info.sportName }}"
+          subtitle="{{ info.playSubtitle }}"
+          completed="{{ info.completed }}"
+          remixable="{{ info.isTopicTemplate }}"
+          node-total="{{ info.nodeTotal }}"
+          bind:detail="goSportTopic"
+          bind:remix="goRemixTemplate"
+          bind:play="goPlay"
+        />
+
+        <!-- 无关联的普通图帖继续使用原实景图横滑。 -->
+        <scroll-view class="media" scroll-x="true" enhanced="true" show-scrollbar="{{false}}" wx:if="{{!info.isCompletionShare && picList.length!=0}}">
+          <view class="media-row">
+            <block wx:for="{{ picList }}" wx:for-item="pic" wx:for-index="picIndex" wx:key="picIndex">
+              <image lazy-load="true" class="media-pic" src="{{ pic }}" mode="aspectFill" data-piclist="{{ picList }}" data-index="{{ picIndex }}" catchtap="previewImage"  aria-role="button" aria-label="查看大图" hover-class="cy-pressed" hover-stay-time="80"/>
+            </block>
+          </view>
+        </scroll-view>
+
+        <!-- 操作:桃心+数、评论+数、分享靠右；举报收进头部溢出入口。 -->
+        <view class="actions flex-cb">
+          <view class="act-left flex-ac">
+            <view class="act act--like flex-ac {{info.isLiked==1 ? 'is-on' : ''}} {{likeBurst ? 'is-bursting' : ''}}" catchtap="lickClick" data-type="1" aria-role="button" aria-label="点赞，当前 {{info.likeCount || 0}}" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon class="act-ico" name="{{info.isLiked==1 ? 'heart-filled' : 'heart'}}" size="40" /><text>{{info.likeCount || 0}}</text>
+            </view>
+            <view class="act act--comment flex-ac" catchtap="focusCommentInput" aria-role="button" aria-label="评论，当前 {{info.commentCount || 0}}" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon class="act-ico" name="comment" size="40" /><text>{{info.commentCount || 0}}</text>
+            </view>
+            <view class="act act--favorite flex-ac {{info.isBookmarked==1 ? 'is-on' : ''}} {{favoriteBurst ? 'is-bursting' : ''}}" catchtap="favoriteClick" aria-role="button" aria-label="{{info.isBookmarked==1 ? '取消收藏' : '收藏帖文'}}" aria-pressed="{{info.isBookmarked==1}}" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon class="act-ico" name="{{info.isBookmarked==1 ? 'star-filled' : 'star'}}" size="40" />
+            </view>
+          </view>
+          <view class="act-right flex-ac">
+            <button class="act-share act-share--end" hover-class="cy-pressed" hover-stay-time="80" open-type="share" aria-label="转发帖文">
+              <image class="act-share-ico" src="/images/icon_share.png" mode="aspectFit" />
+            </button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <!-- <view class="step">
+    <view class="wp">
+      <view class="tit">活动进度</view>
+      <view class="jdt flex-ac">
+        <text style="width:90%;"></text>
+      </view>
+    </view>
+  </view> -->
+  <view class="list">
+
+    <cy-skeleton wx:if="{{commentsState === 'loading' && !list.length}}" type="list" count="3" />
+    <cy-error wx:elif="{{commentsState === 'error' && commentLoadError && !list.length}}" title="评论没能加载" sub="网络可能不稳定，已发布的评论不会丢失" retry="重试" bind:retry="retryComments" />
+    <cy-empty wx:if="{{commentsState === 'ready' && nodata}}" kind="empty" title="还没有评论" sub="说说你对这条动态的想法吧" />
+
+    <view class="dl" wx:for="{{ list }}" wx:key="index">
+      <view class="li">
+        <view class="item flex-b">
+          <view class="col1">
+            <view class="user">
+              <image lazy-load="true" src="{{item.memberAvatar || '/images/d_profile.png'}}" mode="aspectFill" />
+              <button class="jia" wx:if="{{item.isFollowTheUser==0}}" bindtap="commentFollowClick" data-index="{{index}}" aria-label="关注{{item.memberNickname ? '：' + item.memberNickname : ''}}">
+                <image lazy-load="true" src="/pages/square/images/icon_jia.png" mode="widthFix" />
+              </button>
+            </view>
+          </view>
+          <view class="col2 flex-a">
+            <view class="item-tit flex-cb">
+              <view class="uname">
+                {{item.memberNickname}}
+              </view>
+              <view class="fr flex-ac">
+                <view class="time">{{item.formattedCreateTime}}</view>
+                <!-- <view class="more flex-ac">
+                  <image lazy-load="true" src="/pages/square/images/icon_dot.png" mode="widthFix" />
+                </view> -->
+              </view>
+            </view>
+            <view class="item-desc">
+              {{item.contents}}
+            </view>
+            <view class="item-link flex-ac">
+              <button class="comment-like {{item.isLiked==1 ? 'is-on' : ''}}" hover-class="none" bindtap="commentLikeClick" data-index="{{index}}" aria-label="点赞评论，当前 {{item.likeCount || 0}}">
+                <cy-icon name="heart" size="32" />
+                <text>{{item.likeCount || 0}}</text>
+              </button>
+              <button hover-class="none" bindtap="msgClick" aria-role="button" aria-label="回复评论" data-item="{{item}}">
+                <cy-icon name="comment" size="32" />
+              </button>
+              <button class="comment-report" hover-class="none" bindtap="reportComment" data-index="{{index}}" aria-label="举报评论">
+                举报
+              </button>
+              <!-- A-04:自己的评论给删除入口(非本人只留举报;后端 /api/comment/delete 也校验归属) -->
+              <button class="comment-report comment-delete" hover-class="none" wx:if="{{item.memberId == userId}}" bindtap="deleteComment" data-index="{{index}}" aria-label="删除评论">
+                删除
+              </button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="comment-load-more-status" wx:if="{{commentLoadingMore}}" aria-live="polite">正在加载更多评论…</view>
+    <cy-inline-error wx:if="{{commentLoadMoreError}}" kind="network" title="更多评论没有加载出来" sub="{{commentLoadMoreError}}" action="重试" bind:action="retryCommentLoadMore" />
+  </view>
+
+  <!--新加评论-->
+  <view class="comment-submit-feedback" wx:if="{{commentSubmitError}}">
+    <cy-inline-error kind="{{commentSubmitErrorKind}}" title="{{commentSubmitError}}" sub="评论内容仍保留在输入框" action="重试" bind:action="retryCommentSubmit" />
+  </view>
+  <view class="david_kong"></view>
+  <view class="david_npl" wx:if="{{popShow==false}}">
+      <view class="david_npl_left"><image lazy-load="true" src="{{avatar || '/images/d_profile.png'}}" mode="aspectFill" /></view>
+      <!-- 稿(379:2564)的评论条只有 头像 + 输入框,没有发送键。删掉按钮后 commentSubmitting /
+           canComment 两个状态会变成孤儿,用户按完软键盘「发送」屏幕上毫无反馈 ——
+           所以反馈接到输入框自己身上,而不是把按钮加回来(那违稿)。 -->
+      <view class="david_npl_right {{commentSubmitting ? 'is-sending' : ''}} {{canComment ? '' : 'is-idle'}}">
+        <input 
+          placeholder="{{commentSubmitting ? '正在发送…' : '留下你的评论'}}" 
+          placeholder-class="comment-ph"
+          value="{{commentContent}}"
+          focus="{{commentFocus}}"
+          disabled="{{commentSubmitting}}"
+          bindinput="onCommentInput"
+          bindconfirm="addComment"
+          confirm-type="send"
+          aria-label="评论内容，输入后按键盘发送键提交"
+        />
+        <!-- 提交态既要能看见也要能被念出来。照 components/cy/qr-voucher 的既有写法:
+             aria 挂在真实可见元素上,内部纯装饰件 aria-hidden。 -->
+        <view class="comment-sending" wx:if="{{commentSubmitting}}"
+              aria-role="status" aria-live="polite" aria-label="正在发送评论" aria-busy="true">发送中</view>
+      </view>
+  </view>
+
+  <!-- 评论弹窗 -->
+  <cy-sheet show="{{popShow}}" title="回复评论" bind:close="popClose">
+    <cy-inline-error wx:if="{{replySubmitError}}" kind="{{replySubmitErrorKind}}" title="{{replySubmitError}}" sub="回复内容仍保留在输入框" action="重试" bind:action="retryReplySubmit" />
+    <view class="reply-sheet__info flex-cb">
+      <view class="user flex-ac">
+        <image lazy-load="true" src="{{avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+      </view>
+      <view class="david_nplinu">
+        <input 
+          placeholder="回复评论" 
+          placeholder-class="comment-ph"
+          value="{{replyContent}}"
+          bindinput="onReplyInput"
+          confirm-type="send"
+          aria-label="回复内容"
+        />
+      </view>
+      <cy-btn class="david_nplok" size="sm" loading="{{replySubmitting}}" disabled="{{!canReply || replySubmitting}}" accessibility-label="{{replySubmitting ? '正在发送回复' : '发送回复'}}" bind:tap="addReplyComment">完成</cy-btn>
+    </view>
+  </cy-sheet>
+  </block>
+
+  <!-- H050/H051 帖文操作弹层(三合一:编辑 / 删除 / 举报,danger 确认闸在组件内部)。
+       挂 ready 分支**之外**是必须的:删除成功后详情切到 empty 态,挂在里面会连人带
+       「动态已删除」回执卡一起被卸载。 -->
+  <cy-post-actions id="post-actions" show="{{postActionShow}}" owner="{{isMine}}" post-id="{{id}}" summary="{{info.contents}}"
+                   bind:select="onPostAction" bind:close="closePostActions" />
+
+  <!-- 编辑帖文(复用新建组件,edit-post 非空即编辑态):只改正文,图片/地点/关联后端保留。
+       同 reason:挂 ready 分支之外,编辑保存后详情刷新不会把面板连根拔掉。 -->
+  <cy-post-compose show="{{composeShow}}" edit-post="{{composeEdit}}"
+                   bind:close="onComposeClose" bind:published="onComposePublished" />
+</view>
+
+<!-- T5 胶囊:点帖文头像时贴着头像开(Figma 339:740)。挂页面顶层 —— fixed 层,
+     塞进帖文区会被上面的 overflow 裁掉。 -->
+<cy-popover show="{{avatarPopShow}}" anchor="{{avatarPopAnchor}}" items="{{avatarPopItems}}"
+            bind:pick="onAvatarPopPick" bind:close="onAvatarPopClose" />

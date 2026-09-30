@@ -1,0 +1,16 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "附近的队伍",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#000000",
+  "usingComponents": {
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "free-map": "/components/cy/free-map/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-option-sheet": "/components/cy/option-sheet/index",
+    "cy-result-sheet": "/components/cy/result-sheet/index"
+  }
+}

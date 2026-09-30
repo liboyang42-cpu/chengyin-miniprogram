@@ -1,0 +1,50 @@
+<view class="ir-scene">
+  <view class="ir-summary" wx:if="{{groups.length}}">
+    <view>
+      <text class="ir-summary-label">累计邀请</text>
+      <view class="ir-summary-value"><text>{{total}}</text><text class="ir-summary-unit">人</text></view>
+    </view>
+    <view class="ir-summary-side">
+      <text class="ir-summary-label">首购奖励积分</text>
+      <text class="ir-summary-reward" wx:if="{{rewardReady}}">+{{earnedTotalText}}</text>
+      <text class="ir-summary-reward" wx:else>待同步</text>
+    </view>
+  </view>
+
+  <view class="ir-sync-note" wx:if="{{groups.length && !rewardReady}}" aria-role="status">
+    邀请记录已到达，奖励流水暂未同步
+  </view>
+
+  <cy-skeleton wx:if="{{loading && !groups.length}}" type="list" count="{{4}}" />
+  <cy-error wx:elif="{{loadErr && !groups.length}}" fill size="lg"
+    title="邀请记录没加载出来" sub="网络可能不稳定，你的邀请关系还在" retry="重试" bind:retry="retry" />
+  <cy-empty wx:elif="{{empty}}" fill size="lg" kind="empty"
+    title="还没有人接受你的邀请" sub="好友加入后，会按时间出现在这里" />
+
+  <block wx:else>
+    <view class="ir-group" wx:for="{{groups}}" wx:for-item="group" wx:key="label">
+      <view class="ir-group-head">
+        <text class="ir-group-title">{{group.label}}</text>
+        <text class="ir-group-total">{{group.rewardText}}</text>
+      </view>
+      <view class="ir-card">
+        <view class="ir-row" wx:for="{{group.items}}" wx:for-item="item" wx:key="id">
+          <cy-avatar class="ir-avatar" size="sm" src="{{item.avatar}}" name="{{item.nickname}}" />
+          <view class="ir-copy">
+            <text class="ir-name ep1">{{item.nickname}}</text>
+            <text class="ir-time">{{item.timeText}}</text>
+            <text class="ir-status">{{item.statusText}}</text>
+          </view>
+          <text class="ir-reward">{{item.rewardText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="ir-more-error" wx:if="{{loadMoreError}}" aria-role="alert">
+      <text>更多记录没加载出来</text>
+      <view class="ir-more-action" bindtap="loadMore" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">重试</view>
+    </view>
+    <view class="ir-more" wx:if="{{hasMore && !loading && !loadMoreError}}" bindtap="loadMore" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">加载更多</view>
+    <view class="ir-more ir-more--loading" wx:if="{{loading && groups.length}}">正在加载…</view>
+  </block>
+</view>

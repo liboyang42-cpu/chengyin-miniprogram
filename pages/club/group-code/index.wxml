@@ -1,0 +1,54 @@
+<!-- 返回钮在条件容器之外:出码态(cy-club-game-code-sheet)同样要有退出口,不能只有选场次态才有 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-nav-bar custom-back bind:back="onClose" />
+<view wx:if="{{state === 'selecting' || state === 'empty'}}" class="session-picker">
+  <view class="session-picker__nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <!-- ⚠️ 不能加 flush:flush 的意思是「父容器已有横向内边距，关掉标题自带的」，
+       而 .session-picker 只有 padding-bottom、没有横向 padding ——
+       加了 flush 标题就贴出屏幕左边缘（实拍 C51 里「选」字被切掉半个）。 -->
+  <cy-page-title title="选择场次" subtitle="选择本次带队场次" safe-top="{{false}}" />
+  <view class="session-picker__hint" wx:if="{{state === 'selecting'}}">团码只登记当前场次，不能跨场次使用。商家扫码后按人数核销。</view>
+  <view wx:for="{{activityOptions}}" wx:key="id" wx:if="{{state === 'selecting'}}" class="session-picker__item" bindtap="onSelectActivity" data-id="{{item.id}}" data-name="{{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+    <text>{{item.name}}</text><cy-icon name="arrow-right" size="32" />
+  </view>
+  <cy-empty wx:if="{{state === 'empty'}}" fill kind="empty" title="暂无可带队的场次" sub="当前路线还没有开放报名的场次，开放后会显示在这里" />
+</view>
+<view wx:elif="{{state === 'invalid'}}" class="session-invalid">
+  <view class="session-picker__nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="团核销码" subtitle="请从俱乐部管理进入具体场次" safe-top="{{false}}" />
+  <cy-error title="缺少路线或场次信息" sub="返回俱乐部，选择具体场次后再出示团码" retry="" />
+  <view class="session-invalid__manage" bindtap="goManage" aria-role="button" aria-label="进入俱乐部管理" hover-class="cy-pressed" hover-stay-time="80">
+    <text>进入俱乐部管理</text><cy-icon name="arrow-right" size="32" />
+  </view>
+</view>
+<!-- E-12(2026-09-16):无权限是终态 —— 原来自动退化成通用「出码失败」+ 重试,
+     重试永远失败且没有出路。这里给跟 invalid 一样的结构化出口。 -->
+<view wx:elif="{{state === 'no-permission'}}" class="session-invalid">
+  <view class="session-picker__nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="团核销码" subtitle="当前账号不能出示这一场的团码" safe-top="{{false}}" />
+  <cy-error title="当前账号没有出码权限" sub="{{errMsg || '出码按下单归属只给主理人、管理员或本场领队，回俱乐部管理可以查看自己名下的场次。'}}" retry="" />
+  <view class="session-invalid__manage" bindtap="goManage" aria-role="button" aria-label="进入俱乐部管理" hover-class="cy-pressed" hover-stay-time="80">
+    <text>进入俱乐部管理</text><cy-icon name="arrow-right" size="32" />
+  </view>
+</view>
+<!-- 出码态按 Figma s7SEFaoJ3GQUIxJhdqcFUb / 335:1275 改成 T1 底部弹层「出示团码」。
+     稿比原来的全屏凭证多一件事:**保存到相册** —— 有些玩法要把码打印出来贴在站点上,
+     现场靠纸质码核销,所以那个下载图标是这张稿存在的理由,不是装饰。 -->
+<cy-club-game-code-sheet wx:else
+  show="{{true}}"
+  title="出示团码"
+  name="{{title}}"
+  qr="{{qrcodeUrl}}"
+  state="{{state}}"
+  errorText="{{errMsg}}"
+  bind:close="onClose"
+  bind:retry="onRetry"
+/>
+</view>
+
+<!-- 保存游戏码到相册会触发隐私授权。gate 必须挂在宿主页:组件盖不住整页,
+     没有它 app.js 只能回退到 /pages/privacy 路由页,把出码界面整个盖掉。 -->
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

@@ -1,0 +1,20 @@
+{
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-search": "/components/cy/search/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-date-sheet": "/components/cy/date-sheet/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationBarTitleText": "搜索",
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white"
+}

@@ -1,0 +1,46 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="sc-root">
+  <!-- 2026-09-11 用户裁决「不是 canon 了 用原型的」:拟物机身与 LCD 孔洞整块退场,
+       取景照原型 camPanel 那张卡 —— ✕ 左上、快门居中下、外侧压暗。坐标由 layout.js 给,
+       和参与裁切的 frame* 是同一组真相。存入集邮册那条链(幂等键/pending 对账)一点没动。 -->
+  <view class="sc-dim"></view>
+  <view class="sc-card" style="left:{{screenL}}px;top:{{screenT}}px;width:{{screenW}}px;height:{{screenH}}px;">
+    <camera wx:if="{{!shot}}" class="sc-live-cam" device-position="back" flash="off"
+            binderror="onCamErr"
+            bindtouchstart="onTouchStart" bindtouchmove="onTouchMove"></camera>
+    <image wx:elif="{{shot}}" class="sc-live-cam" src="{{shot}}" mode="aspectFill"></image>
+  </view>
+
+  <view class="sc-x" style="left:{{backL}}px;top:{{backT}}px;" bindtap="onBack"
+        aria-role="button" aria-label="关闭取景框" hover-class="cy-pressed" hover-stay-time="80">
+    <cy-icon name="close-sm" size="30" />
+  </view>
+
+  <view class="sc-hint" wx:if="{{!shot && !camErr}}" style="left:{{screenL}}px;top:{{screenT}}px;width:{{screenW}}px;height:{{screenH}}px;">
+    <text>双指缩放裁切 {{cropScaleLabel}}</text>
+  </view>
+
+  <view class="sc-err" wx:if="{{camErr}}" style="left:{{screenL}}px;top:{{screenT}}px;width:{{screenW}}px;height:{{screenH}}px;">
+    <text>{{camErrMessage}}</text>
+    <button wx:if="{{camErrCanOpenSettings}}" size="mini" bindtap="openSetting">去设置里开启</button>
+    <view wx:else class="sc-physical-action" bindtap="onBack" hover-class="cy-pressed" hover-stay-time="80">返回上一页</view>
+  </view>
+
+  <!-- 原型的快门:62 的白圆 + 4px 半透白描边,居中压在卡的底边内。 -->
+  <view wx:if="{{!shot && !camErr}}" class="sc-shutter"
+        style="left:{{shutterL}}px;top:{{shutterT}}px;width:{{shutterS}}px;height:{{shutterS}}px;" bindtap="onShutter" aria-role="button" aria-label="拍照" hover-class="cy-pressed" hover-stay-time="80"></view>
+
+  <view wx:if="{{shot && saveError}}" class="sc-save-error" style="left:{{screenL}}px;top:{{screenT}}px;width:{{screenW}}px;height:{{screenH}}px;">
+    <cy-inline-error wx:if="{{shot && saveError}}" kind="{{saveErrorKind}}" title="{{saveErrorTitle}}" sub="{{saveError}}" action="重试" bind:action="onSave" />
+  </view>
+
+  <view wx:if="{{shot}}" class="sc-review-actions" style="left:{{reviewL}}px;top:{{reviewT}}px;width:{{reviewW}}px;">
+    <view class="sc-physical-action {{saving ? 'on' : ''}}" bindtap="onRetake" aria-role="button" aria-disabled="{{saving}}" aria-label="重拍" hover-class="{{saving ? 'none' : 'cy-pressed'}}" hover-stay-time="80">重拍</view>
+    <view class="sc-physical-action sc-physical-action-primary {{saving?'on':''}}" bindtap="onSave" aria-role="button" aria-disabled="{{saving}}" aria-label="{{saving ? '正在存入集邮册' : '存入集邮册'}}" hover-class="{{saving ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{saving ? '存入中…' : '存入集邮册'}}</view>
+  </view>
+</view>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

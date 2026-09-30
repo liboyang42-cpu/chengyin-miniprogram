@@ -1,0 +1,78 @@
+@import "/style/proto-sheet.wxss";
+/* 漫游地图 · 附近的队伍(地图组队 P 方案,Figma txQoyVyKb3aQdFCnc8qmhj 590:1014)。1px = 1.923rpx。
+   半屏壳 / 标题 / 副标题沿用 proto-sheet(与漫游同源);本页只补稿上新出现的几件。 */
+page { background: var(--cy-comp-sheet-player-page); }
+.nb { position: relative; height: 100vh; overflow: hidden; background: var(--cy-comp-sheet-player-page); color: var(--cy-color-play-accent); }
+.nb-map { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.nb-cv { position: absolute; left: -999rpx; top: -999rpx; width: 108px; height: 108px; }
+
+.nb-load-error {
+  position: absolute;
+  left: var(--cy-space-4);
+  right: var(--cy-space-4);
+  z-index: 20;
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-comp-sheet-player-page);
+  border: 1rpx solid var(--cy-color-play-line);
+}
+
+/* P1 顶部条(稿 591:1017):白底 358×44 · radius 22 · 左 18 标题 15/600 黑。
+   稿上右侧那个「筛选」2026-09-15 已删(见下一条注释),所以这里只剩标题一个子节点,
+   space-between 一并撤掉 —— 单子节点下它是空转,留着会让人以为右边还该有东西。 */
+.mt-top { position: absolute; left: 31rpx; right: 31rpx; z-index: 20; height: 85rpx; padding: 0 35rpx; box-sizing: border-box; border-radius: 42rpx; /* ds-ok 稿 591:1017 radius 22,与行尾 24 行同一条规则 */
+  display: flex; align-items: center; background: var(--cy-color-play-accent); } /* ds-ok 稿 591:1017 尺寸 */
+.mt-top__t { font-size: 29rpx; font-weight: 600; color: var(--cy-color-play-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* ds-ok 稿 15px/600 */
+/* 稿 591:1019 的「筛选」2026-09-15 随「无筛选维度定义」删除,.mt-top__f / ::after 命中区一并撤。 */
+
+/* P1 角控件(稿 591:1020 / 591:1022):#1A1A1A · 1px 白 12% 描边 · 44 高 · radius 22 · 14/600 白 */
+.mt-corners { position: absolute; left: 31rpx; right: 31rpx; z-index: 20; display: flex; justify-content: space-between; pointer-events: none; } /* ds-ok 稿左右 16px */
+.mt-corner { pointer-events: auto; height: 88rpx; padding: 0 42rpx; box-sizing: border-box; border-radius: 44rpx; display: flex; align-items: center; /* ds-ok 稿 591:1020 胶囊 radius,与行尾 31 行同一条规则 */
+  background: #1A1A1A; border: 2rpx solid rgba(255,255,255,.12); font-size: 27rpx; font-weight: 600; color: var(--cy-color-play-accent); } /* ds-ok 稿 591:1020 */
+
+/* 队伍卡(稿 593:1017)*/
+.mt-members { display: flex; align-items: center; gap: 15rpx; margin-top: 50rpx; } /* ds-ok 稿 头像行 top 100 */
+.mt-members__t { flex: 1; min-width: 0; font-size: 25rpx; color: #C4CBD4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* ds-ok 稿 593:1025 */
+
+/* 提示条(稿 593:1026 中性 / 594:1039 绿 / 594:1069 琥珀):350×40 · radius 12 · 13px */
+.mt-notice { margin-top: 38rpx; padding: 21rpx 27rpx; border-radius: 23rpx; font-size: 25rpx; line-height: 1.4; } /* ds-ok 稿 350×40 radius 12 */
+.mt-notice--plain { background: #1A1A1A; color: #C4CBD4; } /* ds-ok 稿 593:1026 */
+.mt-notice--ok { background: rgba(74,222,128,.14); color: #4ADE80; } /* ds-ok 稿 594:1039 */
+.mt-notice--wait { background: rgba(150,97,10,.28); color: #F5B446; } /* ds-ok 稿 594:1069 */
+.mt-notice--bad { background: rgba(248,113,113,.14); color: #F87171; } /* ds-ok 与 P6「队长未同意」同色 */
+
+/* 大按钮(稿 593:1028 主·白 / 594:1071 次级·深):350×48 全圆角 15/600 */
+.mt-btn { display: flex; align-items: center; justify-content: center; height: 92rpx; margin-top: 46rpx; border-radius: 999rpx; font-size: 29rpx; font-weight: 600; box-sizing: border-box; } /* ds-ok 稿 48px */
+.mt-btn--w { background: var(--cy-color-play-accent); color: var(--cy-color-play-ink); }
+.mt-btn--s { background: #1F1F1F; border: 2rpx solid rgba(255,255,255,.14); color: var(--cy-color-play-accent); } /* ds-ok 稿 594:1071 */
+.mt-btn.is-busy, .mt-sbtn.is-busy { opacity: .6; }
+.mt-foot { display: block; margin-top: 27rpx; font-size: 23rpx; color: #8A93A0; } /* ds-ok 稿 593:1030 12px #8A93A0 */
+
+/* P5 申请人行(稿 594:1107):#171717 · 64 高 · radius 16 */
+.mt-label { display: block; margin-top: 38rpx; font-size: 25rpx; font-weight: 600; color: #C4CBD4; } /* ds-ok 稿 594:1106 */
+.mt-app { display: flex; align-items: center; gap: 19rpx; margin-top: 23rpx; min-height: 123rpx; padding: 0 27rpx; box-sizing: border-box; border-radius: 31rpx; background: #171717; } /* ds-ok 稿 594:1107 */
+.mt-app__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.mt-app__n { font-size: 29rpx; font-weight: 600; color: var(--cy-color-play-accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* ds-ok 稿 15px/600,同 .mt-top__t */
+.mt-app__s { font-size: 23rpx; color: #8A93A0; } /* ds-ok 稿 594:1110 */
+/* 申请留言(2026-09-17 拍板第19条):队长审批时可见的一组引号短句;空留言不渲染 */
+.mt-app__msg { font-size: 23rpx; color: #C9D1DA; line-height: 1.4; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; } /* ds-ok 稿 594:1107 行内次文本,同 .mt-app__s 档 */
+.mt-app__acts { flex: none; display: flex; gap: 15rpx; } /* ds-ok 稿 拒绝/同意间距 8px */
+
+/* 小按钮(稿 594:1111 次 #292929 / 594:1113 主 白):56×32 · radius 12 · 12px;命中区用 ::after 撑到 44pt */
+.mt-sbtn { position: relative; flex: none; min-width: 108rpx; height: 62rpx; padding: 0 23rpx; box-sizing: border-box; border-radius: 23rpx; /* ds-ok 稿 radius 12,同 .mt-notice */
+  display: flex; align-items: center; justify-content: center; font-size: 23rpx; } /* ds-ok 稿 56×32 */
+.mt-sbtn::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 88rpx; transform: translateY(-50%); }
+.mt-sbtn--s { background: #292929; color: var(--cy-color-play-accent); } /* ds-ok 稿 594:1111 */
+.mt-sbtn--w { background: var(--cy-color-play-accent); color: var(--cy-color-play-ink); font-weight: 600; }
+
+/* P6 我的队伍行(稿 595:1019):#171717 · 68 高 · radius 16 */
+.mt-row { display: flex; align-items: center; gap: 19rpx; margin-top: 15rpx; min-height: 131rpx; padding: 0 27rpx; box-sizing: border-box; border-radius: 31rpx; background: #171717; } /* ds-ok 稿 595:1019 */
+.mt-row:first-of-type { margin-top: 31rpx; }
+.mt-row__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
+.mt-row__n { font-size: 29rpx; font-weight: 600; color: var(--cy-color-play-accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* ds-ok 稿 15px/600,同 .mt-top__t */
+.mt-row__meta { display: flex; align-items: center; gap: 15rpx; }
+.mt-row__s { font-size: 23rpx; color: #8A93A0; } /* ds-ok 稿 595:1021 */
+.mt-badge { padding: 4rpx 15rpx; border-radius: 999rpx; font-size: 21rpx; font-weight: 600; } /* ds-ok 稿 595:1022 11px/600 */
+.mt-badge--ok { background: rgba(74,222,128,.18); color: #4ADE80; } /* ds-ok 稿 595:1022 */
+.mt-badge--wait { background: rgba(245,180,70,.18); color: #F5B446; } /* ds-ok 稿 595:1029 */
+.mt-badge--bad { background: rgba(248,113,113,.18); color: #F87171; } /* ds-ok 稿 595:1036 */

@@ -1,0 +1,11 @@
+<view class="cy-empty {{fill ? 'cy-empty--fill' : ''}} {{size === 'lg' ? 'cy-empty--lg' : (size === 'sm' ? 'cy-empty--sm' : '')}}"
+      aria-role="status" aria-live="polite" aria-label="{{aria || _title}}{{!aria && _sub ? '，' + _sub : ''}}" aria-busy="{{_loading}}">
+  <view wx:if="{{_loading}}" class="cy-empty-spinner" aria-hidden="true"></view>
+  <view wx:elif="{{_glyph}}" class="cy-empty-glyph" aria-hidden="true">
+    <cy-icon name="{{_glyph}}" size="{{size === 'lg' ? 64 : 48}}" />
+  </view>
+  <image wx:elif="{{_icon}}" class="cy-empty-ic" src="{{_icon}}" mode="widthFix" aria-hidden="true" />
+  <view class="cy-empty-title">{{_title}}</view>
+  <view wx:if="{{_sub}}" class="cy-empty-sub">{{_sub}}</view>
+  <view wx:if="{{cta}}" class="cy-empty-cta" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="{{cta}}" bindtap="onCta">{{cta}}</view>
+</view>

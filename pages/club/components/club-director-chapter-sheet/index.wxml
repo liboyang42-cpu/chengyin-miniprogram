@@ -1,0 +1,13 @@
+<cy-scene-sheet show="{{show}}" variant="half" title="{{title}}" closable maskClosable bind:close="onClose">
+  <view class="cdcs__body">
+    <cy-club-director-row-list rows="{{chapters}}" surface="raised" selectable bind:rowtap="onChapterTap" />
+    <slot></slot>
+    <view
+      class="cdcs__primary {{confirmDisabled ? 'is-disabled' : ''}}"
+      bindtap="onConfirmTap"
+      aria-role="button" aria-label="{{confirmText}}"
+      hover-class="cy-pressed" hover-stay-time="80"
+    >{{confirmText}}</view>
+    <text class="cdcs__caption" wx:if="{{caption}}">{{caption}}</text>
+  </view>
+</cy-scene-sheet>

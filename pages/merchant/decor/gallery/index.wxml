@@ -1,0 +1,41 @@
+<view class="dg-page dc-page theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- 4-07:相册保存走 /api/merchant/decor/save(PROFILE_WRITE)。
+       原来挂 canManageCoop 会放行运营进页编辑,保存时才 403。 -->
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="canWriteProfile" />
+  <cy-nav-bar title="门店相册" custom-back bind:back="onNavBack" />
+  <view style="height: {{statusBarHeight + navBarHeight}}px; flex-shrink: 0;"></view>
+<cy-skeleton type="grid" count="6" wx:if="{{loadState === 'loading'}}" />
+  <cy-empty size="lg" fill wx:elif="{{loadState === 'permission'}}" kind="no-permission"
+    title="当前账号不能编辑门店相册" sub="请切换到已审核通过的商家账号后再试。" cta="返回" bind:cta="onNavBack" />
+  <cy-error class="dg-retry cy-fade-in" size="lg" fill wx:elif="{{loadState === 'error'}}"
+    icon="/images/no_data.svg" title="{{loadErrorKind === 'network' ? '网络没连上' : '相册加载失败'}}" sub="{{loadError}}" retry="重试" bind:retry="retryLoad" auto-back />
+  <cy-empty size="lg" fill wx:elif="{{loadState === 'empty'}}" kind="empty"
+    title="暂时无法上传门店相册" sub="这个账号还没有店铺，完成商家入驻后再上传门店相册。" cta="去商家入驻" bind:cta="goApply" />
+
+  <scroll-view scroll-y class="dg-scroll" wx:elif="{{loadState === 'ready'}}" enhanced show-scrollbar="{{false}}">
+    <view class="dg-refreshing" wx:if="{{refreshing}}" aria-role="status" aria-live="polite">正在刷新门店相册…</view>
+
+    <view class="dg-grid">
+      <view class="dg-item" wx:for="{{gallery}}" wx:key="*this">
+        <image class="dg-image" src="{{item}}" mode="aspectFill" aria-hidden="true" />
+        <view class="dg-delete" data-index="{{index}}" catchtap="removeGallery" aria-role="button" aria-disabled="{{saving || refreshing}}" aria-label="删除第{{index + 1 || 1}}张图片" hover-class="{{saving || refreshing ? 'none' : 'cy-pressed'}}" hover-stay-time="80"><cy-icon name="close" size="38" /></view>
+      </view>
+      <view class="dg-add" wx:if="{{gallery.length < 9}}" bindtap="addGallery" aria-role="button" aria-disabled="{{saving || refreshing}}" aria-label="添加相册图片" hover-class="{{saving || refreshing ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        <view class="dg-add-mark"><cy-icon name="plus" size="40" /></view><text>添加图片</text>
+      </view>
+    </view>
+    <view class="dg-pad"></view>
+  </scroll-view>
+
+  <view class="dg-cta" wx:if="{{loadState === 'ready'}}">
+    <cy-inline-error wx:if="{{saveError}}" kind="{{saveErrorKind}}" title="门店相册暂未保存"
+                     sub="{{saveError}}" action="重新保存" bind:action="save" />
+    <view class="dg-save-receipt" wx:if="{{saveReceipt}}" aria-role="status" aria-live="polite">{{saveReceipt}}</view>
+    <cy-btn variant="primary" disabled="{{!dirty || saving || refreshing}}" loading="{{saving}}"
+            accessibilityLabel="{{saving ? '正在保存门店相册' : '保存门店相册'}}" bindtap="save">保存相册</cy-btn>
+  </view>
+<cy-sheet inset show="{{discardVisible}}" title="还没有保存" bind:close="keepEditing"><view class="dc-sheet-content"><text class="dc-muted">离开后，本次相册修改不会保留。</text><view class="dc-sheet-actions"><cy-btn variant="secondary" bindtap="discardChanges">放弃修改</cy-btn><cy-btn bindtap="keepEditing">继续编辑</cy-btn></view></view></cy-sheet>
+</view>

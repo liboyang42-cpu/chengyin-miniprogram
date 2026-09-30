@@ -1,0 +1,45 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-typein · 限时打字(契约 §2.5)。皮面走 play-surface 暗版。*/
+.ti__attempt {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-label);
+  color: var(--sub);
+}
+/* 目标文本是这一屏的主体:字号给大、用等宽数字族,逐字对齐好数 */
+.ti__target {
+  margin-top: var(--cy-space-5);
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--soft);
+  color: var(--ink);
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.ti__hint {
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-type-body);
+  color: var(--sub);
+}
+.ti__input {
+  margin-top: var(--cy-space-4);
+  width: 100%;
+  height: 108rpx;
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--soft);
+  color: var(--ink);
+  font-size: var(--cy-type-body);
+}
+.ti__input-ph { color: var(--cy-color-text-placeholder); }
+.ti__done {
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--ok);
+}

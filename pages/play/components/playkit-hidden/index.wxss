@@ -1,0 +1,117 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-hidden · 找东西(原型真源:模板编辑页 v2 · playkit hidden) */
+.hd { color: var(--ink); }
+.hd__q {
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  line-height: 1.35;
+}
+.hd__scene {
+  position: relative;
+  width: 100%;
+  flex: 1 1 0;                            /* 原型 .scene 是撑开的,不是定高 */
+  min-height: 0;
+  border-radius: 36rpx;                   /* ds-ok 原型 18px */
+  overflow: hidden;
+  background: #0D0D10;                      /* ds-ok 底图没加载出来时的画布底 */
+}
+.hd__img { width: 100%; height: 100%; }
+/* 点下去先有回应,不等服务端。判定要一个来回,中间这段没反馈的话
+   人会以为没点着,于是连点 —— 那会把一次判定变成好几次。 */
+.hd__scene--press { opacity: .94; }
+.hd__dot {
+  position: absolute;
+  width: 28rpx; height: 28rpx;            /* ds-ok 原型 .hit-dot 14px */
+  margin: -14rpx 0 0 -14rpx;
+  border-radius: 50%;
+  background: var(--ok);
+}
+/* 点中的那一下要有一圈扩出去的环(原型 .hit,64px)。
+   只留一个点的话,点中和没点中在屏上的差别只有颜色,手指还压着看不见。 */
+.hd__dot::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 128rpx; height: 128rpx;          /* ds-ok 原型 .hit 64px */
+  margin: -64rpx 0 0 -64rpx;
+  border-radius: 50%;
+  border: 4rpx solid var(--ok);           /* ds-ok 原型 2px var(--accent),这张皮肤两者同值 */
+  animation: hd-ring .18s ease-out forwards;
+}
+@keyframes hd-ring {
+  from { transform: scale(.6); opacity: 1; }
+  to   { transform: scale(1);  opacity: 0; }
+}
+.hd--reduced .hd__dot::after { animation: none; opacity: 0; }
+.hd__miss {
+  position: absolute;
+  width: 88rpx; height: 88rpx;
+  margin: -44rpx 0 0 -44rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, .3);  /* ds-ok 场景图上的描边与占位,逐值照原型 */
+  animation: hd-miss .12s ease-out forwards;   /* ds-ok 原型 .12s */
+}
+@keyframes hd-miss {
+  from { transform: scale(.5); opacity: .9; }
+  to   { transform: scale(1.4); opacity: 0; }
+}
+.hd--reduced .hd__miss { animation: none; opacity: 0; }
+.hd__chips { display: flex; flex-wrap: wrap; gap: 14rpx; }   /* ds-ok 原型 7px,左对齐不居中 */
+.hd__prog { font-size: var(--cy-type-label); color: var(--sub); text-align: center; }   /* ds-ok 原型 13px */
+.hd__foot { font-size: var(--cy-type-body); color: var(--sub); }                       /* ds-ok 原型 14.5px */
+/* 提示:把藏着东西的那一象限泛一下琥珀。不直接指出位置 ——
+   指出来这一关就没了,泛一片是「往这边找」。 */
+.hd__quad {
+  position: absolute;
+  background: #f59f00;                    /* ds-ok 原型 .quadrant */
+  border-radius: 36rpx;  /* ds-ok 场景图上的描边与占位,逐值照原型 */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+.hd__quad.is-on { opacity: .13; }
+.hd__chip {
+  padding: 14rpx 22rpx;                   /* ds-ok 原型 .chip 7px 11px */
+  border-radius: 26rpx;                   /* ds-ok 原型 13px:比胶囊方一点,它是标签不是按钮 */
+  border: 2rpx solid transparent;
+  background: var(--soft);
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--sub);
+}
+.hd__chip.is-found {
+  color: var(--ink);
+  border-color: var(--ok);
+}
+
+/* 落点是「刚按下去那一下冒出来的」,不是本来就画在图上 —— 原型 dotin .18s */
+.hd__dot { animation: hd-dot .18s cubic-bezier(.2, .8, .2, 1); }
+/* 原型用 translate(-50%,-50%) 定心,我们这颗点是用负 margin 定心的,
+   所以这里只写 scale —— 照抄那两个 translate 会把点挪走半个身位。 */
+@keyframes hd-dot {
+  from { transform: scale(.4); }
+  to   { transform: scale(1); }
+}
+.hd--reduced .hd__dot { animation: none; }
+
+/* 没有图时的占位:一个画框 + 一句话。与猜图那屏同一套读法。 */
+.hd__ph {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--cy-space-3);
+  background: rgba(255, 255, 255, .04);      /* ds-ok 深色场地上的极淡填充 */
+}
+.hd__ph-frame {
+  position: relative; width: 160rpx; height: 128rpx;
+  border: 4rpx solid rgba(255, 255, 255, .28); border-radius: 16rpx; overflow: hidden;  /* ds-ok 场景图上的描边与占位,逐值照原型 */
+}
+.hd__ph-sun {
+  position: absolute; left: 28rpx; top: 24rpx; width: 30rpx; height: 30rpx;
+  border-radius: 50%; background: rgba(255, 255, 255, .28);  /* ds-ok 场景图上的描边与占位,逐值照原型 */
+}
+.hd__ph-hill {
+  position: absolute; left: -10rpx; right: -10rpx; bottom: -30rpx; height: 70rpx;
+  border-radius: 50% 50% 0 0; background: rgba(255, 255, 255, .28);  /* ds-ok 场景图上的描边与占位,逐值照原型 */
+}
+.hd__ph-t { font-size: var(--cy-font-label); color: rgba(255, 255, 255, .5); }  /* ds-ok */

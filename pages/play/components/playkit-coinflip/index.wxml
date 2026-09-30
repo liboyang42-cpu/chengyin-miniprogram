@@ -1,0 +1,25 @@
+<cy-play-stage id="cy-play-stage" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="cf {{reducedMotion ? 'cf--reduced' : ''}}" bindtap="onFlip"
+        aria-role="button" aria-label="摇一摇手机，或点屏幕抛一次"
+        hover-class="cf--press" hover-stay-time="60">
+    <view class="cf__k">{{kicker}}</view>
+
+    <view class="cf__stage">
+      <view class="cf__coin {{idle ? 'cf__coin--idle' : ''}}" style="{{coinStyle}}">
+        <!-- 面是 SVG 压出来的:小程序没有 <svg> 标签,同一段 SVG 走 data URI 当图用 -->
+        <view class="cf__face cf__face--a"><image class="cf__svg" src="{{faceA}}" mode="aspectFit" /></view>
+        <view class="cf__face cf__face--b"><image class="cf__svg" src="{{faceB}}" mode="aspectFit" /></view>
+        <!-- 侧壁(60 片薄条围成圆柱)在小程序里做不出来:这一层的 3D 会被压平,
+             六十片会摊成一条横穿屏幕的虚线。滚花的齿画在两个面自己的 SVG 里了。 -->
+      </view>
+    </view>
+
+    <view class="cf__big">{{big}}</view>
+    <view class="cf__lab">{{lab}}</view>
+    <view class="cf__hint"><view class="cf__hint-i"></view><text>{{hint}}</text></view>
+
+    <!-- 落面那一下撒一把彩片。用仓里的 cy-celebrate,不自己写 canvas 粒子 ——
+         那会是第二套平行实现,而且要自己处理减动效 -->
+    <cy-celebrate event-key="{{burstKey}}" />
+  </view>
+</cy-play-stage>

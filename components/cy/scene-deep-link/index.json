@@ -1,0 +1,27 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-modal": "/components/cy/modal/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-scene-route-content": "/components/cy/scene-route-content/index",
+    "cy-scene-game-coupon-wallet": "/components/cy/scene-game-coupon-wallet/index",
+    "cy-scene-play-activity-detail": "/components/cy/scene-play-activity-detail/index",
+    "cy-scene-qr-coupon": "/components/cy/scene-qr-coupon/index",
+    "cy-scene-qr-group-code": "/components/cy/scene-qr-group-code/index",
+    "cy-scene-qr-citynode": "/components/cy/scene-qr-citynode/index",
+    "cy-scene-qr-ticket": "/components/cy/scene-qr-ticket/index",
+    "cy-scene-roam-discover": "/components/cy/scene-roam-discover/index",
+    "cy-scene-roam-history": "/components/cy/scene-roam-history/index",
+    "cy-scene-roam-poi-detail": "/components/cy/scene-roam-poi-detail/index",
+    "cy-scene-roam-session": "/components/cy/scene-roam-session/index",
+    "cy-scene-roam-stamp-album": "/components/cy/scene-roam-stamp-album/index",
+    "cy-scene-roam-task-list": "/components/cy/scene-roam-task-list/index",
+    "cy-scene-asset-earnings": "/components/cy/scene-asset-earnings/index",
+    "cy-scene-share-invite": "/components/cy/scene-share-invite/index",
+    "cy-scene-member-order-history": "/components/cy/scene-member-order-history/index",
+    "cy-scene-asset-income-detail": "/components/cy/scene-asset-income-detail/index",
+    "cy-scene-member-order-detail": "/components/cy/scene-member-order-detail/index",
+    "cy-scene-member-withdraw-history": "/components/cy/scene-member-withdraw-history/index"
+  }
+}

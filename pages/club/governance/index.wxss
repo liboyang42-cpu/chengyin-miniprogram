@@ -1,0 +1,38 @@
+page { background: var(--cy-bg-page); }
+.page { min-height: 100vh; box-sizing: border-box; padding-bottom: calc(var(--cy-space-6) + var(--cy-safe-bottom)); }
+/* 区块之间 20px(手册写 32,存量已知不一致,按 20 做);分区标题→本组 16px。 */
+.section { margin: 40rpx var(--cy-page-x) 0; } /* ds-ok: 40rpx = Figma 区块间距 20px，无匹配半步 token 见 style/TOKEN-MAPPING.md */
+.section-title { display: block; color: var(--cy-text-title); font-size: var(--cy-font-body); font-weight: 700; }
+.action-section { display: flex; flex-direction: column; padding: var(--cy-space-4); border-radius: var(--cy-comp-card-radius); background: var(--cy-comp-card-bg); }
+.action-note { margin-top: var(--cy-space-2); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); line-height: 1.55; }
+.platform-button { display: flex; min-height: var(--cy-btn-h); align-items: center; justify-content: center; margin-top: var(--cy-space-3); border-radius: var(--cy-radius-pill); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); font-weight: 700; }
+
+/* Figma「卡」= bg-elevated(#1c1c1e)+ 行内发丝分隔，取代原先各自独立描边的卡片。 */
+.ds-card { margin-top: var(--cy-space-4); padding: 0 28rpx; border-radius: var(--cy-comp-card-radius); background: var(--cy-comp-card-bg); } /* ds-ok: 28rpx = Figma 卡片左右内距 14px */
+.row { display: flex; align-items: center; gap: var(--cy-space-2-5); padding: 26rpx 0; } /* ds-ok: 26rpx = Figma 行上下内距 13px */
+.row + .row { border-top: 1rpx solid var(--cy-color-border-subtle); }
+.row-text { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: var(--cy-space-1); }
+.row-title { overflow: hidden; color: var(--cy-text-title); font-size: var(--cy-font-body); text-overflow: ellipsis; white-space: nowrap; }
+.row-desc { color: var(--cy-text-tertiary); font-size: var(--cy-font-caption); line-height: 1.45; }
+.row-side { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: var(--cy-space-1); }
+.row-value { flex: none; color: var(--cy-text-tertiary); font-size: var(--cy-font-label); text-align: right; }
+.row-value--ACTIVE { color: var(--cy-color-status-danger); }
+.row-value--PENDING { color: var(--cy-color-status-warning); }
+.row-link { flex: none; color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 700; }
+.row-link--disabled { opacity: .45; pointer-events: none; }
+.disabled { background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-disabled); pointer-events: none; }
+
+/* 稿 R6 290:621:行内选择器 + 行内动作(与角色页 R1 同形态) */
+.row-pick { flex: none; margin-left: auto; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.row-pick-arrow { flex: none; margin-left: var(--cy-space-1); color: var(--cy-text-secondary); }
+.row-act { flex: none; margin-left: auto; font-size: var(--cy-font-label); font-weight: 600; }
+.row-act--danger { color: var(--cy-color-status-danger); }
+.row-act--warning { color: var(--cy-color-status-warning); }
+.row--disabled { opacity: .45; }
+.picker { padding: 0 var(--cy-page-x) calc(24rpx + env(safe-area-inset-bottom)); }
+.picker-row { display: flex; align-items: center; gap: var(--cy-space-3); padding: var(--cy-space-3) 0;
+  border-top: 1rpx solid var(--cy-color-border-subtle); }
+.picker-row--on .picker-mark { color: var(--cy-color-status-success); }
+.picker-name { flex: 1; min-width: 0; font-size: var(--cy-font-body); }
+.picker-mark { flex: none; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+

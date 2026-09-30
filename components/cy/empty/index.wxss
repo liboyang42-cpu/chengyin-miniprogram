@@ -1,0 +1,118 @@
+:host { display: block; }
+
+.cy-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cy-space-5) var(--cy-space-4);
+  text-align: center;
+}
+
+/* fill:整屏空态/错误态用 —— 在「标题(或上方内容)下方到屏幕底部」这段剩余空间里居中
+ * (2026-07-31 用户明确的居中定义,不是整屏居中、也不是紧贴上方内容)。
+ *
+ * ⚠️ 必须配合页面侧:父容器要 display:flex; flex-direction:column,且有确定高度
+ * (min-height:100vh 之类)。不配的话本档退回自然高度(= 改造前行为),不会更糟。
+ *
+ * ⚠️ min-height 必须是 0,不能给 60vh 这类"兜底值" —— 实测(批5 earnings 页)当页面上方
+ * 已经有内容时,60vh 会把容器撑到超出可视区,把内容整个推到贴近屏幕底部,比不居中更难看。
+ * flex item 的默认 min-height:auto 同样会阻止收缩,所以这里显式写 0 让 flex:1 完全主导。 */
+.cy-empty--fill {
+  flex: 1;
+  min-height: 0;
+}
+
+/* height 必须是 auto:wxml 上是 mode="widthFix",高度该由图自己的宽高比算出来。
+   写死 height 会把 widthFix 顶掉,4:3 的 no_data.svg(160×120)被拉成 1:1,看着像图被截了半。 */
+.cy-empty-ic {
+  width: 160rpx;
+  height: auto;
+  opacity: 0.9;
+  margin-bottom: var(--cy-space-3);
+}
+
+/* 语义终态复用 cy-icon 线性图标。颜色在浅/暗主题的实际背景上均满足非文本 3:1；
+   不加低对比描边或半透明底，避免 token 名正确但合成后边界不可见。 */
+.cy-empty-glyph {
+  width: 160rpx;
+  height: 120rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-secondary);
+  margin-bottom: var(--cy-space-3);
+}
+
+/* loading 态占插画位的转圈:与 cy-btn 的 spinner 同形制(currentColor + 4rpx 环),
+   不另造第二套 loading 视觉。尺寸取插画位的一半,不喧宾夺主。
+   ⚠️ 转速走 --cy-motion-spinner-cycle,不写字面 0.7s:字面量散在各组件里,调转速要满仓
+   grep 且必漏一处,两个 spinner 转速不一致在同屏出现时肉眼可见。契约有负控盯这一条。 */
+.cy-empty-spinner {
+  width: var(--cy-space-5);
+  height: var(--cy-space-5);
+  margin-bottom: var(--cy-space-3);
+  border: 4rpx solid var(--cy-text-secondary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: cy-empty-spin var(--cy-motion-spinner-cycle) linear infinite;
+}
+@keyframes cy-empty-spin { to { transform: rotate(360deg); } }
+
+.cy-empty-title {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  font-weight: 600;
+}
+
+.cy-empty-sub {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* aaa 标准(2026-07-31):插画/文字放大,opt-in,不动既有调用 */
+.cy-empty--lg .cy-empty-ic {
+  width: 240rpx;
+}
+.cy-empty--lg .cy-empty-glyph {
+  width: 240rpx;
+  height: 180rpx;
+}
+.cy-empty--lg .cy-empty-title {
+  font-size: var(--cy-type-section-title);
+}
+.cy-empty--lg .cy-empty-sub {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-body);
+}
+
+.cy-empty-cta {
+  margin-top: var(--cy-space-3);
+  padding: 0 var(--cy-space-4);
+  height: var(--cy-btn-h);
+  line-height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-label);
+}
+
+/* styleIsolation:isolated 不继承全局 style/components.wxss 的 .cy-pressed,
+   这里复制一份同视觉定义(非自造按压效果),供上面 cta 的 hover-class 用 */
+.cy-pressed { opacity: .88; }
+
+/* sm:卡片/列表里的区块空态(2026-09-06 裸文字空态收编)。默认档是给整段留白用的,
+ * 放进评论区、成员列表这种行内位置会又高又重;这档只留一行标题 + 一行说明的体量。 */
+.cy-empty--sm {
+  padding: var(--cy-space-2) var(--cy-space-3);
+}
+.cy-empty--sm .cy-empty-title {
+  font-size: var(--cy-font-caption);
+  font-weight: 500;
+  color: var(--cy-color-text-tertiary);
+}
+.cy-empty--sm .cy-empty-sub {
+  margin-top: var(--cy-space-1);
+}

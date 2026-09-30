@@ -1,0 +1,42 @@
+<view class="mt mt--{{variant}} mt--{{status}}">
+  <view wx:if="{{status === 'loading'}}" class="mt__sk">
+    <view class="mt__sk-l"></view>
+    <view class="mt__sk-v"></view>
+    <view class="mt__sk-t"></view>
+  </view>
+
+  <block wx:elif="{{variant === 'triple'}}">
+    <view class="mt__cols">
+      <view wx:for="{{metrics}}" wx:key="index" class="mt__col">
+        <text class="mt__col-l">{{item.label}}</text>
+        <text class="mt__col-v">{{item.value}}<text class="mt__col-u">{{item.unit}}</text></text>
+      </view>
+    </view>
+    <text class="mt__time">{{timeRange}}</text>
+  </block>
+
+  <block wx:else>
+    <view class="mt__top">
+      <text class="mt__label">{{label}}</text>
+      <view wx:if="{{status === 'warning'}}" class="mt__pill mt__pill--warning"><cy-icon name="warning" size="20" /><text>待处理</text></view>
+      <view wx:elif="{{status === 'critical'}}" class="mt__pill mt__pill--critical"><cy-icon name="warning" size="20" /><text>异常</text></view>
+    </view>
+
+    <view class="mt__main">
+      <text wx:if="{{status === 'empty'}}" class="mt__val mt__val--empty">—</text>
+      <text wx:else class="mt__val">{{value}}<text class="mt__unit">{{unit}}</text></text>
+    </view>
+
+    <view wx:if="{{status === 'empty'}}" class="mt__empty">
+      <text class="mt__empty-h">{{emptyHint || '本周期暂无数据'}}</text>
+      <view wx:if="{{emptyAction}}" class="mt__act" catchtap="onAction" hover-class="cy-pressed" hover-stay-time="80"><text>{{emptyAction}}</text><cy-icon name="arrow-right" size="24" /></view>
+    </view>
+    <view wx:elif="{{variant === 'trend' && trend}}" class="mt__trend">
+      <text class="mt__delta mt__delta--{{trendTone}}">{{trend.delta}}</text>
+      <text class="mt__cmp">{{trend.compareText}}</text>
+    </view>
+
+    <text wx:if="{{status !== 'empty'}}" class="mt__time">{{timeRange}}</text>
+    <view wx:if="{{action}}" class="mt__act" catchtap="onAction" hover-class="cy-pressed" hover-stay-time="80"><text>{{action}}</text><cy-icon name="arrow-right" size="24" /></view>
+  </block>
+</view>

@@ -1,0 +1,90 @@
+<view class="cnc-page theme-topic-editor">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar title="报名成为节点" custom-back bind:back="onNavBack" />
+  <view style="height: {{statusBarHeight + navBarHeight}}px; flex-shrink: 0;"></view>
+  <view class="cnc-state" wx:if="{{accessState === 'loading'}}">正在核对经营团队权限…</view>
+  <view class="cnc-state" wx:elif="{{accessState === 'no-permission'}}">
+    <cy-error title="当前岗位不能管理据点" sub="请联系店主或店长调整经营团队岗位" retry="" auto-back />
+  </view>
+  <view class="cnc-state" wx:elif="{{accessState === 'error'}}">
+    <cy-inline-error kind="network" title="商家权限加载失败" sub="{{accessErrorText}}"
+      action="重试" bind:action="retryAccess" />
+  </view>
+  <block wx:if="{{accessState === 'ready'}}">
+  <view class="cnc-lede">配一个自己店铺的玩法就行,商家信息用你的入驻资料</view>
+  <!-- 据点申请进度:横向步骤条,当前站高亮(参考 Revolut 290/293)。 -->
+  <cy-timeline class="cnc-timeline" mode="horizontal" nodes="{{nodeTimeline}}" />
+<scroll-view scroll-y class="cnc-scroll" enhanced show-scrollbar="{{false}}">
+    <!-- ① 店铺玩法:整套配置交给游戏模板配置页 -->
+    <view class="cnc-card cnc-card--first">
+      <view class="cnc-hd">
+        <text class="cnc-step">① 店铺玩法</text>
+        <view class="cnc-ok-wrap" wx:if="{{tpl}}">
+          <cy-icon name="check" size="24" /><text class="cnc-ok" wx:if="{{tpl}}">已配置</text>
+        </view>
+      </view>
+      <block wx:if="{{tpl}}">
+        <view class="cnc-tpl-name">{{tpl.title}}</view>
+        <view class="cnc-tpl-meta" wx:if="{{tplSummary}}">{{tplSummary}}</view>
+        <cy-btn variant="secondary" size="sm" bind:tap="goConfigTemplate">重新配置</cy-btn>
+      </block>
+      <block wx:else>
+        <view class="cnc-hint">玩家到店后玩的就是这一关 —— 完成方式、奖励、剧情都在配置页里设。</view>
+        <cy-btn variant="secondary" bind:tap="goConfigTemplate">去配置玩法</cy-btn>
+      </block>
+    </view>
+
+    <!-- ② 店址确认:默认档案坐标,但必须让商家点头一次 -->
+    <view class="cnc-card">
+      <view class="cnc-hd">
+        <text class="cnc-step">② 确认店址</text>
+        <view class="cnc-ok-wrap" wx:if="{{picked}}">
+          <cy-icon wx:if="{{addressConfirmed}}" name="check" size="24" />
+          <text class="cnc-ok" wx:if="{{picked}}">{{addressConfirmed ? '已确认' : '待确认'}}</text>
+        </view>
+      </view>
+
+      <cy-skeleton type="detail" wx:if="{{!shopLoaded}}" />
+      <cy-inline-error wx:elif="{{shopLoadError}}" kind="network" title="店铺资料没读出来"
+        sub="{{shopLoadError}}" action="重试" bind:action="loadShop" />
+      <block wx:elif="{{picked}}">
+        <view class="cnc-addr">{{picked.name || '我的店'}}</view>
+        <view class="cnc-addr-sub" wx:if="{{picked.address}}">{{picked.address}}</view>
+        <block wx:if="{{pickedFromProfile}}">
+          <view class="cnc-hint" wx:if="{{!addressConfirmed}}">
+            这是你入驻时填的店址。玩家要走到这里 {{radius || 80}} 米内才算到达 —— 偏了他会一直打不了卡,先看一眼对不对。
+          </view>
+          <view class="cnc-addr-actions" wx:if="{{!addressConfirmed}}">
+            <cy-btn class="cnc-addr-action" variant="primary" size="sm" bind:tap="confirmProfileAddress">确认这个店址</cy-btn>
+            <cy-btn class="cnc-addr-action" variant="secondary" size="sm" bind:tap="repick">重新选择</cy-btn>
+          </view>
+        </block>
+        <cy-btn wx:if="{{!pickedFromProfile || addressConfirmed}}" variant="secondary" size="sm" bind:tap="repick">重新选择店址</cy-btn>
+      </block>
+      <block wx:else>
+        <view class="cnc-hint">你的店铺资料里还没有坐标,得在地图上点一下店门口。</view>
+        <cy-btn variant="secondary" bind:tap="repick">在地图上标店址</cy-btn>
+      </block>
+    </view>
+
+    <cy-inline-error class="cnc-page-error" wx:if="{{submitError}}" kind="network"
+      title="投放申请未提交" sub="{{submitError}}" action="重试提交" bind:action="retrySubmit" />
+    <cy-inline-error class="cnc-page-error" wx:if="{{readbackError}}" kind="data"
+      title="申请状态暂未同步" sub="{{readbackError}}" action="重新读取" bind:action="retryReadback" />
+    <view class="cnc-pad"></view>
+  </scroll-view>
+
+  <view class="cnc-cta">
+    <cy-btn variant="primary" disabled="{{!canSubmit && !submittedApplicationId}}" loading="{{submitting}}" bind:tap="submitNode">
+      {{submittedApplicationId ? '重新读取申请状态' : '提交投放申请'}}
+    </cy-btn>
+  </view>
+  <cy-modal show="{{showLeaveConfirm}}" title="放弃未提交草稿吗"
+    content="玩法或店址还没有提交，直接离开会丢失本页草稿。"
+    confirm-text="离开" cancel-text="继续编辑" danger
+    bind:confirm="confirmLeave" bind:cancel="cancelLeave" />
+  </block>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

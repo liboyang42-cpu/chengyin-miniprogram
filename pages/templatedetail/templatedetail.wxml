@@ -1,0 +1,322 @@
+<!-- 2026-08-09:身份分支照抄上一级 pages/template/index —— 商家从工作台点进模板详情时
+     整页落回暗色,和商家域前后页断层(用户反馈「商家版的模板还是暗色调」)。 -->
+<view class="{{isMerchant ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="xb-page">
+  <!-- 全屏模糊背景 -->
+  <view class="xb-bg" wx:if="{{ coverUrl }}">
+    <image class="xb-bg-img" src="{{ coverUrl }}" mode="aspectFill" />
+    <view class="xb-bg-mask"></view>
+  </view>
+
+  <!-- 有封面时才使用沉浸式圆形返回钮；加载/错误态回到统一的纯箭头热区。 -->
+  <cy-nav-bar overlay pill="{{!!coverUrl}}" custom-back bind:back="goBack" />
+
+  <view class="xb-state" style="padding-top:{{statusBarHeight + navBarHeight + 24}}px;" wx:if="{{ loading }}">
+    <cy-skeleton type="detail" />
+  </view>
+  <view class="xb-state" style="padding-top:{{statusBarHeight + navBarHeight + 24}}px;" wx:if="{{ loadError && !loading }}">
+    <cy-error class="fill-slot" fill="{{true}}" size="lg" title="玩法没能打开" sub="{{loadErrorMsg}}" bind:retry="onRetry" auto-back />
+  </view>
+
+  <!-- ADA:成功态 hero 全出血,故 scroll 不再让顶(padding-top:0);nav 是 overlay pill,
+       浮在封面上。loading/error 两态没有封面可垫,仍按 statusBar+navBar 让位(见上)。 -->
+  <scroll-view wx:if="{{ !loading && !loadError }}" id="xbScroll" class="xb-scroll xb-scroll--bleed" scroll-y enhanced show-scrollbar="{{ false }}">
+    <!-- 固定顶栏(cy-nav-bar 是 fixed,不占文档流)的等高占位:让紧凑头从顶栏下方开始排 -->
+    <view style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+
+    <!-- 头部(严格照参考图 Xbox 63):大方封面在左、标题 + 发行方在右,整条随页滚动。
+         ⚠️ 原来是「小封面 + 吸顶」——那是参考图 64~67 的**滚动后**形态,拿它当首屏形态
+         等于把参考图的第二态当成了唯一态,所以看着不像。这里只做首屏这一态。 -->
+    <view class="xb-head">
+      <view class="xb-head-cover">
+        <image wx:if="{{ coverUrl }}" src="{{ coverUrl }}" mode="aspectFill" />
+        <!-- CU-M-104:原来是只有一层底色的空 view,商家主题下就是标题左边一块纯白方块,
+             既没说没图也没在加载。改成和上一级列表同一口径的缺图占位(图标 + 短文案)。 -->
+        <view wx:else class="xb-head-cover-ph" aria-role="img" aria-label="{{ info.title || '该玩法' }} 的封面未能加载">
+          <image class="xb-cover-ph-icon" src="/images/no_data.svg" mode="aspectFit" />
+          <text class="xb-cover-ph-txt">封面暂不可用</text>
+        </view>
+      </view>
+      <view class="xb-head-meta">
+        <view class="xb-head-title ep2">{{ info.title || '玩法' }}</view>
+        <view class="xb-head-sub ep1">{{ publisherText }}</view>
+        <text class="xb-head-badge" wx:if="{{ isOfficialPublisher }}">官方</text>
+      </view>
+    </view>
+
+    <!-- 主动作:头部正下方的通栏大按钮 + 右侧圆形 ···(参考图 Xbox 63 的形态,在页面流里)。
+         2026-08-04 用户定:文案两页统一为「开始应用」。 -->
+    <view class="xb-cta">
+      <cy-btn class="xb-cta-btn" variant="primary" bindtap="goPrimary">{{ primaryLabel }}</cy-btn>
+      <view class="xb-more" bindtap="openMore" aria-role="button" aria-label="更多操作" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="more" size="40" />
+      </view>
+    </view>
+
+    <!-- Tab:切换「详情/能力」两段正文。 -->
+    <!-- 参考图里两个 tab 是**左对齐、彼此紧挨**的,不是等宽铺满两端分散 ⇒ 用默认变体,
+         不是 fill(fill 会把 2 个 tab 各摊一半屏宽,那正是看着不像的地方之一)。 -->
+    <view class="xb-tabs-wrap">
+      <cy-tabs tabs="{{ tplTabs }}" active="{{ activeTab }}" bind:change="switchTab" />
+    </view>
+
+    <!-- ===== 详情 Tab ===== -->
+    <block wx:if="{{ activeTab === 'details' }}">
+      <!-- Figma 4312:13285 / 4312:13735:主题模板详情在 tab 下直接给节点/图片 rail;
+           只有多图才渲染,避免把 hero 封面在正文里重复一遍。 -->
+      <view class="xb-mosaic-wrap" wx:if="{{ gallery.length > 1 }}">
+        <scroll-view class="xb-mosaic-scroll" scroll-x enhanced show-scrollbar="{{ false }}">
+          <view class="xb-mosaic-inner">
+            <view class="xb-mosaic-cell" wx:for="{{ gallery }}" wx:key="index" bindtap="previewGallery" aria-role="button" aria-label="查看大图" data-url="{{ item }}" hover-class="cy-pressed" hover-stay-time="80">
+              <image src="{{ item }}" mode="aspectFill" lazy-load="true" />
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view class="xb-block xb-block--lead" wx:if="{{ info.description }}">
+        <view class="xb-section-title">
+          <cy-icon name="info" size="30" />
+          <text>{{ isTopicTemplate ? '剧情' : '简介' }}</text>
+        </view>
+        <view id="tpl-desc" class="xb-body xb-body--soft {{ descExpanded ? '' : 'xb-body--clamp' }}">{{ info.description }}</view>
+        <view class="xb-link-more" wx:if="{{ descNeedMore || descExpanded }}" bindtap="toggleDescMore" hover-class="cy-pressed" hover-stay-time="80">
+          {{ descExpanded ? '收起' : '更多' }}
+        </view>
+      </view>
+
+      <view class="xb-stat-grid" wx:if="{{ detailStats.length }}">
+        <view class="xb-stat-card" wx:for="{{ detailStats }}" wx:key="label">
+          <view class="xb-stat-value">{{ item.value }}</view>
+          <view class="xb-stat-label">{{ item.label }}</view>
+        </view>
+      </view>
+
+      <!-- 2026-08-05 §4.3 tab1 ③:规则说明就是这一页的「流程」,要紧跟简介 ——
+           原来它排在「包含内容」之后,读者先看到包装再看到怎么玩,顺序反了。 -->
+      <view class="xb-block" wx:if="{{ info.ruleInstructions }}">
+        <view class="xb-section-title">
+          <cy-icon name="route" size="30" />
+          <text>规则</text>
+        </view>
+        <view class="xb-rule-card">
+          <view class="xb-rule-mark">1</view>
+          <view class="xb-rule-copy">
+            <view id="tpl-rule" class="xb-body xb-body--soft {{ ruleExpanded ? '' : 'xb-body--clamp' }}">{{ info.ruleInstructions }}</view>
+          </view>
+        </view>
+        <view class="xb-link-more" wx:if="{{ ruleNeedMore || ruleExpanded }}" bindtap="toggleRuleMore" hover-class="cy-pressed" hover-stay-time="80">
+          {{ ruleExpanded ? '收起' : '更多' }}
+        </view>
+      </view>
+
+      <view class="xb-block" wx:if="{{ info.validationMethodStr || info.questionName }}">
+        <view class="xb-section-title">
+          <cy-icon name="check" size="30" />
+          <text>怎么验证</text>
+        </view>
+        <view class="xb-kv-card">
+          <view class="xb-kv-row" wx:if="{{ info.validationMethodStr }}">
+            <text class="xb-kv-k">核验方式</text>
+            <text class="xb-kv-v">{{ info.validationMethodStr }}</text>
+          </view>
+          <view class="xb-kv-row" wx:if="{{ info.questionName }}">
+            <text class="xb-kv-k">节点题面</text>
+            <text class="xb-kv-v ep1">{{ info.questionName }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- §4.3 tab1 ④ 难度 · 时长 · 人数 一行 chips(Goosechase:难度必须显性)。
+           这三项原来只在「能力」tab 的键值表里 —— 那是规格,读者要在体验面就判断得出
+           「我扛不扛得住」,所以提到这里成 chips;能力 tab 不再重复列。 -->
+      <view class="xb-chiprow" wx:if="{{ info.difficulty || info.duration || info.players }}">
+        <text class="xb-chip" wx:if="{{ info.difficulty }}">难度 {{ info.difficulty }}</text>
+        <text class="xb-chip" wx:if="{{ info.duration }}">{{ info.duration === 0 ? 0 : (info.duration || '--') }} 分钟</text>
+        <text class="xb-chip" wx:if="{{ info.players }}">{{ info.players }}</text>
+      </view>
+
+      <view class="xb-block" wx:if="{{ sceneChips.length }}">
+        <view class="xb-section-title">
+          <cy-icon name="poi-shop" size="30" />
+          <text>分类与适用场景</text>
+        </view>
+        <scroll-view class="xb-type-scroll" scroll-x enhanced show-scrollbar="{{ false }}">
+          <view class="xb-type-inner">
+            <view class="xb-type-item" wx:for="{{ sceneChips }}" wx:key="index">
+              <view class="xb-type-icon"><cy-icon name="poi-shop" size="30" /></view>
+              <text>{{ item }}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- §4.3 tab1 ⑤ 所需物料(Loquiz props checklist):要不要备道具是采用前的硬判断 -->
+      <view class="xb-block" wx:if="{{ info.requiredMaterials }}">
+        <view class="xb-section-title">
+          <cy-icon name="gift" size="30" />
+          <text>所需物料</text>
+        </view>
+        <view class="xb-chiprow xb-chiprow--inblock" wx:if="{{ materialChips.length }}">
+          <text class="xb-chip" wx:for="{{ materialChips }}" wx:key="index">{{ item }}</text>
+        </view>
+        <view class="xb-body xb-body--soft" wx:else>{{ info.requiredMaterials }}</view>
+      </view>
+
+      <view class="xb-block">
+        <view class="xb-section-title">
+          <cy-icon name="image" size="30" />
+          <text>{{ isTopicTemplate ? '节点' : '包含内容' }}</text>
+          <text class="xb-section-note" wx:if="{{ isTopicTemplate && gallery.length }}">{{ gallery.length || 0 }} 个预览</text>
+        </view>
+        <scroll-view class="xb-node-scroll" wx:if="{{ gallery.length > 1 }}" scroll-x enhanced show-scrollbar="{{ false }}">
+          <view class="xb-node-inner">
+            <view class="xb-node-card" wx:for="{{ gallery }}" wx:key="index">
+              <image class="xb-node-img" src="{{ item }}" mode="aspectFill" lazy-load="true" />
+              <view class="xb-node-foot">
+                <text class="xb-node-name">节点 {{ index + 1 }}</text>
+                <text class="xb-node-desc ep1">{{ info.validationMethodStr || info.publisher || '待配置玩法' }}</text>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+        <!-- CU-M-129:没有封面时不再摆一张 520rpx 的纯白大卡 —— 收起大图位,
+             只留这张卡自己的玩法名称与档次,首屏不再出现像加载失败的空块。 -->
+        <view class="xb-edition-card" wx:else>
+          <image class="xb-edition-img" wx:if="{{ coverUrl }}" src="{{ coverUrl }}" mode="aspectFill" lazy-load="true" />
+          <view class="xb-edition-foot">
+            <text class="xb-edition-name">{{ info.title || info.name }} · 标准玩法</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="xb-block" wx:if="{{ info.storyText || info.storyImg }}">
+        <view class="xb-section-title">
+          <cy-icon name="star" size="30" />
+          <text>创作者说</text>
+        </view>
+        <view class="xb-quote-card">
+          <image wx:if="{{ info.storyImg }}" class="xb-quote-img" src="{{ info.storyImg }}" mode="aspectFill" />
+          <view class="xb-quote-copy">
+            <text class="xb-quote-author">{{ publisherText }}</text>
+            <text class="xb-quote-text">{{ info.storyText || publisherText }}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="xb-block" wx:if="{{ info.rating }}">
+        <view class="xb-section-title">
+          <cy-icon name="star" size="30" />
+          <text>评价</text>
+        </view>
+        <view class="xb-rating-card">
+          <view class="xb-rating-num">{{ info.rating }}</view>
+          <view class="xb-rating-copy">
+            <view class="xb-rating-stars">
+              <cy-icon name="star" size="24" />
+              <cy-icon name="star" size="24" />
+              <cy-icon name="star" size="24" />
+              <cy-icon name="star" size="24" />
+              <cy-icon name="star" size="24" />
+            </view>
+            <text>{{ info.commentCount ? info.commentCount + ' 条来自真实玩家' : '来自真实到店玩家' }}</text>
+          </view>
+        </view>
+      </view>
+
+    </block>
+
+    <!-- ===== 能力 Tab ===== -->
+    <!-- 2026-08-05 §4.3 tab2:按「怎么验证 / 在哪用 / 谁做的」分组,不再是一张平铺键值表。
+         ⚠️ §4.3 tab2 的招商类板块(采用次数 / 主办说明 / 承接方行卡 / 运行投入 / 证据等级)
+         在游戏模板上没有对应领域字段 —— 游戏模板不招商,硬造只会得到一排空板块,故不建。
+         真正能从 §4.3 搬过来的是最后那条:模板不能直接开团。 -->
+    <block wx:if="{{ activeTab === 'capabilities' }}">
+      <!-- 2026-08-26 用户裁决:原来三张带标题的卡(怎么验证/在哪用/谁做的)只装了五行内容,
+           却占满一屏 —— 压成三行「标签 + chips」。类别与场所本来就是多值,拆成 chip 更好读;
+           chip 数超过一行(CAP_INLINE_MAX=3)才收起,点整行展开,不给恒显的假「更多」。 -->
+      <view class="xb-caps" wx:if="{{ capRows.length }}">
+        <view class="xb-caprow" wx:for="{{ capRows }}" wx:key="key">
+          <text class="xb-caprow-k">{{ item.label }}</text>
+          <view class="xb-caprow-v {{ item.collapsible && !capExpanded[item.key] ? 'xb-caprow-v--clamp' : '' }}">
+            <block wx:for="{{ item.chips }}" wx:for-item="chip" wx:key="text">
+              <view wx:if="{{ chip.action }}" class="xb-chip xb-chip--act" data-action="{{ chip.action }}" bindtap="tapCapChip"
+                aria-role="button" aria-label="{{ chip.text }}" hover-class="cy-pressed" hover-stay-time="80">
+                <text>{{ chip.text }}</text><cy-icon name="arrow-right" size="24" />
+              </view>
+              <text wx:else class="xb-chip">{{ chip.text }}</text>
+            </block>
+          </view>
+          <view class="xb-caprow-more" wx:if="{{ item.collapsible }}" data-key="{{ item.key }}" bindtap="toggleCapRow"
+            aria-role="button" aria-label="{{ capExpanded[item.key] ? '收起' + item.label : '展开' + item.label }}"
+            hover-class="cy-pressed" hover-stay-time="80">{{ capExpanded[item.key] ? '收起' : '展开' }}</view>
+        </view>
+      </view>
+
+    </block>
+
+    <!-- §4.3 tab2 ⑧ 的对应物(Loquiz 把「模板不能直接玩」明写在模板页上)。
+         CU-M-130:从「能力」tab 里挪到两段正文之外 —— 这条使用规则跟 tab 无关,
+         而没有能力字段的模板压根不给「能力」tab,原来它连带着规则一起消失了。 -->
+    <view class="xb-block">
+      <view class="xb-notice-card">
+        <view class="xb-notice-tit">这是玩法模板，不能直接开团</view>
+        <view class="xb-notice-txt">「开始应用」会把这个玩法复制成你自己的玩法模板；玩家要在活动发布后才能玩到。</view>
+      </view>
+    </view>
+
+    <view class="xb-scroll-pad"></view>
+  </scroll-view>
+
+  <!-- 更多菜单 -->
+  <cy-sheet show="{{moreShow}}" maskClosable bind:close="closeMore">
+    <button class="xb-sheet-item" open-type="share" bindtap="onShare" hover-class="xb-sheet-item--press" hover-stay-time="80">分享玩法</button>
+    <view class="xb-sheet-item" wx:if="{{ info.validationMethod }}" bindtap="openPopFromMore" hover-class="xb-sheet-item--press" hover-stay-time="80">预览节点</view>
+    <view class="xb-sheet-item xb-sheet-cancel" bindtap="closeMore" hover-class="xb-sheet-item--press" hover-stay-time="80">取消</view>
+  </cy-sheet>
+
+  <!-- 节点预览:chrome 交给 cy-sheet(标题 + 右上角 ✕)。
+       原来面板自己摆一行「取消 / 节点交互预览 / 关闭」,与全站统一的右上 ✕ 是两套关闭手势;
+       2026-09-19 用户裁决:弹层退出口只留右上角 ✕。 -->
+  <cy-sheet show="{{ popDavid }}" title="节点交互预览" bind:close="closePop">
+    <view class="pop-model pop-temp">
+    <view class="david_tk">
+      <view class="david_tk_box">
+        <block wx:if="{{ info.validationMethod == 1 }}">
+          <view class="david_tk_sr_title">
+            <view class="david_tk_sr_title_name">{{ info.questionName }}</view>
+          </view>
+          <view class="david_tk_sr_inp">
+            <input value="{{ inputAnswer }}" bindinput="onInputAnswer" placeholder="输入预览答案"
+              placeholder-class="fld-ph" />
+          </view>
+          <cy-btn variant="primary" disabled="{{!canSubmitPreview}}" style="width:580rpx;margin:50rpx auto;display:block" bindtap="completePreview" bind:disabledtap="onPreviewDisabledTap">完成预览</cy-btn>
+        </block>
+        <block wx:if="{{ info.validationMethod == 3 }}">
+          <view class="david_tk_sr_title">
+            <view class="david_tk_sr_title_name">{{ info.questionName }}</view>
+          </view>
+          <view class="david_tk_sr_tgb">
+            <view class="david_tk_sr_tgb_li {{ selectedOptionKey === 'A' ? 'on' : '' }}"
+              wx:if="{{ info.questionA }}" bindtap="onSelectOption" data-option="A" data-value="{{ info.questionA }}" hover-class="cy-pressed" hover-stay-time="80">A.{{ info.questionA }}</view>
+            <view class="david_tk_sr_tgb_li {{ selectedOptionKey === 'B' ? 'on' : '' }}"
+              wx:if="{{ info.questionB }}" bindtap="onSelectOption" data-option="B" data-value="{{ info.questionB }}" hover-class="cy-pressed" hover-stay-time="80">B.{{ info.questionB }}</view>
+            <view class="david_tk_sr_tgb_li {{ selectedOptionKey === 'C' ? 'on' : '' }}"
+              wx:if="{{ info.questionC }}" bindtap="onSelectOption" data-option="C" data-value="{{ info.questionC }}" hover-class="cy-pressed" hover-stay-time="80">C.{{ info.questionC }}</view>
+            <view class="david_tk_sr_tgb_li {{ selectedOptionKey === 'D' ? 'on' : '' }}"
+              wx:if="{{ info.questionD }}" bindtap="onSelectOption" data-option="D" data-value="{{ info.questionD }}" hover-class="cy-pressed" hover-stay-time="80">D.{{ info.questionD }}</view>
+          </view>
+          <cy-btn variant="primary" disabled="{{!canSubmitPreview}}" style="width:580rpx;margin:50rpx auto;display:block" bindtap="completePreview" bind:disabledtap="onPreviewDisabledTap">完成预览</cy-btn>
+        </block>
+        <view class="david_tk_box_tpis" wx:if="{{ info.validationMethod != 1 && info.validationMethod != 3 }}">
+          该玩法验证方式为「{{ info.validationMethodStr || '其他' }}」，请报名参与活动后体验。
+        </view>
+      </view>
+    </view>
+    </view>
+  </cy-sheet>
+</view>
+</view>

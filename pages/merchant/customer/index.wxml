@@ -1,0 +1,177 @@
+<view class="cu-page theme-merchant m-flush-nav" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar />
+  <view class="cu-hero">
+    <view class="cu-hero-title">客户</view>
+    <text class="cu-hero-sub">{{customerSummaryText}}</text>
+  </view>
+
+  <!-- 高频经营筛选；数量统一留在标题摘要，chip 只放业务词。 -->
+  <scroll-view scroll-x class="cu-segs" enhanced show-scrollbar="{{false}}">
+    <view class="cu-seg {{segment === item.key ? 'cu-seg--on' : ''}}"
+          wx:for="{{segments}}" wx:key="key"
+          bindtap="onSegmentTap" data-key="{{item.key}}"
+          aria-role="button" aria-label="筛选{{item.label}}客户" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="cu-seg-lbl">{{item.label}}</text>
+    </view>
+    <!-- 低频工具留在横向筛选的尾部；首屏仍严格保持 Figma 的四个高频筛选。 -->
+    <view class="cu-seg cu-seg--manage" bindtap="toggleTools" aria-role="button"
+          aria-label="{{toolsOpen ? '收起客户管理工具' : '打开客户管理工具'}}"
+          hover-class="cy-pressed" hover-stay-time="80">
+      <text class="cu-seg-lbl">管理</text>
+    </view>
+  </scroll-view>
+
+  <view class="cu-search">
+    <cy-search value="{{keyword}}" placeholder="搜索" bind:input="onKeywordInput" bind:confirm="onKeywordConfirm" />
+  </view>
+
+
+
+    <view class="cu-batch" wx:if="{{selecting}}">
+      <text class="cu-batch-count">已选 {{selectedIds.length}} / 100</text>
+      <button class="cu-inline-button" bindtap="toggleSelectMode">取消批量</button>
+      <input class="cu-batch-input" value="{{batchTagName}}" maxlength="16" placeholder="输入标签名称" bindinput="onBatchTagInput" />
+      <button class="cu-inline-button cu-inline-button--primary" loading="{{batchSubmitting}}" bindtap="submitBatchTag">添加</button>
+      <cy-inline-error class="cu-batch-error" wx:if="{{batchError}}" kind="data"
+        title="标签未添加" sub="{{batchError}}" />
+    </view>
+    <view class="cu-export" wx:if="{{exportState !== 'idle'}}">
+      <text wx:if="{{exportState === 'PENDING' || exportState === 'RUNNING'}}">正在生成脱敏 Excel，可继续浏览客户</text>
+      <text wx:elif="{{exportState === 'SUCCESS'}}">导出已就绪（{{exportTask.rowCount || 0}} 行）</text>
+      <!-- 服务端文件确实生成了,但本机这一步没成 —— 不能再写「已就绪」,那与下面的错误同屏矛盾。 -->
+      <text wx:elif="{{exportState === 'DOWNLOAD_FAILED'}}">导出文件已生成，这台手机没能下载下来</text>
+      <text wx:elif="{{exportState === 'EXPIRED'}}">导出已过期，请重新创建</text>
+      <text wx:elif="{{exportState === 'FAILED'}}">导出失败</text>
+      <button wx:if="{{exportState === 'SUCCESS' || exportState === 'DOWNLOAD_FAILED'}}"
+              class="cu-inline-button" bindtap="downloadExport">{{exportState === 'DOWNLOAD_FAILED' ? '重新下载' : '下载并打开'}}</button>
+      <button wx:if="{{exportError && (exportState === 'PENDING' || exportState === 'RUNNING')}}"
+              class="cu-inline-button" bindtap="retryExportStatus">重新查询</button>
+      <cy-inline-error class="cu-batch-error" wx:if="{{exportError}}" kind="data"
+        title="导出状态未同步" sub="{{exportError}}" />
+    </view>
+
+  <cy-empty class="cy-fade-in cu-state-clear" wx:if="{{noPermission}}" kind="no-permission" fill="{{true}}" size="lg"
+            title="当前岗位没有客户查看权限" sub="请联系店主调整经营团队权限" />
+  <cy-skeleton wx:elif="{{loading && !rows.length}}" type="card" count="{{4}}" />
+  <!-- auto-back 只认首屏:换分群 / 换标签 / 换关键词都会清空 rows 再拉一次,
+       那一次失败若也自动退页,分群与群发草稿会跟着页面一起没(审查C A1)。 -->
+  <cy-error class="cy-fade-in cu-state-clear" wx:elif="{{error && !rows.length}}" title="客户名单加载失败" sub="{{error}}" bind:retry="retryLoad" fill="{{true}}" size="lg" auto-back="{{!everLoaded}}" />
+  <cy-empty class="cy-fade-in cu-state-clear" wx:elif="{{!rows.length}}" kind="empty" fill="{{true}}" size="lg"
+            title="{{emptyTitle}}" sub="{{emptySub}}"
+            cta="{{emptyCta}}" bind:cta="onEmptyAction" />
+
+  <scroll-view wx:else scroll-y class="cu-scroll cy-fade-in" enhanced show-scrollbar="{{false}}" bindscrolltolower="loadMore">
+    <text class="cu-sync" wx:if="{{loading && rows.length}}" aria-role="status">正在更新客户名单…</text>
+    <view class="cu-list">
+    <view class="cu-row" wx:for="{{rows}}" wx:key="memberId"
+          data-memberid="{{item.memberId}}" bindtap="openCustomer"
+          aria-role="button" aria-label="查看客户 {{item.displayName}} 详情" hover-class="cy-pressed" hover-stay-time="80">
+      <view wx:if="{{selecting}}" class="cu-check {{item.selected ? 'cu-check--on' : ''}}"><cy-icon wx:if="{{item.selected}}" name="check" size="40" /></view>
+      <cy-avatar class="cu-avatar" src="{{item.avatar || '/images/d_profile.png'}}" name="{{item.avatarName}}" size="88" />
+      <view class="cu-body">
+        <view class="cu-line1">
+          <text class="cu-name">{{item.displayName}}</text>
+          <!-- 稿 471:6605:姓名右边一颗履约状态徽标。原来这里只有「备注」两个字,
+               而「有没有备注」远不如「核没核销」重要。备注仍然保留,排在状态后面。 -->
+          <cy-badge wx:if="{{item.tierText}}" type="status" variant="{{item.tier === 'pending' ? 'warning' : 'neutral'}}" label="{{item.tierText}}" />
+          <text class="cu-tier" wx:if="{{item.latestNote}}">备注</text>
+        </view>
+        <text class="cu-action">{{item.actionText}}</text>
+        <!-- 电话给不给由服务端按经营权限与客户授权判，前端不做二次过滤。
+             没号时必须说明为什么 —— 只是空着的话,商家会当成「这人没留电话」。 -->
+        <view class="cu-meta">
+          <text class="cu-note" wx:if="{{item.latestNote}}">{{item.latestNote}}</text>
+          <view class="cu-phone-row" wx:if="{{item.phoneText}}">
+            <text class="cu-phone" catchtap="callCustomer" data-memberid="{{item.memberId}}" aria-role="button" aria-label="拨打客户电话" hover-class="cy-pressed" hover-stay-time="80">{{item.phoneText}}</text>
+            <view class="cu-copy" catchtap="copyCustomerPhone" data-memberid="{{item.memberId}}"
+                  aria-role="button" aria-label="复制电话" hover-class="cy-pressed" hover-stay-time="80">
+              <image class="cu-copy-img" src="/pages/merchant/images/icon_copy.svg" mode="aspectFit" />
+            </view>
+          </view>
+          <text class="cu-nophone" wx:elif="{{item.contactHint}}">{{item.contactHint}}</text>
+        </view>
+      </view>
+      <cy-icon class="cu-arrow" name="arrow-right" size="24" />
+    </view>
+    </view>
+
+    <!-- 名单末尾保留数量与结束提示。 -->
+    <view class="cu-foot">
+      <text wx:if="{{loadingMore}}" class="cu-foot-txt">正在加载更多</text>
+      <text wx:elif="{{!hasMore}}" class="cu-foot-txt">共 {{castCount || 0}} 位客户 · 已全部显示</text>
+    </view>
+  </scroll-view>
+
+
+  <cy-sheet show="{{toolsOpen}}" title="客户管理" bind:close="closeTools">
+  <view class="cu-head">
+
+    <view class="cu-toolbar">
+      <button class="cu-tool" bindtap="toggleFilters">{{filterOpen ? '收起筛选' : '更多筛选'}}</button>
+      <button wx:if="{{canSegment}}" class="cu-tool" bindtap="toggleSelectMode">{{selecting ? '取消批量' : '批量标签'}}</button>
+      <view wx:if="{{canExport}}" class="cu-tool" bindtap="createExport" aria-role="button"
+            aria-label="导出脱敏客户资料" aria-disabled="{{exportState === 'PENDING' || exportState === 'RUNNING'}}"
+            hover-class="{{exportState === 'PENDING' || exportState === 'RUNNING' ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        {{exportState === 'PENDING' || exportState === 'RUNNING' ? '导出中…' : '导出'}}
+      </view>
+
+    </view>
+
+
+
+
+
+
+
+
+
+  </view>
+  </cy-sheet>
+  <cy-sheet show="{{filterOpen}}" title="筛选客户" footer="{{true}}" bind:close="closeFilters">
+    <view class="cu-filter">
+      <cy-inline-error wx:if="{{savedSegmentsError}}" title="保存分群暂未更新" sub="{{savedSegmentsError}}" action="重试" bind:action="loadSavedSegments" />
+      <text class="cu-filter-title">客户来源</text>
+      <view class="cu-filter-options">
+        <text class="cu-filter-chip {{sourceType === '' ? 'cu-filter-chip--on' : ''}}" data-value="" bindtap="onSourceTap" hover-class="cy-pressed" hover-stay-time="80">全部</text>
+        <text class="cu-filter-chip {{sourceType === '1' ? 'cu-filter-chip--on' : ''}}" data-value="1" bindtap="onSourceTap" hover-class="cy-pressed" hover-stay-time="80">主题</text>
+        <text class="cu-filter-chip {{sourceType === '2' ? 'cu-filter-chip--on' : ''}}" data-value="2" bindtap="onSourceTap" hover-class="cy-pressed" hover-stay-time="80">活动</text>
+      </view>
+      <text class="cu-filter-title">来源时间</text>
+      <view class="cu-date-row">
+        <cy-date-field mode="date" value="{{sourceStart}}" title="选择开始日期" bind:change="onSourceStartChange"><view class="cu-date">{{sourceStart || '开始日期'}}</view></cy-date-field>
+        <text class="cu-date-sep">至</text>
+        <cy-date-field mode="date" value="{{sourceEnd}}" title="选择结束日期" bind:change="onSourceEndChange"><view class="cu-date">{{sourceEnd || '结束日期'}}</view></cy-date-field>
+      </view>
+      <text class="cu-filter-title" wx:if="{{availableTags.length}}">客户标签</text>
+      <scroll-view wx:if="{{availableTags.length}}" scroll-x class="cu-tag-filter" show-scrollbar="{{false}}">
+        <text class="cu-filter-chip {{tagId === '' ? 'cu-filter-chip--on' : ''}}" data-tagid="" bindtap="onTagFilterTap" hover-class="cy-pressed" hover-stay-time="80">全部标签</text>
+        <text class="cu-filter-chip {{tagId === item.id ? 'cu-filter-chip--on' : ''}}"
+              wx:for="{{availableTags}}" wx:key="id" data-tagid="{{item.id}}" bindtap="onTagFilterTap" hover-class="cy-pressed" hover-stay-time="80">{{item.tagName}}</text>
+      </scroll-view>
+      <view class="cu-filter-actions">
+        <button class="cu-inline-button" bindtap="clearFilters">清空筛选</button>
+      </view>
+      <view wx:if="{{canSegment}}" class="cu-save-segment">
+        <input class="cu-segment-input" value="{{segmentName}}" maxlength="30" placeholder="命名当前筛选"
+               bindinput="onSegmentNameInput" />
+        <button class="cu-inline-button" loading="{{segmentSaving}}" bindtap="saveCurrentSegment">保存分群</button>
+      </view>
+      <scroll-view wx:if="{{savedSegments.length}}" scroll-x class="cu-saved" show-scrollbar="{{false}}">
+        <text class="cu-saved-item" wx:for="{{savedSegments}}" wx:key="id"
+              data-segmentid="{{item.id}}" bindtap="applySavedSegment" hover-class="cy-pressed" hover-stay-time="80">{{item.name}}</text>
+      </scroll-view>
+    </view>
+    <cy-btn slot="footer" bindtap="closeFilters">查看结果</cy-btn>
+  </cy-sheet>
+
+
+</view>
+
+<!-- F15:换取联系号码失败时的半屏。拨号/复制是一条独立的授权动作(服务端要判权限、
+     归属、同意与日限),失败必须在屏幕上说清,不能静默。2s 后自己收掉,人还留在名单上。 -->
+<cy-result-sheet show="{{resultSheet.show}}" kind="{{resultSheet.kind}}" title="{{resultSheet.title}}"
+  sub="{{resultSheet.sub}}" meta="{{resultSheet.meta}}" pill="{{resultSheet.pill}}" why="{{resultSheet.why}}"
+  duration="{{resultSheet.duration}}" bind:close="onResultSheetClose" />

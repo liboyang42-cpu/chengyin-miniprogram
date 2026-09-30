@@ -1,0 +1,247 @@
+<!-- 商家侧协作域:主题必须覆盖导航、标题、正文与弹层，而不是只挂在正文内层。 -->
+<view class="coop-list theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- 2026-09-15:去掉页面级 cy-access-gate kind="merchant"。/api/coop/list 与 /api/coop/pool/* 都服务俱乐部主理人,
+       商家守卫比后端严,会把主理人锁在自己的发件箱外(access-gate.js 铁律:守卫绝不能比后端更严)。 -->
+<cy-nav-bar plain />
+<cy-nav-spacer />
+<!-- 本域是商家/主理人之间的协作(协作邀请 / 候选池 / 保证金),不是玩家面。 -->
+  <cy-page-title title="协作邀请" safe-top="{{false}}" flush="{{true}}" />
+  <!-- 全站合作只有「收到的 / 我发出的」两个入口;合作池已收编:申请带队在俱乐部详情「可对接的活动」。 -->
+  <cy-tabs class="coop-tabs" variant="fill" wide="{{true}}" tabs="{{listTabs}}" active="{{tabKey}}" bind:change="onTabChange" />
+
+  <!-- CU-C-75:从某个主题的「查看收到的申请」进来时,先把范围说清楚(并给回到全局的出口) -->
+  <view class="inline-state topic-scope" wx:if="{{topicScopeText}}" aria-role="status">
+    {{topicScopeText}}<text class="inline-retry" bindtap="clearTopicFilter" aria-role="button" aria-label="查看全部协作邀请" hover-class="cy-pressed" hover-stay-time="80">看全部</text>
+  </view>
+  <view class="action-state action-state--ok" wx:if="{{actionReceipt}}" aria-role="status" aria-live="polite">{{actionReceipt}}</view>
+  <cy-inline-error class="action-state--error" wx:if="{{actionError}}" kind="data"
+    title="操作未完成" sub="{{actionError}}" />
+  <view class="inline-state" wx:if="{{listRefreshing}}" aria-role="status" aria-live="polite">正在刷新协作邀请…</view>
+  <view class="inline-state inline-state--error error-kind--{{listErrorKind}}" wx:if="{{listErrorText && listState === 'ready'}}" aria-role="alert" aria-live="assertive">
+    {{listErrorText}}<text class="inline-retry" bindtap="load" aria-role="button" aria-label="重试刷新协作邀请" hover-class="cy-pressed" hover-stay-time="80">重试</text>
+  </view>
+
+  <!-- 收到的:别人发给我的协作邀约 + 别人对我主题的俱乐部申请(一条请求 = 一条记录) -->
+  <block wx:if="{{tab===0}}">
+    <cy-skeleton wx:if="{{listState === 'loading'}}" type="list" count="3" />
+    <cy-error class="retry-lg" wx:elif="{{listState === 'permission'}}" fill title="当前账号不能查看协作邀请" sub="{{listErrorText}}" auto-back bind:retry="load" />
+    <cy-error class="retry-lg error-kind--{{listErrorKind}}" wx:elif="{{listState === 'error'}}" fill title="协作邀请没加载出来" sub="{{listErrorText || '服务暂时不可用,请稍后重试'}}" auto-back bind:retry="load" />
+    <block wx:else>
+    <view class="inline-state" wx:if="{{receivedApplyState === 'loading'}}" aria-role="status" aria-live="polite">正在加载带队申请…</view>
+    <!-- 收到的这一路单独报错:只在「收到的」说事,不把池子请求的错误顶到「我发出的」tab 上 -->
+    <view class="inline-state inline-state--error" wx:if="{{receivedApplyErrorText}}" aria-role="alert" aria-live="assertive">
+      {{receivedApplyErrorText}}<text class="inline-retry" bindtap="loadApplies" aria-role="button" aria-label="重试加载收到的带队申请" hover-class="cy-pressed" hover-stay-time="80">重试</text>
+    </view>
+    <view class="inv {{item.status>=3 ? 'is-dim' : ''}}" wx:for="{{received}}" wx:key="rowKey"
+      bindtap="goInviteDetail" data-id="{{item.inviteId}}" data-box="received" aria-role="button"
+      aria-label="查看 {{item.topicText || '这条邀约'}} 的协作详情" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-error wx:if="{{item.identityError}}" class="inv-identity-error" title="邀约标识待确认"
+        sub="{{item.identityError}}" retry="刷新邀约" bind:retry="load" />
+      <view class="inv-top">
+        <view class="inv-badge inv-badge--{{item.badgeTone}}"><cy-icon name="{{item.badgeIcon}}" size="24" /><text>{{item.statusText}}</text></view>
+        <text class="inv-peer" wx:if="{{item.partnerName}}">来自 {{item.partnerName}}</text>
+        <text class="inv-sub" wx:if="{{item.viewerPartyName}}">接收俱乐部：{{item.viewerPartyName}}</text>
+      </view>
+      <view class="inv-main">
+        <image wx:if="{{item.topicImgUrl || item.topicCover}}" class="inv-cover" src="{{item.topicImgUrl || item.topicCover}}" mode="aspectFill" />
+        <view wx:else class="inv-cover"></view>
+        <view class="inv-info">
+          <text class="inv-date" wx:if="{{item.dateText}}">{{item.dateText}}</text>
+          <text class="inv-title">{{item.titleText || item.topicText}}</text>
+          <text class="inv-sub">{{item.typeText}}{{item.countdownText ? " · " + item.countdownText : ""}}</text>
+        </view>
+      </view>
+      <view class="inv-terms" wx:if="{{item.termsText}}">{{item.termsText}}</view>
+      <view class="inv-contact" wx:if="{{item.partnerContact}}" catchtap="copyPartnerPhone" data-phone="{{item.partnerPhone}}" aria-role="button" aria-label="复制合作方电话" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        {{item.partnerContact}}<text class="inv-contact-copy" wx:if="{{item.partnerPhone}}"> · 复制</text>
+      </view>
+      <view class="deposit-due" wx:if="{{item.depositDueText}}">{{item.depositDueText}}</view>
+      <view class="inv-msg" wx:if="{{item.message}}">{{item.message}}</view>
+      <cy-error class="inv-context-error" wx:if="{{item.status===0 && !item.decisionReady}}"
+        title="邀请信息不完整" sub="缺少邀请方、主题或合作条款，暂不能处理" retry="重新加载" bind:retry="load" />
+      <!-- 稿 261:277 ★接受/拒绝只出现在收件箱(后端 handle 写死受邀方本人)★左 secondary 右 primary,一屏一个实心。
+           受邀方可以是商家也可以是俱乐部;俱乐部只有这一页能处理收到的邀约。 -->
+      <view class="inv-acts" wx:if="{{item.status===0 && item.decisionReady && !item.legacyReadonly && !item.identityError}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="rejectReceived" data-id="{{item.id}}" aria-role="button" aria-label="拒绝这条协作邀约" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'reject:' + item.id ? '处理中…' : '拒绝'}}</view>
+        <view class="inv-btn inv-btn--primary" catchtap="acceptReceived" data-id="{{item.id}}" aria-role="button" aria-label="接受这条协作邀约" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'accept:' + item.id ? '处理中…' : '接受合作'}}</view>
+      </view>
+      <!-- 已接受卡(收件箱):总控裁决「一张卡最多两个小按钮并排」。
+           欠保证金 = 次[查看合作] + 主[缴纳保证金];不欠 = 只[查看合作](单动作给次级按钮)。
+           联系合作方 / 申报供给 / 评价 已搬到协作详情页(pages/coop/invite-detail),
+           详情页动作区同样 ≤2 并排,多出的走次级区列表行 —— 不做弹窗堆按钮。 -->
+      <view class="inv-acts" wx:if="{{item.status===1 && !item.legacyReadonly && !item.identityError}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="goInviteDetail" data-id="{{item.inviteId}}" data-box="received" aria-role="button" aria-label="查看合作" hover-class="cy-pressed" hover-stay-time="80">查看合作</view>
+        <view wx:if="{{item.depositOwed}}" class="inv-btn inv-btn--primary" catchtap="payDeposit" data-id="{{item.id}}" aria-role="button" aria-label="缴纳合作保证金" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'deposit:' + item.id ? '支付处理中…' : '缴纳保证金'}}</view>
+      </view>
+      <!-- 保证金退款重试:涉资链路状态未知时的兜底入口,与已接受卡的无条件动作分开渲染 -->
+      <view class="inv-acts" wx:if="{{item.depositRefundPending && !item.legacyReadonly && !item.identityError}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="retryDepositRefund" data-id="{{item.id}}" aria-role="button" aria-label="重试保证金退款" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'refund:' + item.id ? '退款重试中…' : '重试保证金退款'}}</view>
+      </view>
+    </view>
+    <view class="inv" wx:for="{{receivedApplies}}" wx:key="rowKey">
+      <view class="inv-top">
+        <view class="inv-badge inv-badge--{{item.badgeTone}}"><cy-icon name="{{item.badgeIcon}}" size="24" /><text>{{item.statusText}}</text></view>
+        <text class="inv-peer" wx:if="{{item.peerText}}">{{item.peerText}}</text>
+      </view>
+      <view class="inv-main">
+        <image wx:if="{{item.topicImgUrl || item.topicCover}}" class="inv-cover" src="{{item.topicImgUrl || item.topicCover}}" mode="aspectFill" />
+        <view wx:else class="inv-cover"></view>
+        <view class="inv-info">
+          <text class="inv-date" wx:if="{{item.dateText}}">{{item.dateText}}</text>
+          <text class="inv-title">{{item.titleText || item.topicText}}</text>
+          <text class="inv-sub">{{item.subText}}</text>
+        </view>
+      </view>
+      <view class="inv-terms">{{item.termsText}}</view>
+      <!-- 申请只表意向不成单(§3.6):接受 = 回一张带条款的正式邀约,拒绝 = 婉拒(对方可再申请) -->
+      <view class="inv-acts inv-acts--apply" wx:if="{{item.status===0}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="declineApply" data-applyid="{{item.applyId}}" data-name="{{item.clubName}}" data-scope="{{item.scope}}" aria-role="button" aria-label="拒绝{{item.clubName}}的带队申请" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'decline:' + item.applyId ? '处理中…' : '拒绝'}}</view>
+        <view class="inv-btn inv-btn--primary" catchtap="replyApplyInvite" data-applyid="{{item.applyId}}" data-clubid="{{item.clubId}}" data-topicid="{{item.topicId}}" data-name="{{item.clubName}}" data-scope="{{item.scope}}" aria-role="button" aria-label="给{{item.clubName}}回带条款邀约" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">回邀约</view>
+      </view>
+      <view class="inv-acts" wx:if="{{item.linkedInviteId}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="goInviteDetail" data-id="{{item.linkedInviteId}}" data-box="sent" aria-role="button" aria-label="查看与{{item.clubName}}的合作详情" hover-class="cy-pressed" hover-stay-time="80">查看合作详情</view>
+      </view>
+    </view>
+    <!-- 承接报名候选(商家报名承接我主题的节点,跨主题聚合):确认占槽 -->
+    <view class="inline-state" wx:if="{{receivedRegState === 'loading'}}" aria-role="status" aria-live="polite">正在加载承接报名…</view>
+    <view class="inline-state inline-state--error" wx:if="{{receivedRegErrorText}}" aria-role="alert" aria-live="assertive">
+      {{receivedRegErrorText}}<text class="inline-retry" bindtap="loadReceivedRegs" aria-role="button" aria-label="重试加载承接报名" hover-class="cy-pressed" hover-stay-time="80">重试</text>
+    </view>
+    <view class="inv {{item.dim ? 'is-dim' : ''}}" wx:for="{{receivedRegs}}" wx:key="rowKey">
+      <view class="inv-top">
+        <view class="inv-badge inv-badge--{{item.badgeTone}}"><cy-icon name="{{item.badgeIcon}}" size="24" /><text>{{item.auditText}}</text></view>
+        <text class="inv-peer">{{item.topicTitle}}</text>
+      </view>
+      <view class="inv-main">
+        <image wx:if="{{item.logo}}" class="inv-cover" src="{{item.logo}}" mode="aspectFill" />
+        <view wx:else class="inv-cover"></view>
+        <view class="inv-info">
+          <text class="inv-title">{{item.name}}</text>
+          <text class="inv-sub">{{item.meta}}</text>
+        </view>
+      </view>
+      <view class="inv-terms" wx:if="{{item.placeText}}">{{item.placeText}}</view>
+      <!-- 报名是意向不是报价:确认只占槽,不生成合作单;条款随之后的邀约走(§3.6) -->
+      <view class="inv-acts" wx:if="{{item.audit===0}}">
+        <view class="inv-btn inv-btn--primary" catchtap="confirmReg" data-id="{{item.id}}" data-topicid="{{item.topicId}}" data-memberid="{{item.memberId}}" data-name="{{item.name}}" data-logo="{{item.logo}}" data-meta="{{item.meta}}" aria-role="button" aria-label="确认{{item.name}}占住候选位置" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'reg-confirm:' + item.id ? '确认中…' : '确认占槽'}}</view>
+      </view>
+    </view>
+    <!-- 官方邀约(平台→商家),原合作中心「邀约我的」tab 收编至此 -->
+    <view class="inv {{item.status!==0 ? 'is-dim' : ''}}" wx:for="{{officialInvites}}" wx:key="rowKey">
+      <view class="inv-top">
+        <view class="inv-badge inv-badge--{{item.badgeTone}}"><cy-icon name="{{item.badgeIcon}}" size="24" /><text>{{item.statusText}}</text></view>
+        <text class="inv-peer">来自 平台</text>
+      </view>
+      <view class="inv-main">
+        <image wx:if="{{item.cover}}" class="inv-cover" src="{{item.cover}}" mode="aspectFill" />
+        <view wx:else class="inv-cover"></view>
+        <view class="inv-info">
+          <text class="inv-title">{{item.titleText}}</text>
+          <text class="inv-sub">{{item.subText}}</text>
+        </view>
+      </view>
+      <view class="inv-terms">{{item.termsText}}</view>
+      <view class="inv-acts inv-acts--official" wx:if="{{item.actionable}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="rejectOfficialInvite" data-id="{{item.inviteId}}" aria-role="button" aria-label="拒绝官方邀约" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'official-reject:' + item.inviteId ? '处理中…' : '拒绝'}}</view>
+        <view class="inv-btn inv-btn--primary" catchtap="acceptOfficialInvite" data-id="{{item.inviteId}}" data-terms="{{item.reward}}" aria-role="button" aria-label="接受官方邀约" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'official-accept:' + item.inviteId ? '处理中…' : '接受合作'}}</view>
+      </view>
+    </view>
+    <view class="inline-state inline-state--error" wx:if="{{officialErrorText}}" aria-role="alert" aria-live="assertive">
+      {{officialErrorText}}<text class="inline-retry" bindtap="loadOfficialInvites" aria-role="button" aria-label="重试加载官方邀约" hover-class="cy-pressed" hover-stay-time="80">重试</text>
+    </view>
+    <!-- 邀约提醒订阅须在点击手势内请求;空列表时更需要,所以不挂列表条件 -->
+    <view class="inline-state">
+      新邀约到达时提醒我<cy-btn class="alert-btn" variant="ghost" size="sm" bindtap="enableInviteAlerts" accessibilityLabel="开启合作邀约提醒">开启</cy-btn>
+    </view>
+    <cy-empty size="lg" style="flex:1;min-height:0;" kind="empty" wx:if="{{receivedApplyState === 'ready' && !receivedApplyErrorText && !receivedRegErrorText && !officialErrorText && !listErrorText && !received.length && !receivedApplies.length && !receivedRegs.length && !officialInvites.length}}" fill title="还没有收到协作邀请" sub="别的商家或俱乐部发来的协作邀请、对你主题的带队申请会显示在这里" cta="去发起邀请" bindcta="goInvite" />
+    </block>
+  </block>
+
+  <!-- 我发出的:我发出的协作邀约 + 我提交的俱乐部带队申请 -->
+  <block wx:else>
+    <cy-skeleton wx:if="{{listState === 'loading'}}" type="list" count="3" />
+    <cy-error class="retry-lg" wx:elif="{{listState === 'permission'}}" fill title="当前账号不能查看协作邀请" sub="{{listErrorText}}" auto-back bind:retry="load" />
+    <cy-error class="retry-lg error-kind--{{listErrorKind}}" wx:elif="{{listState === 'error'}}" fill title="协作邀请没加载出来" sub="{{listErrorText || '服务暂时不可用,请稍后重试'}}" auto-back bind:retry="load" />
+    <block wx:else>
+    <view class="inline-state" wx:if="{{sentApplyState === 'loading'}}" aria-role="status" aria-live="polite">正在加载带队申请…</view>
+    <!-- 我发出的这一路单独报错:收到的池子请求失败不得在这里顶牌 -->
+    <view class="inline-state inline-state--error" wx:if="{{sentApplyErrorText}}" aria-role="alert" aria-live="assertive">
+      {{sentApplyErrorText}}<text class="inline-retry" bindtap="loadApplies" aria-role="button" aria-label="重试加载我发出的带队申请" hover-class="cy-pressed" hover-stay-time="80">重试</text>
+    </view>
+    <view class="inv {{item.status>=3 ? 'is-dim' : ''}}" wx:for="{{sent}}" wx:key="rowKey"
+      bindtap="goInviteDetail" data-id="{{item.inviteId}}" data-box="sent" aria-role="button"
+      aria-label="查看 {{item.topicText || '这条邀约'}} 的协作详情" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-error wx:if="{{item.identityError}}" class="inv-identity-error" title="邀约标识待确认"
+        sub="{{item.identityError}}" retry="刷新邀约" bind:retry="load" />
+      <view class="inv-top">
+        <view class="inv-badge inv-badge--{{item.badgeTone}}"><cy-icon name="{{item.badgeIcon}}" size="24" /><text>{{item.statusText}}</text></view>
+        <text class="inv-peer" wx:if="{{item.partnerName}}">发给 {{item.partnerName}}</text>
+        <text class="inv-sub" wx:if="{{item.viewerPartyName}}">发起俱乐部：{{item.viewerPartyName}}</text>
+      </view>
+      <view class="inv-main">
+        <image wx:if="{{item.topicImgUrl || item.topicCover}}" class="inv-cover" src="{{item.topicImgUrl || item.topicCover}}" mode="aspectFill" />
+        <view wx:else class="inv-cover"></view>
+        <view class="inv-info">
+          <text class="inv-date" wx:if="{{item.dateText}}">{{item.dateText}}</text>
+          <text class="inv-title">{{item.titleText || item.topicText}}</text>
+          <text class="inv-sub">{{item.typeText}}{{item.slotText ? " · " + item.slotText : ""}}</text>
+        </view>
+      </view>
+      <view class="inv-terms" wx:if="{{item.termsText}}">{{item.termsText}}</view>
+      <view class="inv-contact" wx:if="{{item.partnerContact}}" catchtap="copyPartnerPhone" data-phone="{{item.partnerPhone}}" aria-role="button" aria-label="复制合作方电话" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        {{item.partnerContact}}<text class="inv-contact-copy" wx:if="{{item.partnerPhone}}"> · 复制</text>
+      </view>
+      <view class="deposit-due" wx:if="{{item.depositDueText}}">{{item.depositDueText}}</view>
+      <view class="inv-msg" wx:if="{{item.message}}">{{item.message}}</view>
+      <text class="inv-terms" wx:if="{{item.status===2}}">对方已拒绝，可再邀其他商家。</text>
+      <!-- 稿 261:349 ★发件箱只能撤回/取消,不能接受 —— status 1/2 归受邀方,3 归发起方。
+           ★单动作的卡只给一颗 Secondary。俱乐部发出的邀约也只有这一页能撤回,cancelAccepted 涉资(锁价前退保证金)。 -->
+      <view class="inv-acts" wx:if="{{item.status===0 && !item.legacyReadonly && !item.identityError}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="cancelSent" data-id="{{item.id}}" aria-role="button" aria-label="撤回协作邀约" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'cancel:' + item.id ? '撤回处理中…' : '撤回邀约'}}</view>
+      </view>
+      <view class="inv-acts" wx:if="{{item.status===2 && item.topicId && !item.legacyReadonly && !item.identityError}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="goInviteOthers" data-topicid="{{item.topicId}}" aria-role="button" aria-label="为本主题再邀其他合作方" hover-class="cy-pressed" hover-stay-time="80">再邀别人</view>
+      </view>
+      <!-- 已接受卡(发件箱):同收件箱 —— 最多两个按钮。发件箱多出的「取消合作」(涉资,锁价前可退保证金)
+           也搬进协作详情页;锁价后由详情页置灰说明,不发请求。 -->
+      <view class="inv-acts" wx:if="{{item.status===1 && !item.legacyReadonly && !item.identityError}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="goInviteDetail" data-id="{{item.inviteId}}" data-box="sent" aria-role="button" aria-label="查看合作" hover-class="cy-pressed" hover-stay-time="80">查看合作</view>
+        <view wx:if="{{item.depositOwed}}" class="inv-btn inv-btn--primary" catchtap="payDeposit" data-id="{{item.id}}" aria-role="button" aria-label="缴纳合作保证金" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'deposit:' + item.id ? '支付处理中…' : '缴纳保证金'}}</view>
+      </view>
+      <!-- 保证金退款重试:涉资链路状态未知时的兜底入口,与已接受卡的无条件动作分开渲染 -->
+      <view class="inv-acts" wx:if="{{item.depositRefundPending && !item.legacyReadonly && !item.identityError}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="retryDepositRefund" data-id="{{item.id}}" aria-role="button" aria-label="重试保证金退款" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'refund:' + item.id ? '退款重试中…' : '重试保证金退款'}}</view>
+      </view>
+    </view>
+    <view class="inv {{item.status===1 || item.status===2 ? 'is-dim' : ''}}" wx:for="{{sentApplies}}" wx:key="rowKey">
+      <view class="inv-top">
+        <view class="inv-badge inv-badge--{{item.badgeTone}}"><cy-icon name="{{item.badgeIcon}}" size="24" /><text>{{item.statusText}}</text></view>
+        <text class="inv-peer" wx:if="{{item.peerText}}">{{item.peerText}}</text>
+      </view>
+      <view class="inv-main">
+        <image wx:if="{{item.topicImgUrl || item.topicCover}}" class="inv-cover" src="{{item.topicImgUrl || item.topicCover}}" mode="aspectFill" />
+        <view wx:else class="inv-cover"></view>
+        <view class="inv-info">
+          <text class="inv-date" wx:if="{{item.dateText}}">{{item.dateText}}</text>
+          <text class="inv-title">{{item.titleText || item.topicText}}</text>
+          <text class="inv-sub">{{item.subText}}</text>
+        </view>
+      </view>
+      <view class="inv-terms">{{item.termsText}}</view>
+      <view class="inv-acts inv-acts--apply" wx:if="{{item.canWithdraw}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="withdrawApply" data-topicid="{{item.topicId}}" aria-role="button" aria-label="撤回带队申请" aria-disabled="{{!!actionPendingKey}}" hover-class="{{!!actionPendingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{actionPendingKey === 'withdraw:' + item.topicId ? '撤回中…' : '撤回申请'}}</view>
+      </view>
+      <view class="inv-acts inv-acts--apply" wx:if="{{item.status===3}}">
+        <view class="inv-btn inv-btn--secondary" catchtap="switchToReceived" aria-role="button" aria-label="去收到的确认商家回的邀约" hover-class="cy-pressed" hover-stay-time="80">去收到的确认</view>
+      </view>
+    </view>
+    <!-- 同理:发件箱这一路/邀请列表失败时不许落「还没有发出…」 -->
+    <cy-empty size="lg" style="flex:1;min-height:0;" kind="empty" wx:if="{{sentApplyState === 'ready' && !sentApplyErrorText && !listErrorText && !sent.length && !sentApplies.length}}" fill title="还没有发出协作邀请" sub="你发出的协作邀请、带队申请会显示在这里" cta="去发起邀请" bindcta="goInvite" />
+    </block>
+  </block>
+
+<!-- 供给申报勾选浮层与评价选择浮层已随动作搬进 pages/coop/invite-detail(卡片不再堆按钮,弹层也跟着动作走) -->
+</view>

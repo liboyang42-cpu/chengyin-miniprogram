@@ -1,0 +1,16 @@
+{
+  "navigationBarTitleText": "优惠券出示",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "cy-card": "/components/cy/card/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-qr-voucher": "/components/cy/qr-voucher/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-state-shell": "/components/cy/state-shell/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom"
+}

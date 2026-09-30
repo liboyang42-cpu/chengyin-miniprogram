@@ -1,0 +1,14 @@
+<view class="offline-banner {{serious ? 'offline-banner--serious' : ''}} {{reducedMotion ? 'offline-banner--reduced-motion' : ''}}"
+      aria-role="status" aria-live="polite" aria-label="{{aria || message}}{{!aria && _cacheCopy ? '，' + _cacheCopy : ''}}">
+  <view class="offline-banner__signal" aria-hidden="true">
+    <cy-icon name="warning" size="36" />
+  </view>
+  <view class="offline-banner__copy">
+    <view class="offline-banner__message">{{message}}</view>
+    <view wx:if="{{_cacheCopy}}" class="offline-banner__cache">{{_cacheCopy}}</view>
+  </view>
+  <view wx:if="{{action}}" class="offline-banner__action"
+        aria-role="button" aria-label="{{action}}"
+        hover-class="offline-banner__action--pressed" hover-stay-time="80"
+        bindtap="onAction">{{action}}</view>
+</view>

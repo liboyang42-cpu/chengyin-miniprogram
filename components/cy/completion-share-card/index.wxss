@@ -1,0 +1,163 @@
+:host {
+  display: block;
+  width: 100%;
+  /* Roam 块间距 14pt。post-card 的 --pc-gap 在 .post-card--roam 下同为 --cy-space-3-5,
+     两处必须同值,否则插槽下缘与其它块的间距对不上。 */
+  margin-bottom: var(--cy-space-3-5);
+}
+
+/* Figma 297:1827 Roam variant 内容主体 · 1pt = 2rpx。
+ * 段与段的竖间距稿上未单列,取通用块间距 12pt(= post-card 非 Roam 档的 --pc-gap)。 */
+.completion-share-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3);
+}
+
+/* —— TitleRow:间距 10pt,垂直居中 —— */
+.completion-share-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2-5);
+  min-width: 0;
+}
+.completion-share-card__walk {
+  flex: none;
+  color: var(--cy-color-text-primary);
+}
+.completion-share-card__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  /* 稿 22pt Bold = 44rpx。--cy-type-sheet-title 的定义值就是 22px,是字阶里唯一的 22 档;
+     语义名写的是「弹窗大标题」,这里按【字号档】借用,不是借语义。 */
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+
+/* —— MedalPill:三枚 14×14pt 奖牌 + 数字,间距 4pt —— */
+.completion-share-card__medals {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+}
+.completion-share-card__medal { flex: none; }
+/* 金/银/铜是【名次】不是状态,所以绑 --cy-color-medal-*,不借 status-warning(那是警告)
+   也不借 --cy-color-rare(那是稀有度)。三档同色 = 这个 pill 等于没做。 */
+.completion-share-card__medal--gold   { color: var(--cy-color-medal-gold); }
+.completion-share-card__medal--silver { color: var(--cy-color-medal-silver); }
+.completion-share-card__medal--bronze { color: var(--cy-color-medal-bronze); }
+.completion-share-card__medal-count {
+  font-size: var(--cy-font-label);        /* 24rpx = 12pt */
+  font-weight: 500;                       /* 稿 Medium */
+  color: var(--cy-color-text-secondary);
+}
+
+/* —— Stats:三栏等分,每栏竖间距 4pt —— */
+.completion-share-card__score {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cy-space-3);
+}
+.completion-share-card__metric {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1);
+}
+.completion-share-card__metric-label {
+  font-size: var(--cy-font-label);        /* 24rpx = 12pt */
+  font-weight: 400;                       /* 稿 Regular */
+  color: var(--cy-color-text-tertiary);
+}
+.completion-share-card__metric-value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-font-subtitle);     /* 32rpx = 16pt */
+  font-weight: 500;                       /* 稿 Medium */
+  color: var(--cy-color-text-primary);
+}
+
+/* —— 轨迹图:高 188pt、圆角 20pt —— */
+.completion-share-card__cover {
+  display: block;
+  width: 100%;
+  height: 376rpx;
+  border-radius: var(--cy-radius-xl);     /* 40rpx = 20pt */
+  /* 漫游档走 aspectFit ⇒ 两侧留边。旧码在整卡上刷 #0b0b0b 兜这块留边;
+     现在卡面本身透明,留边落在这层底上,用 token 即可,硬编码那行随之删掉。 */
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+/* —— Kudos:头像组 56×24pt + 文案,间距 8pt —— */
+.completion-share-card__kudos {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  min-width: 0;
+}
+.completion-share-card__kudos-avatars {
+  flex: none;
+  display: flex;
+}
+.completion-share-card__kudos-avatar {
+  width: 48rpx;                           /* 24pt */
+  height: 48rpx;
+  box-sizing: border-box;
+  border: 2rpx solid var(--cy-color-bg-page);
+  border-radius: 50%;
+  background: var(--cy-color-bg-elevated);
+}
+/* 三枚各叠 8pt ⇒ 组宽 48 + 2×32 = 112rpx,正好稿上的 56pt。改叠量要连着改「最多三枚」那条 wx:if。 */
+.completion-share-card__kudos-avatar + .completion-share-card__kudos-avatar { margin-left: -16rpx; }
+.completion-share-card__kudos-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-font-label);        /* 24rpx = 12pt */
+  font-weight: 400;                       /* 稿 Regular */
+  color: var(--cy-color-text-secondary);
+}
+
+/* —— CommentPreview:内边距 左右 14pt / 上下 12pt,圆角 16pt,竖间距 6pt —— */
+.completion-share-card__comment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1-5);                        /* 6pt */
+  padding: var(--cy-space-3) var(--cy-space-3-5);  /* 12pt / 14pt */
+  border-radius: var(--cy-radius-lg);              /* 32rpx = 16pt */
+  background: var(--cy-color-bg-surface-subtle);
+}
+.completion-share-card__comment-line {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-font-label);        /* 24rpx = 12pt */
+}
+.completion-share-card__comment-nick {
+  margin-right: var(--cy-space-1);
+  font-weight: 500;                       /* 稿 Medium */
+  color: var(--cy-color-text-primary);
+}
+.completion-share-card__comment-text {
+  font-weight: 400;                       /* 稿 Regular */
+  color: var(--cy-color-text-secondary);
+}
+.completion-share-card__comment-more {
+  font-size: var(--cy-font-label);        /* 24rpx = 12pt */
+  font-weight: 400;
+  color: var(--cy-color-text-tertiary);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

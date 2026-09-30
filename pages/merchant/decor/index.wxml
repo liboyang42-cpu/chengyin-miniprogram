@@ -1,0 +1,527 @@
+<!-- Figma zus3kuIcGr9QXpIrHEfFfd: 31:147 / 32:98 / 33:47 / 33:166 -->
+<view class="dc-page theme-merchant m-flush-nav">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- RV(2):本页同时服务两类岗位 —— 只有 COOP_MANAGE 的运营要能进合作经营/常备权益,
+       有 PROFILE_WRITE 的店主/店长才看资料类视图。整页门禁用 canManageCoop
+       (roster 里店长/运营都持它),基础资料/品牌/资质三个视图与编辑按钮另行收口。 -->
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="canManageCoop" />
+  <cy-nav-bar title="{{view === 'basic' || view === 'qualification' ? '' : pageTitle}}" />
+  <view style="height: {{statusBarHeight + navBarHeight}}px; flex-shrink: 0;"></view>
+  <view class="dc-state dc-state--skeleton" wx:if="{{loadState === 'loading'}}">
+    <view class="dc-skel-card"><cy-skeleton type="detail" style="--cy-map-h: 403.8rpx;" /></view>
+  </view>
+
+  <view class="dc-state" wx:elif="{{loadState === 'permission'}}">
+    <cy-empty
+      size="lg"
+      style="display: flex; flex-direction: column; flex: 1; min-height: 0"
+      kind="no-permission"
+      fill
+      title="暂无装修权限"
+      sub="请切换到已审核通过的商家账号后再试"
+    />
+  </view>
+
+  <view class="dc-state" wx:elif="{{loadState === 'error'}}">
+    <cy-error
+      size="lg"
+      style="display: flex; flex-direction: column; flex: 1; min-height: 0"
+      icon="/images/no_data.svg"
+      fill
+      title="品牌中心加载失败"
+      sub="{{loadErrSub}}"
+      retry="重新载入"
+      bind:retry="retryLoad" auto-back
+    />
+  </view>
+
+  <view class="dc-state" wx:elif="{{loadState === 'empty'}}">
+    <cy-empty
+      size="lg"
+      style="display: flex; flex-direction: column; flex: 1; min-height: 0"
+      kind="empty"
+      fill
+      title="暂时无法装修店铺"
+      sub="这个账号还没有店铺，先完成商家入驻拿到店铺，再回来填行业类型和品牌资料。"
+      cta="去商家入驻"
+      bind:cta="goApply"
+    />
+  </view>
+
+  <scroll-view scroll-y class="dc-scroll" enhanced show-scrollbar="{{false}}" wx:elif="{{loadState === 'ok' && m}}">
+    <view class="dc-content {{view === 'home' ? 'dc-content--home' : ''}}">
+      <view wx:if="{{saveReceipt}}" class="dc-save-receipt" aria-role="status" aria-live="polite">
+        {{saveReceipt}}
+      </view>
+      <view wx:if="{{refreshing}}" class="dc-refreshing" aria-role="status" aria-live="polite">
+        正在刷新店铺资料…
+      </view>
+      <cy-inline-error
+        wx:if="{{saveError && !fieldSheet.show && !imageEditor}}"
+        kind="{{saveErrorKind}}"
+        title="资料暂未保存"
+        sub="{{saveError}}"
+        action="重试保存"
+        bind:action="retrySave"
+      />
+      <block wx:if="{{view === 'home'}}">
+        <view class="dc-identity">
+          <view class="dc-avatar-wrap"><view
+            class="dc-avatar"
+            bindtap="uploadLogo"
+            aria-role="button"
+            aria-label="修改店铺 Logo"
+            hover-class="cy-pressed"
+          >
+            <image wx:if="{{m.logo}}" src="{{m.logo}}" mode="aspectFill" />
+            <text wx:else>{{m.name ? m.name[0] : '店'}}</text>
+          </view><view class="dc-edit-hit dc-edit-hit--avatar" catchtap="uploadLogo" aria-role="button" aria-label="编辑头像" hover-class="cy-pressed"><view class="dc-edit-badge"><cy-icon name="edit" size="30" /></view></view></view>
+          <text class="dc-name">{{m.name || '填写店铺名称'}}</text>
+        </view>
+        <view class="dc-card">
+          <view class="dc-cover-wrap" bindtap="uploadCover" aria-role="button" aria-label="修改封面图" hover-class="cy-pressed">
+            <image wx:if="{{m.coverImage}}" class="dc-cover" src="{{m.coverImage}}" mode="aspectFill" />
+            <view wx:else class="dc-cover dc-placeholder">添加店铺封面</view>
+            <view class="dc-edit-hit dc-edit-hit--cover" catchtap="uploadCover" aria-role="button" aria-label="编辑封面" hover-class="cy-pressed"><view class="dc-edit-badge"><cy-icon name="edit" size="30" /></view></view>
+          </view>
+          <view class="dc-status">
+            <text>{{m.businessStatus == 0 ? '已打烊' : '营业中'}}</text>
+            <cy-switch
+              checked="{{m.businessStatus != 0}}"
+              disabled="{{saving}}"
+              bind:change="toggleBusiness"
+              accessibilityLabel="切换营业状态"
+            />
+            <view
+              class="dc-public"
+              bindtap="goPreview"
+              aria-role="button"
+              aria-label="看公开主页"
+              hover-class="cy-pressed"
+            >
+              看公开主页 <cy-icon name="chevron-right" size="24" />
+            </view>
+          </view>
+        </view>
+        <view class="dc-card">
+          <cy-cell wx:if="{{merchantAccess.canWriteProfile}}" arrow-icon="chevron-right" title="门店信息" value="名称 · 地址 · 营业时间" required="{{false}}" bind:tap="goSection" data-view="basic" />
+          <cy-cell wx:if="{{merchantAccess.canWriteProfile}}" arrow-icon="chevron-right" title="品牌介绍" value="故事 · 特色 · 一句话介绍" required="{{false}}" bind:tap="goSection" data-view="brand" />
+          <cy-cell arrow-icon="chevron-right" title="门店相册" value="{{gallery.length || 0}} 张照片" required="{{false}}" bind:tap="goGallery" hairline="{{false}}" />
+        </view>
+        <view class="dc-card">
+          <cy-cell arrow-icon="chevron-right" title="AI 店铺角色" value="形象 · 语音" required="{{false}}" bind:tap="goAiNpc" />
+          <cy-cell arrow-icon="chevron-right" title="合作经营" value="承接 · 主推 · 权益" required="{{false}}" bind:tap="goSection" data-view="coop" hairline="{{false}}" />
+        </view>
+        <view class="dc-card">
+          <cy-cell wx:if="{{merchantAccess.canWriteProfile}}" arrow-icon="chevron-right" title="入驻资料" value="执照 · 品牌材料" required="{{false}}" bind:tap="goSection" data-view="qualification" hairline="{{false}}" />
+        </view>
+      </block>
+      <block wx:elif="{{view === 'brand'}}">
+        <view class="dc-heading-row"><text class="dc-brand-title">{{m.cityRole || m.name}}</text><view class="dc-edit-label" bindtap="openField" data-k="cityRole" aria-role="button" hover-class="cy-pressed">编辑</view></view>
+        <view class="dc-card"><cy-cell arrow-icon="chevron-right" title="一句话介绍" value="编辑" required="{{false}}" bind:tap="openField" data-k="slogan" hairline="{{false}}" /></view>
+        <view class="dc-card dc-inset dc-story">
+          <view class="dc-heading-row"><text class="dc-heading">品牌故事</text><view class="dc-edit-label" bindtap="goStory" aria-role="button" hover-class="cy-pressed">编辑</view></view>
+          <text class="dc-story-text">{{m.description || '把店铺和这座城市的故事，讲给路过的人听。'}}</text>
+
+        </view>
+        <view class="dc-card dc-inset">
+          <cy-dropdown
+            portal="{{false}}"
+            id="tag-menu"
+            custom-panel
+            below
+            gap="4"
+            panel-height="280"
+            bind:open="openTagPanel"
+          >
+            <view class="dc-heading dc-touch">
+              <text>特色标签</text>
+              <text class="dc-edit-label">编辑</text>
+            </view>
+            <view slot="panel" class="dc-menu">
+              <block wx:for="{{tagChoices}}" wx:key="label" wx:for-item="group">
+                <text class="dc-muted">{{group.label}}</text>
+                <view class="dc-tags">
+                  <view
+                    wx:for="{{group.items}}"
+                    wx:key="value"
+                    class="dc-tag {{item.checked ? 'dc-selected' : ''}}"
+                    bindtap="toggleTag"
+                    data-t="{{item.value}}"
+                    aria-role="checkbox"
+                    aria-checked="{{item.checked}}"
+                    hover-class="cy-pressed"
+                  >
+                    {{item.value}}
+                  </view>
+                </view>
+              </block>
+              <view class="dc-tags">
+                <view
+                  wx:for="{{customTagChoices}}"
+                  wx:key="*this"
+                  class="dc-tag dc-selected"
+                  data-t="{{item}}"
+                  bindtap="toggleTag"
+                  aria-role="button"
+                  aria-label="删除标签{{item}}"
+                  hover-class="cy-pressed"
+                >
+                  {{item}} <cy-icon name="close" size="24" />
+                </view>
+              </view>
+              <view class="dc-touch" bindtap="openCustomTag" aria-role="button" hover-class="cy-pressed">
+                添加自定义标签 <cy-icon name="chevron-right" size="24" />
+              </view>
+              <cy-btn bindtap="confirmTags" loading="{{saving}}">完成</cy-btn>
+            </view>
+          </cy-dropdown>
+          <view class="dc-tags">
+            <text class="dc-tag" wx:for="{{tags}}" wx:key="*this">{{item}}</text>
+            <text wx:if="{{!tags.length}}" class="dc-muted">选几个标签，让更多人找到你的店</text>
+          </view>
+        </view>
+      </block>
+      <block wx:elif="{{view === 'coop'}}">
+        <view class="dc-identity">
+          <view class="dc-coop-icon"><cy-icon name="discover-shop" size="54" /></view>
+          <text class="dc-name">让合作发生在店里</text>
+        </view>
+        <view class="dc-card dc-inset">
+          <view class="dc-heading" bindtap="goCoopSetting" aria-role="button" hover-class="cy-pressed">
+            承接设置
+          </view>
+          <text class="dc-muted">{{coopSummary || '完善你的承接能力'}}</text>
+          <view class="dc-inner-row">
+            <cy-cell arrow-icon="chevron-right"
+              title="合作诉求" hairline="{{false}}"
+              value="{{m.demand || '填写合作诉求'}}"
+              required="{{false}}"
+              bind:tap="goCoopSetting"
+            />
+          </view>
+        </view>
+        <view class="dc-card">
+          <cy-dropdown
+            portal="{{false}}"
+            id="featured-menu"
+            custom-panel
+            below
+            gap="4"
+            panel-height="260"
+            bind:open="openFeatured"
+            bind:close="closeFeatured"
+          >
+            <cy-cell arrow-icon="chevron-right"
+              bubble-tap
+              title="招牌主推"
+              value="{{featuredName || (m.featuredId ? '已选择主推' : '选 1 个活动置顶')}}"
+              required="{{false}}"
+            />
+            <view slot="panel" class="dc-menu">
+              <view class="dc-choice" bindtap="clearFeatured" aria-role="button" hover-class="cy-pressed">
+                不设置主推
+              </view>
+              <view wx:if="{{featuredState === 'loading'}}" class="dc-muted">正在载入活动…</view>
+              <view
+                wx:if="{{featuredState === 'error'}}"
+                class="dc-choice"
+                bindtap="retryFeatured"
+                hover-class="cy-pressed"
+                aria-role="button"
+              >
+                {{featuredError}} · 重试
+              </view>
+              <view
+                class="dc-choice"
+                wx:for="{{featuredList}}"
+                wx:key="id"
+                bindtap="selectFeatured"
+                data-id="{{item.id}}"
+                data-name="{{item.name}}"
+                aria-role="button"
+                hover-class="cy-pressed"
+              >
+                {{item.name}}
+              </view>
+              <view
+                wx:if="{{featuredState === 'ready' && !featuredList.length}}"
+                class="dc-choice"
+                bindtap="goPublishActivity"
+                hover-class="cy-pressed"
+                aria-role="button"
+              >
+                去发布一个活动
+              </view>
+            </view>
+          </cy-dropdown>
+          <!-- CU-M-15 + 9-18 裁决「口碑入口放在品牌中心的列表里」:管理态(回复/修改/举报)此前只能深链进。
+               /api/merchant/reviews/manage 要 MARKETING_READ。 -->
+          <cy-cell wx:if="{{merchantAccess.canReadMarketing}}" arrow-icon="chevron-right"
+            title="口碑"
+            value="查看并回复顾客评价"
+            required="{{false}}"
+            bind:tap="goReviews"
+          />
+          <cy-cell arrow-icon="chevron-right"
+            title="常备权益"
+            value="{{perks.length ? perks.length + ' 项' : '添加权益'}}"
+            required="{{false}}"
+            bind:tap="goPerks"
+            hairline="{{false}}"
+          />
+        </view>
+        <view class="dc-card">
+          <cy-dropdown portal="{{false}}" custom-panel below gap="4" panel-height="260">
+            <cy-cell arrow-icon="chevron-right" bubble-tap title="升级权益" value="查看可开通的权益" required="{{false}}" />
+            <view slot="panel" class="dc-menu">
+              <text wx:if="{{checkoutState === 'verifying'}}" class="dc-muted">正在确认支付结果…</text>
+              <text wx:if="{{checkoutState === 'unknown'}}" class="dc-muted">
+                支付结果待确认，请勿重复支付。
+              </text>
+              <view
+                class="dc-choice"
+                wx:for="{{tiers}}"
+                wx:key="key"
+                data-key="{{item.key}}"
+                bindtap="tapTier"
+                aria-role="button"
+                hover-class="cy-pressed"
+              >
+                <view>
+                  <text>{{item.name}}</text>
+                  <view class="dc-muted">{{item.desc}}</view>
+                </view>
+                <cy-icon name="arrow-right" size="30" />
+              </view>
+              <!-- CU-M-80:四项选中后只弹一句「请联系官方运营」等于没有出路。
+                   open-type 只能落在 button 上,cy-cell 已内部封装透明按钮。 -->
+              <cy-cell open-type="contact" arrow="{{false}}" title="联系运营开通"
+                description="说明要开通的权益，由官方运营人工办理"
+                required="{{false}}" hairline="{{false}}"
+              />
+            </view>
+          </cy-dropdown>
+          <cy-cell arrow-icon="chevron-right"
+            title="成为城市节点"
+            value="挂互动玩法"
+            required="{{false}}"
+            bind:tap="goCityNode"
+            hairline="{{false}}"
+          />
+        </view>
+        <view class="dc-card">
+          <cy-cell arrow-icon="chevron-right"
+            title="衍生权益"
+            value="{{m.derivativeBenefits || '添加衍生权益'}}"
+            required="{{false}}"
+            bind:tap="openDerivatives"
+            hairline="{{false}}"
+          />
+        </view>
+      </block>
+      <block wx:elif="{{view === 'basic'}}">
+        <text class="dc-brand-title">{{pageTitle}}</text>
+        <view class="dc-card dc-fields">
+          <cy-cell arrow-icon="chevron-right" arrow="{{basicEditing}}"
+            title="店铺名称"
+            value="{{m.name || '待填写'}}"
+            required="{{true}}"
+            bind:tap="onBasicAction" data-action="openField"
+            data-k="name"
+          />
+          <cy-cell arrow-icon="chevron-right" arrow="{{basicEditing}}"
+            title="经营类目"
+            value="{{m.preference || '待填写'}}"
+            description="自由描述店内主营，用于主页展示"
+            required="{{false}}"
+            bind:tap="onBasicAction" data-action="openField"
+            data-k="preference"
+          />
+          <cy-dropdown
+            portal="{{false}}"
+            id="category-menu"
+            disabled="{{!basicEditing}}"
+            custom-panel
+            below
+            gap="4"
+            panel-height="260"
+            bind:open="goCategory"
+          >
+            <cy-cell arrow-icon="chevron-right" arrow="{{basicEditing}}" bubble-tap title="行业类型" value="{{catNames || '选择行业'}}" description="平台行业分类，单选，用于搜索与推荐" required="{{false}}" />
+            <view slot="panel" class="dc-menu">
+              <cy-inline-error kind="error" wx:if="{{categoryError}}" title="行业列表暂未加载" sub="{{categoryError}}" action="重试" bind:action="goCategory" />
+              <view
+                class="dc-choice"
+                wx:for="{{categoryOptions}}"
+                wx:key="id"
+                data-index="{{index}}"
+                bindtap="toggleCategory"
+                aria-role="checkbox"
+                aria-checked="{{item.checked}}"
+                hover-class="cy-pressed"
+              >
+                <text>{{item.categoryName}}</text>
+                <cy-icon wx:if="{{item.checked}}" name="check" size="30" />
+              </view>
+              <cy-btn bindtap="saveCategories" loading="{{saving}}" disabled="{{!categoryOptions.length}}">
+                完成
+              </cy-btn>
+            </view>
+          </cy-dropdown>
+          <!-- CU-M-08:联系电话/门店微信是入驻资料,/api/merchant/update 白名单不收(ApiMerchantController 注释)。
+               只读展示:不再标必填星号装成「该你填」,写明去哪改。 -->
+          <cy-cell arrow-icon="chevron-right" arrow="{{false}}"
+            title="联系电话"
+            value="{{m.phone || '未填写'}}"
+            description="入驻时填写，修改请联系平台"
+            required="{{false}}"
+            hairline="{{true}}"
+          />
+          <cy-cell arrow-icon="chevron-right" arrow="{{false}}" title="门店微信" value="{{m.wechat || '未填写'}}" required="{{false}}" hairline="{{false}}" />
+        </view>
+        <view class="dc-card dc-fields">
+          <cy-cell arrow-icon="chevron-right" arrow="{{basicEditing}}"
+            title="店铺地址"
+            value="{{m.address || '选择门店位置'}}"
+            required="{{true}}"
+            bind:tap="onBasicAction" data-action="geoLocate"
+          />
+          <decor-hours
+            id="business-hours"
+            value="{{m.businessTime}}"
+            saving="{{saving || !basicEditing}}"
+            error="{{saveError}}"
+            bind:save="onHoursSave"
+          >
+            <cy-cell arrow-icon="chevron-right" arrow="{{basicEditing}}"
+              bubble-tap
+              title="经营时间"
+              value="{{m.businessTime || '选择营业日与时间'}}"
+              required="{{true}}"
+            />
+          </decor-hours>
+
+        </view>
+
+
+        <cy-btn wx:if="{{merchantAccess.canWriteProfile}}" bindtap="toggleBasicEditing" disabled="{{saving}}">{{basicEditing ? '完成编辑' : '编辑'}}</cy-btn>
+      </block>
+      <block wx:elif="{{view === 'qualification'}}">
+        <text class="dc-brand-title">{{pageTitle}}</text>
+        <view class="dc-card dc-fields">
+          <!-- CU-M-71:执照/品牌图是入驻时提交的只读资料 —— 没图就不给箭头(有箭头却点不动是骗点击),
+               并用 description 写清去哪里补交;点击的空态反馈在 JS 里给 toast。 -->
+          <cy-cell arrow-icon="chevron-right"
+            arrow="{{m.businessLicense ? true : false}}"
+            title="营业执照"
+            value="{{m.businessLicense ? '已提交 · 查看' : '未提交'}}"
+            description="{{m.businessLicense ? '' : '入驻时提交，如需更新请联系平台'}}"
+            required="{{true}}"
+            bind:tap="previewLicense"
+          />
+          <cy-cell arrow-icon="chevron-right"
+            arrow="{{brandImages.length ? true : false}}"
+            title="品牌形象图"
+            value="{{brandImages.length ? brandImages.length + ' 张 · 查看' : '未上传'}}"
+            description="{{brandImages.length ? '' : '入驻时提交，如需更新请联系平台'}}"
+            required="{{false}}"
+            bind:tap="previewBrandImages"
+            hairline="{{false}}"
+          />
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+  <cy-sheet
+    show="{{fieldSheet.show && !discardVisible}}"
+    title="{{fieldSheet.label}}"
+    bind:close="closeFieldSheet"
+    mask-closable="{{!saving}}"
+    closable="{{!saving}}"
+  >
+    <view class="dc-sheet-content">
+      <textarea
+        wx:if="{{fieldSheet.multiline}}"
+        class="dc-textarea"
+        value="{{fieldSheet.value}}"
+        maxlength="{{fieldSheet.max}}"
+        placeholder="{{fieldSheet.placeholder}}"
+        bindinput="onFieldInput"
+        disabled="{{saving}}"
+        aria-label="{{fieldSheet.label}}"
+      />
+      <input
+        wx:else
+        class="dc-input"
+        value="{{fieldSheet.value}}"
+        maxlength="{{fieldSheet.max}}"
+        placeholder="{{fieldSheet.placeholder}}"
+        bindinput="onFieldInput"
+        disabled="{{saving}}"
+        aria-label="{{fieldSheet.label}}"
+      />
+      <text class="dc-counter">{{fieldSheet.value.length}}/{{fieldSheet.max}}</text>
+      <cy-inline-error kind="error" wx:if="{{saveError}}" title="暂未完成" sub="{{saveError}}" />
+      <cy-btn loading="{{saving}}" bindtap="confirmField">{{saveError ? '重试保存' : '保存'}}</cy-btn>
+    </view>
+  </cy-sheet>
+  <cy-sheet show="{{customTagVisible}}" title="自定义标签" bind:close="closeCustomTag">
+    <view class="dc-sheet-content">
+      <input
+        class="dc-input"
+        value="{{customTag}}"
+        maxlength="16"
+        placeholder="填写标签，最多 16 字"
+        bindinput="onCustomTag"
+        bindconfirm="addCustomTag"
+      />
+      <cy-btn disabled="{{!customTag}}" bindtap="addCustomTag" bind:disabledtap="onAddTagBlocked">添加</cy-btn>
+    </view>
+  </cy-sheet>
+  <cy-sheet inset show="{{discardVisible}}" title="还没有保存" bind:close="keepEditing">
+    <view class="dc-sheet-content">
+      <text class="dc-muted">离开后，本次修改不会保留。</text>
+      <view class="dc-sheet-actions">
+        <cy-btn variant="secondary" bindtap="discardField">放弃修改</cy-btn>
+        <cy-btn bindtap="keepEditing">继续编辑</cy-btn>
+      </view>
+    </view>
+  </cy-sheet>
+  <view wx:if="{{imageEditor && !discardVisible}}" class="dc-image-layer">
+    <view aria-label="关闭图片编辑" class="dc-image-mask" bindtap="closeImage" hover-class="dc-mask-pressed" />
+    <!-- 顶边复查(2026-09-18):面板在幕布里垂直居中 ⇒ 可用高度要两头都让开胶囊行(2×sheetTop) -->
+    <view class="dc-image-panel" style="max-height:calc(100vh - {{chrome.sheetTop * 2}}px)">
+      <view class="dc-heading">
+        <text>{{imageEditor.key === 'logo' ? '修改 Logo' : '修改封面图'}}</text>
+        <view class="dc-close" bindtap="closeImage" aria-role="button" aria-label="关闭图片编辑" hover-class="cy-pressed">
+          <cy-icon name="close-sm" size="44" />
+        </view>
+      </view>
+      <image
+        wx:if="{{imageEditor.value}}"
+        class="dc-image-preview {{imageEditor.key === 'logo' ? 'dc-image-preview--logo' : ''}}"
+        src="{{imageEditor.value}}"
+        mode="aspectFill"
+      />
+      <view wx:else class="dc-image-preview dc-placeholder">选择一张图片</view>
+      <text class="dc-muted">
+        {{imageEditor.key === 'logo' ? '正方形图片，在主页显示为圆形' : '选择图片后可移动或缩放，按 5:3 裁剪'}}
+      </text>
+      <cy-inline-error kind="error" wx:if="{{saveError}}" title="暂未完成" sub="{{saveError}}" />
+      <!-- 横排一行:从相册选择在左、使用确认在右(2026-09-18 用户定) -->
+      <view class="dc-sheet-actions">
+        <cy-btn variant="secondary" bindtap="chooseEditImage" disabled="{{saving}}">从相册选择</cy-btn>
+        <cy-btn bindtap="saveImage" loading="{{saving}}">
+          {{imageEditor.key === 'logo' ? '使用这个 Logo' : '使用这张封面'}}
+        </cy-btn>
+      </view>
+    </view>
+  </view>
+  <cy-privacy-gate
+    show="{{privacyGateShow}}"
+    bind:settled="onPrivacyGateSettled"
+  />
+</view>

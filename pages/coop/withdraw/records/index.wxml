@@ -1,0 +1,14 @@
+<!-- 历史深链兼容壳：正常情况立即转向银行卡提现记录；失败时原步重试。 -->
+<view class="page theme-merchant" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="" />
+  <cy-nav-bar title="提现记录" />
+  <cy-page-title title="提现记录" subtitle="银行卡提现与到账进度" safe-top="{{false}}" flush="{{true}}" />
+
+  <cy-empty class="state-slot" wx:if="{{state === 'redirecting'}}" kind="loading" size="lg" fill
+    title="正在打开提现记录" sub="即将前往银行卡提现记录" />
+  <cy-error class="state-slot cy-fade-in" wx:elif="{{state === 'error'}}" size="lg" fill
+    title="页面打开失败" sub="{{message}}" retry="重试" bind:retry="retryRedirect" />
+</view>

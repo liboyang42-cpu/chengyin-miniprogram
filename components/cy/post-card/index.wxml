@@ -1,0 +1,132 @@
+<!-- Figma 297:1827 · variant 由 post 字段派生,页面不判:
+     isCompletionShare → Roam(头像 40 / 块间距 14) · hasPlayCover → Template(头像 40)
+     picList 有图 → Image(头像 44) · 都没有 → Text(头像 44) -->
+<view class="post-card {{light ? 'post-card--light' : ''}} {{post.isCompletionShare || post.hasPlayCover ? 'post-card--compact' : ''}} {{post.isCompletionShare ? 'post-card--roam' : ''}}" bindtap="emitDetail" aria-role="button" aria-label="{{accessibilityLabel}}" hover-class="cy-pressed" hover-stay-time="80">
+  <view class="post-card__avatar">
+      <image class="post-card__avatar-img" wx:if="{{interactiveUser}}" lazy-load="true" catchtap="emitUser" aria-role="button" aria-label="打开用户主页"
+             src="{{post.memberAvatar || '/images/d_profile.png'}}" mode="aspectFill" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true" />
+      <image class="post-card__avatar-img" wx:else lazy-load="true" src="{{post.memberAvatar || '/images/d_profile.png'}}" mode="aspectFill" />
+      <button catchtap="emitFollow" aria-role="button" aria-label="关注" class="post-card__follow"
+              wx:if="{{showFollow && (!post.hasPlayCover || post.isCompletionShare) && post.isFollowTheUser == 0 && post.memberId != userId}}">
+        <image class="post-card__follow-icon" lazy-load="true" src="/images/icon_jia.png" mode="widthFix" />
+      </button>
+  </view>
+  <view class="post-card__main">
+    <view class="post-card__head">
+      <view class="post-card__identity">
+        <view class="post-card__name">
+          <text class="post-card__nick">{{post.memberNickname || '城瘾玩家'}}</text>
+          <image class="post-card__verified" lazy-load="true" src="/images/icon_rz.png" mode="widthFix" wx:if="{{post.rz}}" />
+          <text class="post-card__badge" wx:if="{{post.memberLevelId > 0}}">Lv.{{post.memberLevelId}}</text>
+          <text class="post-card__badge" wx:if="{{post.authorBadge}}">{{post.authorBadge}}</text>
+          <text class="post-card__badge post-card__badge--notice" wx:if="{{post.noticeBadge}}">{{post.noticeBadge}}</text>
+        </view>
+        <view class="post-card__meta" wx:if="{{post.clubName || post.formattedCreateTime || post.timeText}}">
+          <text class="post-card__club post-card__club--interactive" wx:if="{{post.clubName && interactiveClub}}" catchtap="emitClub" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">{{post.clubName}}</text>
+          <text class="post-card__club" wx:elif="{{post.clubName}}">{{post.clubName}}</text>
+          <text wx:if="{{post.clubName && (post.formattedCreateTime || post.timeText)}}"> · </text>
+          <text>{{post.formattedCreateTime || post.timeText}}</text>
+        </view>
+      </view>
+      <view class="post-card__more" wx:if="{{showMore}}" catchtap="emitMore"
+          aria-role="button" aria-label="更多操作" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+        <cy-icon name="more" size="44" />
+      </view>
+    </view>
+
+    <view class="post-card__audit" wx:if="{{post.status == 2}}">未通过审核 · 仅自己可见</view>
+    <view class="post-card__body" wx:if="{{post.contents}}" catchtap="emitDetail" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+      <view class="post-card__text">{{post.contents}}<text wx:if="{{post.link}}" class="post-card__link">{{post.link}}</text></view>
+      <!-- 正文按稿夹到 2 行。没有展开态(那要改 js),这行只是「还有下文」的提示,点它跟点卡片一样进详情。
+           40 字 ≈ 主栏两行的容量,短于此不会被夹,不该出现「展开」。 -->
+      <text class="post-card__expand" wx:if="{{post.contents.length > 40}}">展开</text>
+    </view>
+
+    <!-- ★ Roam / Template 的正文块在组件里出,页面不判 variant(帖文卡 C 系列拍板)。
+         以前这两块靠 pages/square/list 往 slot="special" 里塞,于是同一张卡在
+         俱乐部页和达人页就少了一半:normalizeClubPost 明明派生出了 isCompletionShare,
+         而没人渲染它 —— 更糟的是下面的图廊被 isCompletionShare 关掉,整条帖子只剩文字。
+         字段用 || 兜底而不是在 js 里再派生一次:广场喂 completionImage/playCover,
+         俱乐部只有 sportCover,缺的那几个在子组件里各自 wx:if 挂空,不造假数据。 -->
+    <cy-completion-share-card
+      wx:if="{{post.isCompletionShare}}"
+      cover="{{post.completionImage || post.routePreviewImg || post.sportCover}}"
+      title="{{post.sportName}}"
+      node-total="{{post.nodeTotal}}"
+      roam-result="{{post.isRoamResultShare}}"
+      medal-gold="{{post.medalGold}}"
+      medal-silver="{{post.medalSilver}}"
+      medal-bronze="{{post.medalBronze}}"
+      comment-count="{{post.commentCount}}"
+      distance-text="{{post.distanceText}}"
+      shop-text="{{post.shopText}}"
+      duration-text="{{post.durationText}}"
+      kudos-avatars="{{post.kudosAvatars}}"
+      kudos-text="{{post.kudosText}}"
+      comment-nick="{{post.commentNick}}"
+      comment-text="{{post.commentText}}"
+      post-index="{{index}}"
+      bind:detail="emitPlayDetail"
+    />
+    <cy-feed-play-card
+      wx:if="{{post.hasPlayCover && !post.isCompletionShare}}"
+      cover="{{post.playCover || post.routePreviewImg || post.sportCover}}"
+      title="{{post.sportName}}"
+      subtitle="{{post.playSubtitle}}"
+      completed="{{post.completed}}"
+      remixable="{{post.isTopicTemplate}}"
+      node-total="{{post.nodeTotal}}"
+      post-index="{{index}}"
+      bind:detail="emitPlayDetail"
+      bind:remix="emitRemix"
+      bind:play="emitPlay"
+    />
+
+    <slot name="special" />
+
+    <view class="post-card__gallery"
+          wx:if="{{!post.isCompletionShare && ((post.picList && post.picList.length > 0) || (!post.hasPlayCover && (post.routePreviewImg || post.sportCover)))}}">
+      <scroll-view class="post-card__media" scroll-x="true" enhanced="true" show-scrollbar="{{false}}">
+        <view class="post-card__media-row">
+        <image wx:if="{{!post.sportName && (post.routePreviewImg || post.sportCover)}}" class="post-card__media-map"
+               src="{{post.routePreviewImg || post.sportCover}}" mode="aspectFill" lazy-load="true" catchtap="emitDetail"
+               aria-role="button" aria-label="查看路线图" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true" />
+        <block wx:for="{{post.picList}}" wx:for-item="pic" wx:for-index="picIndex" wx:key="picIndex">
+          <image lazy-load="true" class="post-card__media-pic" src="{{pic}}" mode="aspectFill" data-picindex="{{picIndex}}"
+                 catchtap="emitPreview" aria-role="button" aria-label="{{interactiveMedia ? '查看大图' : accessibilityLabel}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true" />
+        </block>
+        </view>
+      </scroll-view>
+      <!-- 稿上是「第几张 / 共几张」的页码 pill。当前只报总数:横滑位置要 bindscroll 记状态,
+           那得动 index.js(本轮不在改动面内)。总数已经承担了「不止一张、可以滑」这层提示。 -->
+      <view class="post-card__count" wx:if="{{post.picList.length > 1}}" aria-hidden="true">{{post.picList.length || 0}} 张</view>
+    </view>
+
+    <view class="post-card__actions">
+      <view class="post-card__actions-left">
+      <view wx:if="{{interactiveActions}}" class="post-card__action post-card__action--like {{post.isLiked == 1 ? 'is-on' : ''}}"
+            catchtap="emitLike" aria-role="button" aria-label="{{post.isLiked == 1 ? '取消点赞' : '点赞'}}，当前 {{post.likeCount || 0}}" aria-pressed="{{post.isLiked == 1}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+        <cy-icon class="post-card__heart" wx:if="{{post.isLiked == 1}}" name="heart-filled" size="44" /><cy-icon class="post-card__heart" wx:else name="heart" size="44" /><text class="post-card__action-text">{{post.likeCount || 0}}</text>
+      </view>
+      <view wx:else class="post-card__action post-card__action--like {{post.isLiked == 1 ? 'is-on' : ''}}" aria-hidden="true">
+        <cy-icon class="post-card__heart" wx:if="{{post.isLiked == 1}}" name="heart-filled" size="44" /><cy-icon class="post-card__heart" wx:else name="heart" size="44" /><text class="post-card__action-text">{{post.likeCount || 0}}</text>
+      </view>
+      <view wx:if="{{interactiveActions}}" class="post-card__action" catchtap="emitComment"
+            aria-role="button" aria-label="查看评论，当前 {{post.commentCount || 0}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+        <cy-icon class="post-card__comment-icon" name="comment" size="44" /><text class="post-card__action-text">{{post.commentCount || 0}}</text>
+      </view>
+      <view wx:else class="post-card__action" aria-hidden="true">
+        <cy-icon class="post-card__comment-icon" name="comment" size="44" /><text class="post-card__action-text">{{post.commentCount || 0}}</text>
+      </view>
+      <view wx:if="{{showFavorite}}" class="post-card__action post-card__action--favorite {{post.isBookmarked == 1 ? 'is-on' : ''}}"
+            catchtap="emitFavorite" aria-role="button" aria-label="{{post.isBookmarked == 1 ? '取消收藏' : '收藏帖文'}}" aria-pressed="{{post.isBookmarked == 1}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+        <cy-icon class="post-card__favorite-icon" name="{{post.isBookmarked == 1 ? 'star-filled' : 'star'}}" size="44" />
+      </view>
+      </view>
+      <button class="post-card__share" wx:if="{{showShare}}" open-type="share" data-id="{{post.id}}" data-post-id="{{post.id}}" data-club-id="{{post.clubId}}" aria-label="转发帖文">
+        <image class="post-card__share-icon" src="/images/icon_share.png" mode="aspectFit" />
+      </button>
+    </view>
+    <slot name="moderation" />
+  </view>
+</view>

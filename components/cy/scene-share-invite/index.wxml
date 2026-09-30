@@ -1,0 +1,23 @@
+<view class="siv siv--{{theme}}">
+  <view wx:if="{{qrState === 'loading' || qrState === 'ready'}}" class="siv__qr-frame">
+    <cy-progress-status wx:if="{{qrState === 'loading'}}" class="siv__qr-status"
+      title="正在加载邀请二维码" sub="加载完成后即可扫码邀请好友" />
+    <image class="siv__qr {{qrState === 'ready' ? 'siv__qr--ready' : ''}}"
+      src="{{qrSrc}}" data-src="{{qrSrc}}" mode="aspectFit"
+      bindload="onQrLoad" binderror="onQrError" aria-role="img" aria-label="邀请二维码" />
+  </view>
+  <view wx:elif="{{qrState === 'error'}}" class="siv__qr-state">
+    <cy-error title="二维码加载失败" sub="可以重试，或直接使用下方分享链接。"
+      retry="重试" bind:retry="retryQr" />
+  </view>
+  <view wx:else class="siv__qr-state">
+    <cy-empty title="二维码暂时不可用" sub="你仍可以直接使用下方分享链接。" size="sm" />
+  </view>
+
+  <view class="siv__copy">
+    <text class="siv__title">邀请好友一起探索城市</text>
+    <text class="siv__description">分享城瘾给你的好友，一起发现城市里的新玩法。</text>
+  </view>
+
+  <button class="siv__share" open-type="share" data-share-kind="invite">分享链接</button>
+</view>

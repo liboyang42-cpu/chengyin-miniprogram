@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index"
+  }
+}

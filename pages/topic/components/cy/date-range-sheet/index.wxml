@@ -1,0 +1,57 @@
+<cy-sheet show="{{show}}" title="{{title}}" footer="{{true}}" bind:close="onCancel">
+  <view class="drs {{reducedMotion ? 'drs--reduced-motion' : ''}}">
+    <!-- 汇总徽章:参考图右上角那个「21 nights」。区间选完之前不出现 ——
+         只选了一头时显示「共 1 天」是错的,那不是用户选的东西 -->
+    <view class="drs__badge-row" wx:if="{{_span > 0}}">
+      <view class="drs__badge">共 {{_span}} {{unit === 'night' ? '晚' : '天'}}</view>
+    </view>
+
+    <!-- 双栏摘要:两头的值同时在场,并指出现在该点哪一头 -->
+    <view class="drs__summary">
+      <view class="drs__col {{_phase === 'start' ? 'drs__col--on' : ''}}" aria-label="选择开始日期">
+        <text class="drs__col-label">开始</text>
+        <text class="drs__col-val {{_startText ? '' : 'drs__col-val--empty'}}">{{_startText || '选择日期'}}</text>
+      </view>
+      <view class="drs__col {{_phase === 'end' ? 'drs__col--on' : ''}}" aria-label="选择结束日期">
+        <text class="drs__col-label">结束</text>
+        <text class="drs__col-val {{_endText ? '' : 'drs__col-val--empty'}}">{{_endText || '选择日期'}}</text>
+      </view>
+    </view>
+
+    <!-- 越界提示:不落值必须同时说清为什么没落值,否则用户看到的是「点了没反应」。
+         走 cy-inline-error 而不是自造一行字 —— 站内联反馈只有这一个组件。 -->
+    <cy-inline-error wx:if="{{_overTitle}}" kind="data" title="{{_overTitle}}" sub="{{_overSub}}" />
+
+    <cy-calendar
+      class="drs__cal"
+      mode="range"
+      value="{{_value}}"
+      min="{{min}}"
+      max="{{max}}"
+      months="{{months}}"
+      disabled-dates="{{disabledDates}}"
+      marks="{{marks}}"
+      allow-same-day="{{allowSameDay}}"
+      max-range="{{maxRange}}"
+      bind:change="onCalChange"
+      bind:overrange="onOverrange"
+    />
+
+    <view class="drs__quick">
+      <view
+        wx:for="{{quickPicks}}" wx:key="kind"
+        class="drs__chip"
+        data-kind="{{item.kind}}"
+        bindtap="onQuick"
+        hover-class="cy-pressed"
+        hover-stay-time="80"
+        aria-role="button"
+      >{{item.label}}</view>
+      <view class="drs__clear" bindtap="onClear" hover-class="cy-pressed" hover-stay-time="80" aria-role="button">清除</view>
+    </view>
+  </view>
+
+  <view slot="footer" class="drs__footer">
+    <cy-btn variant="{{_span > 0 ? 'primary' : 'disabled'}}" bind:tap="onConfirm">确定</cy-btn>
+  </view>
+</cy-sheet>

@@ -1,0 +1,165 @@
+@import '../../../style/club-apply-form.wxss';
+@import '../../../style/wizard-intro.wxss';
+
+page { background: var(--cy-bg-page); }
+.page { min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+.done-error { display: flex; flex: 1; min-height: 0; }
+/* 只给 cy-state-shell 用(它要撑满剩余高度)。★别挂到 cy-skeleton 上:
+ * display:flex 且非 column 时,骨架内部的 .sk 成了 row 方向 flex item,
+ * 骨架条没有固有宽度会被压成 0 —— 宿主照样占高,却一个像素都不画。
+ * 2026-09-05 实测:改 block 或补 flex-direction:column 都能显形。 */
+.bootstrap-state { display: flex; flex: 1; min-height: 0; }
+
+/* ===== 头部:素色返回行 + 步数 + 四段进度 + eyebrow ===== */
+.head { flex: none; }
+.stepcount { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+/* ⚠️ prog / eyebrow 一律不许出现 margin-top / padding-top:
+ * 它们夹在 nav 与 cy-page-title 之间,顶距契约会逐条查它们的 style 与 wxss。
+ * 需要的呼吸靠自身高度 + 居中撑出来。 */
+.prog { display: flex; align-items: center; height: 44rpx; gap: var(--cy-space-1); padding: 0 var(--cy-page-x); }
+/* C40:未到段必须是可见的弱实心。原来用 8% 白,黑底上几乎看不见 ——
+ * 与建团页统一走 action/secondary-bg。 */
+.prog__seg {
+  flex: 1; height: 6rpx; border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-action-secondary-bg);
+  transition: background-color var(--cy-motion-standard) var(--cy-ease-out);
+}
+.prog__seg.on { background: var(--cy-color-text-primary); }
+
+.eyebrow {
+  display: flex; align-items: flex-end; height: 56rpx;
+  padding: 0 var(--cy-page-x);
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary);
+}
+
+/* ===== 字段:标签 + 深色输入槽 ===== */
+.field { padding-top: var(--cy-space-5); }
+.field.mt { padding-top: var(--cy-space-6); }
+.field__label { display: block; font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+/* 空态与已填态各用专用 token,由字段值驱动 —— 两态看不出区别是 DESIGN.md 明令禁止的。
+ * (master #1001 做对、我们这版一度做丢的一条,rebase 时补回来) */
+.field__box {
+  margin-top: var(--cy-space-2-5);
+  min-height: 100rpx; display: flex; align-items: center;
+  padding: 0 28rpx; box-sizing: border-box;
+  background: var(--cy-color-input-bg-empty); border-radius: var(--cy-radius-md);
+  transition: background var(--cy-motion-fast) var(--cy-ease-out);
+}
+.field__box.is-filled { background: var(--cy-color-input-bg-filled); }
+.field__ctrl { flex: 1; font-size: var(--cy-font-body); color: var(--cy-text-title); }
+.field__ph { color: var(--cy-text-secondary); }
+
+/* ===== 单选项(组织经验) ===== */
+.opt {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 96rpx; box-sizing: border-box;
+  margin-top: var(--cy-space-3); padding: 0 32rpx;
+  background: var(--cy-bg-elevated); border-radius: var(--cy-radius-lg);
+  border: 3rpx solid transparent;
+  transition: border-color var(--cy-motion-fast) var(--cy-ease-out);
+}
+.opt:first-child { margin-top: 0; }
+.opt.on { border-color: var(--cy-color-text-primary); }
+.opt__label { font-size: var(--cy-font-body); color: var(--cy-text-title); }
+.opt.on .opt__label { font-weight: 600; }
+.opt__radio {
+  width: 36rpx; height: 36rpx; border-radius: 50%; flex: none;
+  border: 3rpx solid var(--cy-border-card); box-sizing: border-box;
+  transition: background-color var(--cy-motion-fast) var(--cy-ease-out);
+}
+.opt.on .opt__radio { background: var(--cy-color-text-primary); border-color: var(--cy-color-text-primary); }
+
+/* ===== 能力行(能力自评 / 资质) ===== */
+.cap {
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 126rpx; box-sizing: border-box;
+  margin-top: var(--cy-space-3); padding: 0 32rpx;
+  background: var(--cy-bg-elevated); border-radius: var(--cy-radius-lg);
+  border: 2rpx solid transparent;
+  transition: background-color var(--cy-motion-fast) var(--cy-ease-out),
+              border-color var(--cy-motion-fast) var(--cy-ease-out);
+}
+.cap:first-child { margin-top: 0; }
+.cap.on { background: var(--cy-color-input-idle-bg); border-color: var(--cy-border-card); }
+.cap__main { display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.cap__t { font-size: var(--cy-font-body); color: var(--cy-text-title); }
+.cap__d { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cap__check {
+  width: 48rpx; height: 48rpx; border-radius: var(--cy-radius-sm); flex: none;
+  border: 3rpx solid var(--cy-border-card); box-sizing: border-box;
+  transition: background-color var(--cy-motion-fast) var(--cy-ease-out);
+}
+/* 勾用伪元素画,不引第三方图标:两条边旋转 45° = 对勾 */
+.cap.on .cap__check {
+  background: var(--cy-color-text-primary); border-color: var(--cy-color-text-primary);
+  position: relative;
+}
+.cap.on .cap__check::after {
+  content: ''; position: absolute; left: 15rpx; top: 8rpx;
+  width: 12rpx; height: 22rpx; box-sizing: border-box;
+  border: 4rpx solid var(--cy-bg-page); border-top: 0; border-left: 0;
+  transform: rotate(45deg);
+}
+
+/* 二值开关(持导游资质):轨道走 --cy-success,滑块走 transform 位移 ——
+ * left 是布局属性,motion-property-ratchet 只减不增,不能拿它做动画。 */
+.sw {
+  position: relative; flex: none;
+  width: 102rpx; height: 62rpx; border-radius: var(--cy-radius-pill);
+  background: var(--cy-border-card);
+  transition: background-color var(--cy-motion-fast) var(--cy-ease-out);
+}
+.cap.on .sw { background: var(--cy-success); }
+.sw__knob {
+  position: absolute; top: 4rpx; left: 4rpx;
+  width: 54rpx; height: 54rpx; border-radius: 50%;
+  background: var(--cy-color-text-primary);
+  transition: transform var(--cy-motion-fast) var(--cy-ease-out);
+}
+.cap.on .sw__knob { transform: translateX(40rpx); }
+
+/* 必填图例:红星号不能是必填的唯一线索(只靠颜色+符号,读屏与色觉障碍都拿不到),
+ * 所以配一句文字说明。星号本身标 aria-hidden,必填语义由 input 的 aria-label 承担。 */
+.legend { padding-top: var(--cy-space-3); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+.hint {
+  padding-top: var(--cy-space-5);
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* ===== 审核状态(完成态沿用原样式,本轮未改版) ===== */
+.status-card { padding: 32rpx; }
+.st-badge {
+  display: inline-flex; align-items: center; padding: var(--cy-legacy-10) var(--cy-legacy-26);
+  border-radius: var(--cy-radius-sm); font-size: var(--cy-font-body); font-weight: 700;
+}
+.st-badge.ing { background: rgba(255,149,0,0.12); color: var(--cy-gold); }
+.st-badge.ok  { background: rgba(52,199,89,0.14); color: var(--cy-success); }
+.st-badge.rej { background: rgba(255,59,48,0.12); color: var(--cy-danger); }
+.st-desc { font-size: var(--cy-font-body); color: var(--cy-text-title); line-height: var(--cy-leading-normal); margin: var(--cy-legacy-18) 0 24rpx; }
+.st-desc.rej { color: var(--cy-danger); }
+.st-kv { display: flex; justify-content: space-between; padding: 16rpx 0; border-top: 1rpx solid var(--cy-border-card); }
+.st-kv .k { font-size: var(--cy-font-body); color: var(--cy-text-secondary); }
+.st-kv .v { font-size: var(--cy-font-body); color: var(--cy-text-title); font-weight: 500; }
+
+/* 分步进场用全仓共用的 .cy-rise-in(style/motion-entry.wxss,已随 components.wxss 全局生效),
+ * 不自造第二套关键帧。.step 靠 wx:if 重挂自动重播;大标题不重挂,由 refreshStep 的 stepIn 开关重播。
+ * 减动效兜底必须逐条写在下面 —— app.wxss 那条全局 prefers-reduced-motion 只认系统开关,
+ * 接不住本仓设置页自己的开关,reduced-motion-coverage-contract 也不认它。 */
+.cy-motion-reduced .opt,
+.cy-motion-reduced .cap,
+.cy-motion-reduced .sw,
+.cy-motion-reduced .sw__knob,
+.cy-motion-reduced .prog__seg { transition: none !important; }
+
+/* 2026-09-06 用户定:整体间距放大一档。头部与正文之间也拉开。 */
+.step { padding-top: var(--cy-space-2); }
+
+
+/* 提交失败条:补页边并与底部 CTA 留出间隔(采纳 master #1001 的这条,不是设计冲突) */
+.ca-alert { display: block; padding: 0 var(--cy-page-x); margin-bottom: var(--cy-space-4); }
+
+/* 单独同意行挂在最后一个必填字段下面:字段自带 padding-top,行本身要留出与字段的间距 */
+.ca-consent { margin-top: var(--cy-space-2); }

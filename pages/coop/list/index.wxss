@@ -1,0 +1,148 @@
+@import '../../../style/merchant-light.wxss';
+
+page {
+  background: var(--cy-bg-page);
+  color: var(--cy-text-title);
+}
+
+.coop-list {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-bg-page);
+  padding: 0 32rpx 48rpx;
+  box-sizing: border-box;
+  /* 页边距由本容器给,清掉 cy-page-title 自带的 --cy-page-x,否则大标题比内容多缩一层 */
+  --cy-page-x: 0rpx;
+}
+
+.coop-tabs {
+  margin-top: 0;       /* 标题 → 首块内容由共享 cy-page-title 的 space-5 独家提供 */
+  margin-bottom: 24rpx;
+}
+
+.retry-lg { --cy-btn-h-sm: var(--cy-btn-h); }
+
+.action-state,
+.inline-state {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--cy-space-2);
+  padding: 0 var(--cy-space-2-5);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+.action-state--ok { color: var(--cy-success); }
+.action-state--error,
+.inline-state--error { color: var(--cy-danger); }
+.alert-btn { margin-left: auto; }
+.inline-retry { margin-left: auto; min-height: 88rpx; display: flex; align-items: center; color: var(--cy-text-title); font-weight: 600; }
+
+/* 稿 261:277 收件箱 / 261:349 发件箱:白卡 r16 p16 行距 16,卡距 12 */
+.inv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-4);
+  background: var(--cy-bg-card);
+  border-radius: var(--cy-radius-lg);
+  padding: var(--cy-space-4);
+  margin-bottom: var(--cy-space-3);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06); /* ds-ok 稿 261:277 卡片投影 0 2px 8px .06,token 仅 .04 */
+}
+.inv.is-dim { background: var(--cy-bg-card-2); }
+
+/* 行1:状态徽章 + 来自/发给 */
+.inv-top { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.inv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 40rpx;
+  padding: 0 18rpx;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.inv-badge--pending { color: var(--cy-color-status-warning); background: rgba(150, 97, 10, 0.14); /* ds-ok 稿 261:277 徽章软底 .14,token 为 .12 */ }
+.inv-badge--accepted { color: var(--cy-color-status-success); background: rgba(11, 122, 87, 0.14); /* ds-ok 稿 261:277 徽章软底 .14 */ }
+.inv-badge--rejected { color: var(--cy-color-status-danger); background: rgba(208, 50, 59, 0.14); /* ds-ok 稿 261:349 徽章软底 .14,token 为 .10 */ }
+.inv-badge--muted { color: var(--cy-color-text-tertiary); background: rgba(107, 107, 107, 0.14); /* ds-ok 稿 261:277 徽章软底 .14,token 为 .12 */ }
+.inv-peer {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-color-text-tertiary);
+}
+
+/* 行2:100×72 封面 + 日期/标题/副行 */
+.inv-main { display: flex; align-items: center; gap: var(--cy-space-3); }
+.inv-cover {
+  flex: none;
+  width: 200rpx;
+  height: 144rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+}
+.inv-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
+.inv-date,
+.inv-sub { font-size: var(--cy-font-caption); font-weight: 500; color: var(--cy-color-text-tertiary); }
+.inv-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-font-subtitle);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+/* 行3:条款摘要 */
+.inv-terms { font-size: var(--cy-font-label); font-weight: 500; color: var(--cy-color-text-secondary); line-height: 1.45; }
+.inv-context-error { margin-top: 0; }
+/* 可点(复制电话):撑到 44pt 触控高度 */
+.inv-contact {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+}
+.inv-contact-copy { color: var(--cy-text-secondary); }
+.deposit-due {
+  padding: var(--cy-space-1-5) 16rpx;
+  border-radius: var(--cy-radius-sm);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-danger);
+  background: var(--cy-danger-soft);
+}
+.inv-msg { font-size: var(--cy-font-label); color: var(--cy-text-body); line-height: 1.5; }
+
+/* 行4:动作右对齐 gap8;左 Secondary 右 Primary,一屏只有一个实心 */
+.inv-acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--cy-space-2); }
+.inv-btn {
+  position: relative;
+  box-sizing: border-box;
+  height: 64rpx;
+  padding: 0 32rpx;
+  border-radius: var(--cy-radius-md);
+  font-size: var(--cy-font-label);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+/* 视觉 32px(稿),命中区外扩到 44pt */
+.inv-btn::after { content: ''; position: absolute; left: 0; right: 0; top: -12rpx; bottom: -12rpx; }
+.inv-btn--secondary { background: var(--cy-bg-card-2); color: var(--cy-color-text-secondary); font-weight: 500; }
+.inv-btn--primary { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-weight: 700; }
+.inv-btn.is-disabled { opacity: 0.45; }

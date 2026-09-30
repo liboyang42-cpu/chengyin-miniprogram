@@ -1,0 +1,44 @@
+<!-- 顶部输入地址 —— 逐条照原型 .searchbar / .addrbar / .addrlist 抄
+     (2026-09-09 用户裁决:所有页面与 HTML 一模一样)。
+
+     原型是两个状态,不是一个行内输入框:
+       ① 收起态 = 一条白色 .searchbar,左搜索图标、中间一句话、右侧一枚筛选图标,点它进 ②;
+       ② 展开态 = 全屏 .dim 压暗地图 + 可编辑的 .addrbar(右侧「取消」是绿的)+ .addrlist 结果。
+     ⚠️ 原型里还自绘了一套 iOS 浅色拼音键盘 —— 那是网页 mock 用来替代系统键盘的道具。
+        小程序 <input> 聚焦时弹的就是真的系统拼音键盘,自绘一套只会更差,故不搬。
+        这是本组件唯一没照搬的东西。 -->
+<view class="mas {{entry ? 'mas--entry' : ''}} {{open ? 'mas--open' : ''}}" style="top:{{top}}px">
+  <!-- ① 收起态 -->
+  <view wx:if="{{!open}}" class="searchbar {{entry ? 'searchbar--entry' : ''}}" bindtap="onOpen"
+        aria-role="button" aria-label="输入地址" hover-class="cy-pressed" hover-stay-time="80">
+    <cy-icon class="searchbar__ic" name="search" size="33" />
+    <text class="searchbar__t">{{q || placeholder}}</text>
+    <cy-icon wx:if="{{!entry}}" class="searchbar__f" name="filter-lines" size="35" />
+  </view>
+
+  <!-- ② 展开态 -->
+  <block wx:else>
+    <view class="dim" bindtap="onCancel" aria-role="button" aria-label="收起地址搜索" hover-class="cy-pressed" hover-stay-time="80"></view>
+    <view class="searchbar addrbar">
+      <cy-icon class="searchbar__ic" name="search" size="33" />
+      <input class="addrbar__in" value="{{q}}" focus="{{open}}" placeholder="路名、门牌号或店名"
+             placeholder-class="addrbar__ph" confirm-type="search"
+             bindinput="onInput" bindconfirm="onConfirm" aria-label="输入地址" />
+      <text class="addrbar__c" catchtap="onCancel" aria-role="button" aria-label="取消" hover-class="cy-pressed" hover-stay-time="80">取消</text>
+    </view>
+    <scroll-view class="addrlist {{results.length ? '' : 'is-empty'}}" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:for="{{results}}" wx:key="id" class="addrrow" data-i="{{index}}" bindtap="onPick"
+            aria-role="button" aria-label="{{item.name}}" hover-class="addrrow--pressed" hover-stay-time="80">
+        <!-- 原型 ADDRPIN:19px 水滴针,中间一个白点。四类结果只靠它的颜色分。 -->
+        <view class="addrrow__pin" style="color:{{item.pinColor}}">
+          <cy-icon name="pin-solid" size="37" />
+        </view>
+        <view class="addrrow__copy">
+          <text class="addrrow__t">{{item.name}}</text>
+          <text class="addrrow__s">{{item.sub}}</text>
+        </view>
+      </view>
+      <text wx:if="{{!results.length}}" class="addrlist__none">这附近没有搜到</text>
+    </scroll-view>
+  </block>
+</view>

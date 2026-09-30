@@ -1,0 +1,73 @@
+@import "/pages/play/style/playkit.wxss";
+
+/* cy-playkit-diyname · DIY 作品命名(Figma v5.1,node 47:270) */
+.dn { padding-top: var(--cy-space-2); }
+.dn__top {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  margin-top: var(--cy-space-3);
+}
+.dn__shot {
+  flex: none;
+  width: 192rpx;
+  height: 192rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--cy-radius-lg);
+  /* 稿里照片框是绿描边 —— 它在说"这张已经拍好了",不是装饰 */
+  border: 3rpx solid var(--cy-color-status-success);
+  background: var(--cy-color-play-surface-subtle);
+}
+.dn__shot-img { width: 100%; height: 100%; }
+.dn__shot-ph { color: var(--cy-color-text-tertiary); }
+.dn__title { flex: 1; min-width: 0; margin-top: 0; }
+.dn__input {
+  margin-top: var(--cy-space-4);
+  padding: 0 var(--cy-space-3);
+  height: 108rpx;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-lg);
+  /* 输入焦点色沿用信息蓝:稿里这一圈就是"轮到你写"的唯一提示 */
+  border: 3rpx solid var(--cy-color-status-info);
+  background: var(--cy-color-play-surface-subtle);
+  font-size: var(--cy-type-card-title);
+  font-weight: 900;
+  letter-spacing: 2rpx;
+  color: var(--cy-color-text-primary);
+}
+.dn__input-ph { color: var(--cy-color-text-placeholder); }
+.dn__sub {
+  margin-top: var(--cy-space-3);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+.dn__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-1-5);
+  margin-top: var(--cy-space-2);
+}
+.dn__chip {
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  border: 2rpx solid var(--cy-color-status-info);
+  background: var(--cy-color-status-info-soft);
+  font-size: var(--cy-type-label);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+
+/* 调配蓝:输入与备选走玩法主题色。照片框仍是绿 —— 那一圈表达的是"这张已经拍好了",
+   是状态不是身份,换成主题色反而把两件事混成一件。 */
+.dn__input { border-color: var(--cy-color-playkit-craft); }
+.dn__chip {
+  border-color: var(--cy-color-playkit-craft);
+  background: rgba(46, 196, 182, .16);   /* ds-ok 主题色软底,与 --cy-color-playkit-craft 同源 */
+}
+.dn__cta {
+  --cy-comp-btn-primary-bg: var(--cy-color-playkit-craft);
+  --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+}

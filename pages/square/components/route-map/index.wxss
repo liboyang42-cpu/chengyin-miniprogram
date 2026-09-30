@@ -1,0 +1,23 @@
+.rm-wrap {
+  width: 100%;
+  position: relative;
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+  background: var(--cy-bg-subtle);
+}
+
+.rm-map {
+  width: 100%;
+  height: 100%;
+}
+
+.rm-tip {
+  position: absolute;
+  left: var(--cy-space-2);
+  bottom: var(--cy-space-2);
+  padding: var(--cy-legacy-4) 16rpx;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-inverse);
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: var(--cy-radius-pill);
+}

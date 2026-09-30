@@ -1,0 +1,66 @@
+/* J2 客户 · 主题内(T3 全屏弹窗)· Figma node 143:90
+   面板本体由 cy-scene-sheet(variant=full)提供;这里只画面板里的内容。
+   ⚠️ 面板底是玻璃(bg-glass),坐在它上面的卡要用 bg-raised 这一档,别用整页上的 bg-elevated。 */
+.tc { padding-bottom: var(--cy-space-5); }
+
+.tc-counts { display: flex; gap: var(--cy-space-2); flex-wrap: wrap; }
+.tc-count { flex: 1; font-size: var(--cy-font-caption); font-weight: 500; color: var(--cy-color-text-placeholder); }
+.tc-count--warning { color: var(--cy-color-status-warning); }
+.tc-count--success { color: var(--cy-color-status-success); }
+
+.tc-chiprow { display: flex; gap: var(--cy-space-1-5); margin-top: var(--cy-space-3); flex-wrap: wrap; }
+.tc-chip {
+  height: 68rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 28rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-interactive);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-caption);
+  font-weight: 500;
+}
+.tc-chip--on { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+
+.tc-session { margin-top: var(--cy-space-5); }
+.tc-session-head { display: flex; align-items: baseline; justify-content: space-between; }
+.tc-session-time { font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-color-text-primary); }
+.tc-session-count { font-size: var(--cy-font-label); color: var(--cy-color-text-placeholder); }
+
+.tc-row { display: flex; align-items: flex-start; margin-top: var(--cy-space-3); }
+.tc-ava { flex-shrink: 0; }
+.tc-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  margin-left: var(--cy-space-3);
+  padding-bottom: var(--cy-space-3);
+  border-bottom: 2rpx solid var(--cy-color-border-subtle);
+}
+.tc-main { flex: 1; min-width: 0; }
+.tc-name {
+  display: block;
+  font-size: var(--cy-font-subtitle);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tc-line {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-color-text-placeholder);
+}
+.tc-side { flex-shrink: 0; margin-left: var(--cy-space-2); text-align: right; }
+.tc-status { display: block; font-size: var(--cy-font-caption); font-weight: 500; }
+.tc-status--success { color: var(--cy-color-status-success); }
+.tc-status--warning { color: var(--cy-color-status-warning); }
+.tc-status--danger { color: var(--cy-color-status-danger); }
+.tc-time { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-color-text-placeholder); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   不定义的话 hover-class 写了也没反应(按压契约会判红,见 tests/unit/press-feedback-resolves-contract)。 */
+.cy-pressed { opacity: .88; }

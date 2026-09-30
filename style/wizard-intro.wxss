@@ -1,0 +1,76 @@
+/* ============================================================
+ * 向导开场屏:四步之前的那一屏(Figma H0 / G0 / M0)
+ *
+ * 三条向导(主理人申请 / 建团 / 商家入驻)共用这一份。色值全部走 token,
+ * 所以同一份样式在玩家深色档与 .theme-merchant 浅色档都自动成立 —— 别为了换配色抄第二份。
+ *
+ * 版式:内容整体贴底、上半屏留空(参考稿的重心就在下方)。
+ * 用法:@import '../../../style/wizard-intro.wxss';
+ * ============================================================ */
+.intro {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 var(--cy-page-x) calc(48rpx + env(safe-area-inset-bottom));
+  /* 退场靠类切换 + transition,不用 @keyframes(那条棘轮只减不增) */
+  transition: opacity 320ms cubic-bezier(.65, 0, .35, 1),
+              transform 320ms cubic-bezier(.65, 0, .35, 1),
+              filter 320ms cubic-bezier(.65, 0, .35, 1);
+}
+.intro__eyebrow { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.intro__title {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-page-title, 58rpx); font-weight: 800;
+  line-height: 1.22; color: var(--cy-text-title); white-space: pre-line;
+}
+.intro__sub { margin-top: var(--cy-space-3); font-size: var(--cy-font-label); color: var(--cy-color-text-secondary); }
+.intro__points { margin: var(--cy-space-4) 0 var(--cy-space-6); }
+.intro__point { display: flex; align-items: flex-start; gap: var(--cy-space-2); padding: 10rpx 0; }
+.intro__point text { font-size: var(--cy-font-body); color: var(--cy-text-title); line-height: var(--cy-leading-normal); }
+.intro__dot {
+  width: 10rpx; height: 10rpx; border-radius: 50%; flex: none;
+  margin-top: 16rpx; background: var(--cy-text-secondary);
+}
+.intro__fine {
+  margin-top: var(--cy-space-3); text-align: center;
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary);
+}
+
+/* ===== 开场胶囊 → 进度条:共享元素形变(2026-09-06) =====
+ * 参考视频里那颗「开始申请」不是消失后再出现进度条 —— 它自己飞上去变过去的,
+ * 所以右半截转灰才成立:胶囊的右半边就是进度条的「未填」部分。
+ *
+ * 只动 transform / opacity / border-radius:
+ *   · CTA 与进度轨等宽,位移只有纵向 ⇒ translateY + scaleY 就够,不必动 width/left;
+ *   · 白色占比靠 scaleX(transform-origin:left),不是动 width;
+ *   · 这三个属性都不在 motion-property-ratchet 的布局属性名单里,也不触发 layout。
+ * 起止几何是运行时用 boundingClientRect 量的,不是写死的,所以换机型也对得上。
+ * 缓动是慢快慢(cubic-bezier(.65,0,.35,1)) —— 不是 --cy-ease-out,那条是快→慢。 */
+.morph {
+  position: fixed; z-index: 20; overflow: hidden; pointer-events: none;
+  transition: transform 400ms cubic-bezier(.65, 0, .35, 1),
+              border-radius 400ms cubic-bezier(.65, 0, .35, 1);
+}
+.morph__track { position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  background: var(--cy-color-text-primary); opacity: 0.08;
+  transition: opacity 220ms cubic-bezier(.65, 0, .35, 1); }
+.morph__fill { position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  background: var(--cy-color-text-primary); transform-origin: left center;
+  transition: transform 400ms cubic-bezier(.65, 0, .35, 1); }
+
+/* 形变期间真进度条先隐身,由形变条顶上;结束瞬间交还 */
+.prog--ghost { opacity: 0; }
+
+/* 旧开场屏在形变期间浮起来整层退场(模糊只此一层,不要分块挂)。
+ * 用 transition 不用 @keyframes:一次性的类切换本来就该走 transition,
+ * 而且 keyframes 棘轮是只减不增的。 */
+.intro--out {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 10;
+  opacity: 0; transform: scale(.96); filter: blur(10px);
+}
+/* 那颗 CTA 已经「变成」形变条了,原地不能再留一个,否则看着就是没对齐 */
+.intro--out .intro-cta { visibility: hidden; }
+
+.cy-motion-reduced .morph,
+.cy-motion-reduced .morph__track,
+.cy-motion-reduced .morph__fill { transition: none !important; }
+.cy-motion-reduced .intro { transition: none !important; }

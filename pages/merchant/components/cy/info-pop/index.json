@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-icon": "/components/cy/icon/index",
+    "cy-modal": "/components/cy/modal/index",
+    "cy-sheet": "/components/cy/sheet/index"
+  }
+}

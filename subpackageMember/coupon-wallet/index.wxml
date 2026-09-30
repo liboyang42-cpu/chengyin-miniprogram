@@ -1,0 +1,6 @@
+<view class="theme-dark coupon-wallet-page">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-scene-deep-link scene-id="game-coupon-wallet" />
+</view>

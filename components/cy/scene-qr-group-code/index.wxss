@@ -1,0 +1,10 @@
+:host { display: block; min-height: 100%; }
+.group-code-body { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+.group-picker { width: 100%; }
+.group-picker__hint { display: block; margin-bottom: var(--cy-space-3); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.group-picker__item { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); min-height: 88rpx; box-sizing: border-box; padding: var(--cy-space-3); margin-bottom: var(--cy-space-2); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

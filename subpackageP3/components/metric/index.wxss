@@ -1,0 +1,63 @@
+:host { display: block; }
+
+.mt {
+  display: flex; flex-direction: column; gap: var(--cy-space-1);
+  padding: var(--cy-space-4);
+  background: var(--cy-color-bg-surface);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-lg);
+  box-shadow: var(--cy-shadow-card);
+}
+.mt--critical { position: relative; }
+.mt--critical::before {
+  content: ''; position: absolute; left: 0; top: 24rpx; bottom: 24rpx; width: var(--cy-legacy-6);
+  border-radius: var(--cy-radius-pill); background: var(--cy-color-status-danger);
+}
+
+.mt__top { display: flex; align-items: center; justify-content: space-between; }
+.mt__label { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.mt__pill {
+  display: inline-flex; align-items: center; gap: var(--cy-legacy-6);
+  height: var(--cy-legacy-36); padding: 0 var(--cy-space-1-5); border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-micro); font-weight: 600;
+}
+.mt__pill--warning { color: var(--cy-color-status-warning); background: var(--cy-color-status-warning-soft); }
+.mt__pill--critical { color: var(--cy-color-status-danger); background: var(--cy-color-status-danger-soft); }
+
+.mt__main { display: flex; align-items: baseline; margin-top: var(--cy-space-1); }
+.mt__val { font-size: var(--cy-type-data-xl); font-weight: 700; color: var(--cy-color-text-primary); line-height: 1.05; }
+.mt__val--empty { color: var(--cy-color-text-placeholder); }
+.mt__unit { font-size: var(--cy-type-body); color: var(--cy-color-text-tertiary); font-weight: 400; margin-left: var(--cy-legacy-6); }
+
+.mt__trend { display: flex; align-items: center; gap: var(--cy-space-2); margin-top: var(--cy-space-1); }
+.mt__delta { font-size: var(--cy-type-caption); font-weight: 700; }
+.mt__delta--up-good { color: var(--cy-color-status-success); }
+.mt__delta--down-good { color: var(--cy-color-status-success); }
+.mt__delta--neutral { color: var(--cy-color-text-secondary); }
+.mt__cmp { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+
+.mt__time { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-space-1); }
+
+.mt__empty { display: flex; flex-direction: column; gap: var(--cy-space-1); margin-top: var(--cy-space-1); }
+.mt__empty-h { font-size: var(--cy-type-caption); color: var(--cy-color-text-secondary); }
+.mt__act { display: inline-flex; align-items: center; gap: var(--cy-legacy-6); color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+
+/* triple */
+.mt__cols { display: flex; }
+.mt__col { flex: 1; display: flex; flex-direction: column; gap: var(--cy-legacy-6); }
+.mt__col + .mt__col { border-left: 1rpx solid var(--cy-color-border-subtle); padding-left: var(--cy-space-3); }
+.mt__col:not(:last-child) { padding-right: var(--cy-space-3); }
+.mt__col-l { font-size: var(--cy-type-caption); color: var(--cy-color-text-secondary); }
+.mt__col-v { font-size: var(--cy-type-section-title); font-weight: 700; color: var(--cy-color-text-primary); }
+.mt__col-u { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); font-weight: 400; margin-left: var(--cy-legacy-4); }
+
+/* skeleton */
+.mt__sk { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.mt__sk-l { width: 40%; height: 24rpx; background: var(--cy-color-skeleton-base); border-radius: var(--cy-radius-sm); }
+.mt__sk-v { width: 60%; height: 56rpx; background: var(--cy-color-skeleton-base); border-radius: var(--cy-radius-sm); }
+.mt__sk-t { width: 50%; height: var(--cy-legacy-22); background: var(--cy-color-skeleton-base); border-radius: var(--cy-radius-sm); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

@@ -1,0 +1,20 @@
+.album{ position:fixed; left:0; right:0; top:0; bottom:0; z-index:118; overflow:hidden; background:#F4F4F6; } /* ds-ok 用户点名白色相册空间 */
+/* 白色筒壁向中心连续收暗,用平滑明暗表现纵深,不画分层圆环。静态背景不占 Canvas 每帧预算。 */
+.album::before{ content:''; position:absolute; left:0; right:0; top:0; bottom:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 58% 47% at 25% 24%, rgba(255,255,255,.86) 0%, rgba(255,255,255,.40) 40%, rgba(255,255,255,0) 78%), /* ds-ok 白色筒壁的装饰性漫反射,不跟随宿主主题 */
+    radial-gradient(ellipse 72% 52% at 52% 43%,
+      #667180 0%, #8993A0 24%, #B5BEC9 42%, #DEE3EA 62%, #F7F8FA 82%, #FFFFFF 100%); } /* ds-ok 用户指定 abstract white tunnel 3D,白色曲面漫反射与连续纵深 */
+
+.album__glass{ position:absolute; left:0; right:0; top:12vh; }
+.album__line{ position:absolute; left:64rpx; right:64rpx; bottom:calc(env(safe-area-inset-bottom) + 230rpx); text-align:center;
+  font-size:29rpx; line-height:1.7; color:#1C1C1E; } /* ds-ok 白底上的深字 */
+.album__count{ position:absolute; left:0; right:0; bottom:calc(env(safe-area-inset-bottom) + 190rpx); text-align:center;
+  font-size:21rpx; letter-spacing:4rpx; color:rgba(28,28,30,.45); } /* ds-ok 白底页码 */
+.album__back{ position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom) + 64rpx); transform:translateX(-50%);
+  height:var(--cy-btn-h); padding:0 46rpx; border-radius:999rpx; display:flex; align-items:center; /* ds-ok 胶囊按钮 */
+  background:#1C1C1E; color:#FFFFFF; font-size:27rpx; font-weight:600; } /* ds-ok 白底上的深色主按钮(反色中性) */
+
+.album__title { position:absolute; top:8vh; width:100%; text-align:center; color:#1C1C1E; font-size:var(--cy-font-body); } /* ds-ok 复用相册固定白底的深色文字，独立于宿主主题 */
+
+.album__back--press { opacity:.88; transform:translateX(-50%) scale(.98); }

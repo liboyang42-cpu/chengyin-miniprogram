@@ -1,0 +1,52 @@
+/* 2026-09-02:遮罩 1800 / 面板 1801 越出了全局最高档 --cy-z-celebrate(990),
+   结算、协议这类外壳弹窗(--cy-z-modal 900)反而被游戏面板盖住。
+   本组件的形态就是「全屏遮罩 + 底部面板」= --cy-z-sheet(800)的语义,归位到该档;
+   模板游戏的视觉可以自由,层级不行。 */
+.ag-mask { position: fixed; inset: 0; z-index: var(--cy-z-sheet); background: var(--cy-color-overlay); }
+/* 2026-09-18 顶边复查:token 的 env 在模拟器/无刘海机解析为 0 ⇒ 面板顶落进胶囊行。
+   宿主(play 页)量到胶囊底后经 --cy-comp-sheet-max-h 传实测上限,拿不到才退 token。 */
+.ag { position: fixed; z-index: calc(var(--cy-z-sheet) + 1); left: 0; right: 0; bottom: 0; height: var(--cy-comp-sheet-max-h, var(--cy-comp-sheet-max-height)); border-radius: var(--cy-radius-lg) var(--cy-radius-lg) 0 0; background: var(--cy-bg-page); color: var(--cy-text-title); overflow: hidden; }
+.ag__grab { width: 72rpx; height: 8rpx; border-radius: var(--cy-radius-pill); background: var(--cy-border-line); margin: 16rpx auto; }
+.ag__head { display: flex; justify-content: space-between; align-items: center; padding: 12rpx 32rpx 24rpx; }
+.ag__eyebrow,.ag__title { display:block; }.ag__eyebrow { color:var(--cy-text-secondary);font-size:var(--cy-font-caption);}.ag__title {font-size:var(--cy-font-title);font-weight:800;margin-top:6rpx;}
+.ag__close { position:relative;width:64rpx;height:64rpx;display:flex;align-items:center;justify-content:center; } /* ✕纯字形无圆底(2026-09-18 终裁) */
+/* 触控热区:可见圆 64rpx 不变,透明 ::after 撑到 88rpx(DS §3.2 compact-floating)。
+   .ag__head 里同层只有 .ag__eyebrow / .ag__title 两段文字,没有 tap。 */
+.ag__close::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+.ag__scroll { height: calc(var(--cy-comp-sheet-max-h, var(--cy-comp-sheet-max-height)) - 210rpx); padding: 0 28rpx; box-sizing:border-box; }
+.ag__status { display:flex;gap:12rpx;flex-wrap:wrap;margin-bottom:20rpx;}.ag__status-text {background:var(--cy-bg-card-2);padding:8rpx 16rpx;border-radius:var(--cy-radius-pill);font-size:var(--cy-font-caption);}
+.ag-card { background:var(--cy-bg-card);border:1rpx solid var(--cy-border-card);border-radius:var(--cy-radius-md);padding:28rpx;margin-bottom:20rpx; }
+.ag-card__title { display:block;font-size:var(--cy-font-subtitle);font-weight:800; }.ag-card__sub,.ag-card__body {display:block;color:var(--cy-text-secondary);font-size:var(--cy-font-label);margin:10rpx 0 18rpx;line-height:1.6;}
+.ag-card__row,.ag-member,.ag-rank {display:flex;align-items:center;gap:14rpx;}.ag-card__row{justify-content:space-between}.ag-refresh{color:var(--cy-color-brand-strong);}
+.ag-draw,.ag-option,.ag-terminal {padding:20rpx;border-radius:var(--cy-radius-sm);background:var(--cy-bg-card-2);margin:12rpx 0;display:flex;justify-content:space-between;}
+.ag-draw {align-items:center;gap:20rpx}.ag-draw__copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:8rpx;color:var(--cy-text-secondary);font-size:var(--cy-font-label)}.ag-draw__label{color:var(--cy-text-title);font-weight:700}.ag-draw__audio{flex:none;min-width:96rpx;min-height:88rpx;box-sizing:border-box;padding:10rpx 20rpx;display:flex;align-items:center;justify-content:center;border:1rpx solid var(--cy-color-brand-strong);border-radius:var(--cy-radius-pill);color:var(--cy-color-brand-strong);font-size:var(--cy-font-caption)}
+.ag-option {border:2rpx solid var(--cy-border-line);}.ag-terminal{color:var(--cy-success);}
+.ag-member{padding:14rpx 0;border-bottom:1rpx solid var(--cy-border-card);flex-wrap:wrap}.ag-member__avatar{width:52rpx;height:52rpx;border-radius:50%;}.ag-member__name{flex:1}.ag-member__role{color:var(--cy-text-secondary)}
+.ag-role{width:100%;display:flex;gap:10rpx;flex-wrap:wrap}.ag-role__option{padding:8rpx 16rpx;background:var(--cy-brand-soft);border-radius:var(--cy-radius-pill);color:var(--cy-color-brand-strong);font-size:var(--cy-font-caption);}
+.ag-rank{padding:14rpx 0}.ag-rank__name{flex:1}.ag__loading,.ag__error,.ag__ended{padding:24rpx;text-align:center}.ag__error,.ag__ended{color:var(--cy-danger)}
+/* ── unknown 状态条:色只在圆点,不整块染 ──────────────── */
+.ag__status{display:flex;align-items:flex-start;gap:var(--cy-space-2-5);margin:var(--cy-space-2) 0;padding:var(--cy-space-3) var(--cy-space-3-5);border-radius:var(--cy-radius-md);background:var(--cy-bg-card-2);border:1rpx solid var(--cy-border-card);animation:ag-status-in var(--cy-motion-standard) var(--cy-ease-out) both}
+.ag__status-dot{flex:none;width:12rpx;height:12rpx;margin-top:12rpx;border-radius:50%;background:var(--cy-color-status-warning)}
+.ag__status-body{flex:1;min-width:0}
+.ag__status-text{display:block;font-size:var(--cy-font-label);line-height:1.5;color:var(--cy-color-text-primary)}
+.ag__status-act{display:block;margin-top:var(--cy-space-1);font-size:var(--cy-font-caption);line-height:1.4;color:var(--cy-color-text-secondary)}
+/* 只淡入不位移:本组件是 isolated,挂在页面祖先上的 .cy-motion-reduced 够不着这里,
+   撤不掉的位移对前庭敏感用户就是硬伤 —— 与其留个没有兜底的 translate,不如不位移。 */
+@keyframes ag-status-in{from{opacity:0}to{opacity:1}}
+.ag__footer { position:absolute;left:0;right:0;bottom:0;padding:20rpx 28rpx calc(20rpx + env(safe-area-inset-bottom));background:var(--cy-bg-page);border-top:1rpx solid var(--cy-border-card); }.ag__pad{height:150rpx;}
+
+/* isolated 组件的按压反馈类(全局 .cy-pressed 进不来)。 */
+.ag__press { opacity: .72; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

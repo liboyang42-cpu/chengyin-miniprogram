@@ -1,0 +1,729 @@
+{
+  "version": 1,
+  "regularRatioRange": {
+    "min": 0.4,
+    "max": 0.55
+  },
+  "pairs": {
+    "compact-floating": {
+      "kind": "paired",
+      "semantic": "地图或封面上的紧凑浮动圆钮",
+      "interactive": true,
+      "hitTarget": 88,
+      "visibleCircle": 64,
+      "glyph": 32,
+      "tokenPrefix": "--cy-comp-icon-pair-compact"
+    },
+    "standard-icon-button": {
+      "kind": "paired",
+      "semantic": "普通 icon-only 圆形操作",
+      "interactive": true,
+      "hitTarget": 88,
+      "visibleCircle": 88,
+      "glyph": 40,
+      "tokenPrefix": "--cy-comp-icon-pair-standard"
+    }
+  },
+  "exceptions": {
+    "play-primary-action": {
+      "kind": "paired",
+      "semantic": "Play 底栏开始或暂停主键",
+      "interactive": true,
+      "hitTarget": 124,
+      "visibleCircle": 124,
+      "glyph": 61,
+      "tokenPrefix": "--cy-comp-icon-exception-play-primary",
+      "decision": "preserve",
+      "reason": "用户确认保留 Figma 主行动构图，不归并到普通圆钮",
+      "sources": [
+        "pages/play/index.wxml:.pact--main",
+        "tests/unit/play-ui-contract.test.js"
+      ]
+    },
+    "merchant-quick-action": {
+      "kind": "paired",
+      "semantic": "商家首页四个快捷操作",
+      "interactive": true,
+      "hitTarget": 120,
+      "visibleCircle": 120,
+      "glyph": 44,
+      "tokenPrefix": "--cy-comp-icon-exception-merchant-quick",
+      "allowRatioDeviation": true,
+      "decision": "preserve",
+      "reason": "用户确认保留商家工作台 hero 快捷圆及既有构图比例",
+      "sources": [
+        "pages/merchant/index/index.wxml:.rv-action",
+        "tests/unit/merchant-workbench.test.js"
+      ]
+    },
+    "searchmap-back": {
+      "kind": "paired",
+      "semantic": "搜索地图左上返回",
+      "interactive": true,
+      "hitTarget": 88,
+      "visibleCircle": 64,
+      "glyph": 32,
+      "tokenPrefix": "--cy-comp-icon-exception-searchmap-back",
+      "decision": "preserve",
+      "reason": "用户确认保留 64rpx 可见圆与 88rpx 热区分层，并作为后续范式",
+      "sources": [
+        "pages/searchmap/index.wxml:.smap-back",
+        "tests/unit/c01-home-search-state-contract.test.js"
+      ]
+    },
+    "roam-history-walk": {
+      "kind": "glyph-only",
+      "semantic": "漫游历史 RunCard 无封面时的 walk glyph",
+      "interactive": false,
+      "hitTarget": null,
+      "visibleCircle": null,
+      "visibleFrame": 138,
+      "glyph": 61,
+      "interactionOwner": ".rc",
+      "tokenPrefix": "--cy-comp-icon-exception-roam-history",
+      "decision": "preserve",
+      "reason": "用户确认保留 RunCard 方形缩略框内 61rpx glyph；它不是独立圆钮",
+      "sources": [
+        "components/cy/scene-roam-history/index.wxml:.rc__thumb",
+        "tests/unit/formal-icon-contract.test.js"
+      ]
+    }
+  },
+  "optical": {
+    "offsetUnit": "percent-of-glyph-box",
+    "positiveDirection": {
+      "x": "right",
+      "y": "down"
+    },
+    "icons": {
+      "arrow-right": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "back": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": -0.5,
+            "y": 0
+          },
+          "unit": "viewBox"
+        }
+      },
+      "bell": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "calendar": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "camera": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "check": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "chevron-right": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "clock": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "close": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "close-sm": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "collapse": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "comment": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "copy": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "coupon": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 0,
+            "y": 0
+          },
+          "unit": "viewBox"
+        }
+      },
+      "discover-shop": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "download": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "draft": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "edit": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "expand": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "filter": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "filter-lines": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "finance": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 0,
+            "y": 0
+          },
+          "unit": "viewBox"
+        }
+      },
+      "flag": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "gift": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "gps": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 0.447,
+            "y": 0.447
+          },
+          "unit": "viewBox"
+        }
+      },
+      "heart": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "heart-filled": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "image": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "info": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "list": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "lock": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "logout": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "map": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "more": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 0,
+            "y": 0
+          },
+          "unit": "viewBox"
+        }
+      },
+      "more-circle": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "mtab-customers": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 0,
+            "y": 0.5
+          },
+          "unit": "viewBox"
+        }
+      },
+      "mtab-marketing": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "mtab-workbench": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "phone": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "pin": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "pin-solid": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "play": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 2,
+            "y": 0
+          },
+          "areaCentroid": {
+            "x": -0.444,
+            "y": 0
+          },
+          "unit": "viewBox"
+        }
+      },
+      "play-filled": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "plus": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "poi-landmark": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "poi-park": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "poi-shop": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "qr": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 0,
+            "y": 0
+          },
+          "unit": "viewBox"
+        }
+      },
+      "qr-scan": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "route": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "scallop": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "bbox-audited",
+        "evidence": {
+          "bboxCenter": {
+            "x": 0,
+            "y": 0
+          },
+          "unit": "viewBox",
+          "note": "十二齿花边圆由底圆 r18.6 + 12 个 r5.4 齿圆(30° 均分、圆心都落在 r18.6 上)构造,几何上对 (24,24) 中心对称 ⇒ bbox 中心与面积重心重合,无需光学补偿"
+        }
+      },
+      "scan": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "search": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "settings": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "share": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "slide-arrow": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "star": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "star-filled": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "switch-chapter": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "tab-club": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "tab-explore": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "tab-feed": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "tab-me": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "tab-publish": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "trash": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "trash-2": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "turn-right": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "walk": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "warning": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      },
+      "zoom-out": {
+        "scale": 1,
+        "offset": {
+          "x": 0,
+          "y": 0
+        },
+        "review": "pending"
+      }
+    }
+  }
+}

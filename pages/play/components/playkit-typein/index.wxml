@@ -1,0 +1,30 @@
+<!-- 限时打字。目标文本是明牌 —— 这玩法考的是手速不是猜谜。
+     限时条与超时判负由 cy-play-stage 出(它的截止时刻是钉死的,切后台也会到点)。 -->
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出"
+               limit-seconds="{{seconds}}" count-in
+               bind:back="onClose" bind:run="onRun">
+  <view class="ti g-col {{reducedMotion ? 'pk--reduced' : ''}} {{_motionReset ? 'pk--reset' : ''}}">
+    <view class="g-kicker">{{title || '打出这行字'}}</view>
+    <view class="ti__attempt" wx:if="{{attemptLabel}}">{{attemptLabel}}</view>
+
+    <view class="ti__target pk-in">{{target}}</view>
+
+    <block wx:if="{{phase === 'intro'}}">
+      <view class="ti__hint">{{seconds}} 秒内一字不差地打完它</view>
+    </block>
+    <block wx:else>
+      <input class="ti__input" value="{{typed}}" disabled="{{locked}}"
+             placeholder="在这里打" placeholder-class="ti__input-ph"
+             confirm-type="done" bindinput="onInput" bindconfirm="onSubmit"
+             aria-label="照着上面那行打一遍" />
+    </block>
+
+    <view class="ti__done pk-in" wx:if="{{passed}}">一字不差</view>
+  </view>
+
+  <view class="g-btn" wx:if="{{phase === 'intro'}}" bindtap="onStart"
+        aria-role="button" aria-label="开始" hover-class="g-btn--press" hover-stay-time="80">开始</view>
+  <view class="g-btn {{canSubmit && !submitting ? '' : 'g-btn--disabled'}}" wx:else bindtap="onSubmit"
+        aria-role="button" aria-label="{{passed ? '已完成' : '打完提交'}}"
+        hover-class="g-btn--press" hover-stay-time="80">{{passed ? '已完成' : (submitting ? '提交中…' : '打完提交')}}</view>
+</cy-play-stage>

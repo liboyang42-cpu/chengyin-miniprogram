@@ -1,0 +1,282 @@
+{
+  "note": "二十个玩法「客户端发什么 / 服务端认什么」的共用真源。小程序侧与后端侧各有一份测试读它:前者断言 serverAction/serverPayload 产出这些名字,后者拿同一份 payload 真跑一遍 act()。两边共读一份,才是对得上,而不是各自对着自己的假设绿。字段名对不上时服务端按 0 判——不报错,只是永远不通过,所以必须钉死。 同一个动作有多种形态时(问答三种模式)用 scenario 区分,后端按它挑场地。",
+  "cases": [
+    {
+      "game": "猜数字",
+      "type": "estimate",
+      "action": "submit",
+      "serverAction": "SUBMIT_ESTIMATE",
+      "detail": {
+        "guess": 42
+      },
+      "payload": {
+        "value": 42
+      }
+    },
+    {
+      "game": "猜图",
+      "type": "pricepair",
+      "action": "submit",
+      "serverAction": "SUBMIT_PRICE_PAIR",
+      "detail": {
+        "index": 1,
+        "pickId": "b"
+      },
+      "payload": {
+        "pickId": "b"
+      }
+    },
+    {
+      "game": "找东西",
+      "type": "hidden",
+      "action": "submit",
+      "serverAction": "SUBMIT_HIDDEN_OBJECT",
+      "detail": {
+        "x": 30.0,
+        "y": 40.0
+      },
+      "payload": {
+        "x": 0.3,
+        "y": 0.4
+      }
+    },
+    {
+      "game": "竞猜",
+      "type": "predict",
+      "action": "submit",
+      "serverAction": "SUBMIT_PREDICT",
+      "detail": {
+        "key": "b",
+        "index": 1
+      },
+      "payload": {
+        "optionKey": "b"
+      }
+    },
+    {
+      "game": "分支剧情",
+      "type": "branch",
+      "action": "choose",
+      "serverAction": "CHOOSE",
+      "detail": {
+        "index": 0,
+        "optionId": "go"
+      },
+      "payload": {
+        "optionId": "go"
+      }
+    },
+    {
+      "game": "抽卡",
+      "type": "random",
+      "action": "draw",
+      "serverAction": "DRAW",
+      "detail": {
+        "index": 0
+      },
+      "payload": {}
+    },
+    {
+      "game": "抛硬币",
+      "type": "coinflip",
+      "action": "flip",
+      "serverAction": "FLIP_COIN",
+      "detail": {},
+      "payload": {}
+    },
+    {
+      "game": "掷骰子",
+      "type": "diceroll",
+      "action": "roll",
+      "serverAction": "ROLL_DICE",
+      "detail": {
+        "diceCount": 2
+      },
+      "payload": {}
+    },
+    {
+      "game": "变色就点",
+      "type": "reaction",
+      "action": "start",
+      "serverAction": "START_CHALLENGE",
+      "detail": {},
+      "payload": {
+        "game": "reaction"
+      }
+    },
+    {
+      "game": "变色就点",
+      "type": "reaction",
+      "action": "submit",
+      "serverAction": "SUBMIT_REACTION",
+      "detail": {
+        "times": [
+          310,
+          288,
+          302
+        ],
+        "bestMs": 288,
+        "passed": true
+      },
+      "payload": {
+        "roundsMs": [
+          310,
+          288,
+          302
+        ]
+      }
+    },
+    {
+      "game": "弹球",
+      "type": "ballshake",
+      "action": "start",
+      "serverAction": "START_CHALLENGE",
+      "detail": {},
+      "payload": {
+        "game": "ballShake"
+      }
+    },
+    {
+      "game": "弹球",
+      "type": "ballshake",
+      "action": "submit",
+      "serverAction": "SUBMIT_BALL_SHAKE",
+      "detail": {
+        "hits": 3,
+        "passed": false
+      },
+      "payload": {
+        "hits": 3
+      }
+    },
+    {
+      "game": "安静挑战",
+      "type": "quiethold",
+      "action": "start",
+      "serverAction": "START_CHALLENGE",
+      "detail": {},
+      "payload": {
+        "game": "quietHold"
+      }
+    },
+    {
+      "game": "安静挑战",
+      "type": "quiethold",
+      "action": "submit",
+      "serverAction": "SUBMIT_QUIET_HOLD",
+      "detail": {
+        "heldSeconds": 15,
+        "passed": true
+      },
+      "payload": {
+        "heldMs": 15000
+      }
+    },
+    {
+      "game": "喊一嗓子",
+      "type": "shout",
+      "action": "start",
+      "serverAction": "START_CHALLENGE",
+      "detail": {},
+      "payload": {
+        "game": "shout"
+      }
+    },
+    {
+      "game": "喊一嗓子",
+      "type": "shout",
+      "action": "submit",
+      "serverAction": "SUBMIT_SHOUT",
+      "detail": {
+        "heldMs": 5200,
+        "passed": true
+      },
+      "payload": {
+        "heldMs": 5200
+      }
+    },
+    {
+      "game": "倒计时",
+      "type": "countdown",
+      "action": "start",
+      "serverAction": "START_CHALLENGE",
+      "detail": {},
+      "payload": {
+        "game": "countdown"
+      }
+    },
+    {
+      "game": "倒计时",
+      "type": "countdown",
+      "action": "finish",
+      "serverAction": "SUBMIT_COUNTDOWN",
+      "detail": {},
+      "payload": {}
+    },
+    {
+      "game": "精准停表",
+      "type": "stopwatch",
+      "action": "start",
+      "serverAction": "START_CHALLENGE",
+      "detail": {},
+      "payload": {
+        "game": "stopwatch"
+      }
+    },
+    {
+      "game": "精准停表",
+      "type": "stopwatch",
+      "action": "submit",
+      "serverAction": "SUBMIT_STOPWATCH",
+      "detail": {
+        "elapsedMs": 9880,
+        "deviationMs": 120,
+        "hit": true
+      },
+      "payload": {
+        "stoppedMs": 9880
+      }
+    },
+    {
+      "game": "打字问答",
+      "type": "qa",
+      "action": "submit",
+      "serverAction": "SUBMIT_QA",
+      "detail": {
+        "mode": "type",
+        "input": "1908"
+      },
+      "payload": {
+        "input": "1908"
+      },
+      "scenario": "qa:type"
+    },
+    {
+      "game": "选项问答",
+      "type": "qa",
+      "action": "submit",
+      "serverAction": "SUBMIT_QA",
+      "detail": {
+        "mode": "pick",
+        "index": 0,
+        "optionId": "a"
+      },
+      "payload": {
+        "optionId": "a"
+      },
+      "scenario": "qa:pick"
+    },
+    {
+      "game": "扫码参与",
+      "type": "scan",
+      "action": "scanned",
+      "serverAction": "SUBMIT_SCAN",
+      "detail": {
+        "code": "CY-NODE-29"
+      },
+      "payload": {
+        "code": "CY-NODE-29"
+      }
+    }
+  ]
+}

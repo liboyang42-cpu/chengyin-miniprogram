@@ -1,0 +1,143 @@
+@import '/style/merchant-light.wxss';
+
+/* 面板从 hero 下方落下,盖到屏幕底 */
+/* 面板下方压暗:面板不铺到屏幕底,露出来的页面要压暗 + 虚化。
+   ⚠️ 安卓部分机型不支持 backdrop-filter,所以底色本身就给足不透明度。 */
+.dw-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 199;
+  background: rgba(0, 0, 0, 0.45);  /* ds-ok: 遮罩不透明度按稿 */
+  backdrop-filter: blur(10rpx);     /* ds-ok: 背景虚化按稿 */
+}
+.dw {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 260rpx;   /* ds-ok: 露出一条虚化的 hero,按稿 */
+  bottom: 96rpx; /* ds-ok: 底下留一条,让遮罩透出来 */
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--cy-radius-lg) var(--cy-radius-lg) 0 0;
+  background: var(--cy-bg-page);
+  overflow: visible;
+  box-shadow: 0 -8rpx 40rpx rgba(0, 0, 0, 0.18);  /* ds-ok: 面板浮起,按稿 */
+}
+
+.dw--customer {
+  top: 614rpx; /* ds-ok: 393px 画布按 rpx 换算后对应 Figma y=322 */
+  bottom: 0;
+  max-height: none;
+  border-radius: 48rpx 48rpx 0 0; /* ds-ok: Figma 圆角 24px */
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.dw--customer .dw-head {
+  padding: 96rpx 40rpx 0; /* ds-ok: 标题 x=20, y=374 */
+}
+
+.dw--customer .dw-title {
+  font-size: 46rpx; /* ds-ok: Figma 标题 23px */
+  line-height: 54rpx;
+}
+
+.dw--customer .dw-close {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  /* 圆底退役后热区盒不变:负 margin 把 44px 盒位校正回 Figma 稿面位置。 */
+  margin: -17rpx -27rpx;
+}
+
+.dw--customer .dw-scroll {
+  flex: 1;
+  padding: 10rpx 40rpx 0; /* ds-ok: Figma 内容 x=20 */
+}
+
+.dw-head {
+  flex: none;
+  display: flex;
+  /* 有副标题时标题块变两行,叉号要跟标题那一行对齐,不能跟着整块居中 */
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-3);
+}
+.dw-head-text { flex: 1; min-width: 0; }
+/* 稿 468:*:标题下一行灰小字 */
+.dw-sub {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.dw-title {
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+/* CU-C-126 一并删掉 .dw-head--action / .dw-title--center / .dw-act / .dw-act--done:
+   action 头档没有宿主在用,留着就是「右上角那颗写着完成、点了却只关面板」的复活入口。 */
+/* 右上角 ✕ 口径(2026-09-19 收编):纯字形无圆底,与 cy-sheet / cy-scene-sheet 同档 ——
+   原「灰圆底嵌小叉」的稿面作废。热区仍是 --cy-btn-h(44px ≥88rpx)方框:
+   方框是热区,字形是视觉,两件事。 */
+.dw-close {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-secondary);
+}
+
+.dw-scroll {
+  flex: 1;
+  min-height: 0;
+  /* 头部与内容之间要有呼吸,否则进度条顶到标题下沿被压掉半行 */
+  padding: var(--cy-space-2) var(--cy-page-x) 0;
+  box-sizing: border-box;
+}
+.dw-scroll-pad { height: var(--cy-space-4); }
+
+/* 黑按钮固定在面板底部,不随内容滚 */
+.dw-cta {
+  position: relative;
+  flex: none;
+  display: flex;
+  gap: var(--cy-space-2);
+  padding: var(--cy-space-3) var(--cy-page-x) var(--cy-space-4);
+}
+/* 非客户抽屉沿用原稿的黑色堆叠通栏，避免本次客户改版波及其它抽屉。 */
+.dw-stack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -48rpx;   /* ds-ok: 露出的高度按稿量得 */
+  height: 48rpx;
+  background: #000;  /* ds-ok: 纯黑,按稿 */
+}
+.dw-btn {
+  position: relative;
+  flex: 1;
+  height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-md);
+  background: #000;  /* ds-ok: 抽屉主动作是纯黑,按稿 */
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-btn-solid-fg);
+}
+.dw-btn--ghost {
+  background: var(--cy-bg-card);
+  color: var(--cy-text-title);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "usingComponents": {
+    "route-map": "/pages/square/components/route-map/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-skeleton": "/components/cy/skeleton/index"
+  }
+}

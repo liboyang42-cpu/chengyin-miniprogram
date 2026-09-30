@@ -1,0 +1,74 @@
+<wxs src="../../../../utils/wxs/money.wxs" module="money" />
+<view class="er-page theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-nav-bar />
+<view style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+<cy-page-title title="账户收益" safe-top="{{false}}" />
+
+<view class="er-shell">
+  <cy-scene-asset-earnings id="assetEarnings" bind:open="openScene" />
+</view>
+
+<view class="er-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'asset-income-detail'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeScene" bind:back="closeScene">
+    <cy-scene-asset-income-detail theme="{{sceneCurrent.theme}}" bind:close="closeScene" />
+  </cy-scene-sheet>
+</view>
+<view class="er-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'member-withdraw-history'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeScene" bind:back="closeScene">
+    <cy-scene-member-withdraw-history theme="{{sceneCurrent.theme}}" />
+  </cy-scene-sheet>
+</view>
+<view class="er-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'member-invite-history'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeScene" bind:back="closeScene">
+    <cy-scene-member-invite-history theme="{{sceneCurrent.theme}}" />
+  </cy-scene-sheet>
+</view>
+<view class="er-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'merchant-profit'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeScene" bind:back="closeScene">
+    <cy-scene-merchant-profit theme="{{sceneCurrent.theme}}" bind:close="closeScene" />
+  </cy-scene-sheet>
+</view>
+
+<!-- D19：提现资金写操作沿用 #570 的完整校验、防重与埋点，不降级成通用表单。 -->
+<cy-sheet
+  show="{{txSheet.show}}"
+  title="提现"
+  footer="{{true}}"
+  dirty="{{!!(txWithdrawalAmount || txRealname || txBankName || txBankAccount || txMobilephone)}}"
+  bind:requestclose="onTxRequestClose"
+  bind:close="onTxClose"
+>
+  <view class="tx-body">
+    <view class="txyr">
+      <view class="txyr_left" wx:if="{{txBalanceErr}}" aria-role="alert">可提现余额<text class="txyr_unknown">暂时取不到</text></view>
+      <cy-skeleton wx:elif="{{!txBalanceLoaded}}" type="amount" count="{{1}}" />
+      <view class="txyr_left" wx:else>可提现余额<text>{{money.amount(txBalanceText)}}</text></view>
+      <view class="txyr_right" wx:if="{{txBalanceErr}}" bindtap="loadTxBalance" aria-role="button" aria-label="重新加载可提现余额" hover-class="cy-pressed" hover-stay-time="80">重试</view>
+      <view class="txyr_right" wx:elif="{{txBalanceLoaded}}" bindtap="onTxAllWithdrawal" aria-role="button" aria-label="把可提现余额全部填入提现金额" hover-class="cy-pressed" hover-stay-time="80">全部提现</view>
+    </view>
+    <view class="txcon">
+      <view class="txcon_ly txcon_ly--amount {{txWithdrawalAmount ? 'txcon_ly--filled' : ''}}">
+        <view class="txcon_ly_name">提现金额</view>
+        <view class="txcon_ly_inp txcon_ly_inp--amount {{txBalanceErr || !txBalanceLoaded ? 'txcon_ly_inp--disabled' : ''}}">
+          <text class="txcon_ly_currency">¥</text>
+          <input placeholder="{{txBalanceErr || !txBalanceLoaded ? '余额加载后可输入' : '0.00'}}" placeholder-class="etx-placeholder" value="{{txWithdrawalAmount}}" bindinput="onTxAmountInput" type="digit" disabled="{{txBalanceErr || !txBalanceLoaded}}" aria-disabled="{{txBalanceErr || !txBalanceLoaded}}" aria-label="{{txBalanceErr || !txBalanceLoaded ? '可提现余额未知，暂不能填写提现金额' : '提现金额'}}" />
+        </view>
+      </view>
+      <view class="txcon_ly {{txRealname ? 'txcon_ly--filled' : ''}}"><view class="txcon_ly_name">姓名</view><view class="txcon_ly_inp"><input placeholder="输入持卡人姓名" placeholder-class="etx-placeholder" value="{{txRealname}}" bindinput="onTxRealnameInput" /></view></view>
+      <view class="txcon_ly {{txBankName ? 'txcon_ly--filled' : ''}}"><view class="txcon_ly_name">银行名称</view><view class="txcon_ly_inp"><input placeholder="输入银行名称" placeholder-class="etx-placeholder" value="{{txBankName}}" bindinput="onTxBankNameInput" /></view></view>
+      <view class="txcon_ly {{txBankAccount ? 'txcon_ly--filled' : ''}}"><view class="txcon_ly_name">银行账号</view><view class="txcon_ly_inp"><input placeholder="输入银行账号" placeholder-class="etx-placeholder" value="{{txBankAccount}}" bindinput="onTxBankAccountInput" type="number" /></view></view>
+      <view class="txcon_ly {{txMobilephone ? 'txcon_ly--filled' : ''}}"><view class="txcon_ly_name">手机号码</view><view class="txcon_ly_inp"><input placeholder="输入银行绑定的手机号码" placeholder-class="etx-placeholder" value="{{txMobilephone}}" bindinput="onTxMobilephoneInput" type="number" /></view></view>
+    </view>
+    <!-- 个保法 §28/§29:银行账号是敏感个人信息,必须单独同意。默认不勾、独立控件、不打包。 -->
+    <cy-consent-check class="etx-consent" checked="{{txConsented}}" text="同意向城瘾提供持卡人姓名、银行账号与预留手机号，仅用于本次提现打款" bind:change="onTxConsentChange" />
+    <view class="txtpis"><view class="txtpis_tit">提现说明</view><view class="txtpis_txt">提现到银行卡通常需要 1-3 个工作日到账。</view></view>
+    <view class="tx-submit-error">
+      <cy-inline-error wx:if="{{txSubmitError}}" kind="{{txSubmitErrorKind}}" title="提现申请未提交" sub="{{txSubmitError}}" action="重试" bind:action="onTxSave" />
+    </view>
+  </view>
+  <view slot="footer"><cy-btn variant="primary" loading="{{txSubmitting}}" disabled="{{!txCanSubmit || txSubmitting}}" aria-disabled="{{!txCanSubmit || txSubmitting}}" bindtap="onTxSave" bind:disabledtap="onTxDisabledTap">{{txSubmitting ? '提交中…' : '确认提现'}}</cy-btn></view>
+</cy-sheet>
+</view>

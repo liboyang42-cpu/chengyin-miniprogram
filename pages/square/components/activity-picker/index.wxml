@@ -1,0 +1,29 @@
+<view class="ap-mask" wx:if="{{show}}" catchtap="onClose" catchtouchmove="noop" hover-class="cy-pressed" hover-stay-time="80">
+  <view class="ap-sheet" catchtap="noop">
+    <view class="ap-head">
+      <text class="ap-title">选择已完成的活动</text>
+      <view class="ap-close" catchtap="onClose" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">取消</view>
+    </view>
+    <scroll-view scroll-y="true" class="ap-body" enhanced="true" show-scrollbar="{{false}}">
+      <cy-skeleton wx:if="{{loading}}" type="list" count="3" />
+      <cy-error wx:elif="{{errorMsg}}" title="活动列表没能打开" sub="{{errorMsg}}" retry="重试" bind:retry="fetchList" />
+      <cy-empty wx:elif="{{list.length === 0}}" title="还没有已通关的活动" sub="去打卡通关后再来关联吧" />
+      <block wx:else>
+        <view class="ap-item" wx:for="{{list}}" wx:key="activityId" data-index="{{index}}" catchtap="onSelect" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+          <image class="ap-cover" src="{{item.cover}}" mode="aspectFill" lazy-load="true" />
+          <view class="ap-info">
+            <view class="ap-name ep1">{{item.name}}</view>
+            <view class="ap-meta">完成 {{item.doneCount}}/{{item.total}} · 已通关</view>
+          </view>
+          <view class="ap-badge"><cy-icon name="check" size="40" /></view>
+        </view>
+      </block>
+    </scroll-view>
+  </view>
+
+  <!-- 生成静态路线预览图:route-map 需真实渲染才能截图,故置于屏幕但用遮罩盖住 -->
+  <view class="ap-gen" wx:if="{{generating}}" catchtap="noop" catchtouchmove="noop">
+    <route-map id="rmPreview" topic-id="{{previewTopicId}}" height="500rpx" bind:ready="onRouteReady" bind:empty="onRouteEmpty" />
+    <view class="ap-gen-mask">生成路线预览中…</view>
+  </view>
+</view>

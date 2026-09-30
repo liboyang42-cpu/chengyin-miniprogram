@@ -1,0 +1,130 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-walk · 低碳行动 · 计步(逐值照抄原型 playkit.html 的 .g-walk / .lcd 一族)
+ * 参考:Any Distance「目标设定 LCD」。琥珀点阵面板 + 七段数码大字 + 整块实心琥珀 CTA。
+ * ⚠️ 整段是玩法道具色,ds-ok。原型 375px 画布,1px = 2rpx。
+ */
+.wk {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: calc(env(safe-area-inset-top) + 180rpx) 44rpx 200rpx;
+  box-sizing: border-box;
+  background: #0B0B0C;                                   /* ds-ok 原型 .g-walk */
+  color: #F2F2F2;                                        /* ds-ok */
+}
+.wk__h { font-size: var(--cy-type-display); font-weight: 900; }           /* ds-ok 原型 26px */
+
+/* 点阵是真的点:6px 一格的小圆点铺满,再压一层竖向渐变。
+   画成纯色块的话它就只是个深色卡片,读不出「这是一块屏」。 */
+.wk__lcd {
+  margin-top: 36rpx;                                     /* ds-ok 原型 18px */
+  padding: 32rpx 28rpx 28rpx;                            /* ds-ok 原型 16px 14px 14px */
+  border-radius: 28rpx;                                  /* ds-ok 原型 14px */
+  border: 2rpx solid rgba(245, 159, 0, .30);             /* ds-ok */
+  background:
+    radial-gradient(rgba(245, 159, 0, .16) 2rpx, transparent 2rpx) 0 0 / 12rpx 12rpx,  /* ds-ok 步数屏的网点与细线,逐值照原型 */
+    linear-gradient(180deg, #171106, #0E0B04);           /* ds-ok */
+}
+.wk__k { text-align: center; font-size: var(--cy-type-caption); color: #C98A12; }   /* ds-ok 原型 11px */
+.wk__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+.wk__pm {
+  width: 88rpx; height: 88rpx;                           /* ds-ok 原型 44px */
+  display: flex; align-items: center; justify-content: center;
+  color: #F2F2F2;                                        /* ds-ok */
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 300;
+}
+.wk__pm--press { opacity: .6; }
+/* 加减号画出来,不用「−」「＋」这两个字符:字符在不同机型上粗细和居中都不一样,
+   而且读屏器会把它念成「减号」这种没用的词(真正的意思在 aria-label 上)。 */
+.wk__minus, .wk__plus {
+  position: relative;
+  width: 30rpx; height: 4rpx;
+  background: currentColor;
+  border-radius: 2rpx;  /* ds-ok 步数屏的网点与细线,逐值照原型 */
+}
+.wk__plus::after {
+  content: '';
+  position: absolute;
+  left: 13rpx; top: -13rpx;
+  width: 4rpx; height: 30rpx;
+  background: currentColor;
+  border-radius: 2rpx;  /* ds-ok 步数屏的网点与细线,逐值照原型 */
+}
+.wk__n {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-play-display-xl);
+  line-height: 1;
+  letter-spacing: .04em;
+  color: #F5A200;                                        /* ds-ok 琥珀 */
+}
+.wk__hint { margin-top: 16rpx; text-align: center; font-size: var(--cy-type-caption); color: #8A6413; }  /* ds-ok */
+.wk__bar {
+  margin-top: 24rpx;
+  height: 10rpx;                                         /* ds-ok 原型 5px */
+  border-radius: 999rpx;  /* ds-ok 步数屏的网点与细线,逐值照原型 */
+  overflow: hidden;
+  background: rgba(245, 159, 0, .16);                    /* ds-ok */
+}
+.wk__bar-i {
+  width: 100%;
+  height: 100%;
+  border-radius: 999rpx;  /* ds-ok 步数屏的网点与细线,逐值照原型 */
+  background: #F5A200;                                   /* ds-ok */
+  /* 用 scaleX 不用 width:改 width 每帧触发 layout+paint,而这条在同步步数时会动 */
+  transform-origin: 0 50%;
+  transition: transform var(--cy-dur) var(--cy-ease);
+}
+.wk__sub { margin-top: 14rpx; text-align: center; font-size: var(--cy-type-caption); color: #8A6413; }   /* ds-ok */
+
+/* 三个数各占一张深色小卡:原型 .stats div 有底、有描边。
+   裸排在琥珀面板下面的话,它们看着像面板的一部分,而它们说的是另一回事。 */
+.wk__stats { display: flex; gap: 20rpx; margin-top: 32rpx; }   /* ds-ok 原型 10px / 16px */
+.wk__stat {
+  flex: 1;
+  padding: 24rpx;                                        /* ds-ok 原型 12px */
+  border-radius: 24rpx;                                  /* ds-ok 原型 12px */
+  background: #141416;                                   /* ds-ok */
+  border: 2rpx solid #202024;                            /* ds-ok */
+}
+.wk__dt { font-size: var(--cy-type-caption); color: #7C7C82; }            /* ds-ok 原型 11px #7C7C82 */
+.wk__dd {
+  margin-top: 12rpx;                                     /* ds-ok 原型 6px */
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: #F2F2F2;                                        /* ds-ok */
+}
+
+.wk__foot {
+  margin-top: 32rpx;
+  font-size: var(--cy-type-label);
+  line-height: 1.7;
+  color: #8A6413;                                        /* ds-ok */
+}
+
+/* 整块实心琥珀 CTA —— 这一屏的主色就是它 */
+.wk__cta {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: calc(env(safe-area-inset-bottom) + 60rpx);
+  z-index: 5;
+  height: 104rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 28rpx;                                  /* ds-ok 原型 .btn-amber 14px */
+  background: #F5A200;                                   /* ds-ok */
+  color: #141005;                                        /* ds-ok 原型 #141005 */
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+}
+.wk__cta--press { opacity: .88; }
+.wk__cta--busy { opacity: .55; }

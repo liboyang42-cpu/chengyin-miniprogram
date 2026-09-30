@@ -1,0 +1,83 @@
+// 游玩页地图 HUD 槽位契约。
+//
+// 背景:play 页在同一张地图上叠了约 20 个各自独立 wx:if 的绝对定位浮层,彼此没有互斥规则,
+// 于是 nextcard / navbar / banner / freeRemain 争同一个底部卡位、eggBubble 与 navBubble
+// 争同一段浮泡高度、couponToast 盖住 leadbar。原来的避让全靠手工调 top(见 .leadbar-retry--after-lead),
+// 加一个浮层就要重算一遍所有邻居。
+//
+// 规则:同一个槽同一时刻只允许一个浮层。数组顺序即优先级,越靠前越优先。
+// 加新浮层 = 往对应数组里插一行,不要再去 wxss 里手工挪 top。
+// 需要「同时都看得见」的(例如漫游页的错误条 + 商家卡)不属于槽位,应该走纵向 stack 容器。
+
+var TOP_BANNER = ['couponToast', 'leadRetry', 'leadbar'];
+// freeRemain 不在此列:它自带 .mask 是模态层,不与 HUD 争位。
+var BOTTOM_CARD = ['banner', 'navbar', 'nextcard'];
+var FLOAT_BUBBLE = ['navBubble'];
+
+function pick(order, avail) {
+  for (var i = 0; i < order.length; i++) {
+    if (avail[order[i]]) return order[i];
+  }
+  return '';
+}
+
+// screen: 非空表示正处在全屏子屏(任务页/手记等),此时地图 HUD 一律不出
+function topBanner(couponToast, screen, leadLoadError, lead) {
+  return pick(TOP_BANNER, {
+    couponToast: !!couponToast,
+    leadRetry: !screen && !!leadLoadError,
+    leadbar: !screen && !!lead && !!lead.exists && lead.status == 2
+  });
+}
+
+function bottomCard(screen, allDone, nav, nextNode, startFlight) {
+  return pick(BOTTOM_CARD, {
+    banner: !screen && !!allDone,
+    navbar: !!nav && !!nav.active,
+    nextcard: !screen && !!nextNode && !allDone && !(!!startFlight && startFlight.show)
+  });
+}
+
+// 2026-09-07 途中彩蛋整条下线后,这个互斥栈只剩导航气泡一档。
+// 保留 pick() 这层不改成裸判断:再加第二档时才不会又退回「每张卡手抄一遍其它都没开」。
+function floatBubble(screen, navBubble) {
+  return pick(FLOAT_BUBBLE, {
+    navBubble: !!navBubble && !!navBubble.show
+  });
+}
+
+// 漫游页顶部提示位(原 §11.1「prompt-slot 互斥栈」)。
+// 原来每张卡的 wx:if 里都手抄一遍「其它几张都没开」,6 张卡 = 6 条 N² 否定链,
+// 加第 7 张要改 6 行且漏一处就重叠。顺序在这里写一次。
+// 2026-09-11 补一档(原型 f-multi):multiView「谁点亮了哪块」是用户从抽屉主动点开的,
+//   排在被动浮出的几张之前。(同日补的 hangoutNear 一档随搭子局下架整卡退场,2026-09-15 删。)
+//   ⚠️ 新参数只能往签名末尾加:play 页仍按 8 个参数调,少传的读到 undefined = 这一档不在。
+var PROMPT_SLOT = ['visit', 'eventOverlay', 'multiView', 'nearbyBanner', 'paceCard', 'footprintHint', 'roamPrompt'];
+
+// medal / discoverReward 是全屏遮罩,不进本槽;但它们在场时最低两档不出(沿用既有行为)。
+function promptSlot(visit, eventOverlay, nearbyBanner, paceCard, footprintHint, roamPrompt, medal, discoverReward, multiView) {
+  var modal = (!!medal && medal.show) || (!!discoverReward && discoverReward.show);
+  return pick(PROMPT_SLOT, {
+    visit: !!visit && !!visit.active && !!visit.poi && !!visit.poi.name,
+    eventOverlay: !!eventOverlay && !!eventOverlay.show && !!eventOverlay.id,
+    multiView: !!multiView,
+    nearbyBanner: !!nearbyBanner && !!nearbyBanner.show,
+    paceCard: !!paceCard && !!paceCard.show,
+    footprintHint: !modal && !!footprintHint && !!footprintHint.show,
+    roamPrompt: !modal && !!roamPrompt && !!roamPrompt.show
+  });
+}
+
+module.exports = {
+  // 给契约自检用:wxml 里写死的槽位名必须都在这些数组里,否则拼错 = 该浮层永远不出且零报错
+  orders: {
+    topBanner: TOP_BANNER,
+    bottomCard: BOTTOM_CARD,
+    floatBubble: FLOAT_BUBBLE,
+    promptSlot: PROMPT_SLOT
+  },
+  topBanner: topBanner,
+  bottomCard: bottomCard,
+  floatBubble: floatBubble,
+  promptSlot: promptSlot
+};

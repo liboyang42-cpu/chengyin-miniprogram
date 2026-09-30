@@ -1,0 +1,17 @@
+<view class="task-body">
+  <view class="task-search"><input class="task-search__input" value="{{keyword}}" placeholder="搜索活动名称或城市" bindinput="onKeyword" /></view>
+  <view class="task-tabs"><view wx:for="{{tabs}}" wx:key="*this" class="task-tab {{tab === index ? 'task-tab--on' : ''}}" hover-class="task-tab--press" hover-stay-time="60" bindtap="selectTab" data-tab="{{index}}">{{item}}</view></view>
+  <view class="task-summary">{{summary}}</view>
+  <cy-skeleton wx:if="{{state === 'loading' && !events.length}}" type="card" count="3" />
+  <cy-error class="cy-fade-in" wx:elif="{{state === 'error' && !events.length}}" fill title="活动列表没能打开" sub="网络响应异常，稍后可以重新读取。" retry="重试" bind:retry="retry" />
+  <!-- rebase 并集时 master 的旧「列表/空态」两行和本分支的完整状态分支叠在了一起,
+       旧的两行还打断了 wx:if/elif 链。保留下面这套(含 stale/refreshing 与 _participantsText
+       等已归一字段),旧块删除 —— 真值门禁正是靠「不许直接读 item.participants」抓到它的。 -->
+  <cy-error class="cy-fade-in" wx:elif="{{state === 'stale' && !events.length}}" fill title="活动列表暂时无法更新" sub="{{staleError}}" retry="重试" bind:retry="retry" />
+  <block wx:else>
+    <view wx:if="{{state === 'stale'}}" class="task-stale" aria-role="alert"><text>{{staleError}}</text><view class="task-stale__action" bindtap="retry" aria-role="button" aria-label="重新读取活动列表" hover-class="cy-pressed" hover-stay-time="80">重试</view></view>
+    <view wx:elif="{{refreshing}}" class="task-refreshing" aria-role="status">正在更新活动列表…</view>
+    <view wx:if="{{events.length}}" class="task-list cy-fade-in"><view wx:for="{{events}}" wx:key="id" class="task-card" bindtap="openDetail" data-id="{{item.id}}" aria-role="button" aria-label="打开{{item.title}}" hover-class="cy-pressed" hover-stay-time="80"><view class="task-card__cover" style="{{item._coverStyle}}"><view wx:if="{{!item._coverStyle}}" class="task-cover-error" aria-role="img" aria-label="{{item.title || '活动'}}暂无封面"><image class="task-cover-error__icon" src="/images/no_data.svg" mode="aspectFit" /><text class="task-cover-error__text">封面暂不可用</text></view></view><view class="task-card__body"><view class="task-card__title-row"><text class="task-card__title">{{item.title || '活动名称待补充'}}</text><cy-badge type="status" variant="{{item._statusVariant}}" icon="{{item._live ? 'play' : ''}}" label="{{item._statusText}}" /></view><text wx:if="{{item.subtitle}}" class="task-card__sub">{{item.subtitle}}</text><text class="task-card__meta">{{item._timeText}}{{item.city ? ' · ' + item.city : ''}}{{' · ' + item._participantsText}}</text><view wx:if="{{item._pct >= 0}}" class="task-card__progress"><view class="task-card__bar"><view class="task-card__bar-fill" style="width:{{item._pct || 0}}%"></view></view><text class="task-card__progress-text">全城已点亮 {{item._pct || 0}}%</text></view></view></view></view>
+    <cy-empty class="cy-fade-in" wx:else fill size="lg" title="{{emptyTitle}}" sub="{{emptySub}}" />
+  </block>
+</view>

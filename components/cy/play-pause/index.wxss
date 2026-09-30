@@ -1,0 +1,63 @@
+:host { display: block; }
+
+.play-pause {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cy-z-modal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: calc(96rpx + env(safe-area-inset-top)) 56rpx calc(72rpx + env(safe-area-inset-bottom));
+  color: var(--cy-color-text-primary);
+  background: var(--cy-color-play-surface-solid);
+}
+
+.play-pause__eyebrow {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+  letter-spacing: 6rpx;
+}
+
+.play-pause__title {
+  margin-top: var(--cy-legacy-22);
+  font-size: var(--cy-type-display);
+  line-height: 1;
+  font-weight: 750;
+}
+
+.play-pause__metrics {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1rpx 1fr;
+  align-items: center;
+  gap: var(--cy-legacy-36);
+  margin-top: 120rpx;
+}
+
+.play-pause__metric { min-width: 0; }
+.play-pause__metric--right { text-align: right; }
+.play-pause__label { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.play-pause__reading { display: flex; align-items: baseline; margin-top: var(--cy-legacy-14); }
+.play-pause__metric--right .play-pause__reading { justify-content: flex-end; }
+.play-pause__value { font-size: var(--cy-type-data-xl); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; }
+.play-pause__unit { margin-left: 8rpx; font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.play-pause__divider { width: 1rpx; height: 92rpx; background: var(--cy-color-play-line); }
+
+.play-pause__resume {
+  width: 136rpx;
+  height: 136rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 136rpx;
+  color: var(--cy-color-action-primary-fg);
+  background: var(--cy-color-action-primary-bg);
+  border-radius: var(--cy-radius-pill);
+  transition: transform var(--cy-motion-press) var(--cy-ease-out);
+}
+
+.play-pause__resume--pressed { transform: scale(.96); }
+.play-pause--reduced-motion .play-pause__resume { transition: none; }
+.play-pause__hint { margin-top: var(--cy-space-2-5); font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }

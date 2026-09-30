@@ -1,0 +1,11 @@
+<!-- 整屏就是判定区，不给按钮:手指本来就悬在屏幕上方,
+     再让人瞄准一个按钮会把反应时间测成瞄准时间。 -->
+<cy-play-stage id="cy-play-stage" show="{{show}}" back-label="退出" bind:back="onClose" bind:verdict="onVerdict">
+  <view class="rx rx--{{phase}}" bindtap="onTap"
+        hover-class="rx--press" hover-stay-time="60"
+        aria-role="button" aria-label="{{phase === 'wait' ? '等待变色，变色后立刻点' : '现在点'}}">
+    <view class="rx__k g-kicker">{{kicker}}</view>
+    <view class="rx__big g-figure">{{big}}</view>
+    <view class="rx__sub g-sub" wx:if="{{sub}}">{{sub}}</view>
+  </view>
+</cy-play-stage>

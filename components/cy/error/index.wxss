@@ -1,0 +1,89 @@
+/* cy-error · 统一错误态(同构 cy-empty,但 CTA 是描边「重试」而非实心)。走 token。 */
+:host { display: block; }
+
+.cy-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cy-space-5) var(--cy-space-4);
+  text-align: center;
+}
+
+/* fill:整屏空态/错误态用 —— 在「标题(或上方内容)下方到屏幕底部」这段剩余空间里居中
+ * (2026-07-31 用户明确的居中定义,不是整屏居中、也不是紧贴上方内容)。
+ *
+ * ⚠️ 必须配合页面侧:父容器要 display:flex; flex-direction:column,且有确定高度
+ * (min-height:100vh 之类)。不配的话本档退回自然高度(= 改造前行为),不会更糟。
+ *
+ * ⚠️ min-height 必须是 0,不能给 60vh 这类"兜底值" —— 实测(批5 earnings 页)当页面上方
+ * 已经有内容时,60vh 会把容器撑到超出可视区,把内容整个推到贴近屏幕底部,比不居中更难看。
+ * flex item 的默认 min-height:auto 同样会阻止收缩,所以这里显式写 0 让 flex:1 完全主导。 */
+.cy-error--fill {
+  flex: 1;
+  min-height: 0;
+}
+
+/* height 必须是 auto,理由同 cy-empty:wxml 上是 mode="widthFix",写死高度会把它顶掉,
+   非 1:1 的图会被拉变形。 */
+.cy-error-ic {
+  width: 160rpx;
+  height: auto;
+  opacity: 0.9;
+  margin-bottom: var(--cy-space-3);
+}
+
+/* aaa 标准(2026-07-31):插画/文字放大,opt-in,同构 cy-empty--lg */
+.cy-error--lg .cy-error-ic {
+  width: 240rpx;
+}
+.cy-error--lg .cy-error-title {
+  font-size: var(--cy-type-section-title);
+}
+.cy-error--lg .cy-error-sub {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-body);
+}
+
+.cy-error-title {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  font-weight: 600;
+}
+
+.cy-error-sub {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+.cy-error-retry {
+  margin-top: var(--cy-space-3);
+  padding: 0 var(--cy-space-5);
+  height: var(--cy-btn-h);
+  line-height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-pill);
+  border: none;
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+}
+.cy-error-retry--press { opacity: 0.85; transform: scale(0.98); }
+
+.cy-error-secondary {
+  margin-top: var(--cy-space-2);
+  min-width: 176rpx;
+  height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-4);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+}
+.cy-error-secondary--press { background: var(--cy-color-state-pressed); opacity: .88; }

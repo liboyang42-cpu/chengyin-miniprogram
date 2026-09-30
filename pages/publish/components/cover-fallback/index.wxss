@@ -1,0 +1,45 @@
+/* cy-cover-fallback · 封面资产合同(ADA,2026-07-29)
+ * host 不设尺寸:封面比例由外层卡决定(列表卡 16:9、详情 hero 全宽等各不相同),
+ * 组件只保证「铺满给我的框」+「没图时也是一张有信息量的面」。 */
+:host {
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.cy-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.cy-cover__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 兜底面:与页面已有的封面兜底同一配方(brand-soft → surface-subtle 斜向渐变),
+ * 不另造第二套兜底底色。 */
+.cy-cover__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--cy-space-3);
+  box-sizing: border-box;
+  background: linear-gradient(135deg, var(--cy-color-brand-soft), var(--cy-color-bg-surface-subtle));
+}
+
+.cy-cover__text {
+  font-size: var(--cy-comp-cover-fallback-font);
+  font-weight: 700;
+  line-height: var(--cy-leading-tight);
+  color: var(--cy-color-text-primary);
+  text-align: center;
+  /* 长主题名截到两行,不撑破卡片 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}

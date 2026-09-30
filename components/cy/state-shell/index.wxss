@@ -1,0 +1,34 @@
+:host { display: block; }
+
+.state-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  color: var(--cy-color-text-primary);
+}
+
+.state-shell--fill {
+  flex: 1;
+  min-height: 0;
+}
+
+.state-shell__secondary {
+  align-self: center;
+  min-width: 176rpx;
+  height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-4);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  border-radius: var(--cy-radius-pill);
+}
+
+.state-shell__secondary--pressed {
+  background: var(--cy-color-state-pressed);
+  opacity: .88;
+}

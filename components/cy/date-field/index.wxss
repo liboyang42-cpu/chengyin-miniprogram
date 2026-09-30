@@ -1,0 +1,24 @@
+@import '../../../style/picker-wheel.wxss';
+
+:host { display: block; }
+
+.cdf__trigger { display: block; }
+.cdf__trigger--disabled { opacity: 0.5; }
+
+/* ⚠️ 高度必须是确定值:cy-date-sheet 的 .ds-body 是 height:50vh,
+   这里再给 100% 才有得撑;写 auto 会塌成 0,滚轮直接消失。 */
+.cdf__stage { height: 100%; }
+.cdf__wheel { width: 100%; height: 100%; }
+
+.cdf__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+}
+
+.cdf__trigger--press { opacity: 0.7; }
+
+.cdf-calendar{padding:8px 12px;font-size:var(--cy-type-label);}.cdf-month{display:flex;align-items:center;justify-content:space-between;height:44px;font-size:var(--cy-type-body);font-weight:600;}.cdf-month-button{height:44px;width:44px;display:flex;align-items:center;justify-content:center;font-size:24px;}.cdf-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}.cdf-weekday{text-align:center;height:22px;color:var(--cy-color-text-tertiary);}.cdf-day{height:44px;display:flex;align-items:center;justify-content:center;border-radius:50%;}.cdf-day--selected{background:var(--cy-color-action-primary-bg);color:var(--cy-color-action-primary-fg);}.cdf-day--disabled{color:var(--cy-color-text-disabled);}.cdf-clear{min-height:44px;display:flex;align-items:center;justify-content:center;color:var(--cy-color-text-tertiary);} /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */

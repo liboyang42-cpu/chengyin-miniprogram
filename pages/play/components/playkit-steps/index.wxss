@@ -1,0 +1,35 @@
+@import "/pages/play/style/playkit.wxss";
+
+/* cy-playkit-steps · 计步挑战(Figma v5.1,node 48:270) */
+.st { padding-top: var(--cy-space-2); }
+.st__ring { --rm-accent: var(--cy-color-playkit-carbon);
+  display: flex;
+  justify-content: center;
+  margin-top: var(--cy-space-3);
+}
+.st__num { font-size: 68rpx; } /* ds-ok 环心读数,稿 48:277 的 34px */
+.st__goal {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-secondary);
+}
+.st__eco {
+  margin-top: var(--cy-space-4);
+  text-align: center;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-secondary);
+}
+.st__todo {
+  margin-top: var(--cy-space-2);
+  text-align: center;
+  font-size: var(--cy-type-body);
+  font-weight: 900;
+  letter-spacing: 1rpx;
+  color: var(--cy-color-text-primary);
+}
+
+/* 草木绿:环与 CTA 走玩法主题色 */
+.st__cta {
+  --cy-comp-btn-primary-bg: var(--cy-color-playkit-carbon);
+  --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+}

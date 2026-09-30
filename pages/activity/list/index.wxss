@@ -1,0 +1,66 @@
+/* L2 Browse · 活动列表(迁移矩阵 §5.4):Nav → Search → Tabs → Summary(吸顶)→ Event Card 列表 + 三态 */
+/* flex 列 + 确定高度:空态 cy-empty 的 fill(flex:1)才有剩余空间可吃,否则只能贴在吸顶筛选头下方 */
+.oe-page{min-height:100vh;display:flex;flex-direction:column;background:var(--cy-color-bg-page);padding-bottom:env(safe-area-inset-bottom);color:var(--cy-color-text-primary);font-family:-apple-system,"PingFang SC",sans-serif;box-sizing:border-box;}
+/* cy-empty/cy-error 是 isolated 组件,:host 自带 display:block,页面侧要 !important 才压得过去 */
+.fill-slot{display:flex !important;flex-direction:column !important;flex:1 !important;min-height:0 !important;}
+/* 导航条已不放 action(见 wxml 注释),原 .oe-nav-actions/.oe-nav-mine 随之删除 ——
+   「我发布的」下沉为内容区的 .oe-manage-link。 */
+
+/* 筛选头吸顶(top 由 wxml 内联 = 状态栏+导航高):等价旧版滚动区外的常驻 search/tabs */
+.oe-screen{position:sticky;z-index:10;background:var(--cy-color-bg-page);padding:var(--cy-space-2) var(--cy-page-x) 0;}
+.oe-summary-row{display:flex;align-items:center;justify-content:space-between;gap:var(--cy-space-2);}
+/* 右侧次级管理入口成组:「我发布的」与「邀约」同一视觉语汇,不再各自为政。
+   gap 收到 space-1:管理入口自带 space-2 横向内距,两者相加 ≈ 原来的 space-3 视觉间距。 */
+.oe-row-links{flex:0 0 auto;display:flex;align-items:center;gap:var(--cy-space-1);}
+.oe-inbox-link{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:var(--cy-space-1);
+  box-sizing:border-box;min-height:88rpx;min-width:88rpx;padding:0 var(--cy-space-2);
+  font-size:var(--cy-type-caption);color:var(--cy-color-text-primary);}
+/* 命中区**横纵都 ≥88rpx(44pt)**:纵向靠 min-height,横向靠 min-width + 左右内距。
+   ⚠️ 不能靠"四个字正好够宽"来满足横向命中区 —— 那是拿字号糊弄:文案一改(或换成
+   两字/一个 ›)命中区就悄悄缩水,而且没有任何断言会发现。显式写死,契约横纵各守一条。
+   视觉仍是紧凑的一行文本链接:内距不改变字号与颜色,只把可点区域撑到手指尺度。 */
+.oe-manage-link{flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  gap:var(--cy-space-1);box-sizing:border-box;min-height:88rpx;min-width:88rpx;padding:0 var(--cy-space-2);
+  font-size:var(--cy-type-caption);color:var(--cy-color-text-primary);}
+.oe-tabs{padding:var(--cy-space-3) 0 var(--cy-space-2);}
+/* tab 走 cy-tabs 组件 variant=chip(ccc 标准落在既有组件里,不新造样式) */
+.oe-summary{font-size:var(--cy-type-caption);color:var(--cy-color-text-tertiary);padding:0 0 var(--cy-space-2);}
+.oe-sync{display:block;padding:var(--cy-space-2) var(--cy-page-x) 0;color:var(--cy-color-text-secondary);font-size:var(--cy-type-caption);}
+
+.oe-list{padding:var(--cy-space-2) var(--cy-page-x) 0;}
+/* Event Card(DS §5.2):卡壳复用全局 .cy-card,此处只留满幅封面所需特化 */
+.oe-card{padding:0;overflow:hidden;margin-bottom:var(--cy-space-3);}
+/* 4:3 封面:padding-top 比例写法,与容器宽度解耦(为日后 cy-event-card 抽取留路) */
+.oe-cover{padding-top:75%;background:var(--cy-color-bg-surface-subtle);background-size:cover;background-position:center;position:relative;}
+/* 无封面兜底:token 与模板页 .cover-error 逐个对齐(--cy-space-1 / --cy-text-secondary /
+   --cy-font-caption / --cy-leading-normal),别只是"看起来像"。
+   两点有意差异,不是疏漏:
+     ① 不设 background —— 模板页那个替换的是整块 <image>,需要自带底色;
+        这里是盖在已有底色的 .oe-cover 上,再铺一层会把卡片底色顶掉。
+     ② 父级用 padding-top 撑 75% 比例,所以兜底层必须 absolute 铺满,靠自身高度会塌成 0。 */
+.oe-cover .cover-error{position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--cy-space-1);color:var(--cy-text-secondary);}
+.oe-cover .cover-error-icon{width:96rpx;height:72rpx;flex:0 0 auto;}
+.oe-cover .cover-error-text{font-size:var(--cy-font-caption);line-height:var(--cy-leading-normal);}
+.oe-body{padding:var(--cy-space-3);}
+.oe-title-row{display:flex;align-items:center;justify-content:space-between;gap:var(--cy-space-2);}
+.oe-title{font-size:var(--cy-type-card-title);font-weight:700;flex:1;min-width:0;}
+.oe-sub{font-size:var(--cy-type-label);color:var(--cy-color-text-tertiary);margin-top:var(--cy-space-1);display:block;}
+.oe-gap{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--cy-space-1);margin-top:var(--cy-space-1);font-size:var(--cy-type-label);line-height:var(--cy-leading-normal);color:var(--cy-color-status-warning);}
+.oe-gap-label{font-weight:700;}
+.oe-meta{margin-top:var(--cy-space-2);font-size:var(--cy-type-label);}
+.oe-time{color:var(--cy-color-status-warning);font-weight:600;}
+.oe-fact{color:var(--cy-color-text-tertiary);}
+
+/* 全城点亮:集体进度(去紫色化,UI改版批次4:进度条/百分比改白色) */
+.oe-collective{margin-top:var(--cy-space-2);}
+.oe-bar{height:var(--cy-space-1-5);background:var(--cy-color-border-subtle);border-radius:var(--cy-radius-pill);overflow:hidden;}
+.oe-bar-fill{height:100%;background:var(--cy-color-text-primary);border-radius:var(--cy-radius-pill);}
+.oe-pct{font-size:var(--cy-type-caption);color:var(--cy-color-text-primary);margin-top:var(--cy-space-1);display:block;}
+
+/* 吸底发布 CTA(仅 canPublish):避让高度 = 按钮高 + 上下留白 */
+
+/* ===== 发起官方活动 sheet(从已退役独立页搬入,内容样式原样保留;
+   容器类 .op-page/.op-empty/.op-cta-bar 已随 cy-sheet variant=full 的结构一并淘汰) ===== */
+
+/* 2026-09-03:发起官方活动面板(.op-*)与它的 FAB(.oe-fab)随入口一起删 ——
+   官方活动改由 Web 后台上传。样式留着就是给下一个人"这功能还在"的错觉。 */

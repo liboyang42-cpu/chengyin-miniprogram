@@ -1,0 +1,14 @@
+{
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationBarTitleText": "创建节点玩法",
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black"
+}

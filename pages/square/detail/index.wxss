@@ -1,0 +1,637 @@
+/* 2026-07-31:根链改 flex column + min-height:100vh,交给 cy-empty/cy-error 的 fill 变体
+   在"标题下方到屏幕底部"这段剩余空间里居中,替换掉原来 .detail-state 自己猜的 min-height:48vh。 */
+page{
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.detail{ width: 100%; overflow: hidden; display: flex; flex-direction: column; flex: 1; }
+/* cy-empty/cy-error 是 styleIsolation:isolated 组件,宿主标签默认 display:block,
+   组件内部的 flex:1 要宿主自己也是 flex 容器才生效,从页面外部补一层。 */
+.fill-slot{ display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+
+.detail-nav-spacer { flex: none; }
+
+/* 详情数据尚不可用时仍保留层级与可返回路径，避免无 id 直开落成头像/动作空壳。
+   自身不再猜 min-height,交给内部 fill 变体的 cy-empty/cy-error 吃满剩余空间并居中。 */
+.detail-state {
+  padding: 0 var(--cy-page-x);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--cy-space-4);
+}
+
+/* 评论输入占位色:原先由 WXML 的 placeholder-style 写死一个字面灰(C01 文档 P0-G) */
+.comment-ph { color: var(--cy-text-placeholder); }
+
+.comment-load-more-status {
+  padding: var(--cy-space-3) var(--cy-page-x);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+  text-align: center;
+}
+/* 评论提交态。稿(379:2564)的评论条没有发送键,所以在途反馈长在输入框上:
+   发送中 → 输入框禁用 + placeholder 改「正在发送…」+ 右侧一个转圈;
+   空输入 → 输入框整体收敛(is-idle),替代原来发送键的 disabled 视觉。 */
+.david_npl_right { position: relative; }
+.david_npl_right.is-idle { opacity: .82; }
+.david_npl_right.is-sending .comment-ph { color: var(--cy-color-text-tertiary); }
+/* 不做转圈:motion-property-ratchet 是「只减不增」,为一个 loading 点自增一组 @keyframes
+   不划算;而 placeholder 已经改成「正在发送…」,这里补一个静态文字标即可,
+   它同时是 aria-live 的宿主(读屏要念的那句原来挂在已删的发送按钮上)。 */
+.comment-sending {
+  position: absolute;
+  right: var(--cy-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-color-text-tertiary);
+}
+
+.comment-submit-feedback {
+  position: fixed;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  z-index: 12;
+}
+
+/* 图片横向滚动区域 */
+.detail .row3-scroll-wrapper {
+  margin-bottom: var(--cy-space-2-5);
+  width: 100%;
+}
+
+.detail .row3-scroll {
+  width: 100%;
+  white-space: nowrap;
+  height: 600rpx; /* 调整为600rpx，与JS中的imageHeight保持一致 */
+}
+
+.detail .row3-scroll .row3-images {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  padding-right: var(--cy-space-3-5);
+}
+
+.detail .row3-scroll .row3-images .scroll-image {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  object-fit: contain;
+  margin-right: var(--cy-legacy-10); /* 图片间距 */
+  border-radius: 10px; /* 5px圆角 */
+  background-color: var(--cy-bg-page);
+  /* 确保图片高度占满容器 */
+  max-height: 100%;
+}
+
+/* 确保最后一个图片没有右边距 */
+.detail .row3-scroll .row3-images .scroll-image:last-child {
+  margin-right: 0;
+}
+
+/* 移除旧的row3样式 */
+.detail .row3.scroll {
+  overflow-x: auto;
+  margin-right: calc(var(--cy-space-3-5) * -1);
+  height: auto; /* 改为自动高度 */
+  padding-bottom: var(--cy-space-2);
+  display: flex;
+  align-items: center;
+}
+
+/* 移除旧的图片样式 */
+/* .detail .row3 image {
+  width: 96%; 
+  margin-right: 2%;  
+  height: 100%;
+  flex-shrink:0;
+} */
+
+/* 以下是原有样式保持不变 */
+.detail .row1 .fl .user {
+  position: relative;
+  margin-right: var(--cy-space-3);
+  width: 69rpx;
+  height: 69rpx;
+}
+
+.detail .row1 .fl .user image {
+  width: 69rpx;
+  height: 69rpx;
+  border-radius: 50%;
+}
+
+.detail .row1 .fl .user .jia {
+  width: 31rpx;
+  height: 31rpx;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -5rpx;
+  right: -5rpx;
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4rpx solid var(--cy-border-card);
+}
+
+.detail .row1 .fl .user .jia image {
+  /* icon_jia.png 本身是纯白像素(实测 RGB=255,255,255)。这颗徽标底色是白实心
+     (--cy-btn-solid-bg,或玩家域去紫后的 --cy-brand),白图标压白底会整个看不见——
+     base 规则其实早就这样了(既有缺陷),玩家域 brand 去紫后波及面变大,一并按黑图标修。 */
+  filter: brightness(0);
+  width: 13rpx;
+  height: 13rpx;
+}
+
+.detail .row1 .fl .uname {
+  font-size: var(--cy-font-label);
+  font-weight: bold;
+}
+
+.detail .row1 .fl .uname image {
+  width: 23rpx;
+  height: 23rpx;
+  margin-left: var(--cy-legacy-10);
+}
+
+.detail .row1 .fl .time {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+  margin-left: var(--cy-space-1-5);
+}
+
+.detail .row1 .gz {
+  width: 131rpx;
+  height: 46rpx;
+  font-size: var(--cy-font-label);
+  border: 2rpx solid var(--cy-border-line);
+  border-radius: var(--cy-radius-sm);
+  font-weight: bold;
+}
+
+.detail .row2 {
+  font-size: var(--cy-font-label);
+  margin: var(--cy-legacy-26) 0 16rpx;
+  line-height: var(--cy-leading-normal);
+}
+
+.detail .row2 .txt text {
+  color: var(--cy-accent);
+}
+
+.detail .row4 {
+  padding: var(--cy-space-3) 0 32rpx;
+}
+
+.detail .row4 .fl .dd {
+  margin-right: var(--cy-space-3-5);
+}
+
+.detail .row4 .fl .dd image {
+  width: 30rpx;
+  height: 30rpx;
+  margin-right: var(--cy-legacy-10);
+}
+
+.detail .row4 .fl .line {
+  height: 27rpx;
+  margin: 0 var(--cy-space-2-5) 0 0;
+  border-right: 2rpx solid rgba(0, 0, 0, 0.1);
+}
+
+.detail .row4 .fr button {
+  margin: 0 0 0 var(--cy-legacy-26);
+  width: 30rpx;
+}
+
+.detail .row4 .fr button image {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.detail .row4 .fr .report-btn {
+  width: auto;
+  margin-left: var(--cy-space-3);
+  padding: 0;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+  line-height: 32rpx;
+  background: transparent;
+}
+
+.detail .item-link .comment-report {
+  width: auto;
+  margin-left: var(--cy-legacy-18);
+  padding: 0;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-body);
+  line-height: 30rpx;
+  background: transparent;
+}
+
+
+.detail .step {
+  padding: var(--cy-space-5) 0;
+  border-top: 2rpx solid rgba(0, 0, 0, 0.1);
+  border-bottom: 2rpx solid rgba(0, 0, 0, 0.1);
+}
+
+.detail .step .tit {
+  font-size: var(--cy-font-caption);
+  margin-bottom: var(--cy-space-3);
+  font-weight: bold;
+}
+
+.detail .step .jdt {
+  height: var(--cy-space-2-5);
+  background: var(--cy-bg-subtle);
+  border-radius: var(--cy-radius-md);
+  padding: var(--cy-legacy-4);
+}
+
+.detail .step .jdt text {
+  width: 100%;
+  height: 15rpx;
+  background: var(--cy-btn-solid-bg);
+  border-radius: var(--cy-radius-sm);
+  margin-left: var(--cy-legacy-4);
+}
+
+/* Figma 379:2571 评论区:通栏 1px 分割线在上,列表本身上内边距 6pt=12rpx。 */
+.detail .list {
+  border-top: 2rpx solid var(--cy-color-border-subtle);
+  padding-top: 12rpx;
+}
+
+/* 每条评论 左右 12pt=24rpx、上下 10pt=20rpx;稿上条目之间没有分隔线,也没有原先那条竖向串联线。 */
+.detail .list .dl {
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  box-sizing: border-box;
+}
+
+.detail .list .dl .li {
+  margin-bottom: 0;
+}
+
+/* 头像与内容列顶对齐(稿上内容多行时头像不下沉),元素间距 12pt=24rpx。 */
+.detail .list .dl .li .item {
+  align-items: flex-start;
+}
+
+.detail .list .dl .li .item .col1 {
+  flex-shrink: 0;
+}
+
+.detail .list .dl .li .item .col1 .user {
+  position: relative;
+  margin-right: var(--cy-space-3);
+}
+
+.detail .list .dl .li .item .col1 .user image {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: block;
+}
+
+.detail .list .dl .li .item .col1 .user .jia {
+  width: 31rpx;
+  height: 31rpx;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -5rpx;
+  right: -5rpx;
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4rpx solid var(--cy-border-card);
+}
+
+.detail .list .dl .li .item .col1 .user .jia image {
+  filter: brightness(0);   /* 同上:白 + 号压白底 */
+  width: 13rpx;
+  height: 13rpx;
+}
+
+.detail .list .dl .li .item .col2 .item-tit .uname {
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+}
+
+/* 时间 11px = 22rpx,--cy-font-caption 正好命中 */
+.detail .list .dl .li .item .col2 .item-tit .time {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-color-text-tertiary);
+}
+
+.detail .list .dl .li .item .col2 .item-tit .more {
+  margin-left: var(--cy-space-3);
+}
+
+.detail .list .dl .li .item .col2 .item-tit .more image {
+  width: var(--cy-legacy-26);
+  height: var(--cy-legacy-6);
+}
+
+.detail .list .dl .li .item .col2 .item-desc {
+  margin: 6rpx 0 0;
+  font-size: var(--cy-font-label);
+  color: var(--cy-color-text-secondary);
+  line-height: 1.5;
+}
+
+.detail .list .dl .li .item .col2 .item-link button {
+  margin: 0;
+  width: auto;
+  min-width: 88rpx;
+  min-height: 88rpx;
+  margin-right: var(--cy-space-3-5);
+  padding: 0;
+}
+
+.detail .comment-like {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  color: var(--cy-color-text-primary);
+  background: transparent;
+  line-height: 1;
+}
+.detail .comment-like::after { border: none; }
+.detail .comment-like.is-on { color: var(--cy-color-status-danger); }
+.detail .comment-like text { font-size: var(--cy-font-label); }
+
+.detail .list .dl .li .item .col2 .item-like {
+  margin-top: var(--cy-space-2);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-body);
+}
+
+.detail .list .dl .li .item .col2 .item-like .dian {
+  margin: 0 var(--cy-space-2-5);
+  position: relative;
+}
+
+.detail .list .dl .li .item .col2 .item-like .dian::before {
+  content: "";
+  width: var(--cy-legacy-10);
+  height: var(--cy-legacy-10);
+  background: var(--cy-color-text-tertiary);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.detail .list .dl .li:last-child {
+  margin-bottom: 0;
+}
+
+/* 评论弹窗 */
+.reply-sheet__info {
+  padding: var(--cy-space-2) 0;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.reply-sheet__info .user {
+  width: var(--cy-space-7);
+  flex-shrink: 0;border-radius: 50%;
+  box-shadow: 0px 8rpx 8rpx 0px rgba(0, 0, 0, .25);
+}
+
+.reply-sheet__info .user image {
+  width: var(--cy-space-7);
+  height: var(--cy-space-7);
+  border-radius: 50%;
+}
+
+.reply-sheet__info .david_nplinu {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  margin: 0 var(--cy-space-2);
+}
+
+
+/*新加评论*/
+/* 占位块高度 = 评论条实高:输入框 16+40+16=72rpx,加上下内边距 16+20 = 108rpx,留一点余量。 */
+.david_kong{ width: 100%; overflow: hidden; height: calc(120rpx + env(safe-area-inset-bottom));}
+.dddd{ overflow: hidden;}
+/* 稿上评论条通栏,内边距自己给(左右 12pt=24rpx、上 8pt=16rpx、下 10pt=20rpx、间距 10pt=20rpx) */
+.david_npl{ width: auto; height: auto; position: fixed; bottom: env(safe-area-inset-bottom); left: 0; right: 0; display: flex; align-items: center; gap: var(--cy-space-2-5); padding: var(--cy-space-2) var(--cy-space-3) var(--cy-space-2-5); box-sizing: border-box;}
+/* 头像 32×32pt = 64rpx */
+.david_npl_left{ width: 64rpx; height: 64rpx; border-radius: 50%; flex-shrink: 0;}
+.david_npl_left image{ width: 64rpx; height: 64rpx; border-radius: 50%; vertical-align: top;}
+/* 输入框:弹性撑满,圆角 18pt≈半高 ⇒ 用 pill;内边距 左右 14pt=28rpx、上下 8pt=16rpx */
+.david_npl_right{width: auto; height: auto; border-radius: var(--cy-radius-pill); background: var(--cy-color-input-idle-bg); flex: 1; min-width: 0; padding: var(--cy-space-2) var(--cy-space-3-5); box-sizing: border-box;}
+.david_npl_right input{ height: 40rpx; line-height: 40rpx; font-size: var(--cy-font-body); margin: 0;}
+
+.david_nplinu{width:480rpx; height:var(--cy-space-7); border-radius:var(--cy-radius-lg); background: var(--cy-bg-page); box-shadow:0px 8rpx 8rpx 0px rgba(0, 0, 0, .25);} /* ds-ok */
+.david_nplinu input{ height: var(--cy-space-7); line-height: 80rpx; font-size: var(--cy-font-label); margin: 0 var(--cy-space-3-5);}
+.david_nplok{width: 140rpx; height: var(--cy-space-7); border-radius: var(--cy-radius-lg); background: var(--cy-btn-solid-bg); box-shadow:0px 8rpx 8rpx 0px rgba(0, 0, 0, .25); font-weight: 700rpx; font-size: var(--cy-font-subtitle); line-height: 80rpx; text-align: center; color: var(--cy-text-inverse);} /* ds-ok */
+
+/* ===== 运动feed状态块(详情页) ===== */
+.sport-block {
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  background: var(--cy-bg-subtle);
+  border-radius: var(--cy-radius-md);
+  border: 1rpx solid var(--cy-border-card);
+}
+.sport-block .sport-head { margin-bottom: var(--cy-space-3); }
+.sport-block .sport-ico { width: 32rpx; height: 32rpx; margin-right: var(--cy-space-2); flex-shrink: 0; }
+.sport-block .sport-title { flex: 1; min-width: 0; font-size: var(--cy-font-subtitle); font-weight: bold; color: var(--cy-text-title); }
+.sport-block .sport-badge { flex-shrink: 0; margin-left: var(--cy-space-2); padding: var(--cy-legacy-4) 16rpx; font-size: var(--cy-font-caption); color: var(--cy-text-inverse); background: var(--cy-accent); border-radius: var(--cy-radius-pill); }
+.sport-block .sport-metrics { margin-bottom: var(--cy-space-3); }
+.sport-block .metric { flex: 1; }
+.sport-block .metric-val { font-size: var(--cy-font-subtitle); font-weight: bold; color: var(--cy-text-title); }
+.sport-block .metric-label { margin-top: var(--cy-legacy-4); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+
+/* ============================================================
+   详情页深色 Strava 皮肤(对齐广场 feed) node 3700-11775 同款
+   ============================================================ */
+/* page 元素也置黑:消除原生栏下方那条会随滚动消失的白边(frame 未铺满露出浅底) */
+page { background: var(--cy-bg-page); }
+.detail.theme-dark { background: var(--cy-bg-page); min-height: 100vh; }
+
+/* 暗色图标转白(点赞/踩/分享/评论;高亮态保留原色) */
+
+/* 黑→暗分隔线在深底上不可见,统一改为浅描边 */
+.detail.theme-dark .row1 { border-bottom-color: var(--cy-border-card) !important; }
+.detail.theme-dark .gbox1,
+.detail.theme-dark .row4 { border-color: var(--cy-border-card) !important; }
+
+/* 关注/小加号按钮:橙色角标(对齐 feed) */
+.detail.theme-dark .row1 .fl .user .jia { background: var(--cy-brand); border-color: var(--cy-bg-page); }
+
+/* 运动块:深色卡面 + 珊瑚橙通关角标 + 白字 */
+.detail.theme-dark .sport-block {
+  background: var(--cy-color-bg-surface-subtle);
+  border: 1rpx solid var(--cy-border-card);
+}
+.detail.theme-dark .sport-block .sport-title { font-size: var(--cy-font-display); color: var(--cy-text-title); }
+.detail.theme-dark .sport-block .sport-badge { background: var(--cy-brand); color: var(--cy-text-inverse); }
+.detail.theme-dark .sport-block .metric-val { color: var(--cy-text-title); }
+.detail.theme-dark .sport-block .metric-label { color: var(--cy-text-title); }
+
+/* 去蓝字:正文/链接/强调文本在深色下统一白色(原 var(--cy-accent)=蓝) */
+.detail.theme-dark .row2,
+.detail.theme-dark .row2 .txt,
+.detail.theme-dark .row2 .txt text { color: var(--cy-text-title); }
+.detail.theme-dark .item-desc { color: var(--cy-color-text-secondary); }
+.detail.theme-dark .item-tit .uname { color: var(--cy-text-title); }
+
+/* 评论输入条:深色 */
+.detail.theme-dark .david_npl { background: var(--cy-bg-page); border-top: 1rpx solid var(--cy-border-card); }
+/* 评论条输入框已按稿直接用 --cy-color-input-idle-bg(见 .david_npl_right),这里只剩回复弹层 */
+.detail.theme-dark .david_nplinu { background: var(--cy-color-bg-surface-subtle); box-shadow: none; }
+/* 两边同意图(去紫+保证可读):批1 用 --cy-btn-solid-* 显式实心按钮语义,不依赖 brand 是否已中性化,
+   比我原来的 var(--cy-brand)+text-inverse 更稳,取批1 版。 */
+.detail.theme-dark .david_nplok { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }
+
+
+/* 关注按钮:珊瑚橙描边胶囊(对齐 feed 强调色) */
+.detail.theme-dark .row1 .gz {
+  border: 2rpx solid var(--cy-brand);
+  color: var(--cy-brand);
+  background: transparent;
+}
+/* 举报:深底上清晰可见 */
+.detail.theme-dark .row4 .fr .report-btn,
+.detail.theme-dark .item-link .comment-report { color: rgba(255,255,255,0.55); }
+/* 点赞/踩数字白色 */
+.detail.theme-dark .row4 .fl .dd { color: var(--cy-text-title); }
+
+/* ============================================================
+   详情帖子区:与创意广场 .post 完全同款(更大间距,参考Figma)
+   ============================================================ */
+/* Post 上内边距 6pt=12rpx;左右不给 —— 头部与内容列各自有不同的左缘(12pt / 64pt) */
+.detail.theme-dark .wp { padding: 12rpx 0 0; }
+
+/* 头部:左右 12pt=24rpx,元素间距 12pt=24rpx,垂直居中,与下方内容列间隔 10pt=20rpx */
+.detail.theme-dark .post-head {
+  padding: 0 var(--cy-space-3);
+  gap: var(--cy-space-3);
+  margin-bottom: var(--cy-space-2-5);
+}
+/* 头像 40×40pt = 80rpx = --cy-space-7 */
+.detail.theme-dark .ph-avatar { width: var(--cy-space-7); height: var(--cy-space-7); flex-shrink: 0; }
+.detail.theme-dark .ph-avatar > image { width: var(--cy-space-7); height: var(--cy-space-7); border-radius: 50%; display: block; }
+.detail.theme-dark .ph-mid { flex: 1; min-width: 0; }
+/* 昵称 15px Medium。30rpx 无对应 token,--cy-font-subtitle(32rpx) 是语义对位且只差 2rpx 的最近档 */
+.detail.theme-dark .ph-name { font-size: var(--cy-font-subtitle); font-weight: 500; color: var(--cy-color-text-primary); }
+.detail.theme-dark .ph-name--handle { min-height: var(--cy-space-7); display: flex; align-items: center; }
+/* 昵称与时间间距 2pt=4rpx;时间 12px=24rpx 正好是 --cy-font-label */
+.detail.theme-dark .ph-time { margin-top: 4rpx; font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary); }
+/* 关注胶囊 58×28pt = 116×56rpx,圆角 14pt 正好是半高 ⇒ pill;1px 描边 + 透明底(不是实心) */
+.detail.theme-dark .post-head .gz {
+  flex-shrink: 0; width: 116rpx; height: 56rpx; line-height: 52rpx;
+  padding: 0; margin: 0; font-size: var(--cy-font-label); font-weight: 500;
+  color: var(--cy-color-text-primary); background: transparent;
+  border: 2rpx solid var(--cy-color-border-strong); border-radius: var(--cy-radius-pill);
+  box-sizing: border-box;
+}
+/* ⚠️ 稿上是 28pt 高,而 44pt 是触控下限 —— 两者冲突时不许为了对稿降热区。
+   做法与 cy-btn 的 .btn--sm::after 一致:视觉高度按稿,用透明 ::after 把纵向热区抬到 88rpx。
+   ::after 本来就要用来清微信按钮的默认边框,一举两得。 */
+.detail.theme-dark .post-head .gz { position: relative; }
+.detail.theme-dark .post-head .gz::after {
+  border: none;
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: calc((56rpx - 88rpx) / 2);
+  bottom: calc((56rpx - 88rpx) / 2);
+}
+
+/* 内容列:左缘对齐头像右侧(12+40+12=64pt=128rpx),右内边距 12pt=24rpx,块间距 10pt=20rpx */
+.detail.theme-dark .post-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-2-5);
+  padding-left: 128rpx;
+  padding-right: var(--cy-space-3);
+}
+
+.detail.theme-dark .post-head .ph-more {
+  flex-shrink: 0;
+  min-width: 88rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin-right: calc(-1 * var(--cy-space-3));
+  color: var(--cy-color-text-secondary);
+}
+
+/* 正文 15px Regular:30rpx 无 token,--cy-font-body(28rpx) 是语义对位且只差 2rpx 的最近档。
+   ⚠️ 合并两边意图(2026-09-02 rebase):
+   · overflow-wrap/word-break 保留 —— master 那边加的,长 URL 不撑破布局,是真功能不能丢
+   · line-height 回到 master 的 1.65 —— 稿 379:2528 是 leading-[normal],没给具体值,
+     我原来改 1.55 没有稿子依据,不该动既有值
+   · margin-bottom 去掉 —— 正文现在在 .post-body(flex-column + gap)里,留着会叠成双倍间距 */
+.detail.theme-dark .post-text { font-size: var(--cy-font-body); line-height: 1.65; color: var(--cy-color-text-primary); overflow-wrap: anywhere; word-break: break-word; } /* ds-ok */
+
+/* 无关联图帖的实景图 */
+.detail.theme-dark .media { white-space: nowrap; }
+.detail.theme-dark .media .media-row { display: inline-flex; gap: var(--cy-space-2); }
+.detail.theme-dark .media .media-pic {
+  width: calc(100vw - 128rpx - var(--cy-space-3));
+  height: 300rpx; /* Figma 379:2571 媒体 299×150pt */
+  border-radius: var(--cy-radius-lg); /* 稿上 14pt=28rpx,量表无该档,lg(32rpx) 最近 */
+  flex-shrink: 0;
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+/* 操作:点赞/评论/分享。稿上行高 22pt=44rpx,但触达区不能低于 88rpx(a11y 底线,
+   且 square-reliability-state-contract 已把 88rpx 钉成契约)——保留 88rpx,只对齐间距与配色。 */
+.detail.theme-dark .actions { padding: 4rpx 0 0; }
+.detail.theme-dark .actions .act-left { flex: 1; min-width: 0; }
+.detail.theme-dark .actions .act-right { flex-shrink: 0; }
+/* 未赞/评论计数都是次级色;已赞整块(图标 + 数字)转 danger,图标走 currentColor 自动跟色 */
+.detail.theme-dark .actions .act { color: var(--cy-color-text-secondary); }
+/* 图标与计数间距 6pt=12rpx;两个动作之间 18pt=36rpx */
+.detail.theme-dark .actions .act-ico { margin-right: 12rpx; }
+.detail.theme-dark .actions .act { min-height: 88rpx; display: flex; align-items: center; margin-right: 36rpx; }
+.detail.theme-dark .actions .act text { font-size: var(--cy-font-label); color: currentColor; }
+.detail.theme-dark .actions .act--like.is-on { color: var(--cy-color-status-danger); }
+.detail.theme-dark .actions .act--favorite.is-on { color: var(--cy-color-text-primary); }
+.detail.theme-dark .actions .act-share { background: transparent; min-width: 88rpx; min-height: 88rpx; padding: 0; margin: 0; line-height: 1; width: auto; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-secondary); }
+.detail.theme-dark .actions .act-share--end { margin-left: auto; }
+.detail.theme-dark .actions .act-share::after { border: none; }
+.detail.theme-dark .actions .act-share-ico { width: 40rpx; height: 40rpx; filter: invert(1); }
+
+/* —— 点赞爆一下(2026-08-26)——
+   全站少数几个「情绪时刻」之一,原来只切颜色,反馈比普通按压还弱。
+   纯 CSS 不用雪碧图:#824 刚把主包从 6.48MB 压到 2.56MB,不再往里塞图。
+   ⚠️ is-bursting 是一次性 class,由 js 播完就摘(见 burstLike 的注释);
+      取消赞不挂这个 class —— 取消也放礼花等于在庆祝用户收回喜欢。 */
+.detail .actions .act--like.is-bursting .act-ico {
+  animation: cy-like-pop var(--cy-motion-standard) var(--cy-ease-spring) both;
+}
+@keyframes cy-like-pop {
+  0%   { transform: scale(.8); }
+  60%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+.detail .actions .act--favorite.is-bursting .act-ico {
+  animation: cy-like-pop var(--cy-motion-standard) var(--cy-ease-spring) both;
+}
+/* 减少动态效果时 js 根本不挂 is-bursting,这里再兜一层:即使挂上也不动 */
+.cy-motion-reduced .act--like.is-bursting .act-ico,
+.cy-motion-reduced .act--favorite.is-bursting .act-ico { animation: none; }

@@ -1,0 +1,274 @@
+<wxs src="../../../utils/wxs/money.wxs" module="money" />
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+<!-- 参与人信息（线下活动不涉及配送） -->
+<!-- 标题归属:本页的标题所有者是导航栏(参考 Shopify「Create order」那一栏)——
+     返回箭头与微信胶囊之间居中的小标题,不再另起一块大标题占掉一屏高度。
+     叫「结算」不叫「确认报名」:这页真正在做的事是算钱。
+     ⚠️ 改这里要同步改 title-system-owner-contract 的 EXPECTED_PAGE_TITLE_ROUTES。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-nav-bar title="结算" custom-back bind:back="onNavBack" />
+<!-- cy-nav-bar 是 position:fixed,页面必须自己让位。原来这活是 cy-page-title 顺带干的,
+     标题移进导航栏后它没了 —— 实拍到第一块「参与人信息」卡被导航栏切掉半截。
+     用现成的 cy-nav-spacer,不必给 js 再加 statusBarHeight/navBarHeight 两个字段。
+     ⚠️ 必须在 ready 闸外:loading / error 态同样要让位。 -->
+<cy-nav-spacer />
+
+<cy-empty class="page-terminal" wx:if="{{pageState === 'missing-param'}}" fill size="lg" kind="missing-param"
+  title="无法打开报名页" sub="链接缺少活动信息，请返回后重新选择"
+  cta="去发现活动" bind:cta="goDiscoverActivities" />
+
+<!-- 你已经报过名了。
+     这条以前只在「再点一次报名被拒」时才以 toast 出现 —— 系统一直知道,只是不肯说。
+     hasSignup 由 /api/activity/info 直接带回(activityInfo 整个进了 data),这里零 js 改动。 -->
+<view wx:if="{{pageState === 'ready' && activityInfo.hasSignup}}" class="bm-signed"
+      bindtap="goMySignups" hover-class="cy-pressed" hover-stay-time="80"
+      aria-role="button" aria-label="你已报名这场活动，点击查看我的报名">
+  <text class="bm-signed__text">你已报名这场活动</text>
+  <text class="bm-signed__link">查看我的报名</text>
+</view>
+
+<view wx:if="{{pageState === 'ready'}}" class="set" bindtap="checkAndShowAddressPopup" hover-class="cy-pressed" hover-stay-time="80">
+  <view class="set_left">参与人信息</view>
+  <view class="set_right"><cy-icon name="arrow-right" size="32" /></view>
+</view>
+
+<cy-skeleton wx:if="{{pageState === 'ready' && participantState === 'loading' && addressList.length === 0}}" type="list" count="1" />
+<cy-inline-error wx:elif="{{pageState === 'ready' && participantState === 'error'}}"
+  title="参与人信息没能加载" sub="{{participantErrorMsg}}"
+  action="重试" bind:action="retryAddressList" />
+<cy-inline-error wx:elif="{{pageState === 'ready' && participantState === 'staleError'}}"
+  title="参与人信息暂未更新" sub="已有名单仍可使用，{{participantErrorMsg}}"
+  action="重试" bind:action="retryAddressList" />
+
+<!-- 已选参与人信息 -->
+<view wx:if="{{pageState === 'ready' && selectedAddress}}" class="address-info" bindtap="checkAndShowAddressPopup" hover-class="cy-pressed" hover-stay-time="80">
+  <view class="dz_li_left">
+    <view class="dz_li_left_name">
+      <text>{{selectedAddress.fullName || selectedAddress.realName}}</text>
+      <text>{{selectedAddress.mobilePhone || selectedAddress.phone}}</text>
+    </view>
+    <!-- M0-5 报名轻表单:线下活动不配送,仅需姓名+手机,不再展示四级地址 -->
+  </view>
+</view>
+ 
+
+<!-- 详情加载中:给一条可见提示,避免页面只剩参与人信息一行像加载完了 -->
+<cy-skeleton wx:if="{{pageState === 'loading'}}" type="card" count="{{skeletonItems.length}}" />
+
+<!-- M1-3 门卡:俱乐部活动对非成员不下发详情。这不是加载失败,重试无意义 —— 只给「去加入俱乐部」。 -->
+<cy-empty class="page-terminal" wx:if="{{pageState === 'gate'}}" fill size="lg"
+  title="{{loadErrorMsg}}" sub="加入俱乐部后即可报名这场活动"
+  cta="{{gateClubId ? '去加入俱乐部' : '去发现活动'}}" bind:cta="goGateClub" />
+
+<!-- 详情加载失败:不摆出金额与付款入口,只给重试 -->
+<!-- auto-back 只认首屏:退候补成功后会 getActivityInfo() 重拉一次,
+     那一次失败若也自动退页,用户刚做成的操作会被一个「正在退出」盖掉(审查C A1)。 -->
+<cy-error wx:if="{{pageState === 'error'}}" fill size="lg" title="活动信息没能加载出来" sub="{{loadErrorMsg}}" retry="重试" bind:retry="retryActivityInfo" auto-back="{{!everLoaded}}" />
+
+<!-- 活动信息 -->
+<view wx:if="{{pageState === 'ready'}}" class="setbox">
+  <view class="setbox_tit">活动信息</view>
+  <view class="setbox_lb">
+    <view class="setbox_lb_li">
+      <view class="setbox_lb_li_top">
+        <!-- 结算页展示本场活动自己的海报:主图优先,历史多图字段取首图。
+             两者都没有时如实提示待同步,不拿路线票券占位图冒充活动海报。 -->
+        <view class="setbox_lb_li_top_tu">
+          <image wx:if="{{img.first(activityInfo.imgUrl) || img.first(activityInfo.imgArr)}}" lazy-load="true" src="{{img.first(activityInfo.imgUrl) || img.first(activityInfo.imgArr)}}" mode="aspectFill" />
+          <view wx:else class="activity-poster-empty">海报待同步</view>
+        </view>
+        <view class="setbox_lb_li_top_con">
+          <!-- 参考图的条目顺序是「标题 → 时间 → 地点」:先回答"是什么",再说何时何地。
+               原来时间在最上,一眼看过去先撞见一串日期。 -->
+          <!-- ⚠️ 兜底不能用标签词本身。这是**结算页**(实拍 ¥68 / ¥600),名称缺失时原来显示字面量
+               「活动名称」,用户看不出自己在付什么 —— 那比留白更糟,因为它看起来像一个真名字。
+               改成明确说明数据没到,与票券卡「路线信息待同步」同一套口径。 -->
+          <view class="setbox_lb_li_top_con_name">{{activityInfo.name || '活动信息待同步'}}</view>
+          <view class="setbox_lb_li_top_con_time">{{activityInfo.formattedDateTime}}</view>
+          <!-- CU-C-33:同场次的集合点原来在结算页整行丢失 —— 字段(oms_ticket.meeting_point)
+               随 /api/activity/info 到了,只是本页从来没渲染过。它和下面那行活动 address
+               (场馆地址)不是一回事:一个是这场集合在哪里。没填就不出这一行。 -->
+          <view wx:if="{{selectedTicket.meetingPoint}}" class="setbox_lb_li_top_con_dz"><cy-icon class="d_location" name="poi-landmark" size="24" />集合点 · {{selectedTicket.meetingPoint}}</view>
+          <view class="setbox_lb_li_top_con_dz"><cy-icon class="d_location" name="poi-landmark" size="24" />{{activityInfo.address || '待确认集合地点'}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<cy-empty wx:if="{{pageState === 'ready' && signupState === 'unavailable'}}"
+  title="暂不可报名" sub="当前活动还没有可用票，请稍后再看看" kind="not-started" />
+
+<!-- 深链直入报名时绕过详情组件的截止拦查:原来要填完整张表才被拒。这里在加载当刻就说明白。
+     票已卖完的情况交给下面的候补卡(它有可动的出口),不叠加这张空态。 -->
+<cy-empty wx:if="{{pageState === 'ready' && signupState === 'closed' && !ticketSoldOut}}"
+  title="报名已截止" sub="这个票种的报名时间已经结束，看看别的场次吧" kind="not-started" />
+
+<!-- 费用明细:票种/订单金额/俱乐部权益/积分抵扣/总计 收进一个信息块。
+     标准票行原来挂在「活动信息」卡底部,与下面的金额行被一条卡边界劈开 ——
+     它本身就是费用项,归到这里,活动信息卡只回答「是哪场活动」。
+     节标题与灰卡分离(参考 Revolut):标题在卡外,和「参与人信息」「活动信息」同一档。 -->
+<view wx:if="{{pageState === 'ready' && selectedTicket}}" class="sec-title">费用明细</view>
+<view wx:if="{{pageState === 'ready' && selectedTicket}}" class="setly">
+  <!-- B-08:多票种时票种行可点开选择;只有一个票种时保持原来的纯展示行。 -->
+  <view wx:if="{{ticketList.length > 1 && waitlistState !== 'OFFERED'}}" class="setly_li"
+        bindtap="openTicketSheet" aria-role="button" aria-label="切换票种，当前 {{selectedTicket.name}}"
+        hover-class="cy-pressed" hover-stay-time="80">
+    <view class="setly_li_left">{{selectedTicket.name}}<text>（点击切换）</text></view>
+    <view class="setly_li_right"><text>{{money.amount(selectedTicket.price)}}</text><cy-icon name="arrow-right" size="28" /></view>
+  </view>
+  <view wx:else class="setly_li">
+    <view class="setly_li_left">{{selectedTicket.name}}</view>
+    <view class="setly_li_right"><text>{{money.amount(selectedTicket.price)}}</text></view>
+  </view>
+  <view class="setly_li">
+    <view class="setly_li_left">订单金额</view>
+    <view class="setly_li_right"><text>{{money.amount(selectedTicket.price)}}</text></view>
+  </view>
+  <view wx:if="{{clubMemberDiscountAmount > 0 || clubPrioritySignupEnabled}}" class="setly_li">
+    <view class="setly_li_left">俱乐部会员权益</view>
+    <view class="setly_li_right">
+      <view wx:if="{{clubMemberDiscountAmount > 0}}" class="setly_li_right_span">-{{money.amount(clubMemberDiscountAmount)}}</view>
+      <view wx:else class="club-benefit-text">{{isClubMember ? '优先报名已生效' : '部分名额优先留给会员'}}</view>
+    </view>
+  </view>
+  <view class="setly_li" wx:if="{{pointsUsable !== false}}">
+    <view class="setly_li_left">积分抵扣<text wx:if="{{useDiscount}}">（抵扣积分{{usedPoints}}）</text></view>
+    <view class="setly_li_right">
+      <view class="setly_li_right_span">-{{money.amount(discountAmount)}}</view>
+      <view class="radio flex-cc" bindtap="toggleDiscount" aria-role="button" aria-label="切换优惠" hover-class="cy-pressed" hover-stay-time="80">
+        <text wx:if="{{useDiscount}}" class="{{useDiscount ? 'active' : ''}}"></text>
+      </view>
+    </view>
+  </view>
+  <view class="setly_li setly_li--total">
+    <view class="setly_li_left">总计</view>
+    <view class="setly_li_right"><text>{{money.amount(totalAmount)}}</text></view>
+  </view>
+</view>
+
+<!-- 候补是真实票库存 hold：只有服务端 OFFERED 且带短期 token 时才开放原报名付款。 -->
+<view wx:if="{{pageState === 'ready' && (ticketSoldOut || waitlistEligibility === 'ALREADY_REGISTERED' || (waitlistState && waitlistState !== 'NONE'))}}" class="waitlist-card">
+  <view class="waitlist-card__title">候补状态</view>
+  <view wx:if="{{waitlistLoading || waitlistState === 'LOADING'}}" class="waitlist-card__text">正在读取候补状态…</view>
+  <block wx:elif="{{waitlistState === 'OFFERED' && waitlistEligibility === 'ELIGIBLE' && waitlistJoinAllowed}}">
+    <view class="waitlist-card__status is-offered">名额已为你保留</view>
+    <view class="waitlist-card__text">请在 {{waitlistExpiresText || '保留时间内'}} 完成报名；下单后以支付结果为准。</view>
+    <view class="waitlist-card__link" bindtap="cancelWaitlist" aria-role="button" hover-class="{{waitlistLoading ? 'none' : 'cy-pressed'}}" hover-stay-time="80">放弃名额</view>
+  </block>
+  <block wx:elif="{{waitlistState === 'WAITING' && waitlistEligibility === 'ELIGIBLE'}}">
+    <view class="waitlist-card__status">候补排队中</view>
+    <view class="waitlist-card__text">有名额时系统会按加入顺序保留，请稍后回来刷新。</view>
+    <view class="waitlist-card__actions">
+      <view class="waitlist-card__link" bindtap="retryWaitlistStatus" aria-role="button" hover-class="{{waitlistLoading ? 'none' : 'cy-pressed'}}" hover-stay-time="80">刷新状态</view>
+      <view class="waitlist-card__link" bindtap="cancelWaitlist" aria-role="button" hover-class="{{waitlistLoading ? 'none' : 'cy-pressed'}}" hover-stay-time="80">退出候补</view>
+    </view>
+  </block>
+  <block wx:elif="{{waitlistState === 'CLAIMED'}}">
+    <view class="waitlist-card__status">已生成待支付报名单</view>
+    <view class="waitlist-card__text">库存已归报名订单管理，请在订单有效期内完成支付或取消订单。</view>
+    <view class="waitlist-card__link" bindtap="goWaitlistOrder" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">查看报名订单</view>
+  </block>
+  <block wx:elif="{{waitlistState === 'CONVERTED'}}">
+    <view class="waitlist-card__status">报名已确认</view>
+    <view class="waitlist-card__text">支付结果已确认，名额已转为正式报名。</view>
+    <view class="waitlist-card__link" bindtap="goWaitlistOrder" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">查看报名订单</view>
+  </block>
+  <block wx:elif="{{waitlistState === 'ERROR'}}">
+    <cy-inline-error kind="data" title="候补状态读取失败" sub="{{waitlistError}}" />
+    <view class="waitlist-card__link" bindtap="retryWaitlistStatus" aria-role="button" hover-class="{{waitlistLoading ? 'none' : 'cy-pressed'}}" hover-stay-time="80">重试</view>
+  </block>
+  <block wx:else>
+    <view class="waitlist-card__status">{{waitlistStatusTitle}}</view>
+    <view class="waitlist-card__text">{{waitlistStatusDetail}}</view>
+    <view wx:if="{{showWaitlistCancel}}" class="waitlist-card__link" bindtap="cancelWaitlist" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">退出候补</view>
+    <cy-btn wx:if="{{showWaitlistJoin}}" variant="secondary" loading="{{waitlistLoading}}" bindtap="joinWaitlist">重新加入候补</cy-btn>
+  </block>
+</view>
+
+<!-- 参与人信息选择弹窗 -->
+<cy-sheet show="{{showAddressPopup}}" title="选择参与人信息" bind:close="hideAddressPopup">
+  <view class="popup-content">
+    <scroll-view class="popup-list" scroll-y>
+      <cy-skeleton wx:if="{{participantState === 'loading' && addressList.length === 0}}" type="list" count="2" />
+      <cy-inline-error wx:elif="{{participantState === 'error'}}"
+        title="参与人信息没能加载" sub="{{participantErrorMsg}}"
+        action="重试" bind:action="retryAddressList" />
+      <cy-inline-error wx:elif="{{participantState === 'staleError'}}"
+        title="参与人信息暂未更新" sub="已有名单仍可使用，{{participantErrorMsg}}"
+        action="重试" bind:action="retryAddressList" />
+      <view wx:for="{{addressList}}" wx:key="id" 
+            class="address-item {{selectedAddress && item.id == selectedAddress.id ? 'active' : ''}}" 
+            catchtap="selectAddress" data-item="{{item}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="address-item-content">
+          <view class="address-item-header">
+            <text class="address-name">{{item.fullName || item.realName}}</text>
+            <text class="address-phone">{{item.mobilePhone || item.phone}}</text>
+          </view>
+        </view>
+        <cy-icon wx:if="{{selectedAddress && item.id == selectedAddress.id}}" name="check" size="40" class="check-icon" />
+      </view>
+      
+      <cy-empty wx:if="{{participantState === 'ready' && addressList.length === 0}}"
+        kind="empty" title="还没有参与人信息" sub="添加姓名和手机号后即可继续报名"
+        cta="新增参与人信息" bind:cta="goToAddAddress" />
+    </scroll-view>
+    
+    <view class="popup-footer">
+  <cy-btn variant="primary" style="width:686rpx;margin:0 auto" bindtap="goToAddressList">管理参与人信息</cy-btn>
+
+      <!-- <button class="confirm-btn" bindtap="confirmAddressSelection">确定</button> -->
+    </view>
+  </view>
+</cy-sheet>
+
+<!-- 占位必须和 .bmbottom 的真实高度同算式(含安全区):写死 240rpx 会比底栏矮一个
+     home indicator,正文最后一行被永久盖住 —— 实拍到「…不会重复创建订」被切。 -->
+<view wx:if="{{pageState === 'ready'}}" class="bmbottom-spacer"
+  style="--baoming-action-extra: {{submitError ? 'calc(var(--cy-btn-h) + var(--cy-space-2))' : '0rpx'}}"></view>
+<view wx:if="{{pageState === 'ready'}}" class="bmbottom"
+  style="--baoming-action-extra: {{submitError ? 'calc(var(--cy-btn-h) + var(--cy-space-2))' : '0rpx'}}">
+  <cy-inline-error class="submit-inline-error" wx:if="{{submitError}}" kind="data"
+    title="这次报名还没完成" sub="{{submitError}}"
+    action="重新提交" bind:action="handlePayment" />
+  <!-- 拍板 2026-09-16 #10:商家闭店时报名入口先说清原因(点了也会被后端拒),已售不受影响。 -->
+  <view class="bm-closed" wx:if="{{merchantClosed}}" aria-role="alert">商家暂停营业，暂不可报名</view>
+  <!-- ★ 向主办方提供姓名/手机号 = 向第三方提供个人信息,个保法第 23 条要求【单独同意】:
+       不得默认勾选、不得与通用条款打包、不得靠"点付款即视为同意"推定。
+       所以这一条必须保留独立可勾控件,不许收成小字。 -->
+  <view class="bmbottom_box" bindtap="toggleHostShare" aria-role="checkbox" aria-checked="{{hostShareChecked}}" hover-class="cy-pressed" hover-stay-time="80">
+    <icon wx:if="{{hostShareChecked}}" class="bmbottom_box_gx" type="success" size="20" />
+    <icon wx:else class="bmbottom_box_gx" type="circle" size="20" color="var(--cy-color-text-tertiary)" />
+    <view class="bmbottom_box_txt">同意将姓名、手机号提供给主办方，用于报名核验</view>
+  </view>
+  <cy-btn variant="primary" style="width:686rpx;margin:0 auto;display:block" loading="{{isPaying || paymentReadinessChecking}}" bindtap="handlePayment" bind:disabledtap="handlePayment" disabled="{{!canPay}}">{{!selectedTicket ? '暂不可报名：暂无可用票' : ((ticketSoldOut && waitlistState !== 'OFFERED') || waitlistEligibility === 'ALREADY_REGISTERED' ? waitlistPaymentText : (signupClosed ? '报名已截止' : (isPaying ? '提交中...' : (paymentReadinessChecking ? '检查支付服务...' : (paymentReady === false && totalAmount > 0 ? '重新检查支付服务' : (selectedAddress ? (hostShareConsentReady ? (totalAmount > 0 ? (!quoteReady ? '确认价格并付款' : '付款') : '确认报名') : (totalAmount > 0 ? '保存同意并付款' : '保存同意并报名')) : '请选择参与人信息'))))))}}</cy-btn>
+</view>
+
+<!-- 报名/支付结果面板。2026-09-06 用户裁决「买完直接跳」:面板不放按钮,
+     2s 自愈后落订单详情。建队入口在落地页(scene-member-order-detail 的
+     「和队友一起出发」卡),master 2026-09-02 的 cy-option-sheet 改造在那边有完全相同的一份,
+     所以本页的 paysuc 层、两颗按钮、以及只由它开启的队伍人数弹层一并删除 —— 是去重不是回退。 -->
+<!-- 报名/支付结果面板。2026-09-05 换成共享的 cy-result-sheet:
+     原来这里自绘一层的理由是「cy-sheet 只有进场没有退场,弹下去做不出来」——
+     那条注释已经过期,cy-sheet 后来挂上了 exitMotion(250) + sh-down,退场是有的。
+     换过来同时去掉了本页自己那套 hold/leave 双定时器与 paysuc-* 样式。
+     2026-09-06 用户裁决:买完就直接跳,面板不放按钮 —— B 模式也一样。
+     建队入口没丢,它在落地的订单详情页(scene-member-order-detail 的「和队友一起出发」卡)。
+     2026-09-17 拍板第 40 条 A:面板里多一行可选同意勾选 —— 不勾照常自愈跳转,
+     勾了才停下等保存结果(仍不放按钮)。 -->
+<cy-result-sheet show="{{resultSheet.show}}" kind="{{resultSheet.kind}}" title="{{resultSheet.title}}"
+  sub="{{resultSheet.sub}}" meta="{{resultSheet.meta}}" pill="{{resultSheet.pill}}" why="{{resultSheet.why}}"
+  duration="{{resultSheet.duration}}" consent-name="{{resultSheet.consentName}}"
+  consent-checked="{{resultSheet.consentChecked}}" consent-state="{{resultSheet.consentState}}"
+  consent-error="{{resultSheet.consentError}}"
+  bind:consentchange="onResultConsentChange" bind:consentretry="onResultConsentRetry"
+  bind:close="onResultSheetClose" />
+
+<!-- B-08 换票种:多票种时的选择弹层(2026-09-17)。放在 ready 闸内,与页内其它弹层一致。 -->
+<cy-option-sheet wx:if="{{pageState === 'ready'}}" show="{{ticketSheetShow}}" title="选择票种"
+  items="{{ticketSheetItems}}" defaultIndex="{{ticketSheetIndex}}"
+  bind:select="onTicketSheetSelect" bind:cancel="closeTicketSheet" />
+</view>

@@ -1,0 +1,193 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-nav-bar />
+<view class="profile-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+<view class="profile-load-shell" wx:if="{{loading && !loaded}}">
+  <cy-skeleton wx:if="{{loading && !loaded}}" type="form-section" count="{{5}}" loading-label="正在读取个人资料" />
+</view>
+<cy-state-shell wx:elif="{{loadError && !loaded}}" kind="{{loadErrorKind}}"
+                title="{{loadError}}" sub="{{loadErrorSub}}" primary="重新加载"
+                fill size="lg" bind:primary="retryLoad" auto-back custom-back bind:back="exitPage" />
+<block wx:else>
+<view class="profile-refresh-state">
+  <text wx:if="{{refreshing}}" class="profile-refreshing" aria-role="status">正在核对个人资料…</text>
+</view>
+<view class="shzltop">
+  <view class="shzltop_tu" bindtap="uploadPic" aria-role="button" aria-label="上传图片" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-avatar src="{{userInfo.avatar || '/images/d_profile.png'}}" size="170" />
+      <image lazy-load="true" class="dbj" src="/pages/gerenziliao/images/d_bianji2.png" mode="widthFix" />
+  </view>
+  <view class="shzltop_txt">完善你的城市探索名片</view>
+  <view class="shzltop_tip">1:1 方图 · 1 张 · 头像圆形显示</view>
+</view>
+<view class="shzlbox">
+  <view class="shzlbox_li">
+    <view class="shzlbox_li_left">
+      <view class="shzlbox_li_left_name">昵称</view>
+      <view class="shzlbox_li_left_txt {{userInfo.name ? '' : 'is-empty'}}">{{userInfo.name || '未填写'}}</view>
+    </view>
+    <view class="shzlbox_li_right" bindtap="openPop4" aria-role="button" aria-label="编辑昵称" hover-class="cy-pressed" hover-stay-time="80">
+      <image lazy-load="true" src="/pages/gerenziliao/images/d_bianji2.png" mode="widthFix" />
+    </view>
+  </view>
+  <view class="shzlbox_li">
+    <view class="shzlbox_li_left">
+      <view class="shzlbox_li_left_name">手机号</view>
+      <view class="shzlbox_li_left_txt {{userInfo.phone ? '' : 'is-empty'}}">{{phoneMasked || '未绑定'}}</view>
+    </view>
+    <button wx:if="{{!userInfo.phone}}" class="shzlbox_bind" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber" aria-label="绑定手机号" hover-class="cy-pressed" hover-stay-time="80">绑定</button>
+  </view>
+  <view class="shzlbox_li">
+    <view class="shzlbox_li_left">
+      <view class="shzlbox_li_left_name">城市签名</view>
+      <view class="shzlbox_li_left_txt {{userInfo.introduction ? '' : 'is-empty'}}">{{userInfo.introduction || '未填写'}}</view>
+    </view>
+    <view class="shzlbox_li_right" bindtap="openPop" aria-role="button" aria-label="编辑城市签名" hover-class="cy-pressed" hover-stay-time="80"><image lazy-load="true" src="/pages/gerenziliao/images/d_bianji2.png" mode="widthFix" /></view>
+  </view>
+  <view class="shzlbox_li">
+    <view class="shzlbox_li_left">
+      <view class="shzlbox_li_left_name">探索作品</view>
+      <view class="shzlbox_li_left_ntu" wx:if="{{casePicsList.length > 0}}">
+        <view class="shzlbox_li_left_ntu_li" wx:for="{{casePicsList}}" wx:key="*this">
+          <image lazy-load="true" src="{{item}}" mode="aspectFill" />
+        </view>
+      </view>
+      <view class="shzlbox_li_left_txt is-empty" wx:else>未填写</view>
+      <!--<view class="shzlbox_li_left_txt lan">{{userInfo.caseIntroducton}}</view>-->
+    </view>
+    <view class="shzlbox_li_right" bindtap="openPop2" aria-role="button" aria-label="编辑探索作品" hover-class="cy-pressed" hover-stay-time="80"><image lazy-load="true" src="/pages/gerenziliao/images/d_bianji2.png" mode="widthFix" /></view>
+  </view>
+  <view class="shzlbox_li">
+    <view class="shzlbox_li_left">
+      <view class="shzlbox_li_left_name">联系二维码</view>
+      <view class="shzlbox_li_left_ntu" wx:if="{{userInfo.wechat}}">
+        <view class="shzlbox_li_left_ntu_li">
+          <image lazy-load="true" src="{{userInfo.wechat }}" mode="aspectFill" />
+        </view>
+      </view>
+      <view class="shzlbox_li_left_txt is-empty" wx:else>未填写</view>
+      <!--<view class="shzlbox_li_left_txt lan">{{userInfo.website}}</view>-->
+    </view>
+    <view class="shzlbox_li_right" bindtap="openPop3" aria-role="button" aria-label="编辑联系二维码" hover-class="cy-pressed" hover-stay-time="80"><image lazy-load="true" src="/pages/gerenziliao/images/d_bianji2.png" mode="widthFix" /></view>
+  </view>
+  <view class="shzlbox_li">
+    <view class="shzlbox_li_left">
+      <view class="shzlbox_li_left_name">路线偏好</view>
+      <view class="shzlbox_li_left_txt" wx:if="{{categoryList.length > 0}}">
+        <view class="shzlbox_li_left_txt_li" wx:for="{{categoryList}}" wx:key="id">
+          <image lazy-load="true" src="{{item.icon}}" mode="widthFix" />
+          <text>{{item.categoryName}}</text>
+          <view class="del-hit" bindtap="removeCategory" aria-role="button" aria-label="移除该分类" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80" ds-ok="宿主 chip 高 50rpx 且 overflow:hidden，纵向热区物理上封顶 50rpx（25px）；已扩到 chip 允许的最大值 48×50rpx（24×25px，满足 WCAG 2.5.8 AA 的 24px 下限）。要到 88rpx 必须把 chip 本身加高到 88rpx，那是视觉改动，需设计走查。不能靠去掉 overflow:hidden 突破：chip 行间距只有 10rpx，热区一越界就会跨行盖住上下一行 chip 的删除钮，互相偷点击。"><image lazy-load="true" class="del" src="/images/del.png" mode="widthFix" /></view>
+        </view>
+      </view>
+      <view class="shzlbox_li_left_txt is-empty" wx:else>未填写</view>
+    </view>
+    <view class="shzlbox_li_right" bindtap="navigateToCategorySelect" aria-role="button" aria-label="编辑路线偏好" hover-class="cy-pressed" hover-stay-time="80">
+      <image lazy-load="true" src="/pages/gerenziliao/images/d_bianji2.png" mode="widthFix" />
+    </view>
+  </view>
+</view>
+<view class="profile-save-state">
+  <cy-progress-status wx:if="{{saving || saveSucceeded}}" density="compact"
+                      steps="{{saveSteps}}" current="{{saveSucceeded ? 1 : 0}}"
+                      title="{{saveSucceeded ? '资料已保存' : '正在保存资料'}}"
+                      sub="{{saveSucceeded ? '即将返回上一页' : '请保持当前页面'}}" />
+  <cy-inline-error wx:if="{{saveError}}" title="资料没有保存" sub="{{saveError}}"
+                   action="重试保存" bind:action="saveInfo" />
+</view>
+<!-- 底栏避让走 token(DS §3.11-2),原来是 180rpx 的内联字面占位 -->
+<view class="gz-footer-hold"></view>
+<!-- 保存栏收编 cy-footer-bar(与同队列 address / addressinfo 同范式)。
+     原自造的 .bmbottom 是 position:fixed 但**没有任何 z-index** —— 本队列唯一不带层级的固定栏,
+     C03-R4 复拍的 S1_scroll_bottom 里它在滚到底后整条消失(02 顶部态还在)。
+     cy-footer-bar 自带 z-index: var(--cy-z-nav)=90 + 安全区 + 页边距,且低于 cy-sheet(800),
+     所以本页四个编辑面板照常压在它上面。 -->
+<cy-footer-bar>
+  <cy-btn variant="primary" loading="{{saving}}" disabled="{{!canSave || saving}}" bindtap="saveInfo"
+          accessibility-label="{{saving ? '正在保存个人资料' : '保存个人资料'}}">{{saving ? '保存中…' : '保存'}}</cy-btn>
+</cy-footer-bar>
+
+<!-- 个人介绍 -->
+<cy-sheet class="profile-edit-sheet" show="{{ popDavid }}" closable="{{ false }}" bind:close="cancel">
+  <view class="pop-model pop-temp">
+    <view class="pop-top flex-cb">
+      <button hover-class="none" bindtap="cancel">取消</button>
+      <view class="tit">城市签名</view>
+      <button class="david_aok" hover-class="none" bindtap="confirm">完成</button>
+    </view>
+    <view class="david_tk">
+      <view class="david_tk_box">
+        <textarea value="{{tempIntroduction}}" placeholder="写一句你喜欢的城市探索方式" bindinput="onInputChange" data-field="introduction"></textarea>
+      </view>
+    </view>
+  </view>
+</cy-sheet>
+
+  <!-- 探索作品 -->
+<cy-sheet class="profile-edit-sheet" show="{{ popDavid2 }}" closable="{{ false }}" bind:close="cancel2">
+  <view class="pop-model pop-temp">
+    <view class="pop-top flex-cb">
+      <button hover-class="none" bindtap="cancel2">取消</button>
+      <view class="tit">探索作品</view>
+      <button class="david_aok" hover-class="none" bindtap="confirm2">完成</button>
+    </view>
+    <view class="david_tk">
+      <view class="david_tk_con">
+        <view class="david_tk_con_sc" wx:for="{{tempCasePics}}" wx:key="*this" wx:for-item="pic" wx:for-index="index">
+          <image lazy-load="true" src="{{pic}}" mode="aspectFill" />
+          <view class="david_del-hit" bindtap="deleteCasePic" aria-role="button" aria-label="删除这张作品图" data-index="{{index}}" hover-class="cy-pressed" hover-stay-time="80"><image lazy-load="true" class="david_del" src="/images/del.png" mode="aspectFill" /></view>
+        </view>
+        <button class="david_tk_con_tgb" bindtap="uploadCasePics" wx:if="{{tempCasePics.length < 9}}">
+          <view class="david_tk_con_tgb_tu"><image lazy-load="true" src="/pages/gerenziliao/images/d_sctb.png" mode="widthFix" /></view>
+          <view class="david_tk_con_tgb_txt">上传<text>路线照片</text></view>
+        </button>
+      </view>
+    </view>
+  </view>
+</cy-sheet>
+
+  <!-- 联系二维码 -->
+<cy-sheet class="profile-edit-sheet" show="{{ popDavid3 }}" closable="{{ false }}" bind:close="cancel3">
+  <view class="pop-model pop-temp">
+    <view class="pop-top flex-cb">
+      <button hover-class="none" bindtap="cancel3">取消</button>
+      <view class="tit">联系二维码</view>
+      <button class="david_aok" hover-class="none" bindtap="confirm3">完成</button>
+    </view>
+    <view class="david_tk">
+      <view class="david_tk_con">
+        <view class="david_tk_con_sc" wx:if="{{tempWechat}}">
+          <image lazy-load="true" src="{{tempWechat}}" mode="aspectFill" />
+          <view class="david_del-hit" bindtap="deleteWechat" aria-role="button" aria-label="清除微信号" hover-class="cy-pressed" hover-stay-time="80"><image lazy-load="true" class="david_del" src="/images/del.png" mode="aspectFill" /></view>
+        </view>
+        <button class="david_tk_con_tgb" bindtap="uploadWechat" wx:if="{{!tempWechat}}">
+          <view class="david_tk_con_tgb_tu"><image lazy-load="true" src="/pages/gerenziliao/images/d_sctb.png" mode="widthFix" /></view>
+          <view class="david_tk_con_tgb_txt">上传<text>联系二维码</text></view>
+        </button>
+      </view>
+    </view>
+  </view>
+</cy-sheet>
+
+  <!-- 昵称 -->
+<cy-sheet class="profile-edit-sheet" show="{{ popDavid4 }}" closable="{{ false }}" bind:close="cancel4">
+  <view class="pop-model pop-temp">
+    <view class="pop-top flex-cb">
+      <button hover-class="none" bindtap="cancel4">取消</button>
+      <view class="tit">昵称</view>
+      <button class="david_aok" hover-class="none" bindtap="confirm4">完成</button>
+    </view>
+    <view class="david_tk">
+      <view class="david_tk_box">
+        <textarea value="{{tempName}}" placeholder="填写昵称" bindinput="onInputChange" data-field="name"></textarea>
+      </view>
+    </view>
+  </view>
+</cy-sheet>
+
+<cy-category-sheet class="profile-edit-sheet" show="{{categorySheetVisible}}" type="{{1}}" ids="{{categorySheetIds}}"
+  bind:select="onCategorySelect" bind:close="onCategorySheetClose" />
+</block>
+</view>

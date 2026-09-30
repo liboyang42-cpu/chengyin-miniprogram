@@ -1,0 +1,22 @@
+<view class="cc cc--{{size}} cc--{{status}}" hover-class="{{status === 'coming-soon' ? '' : 'cc--press'}}" hover-stay-time="80" catchtap="onTap">
+  <view class="cc__cover">
+    <view wx:if="{{cover}}" class="cc__cover-img" style="background-image:url('{{cover}}')"></view>
+    <view wx:else class="cc__cover-ph"><cy-icon name="image" size="48" /></view>
+    <view wx:if="{{_sLabel}}" class="cc__status"><cy-icon wx:if="{{_sIcon}}" name="{{_sIcon}}" size="20" /><text>{{_sLabel}}</text></view>
+    <view class="cc__cap">
+      <text class="cc__name">{{cityName}}</text>
+      <text wx:if="{{subtitle}}" class="cc__sub">{{subtitle}}</text>
+    </view>
+  </view>
+
+  <view class="cc__body">
+    <block wx:if="{{status !== 'coming-soon'}}">
+      <view class="cc__plabel"><text class="cc__pl-strong">已解锁 {{unlockedCount}}/{{totalCount}}</text> 节点</view>
+      <view class="cc__track"><view class="cc__fill cc__fill--{{status}}" style="transform:scaleX({{ (_pct || 0) / 100 }})"></view></view>
+      <view wx:if="{{nextTitle && size !== 'compact'}}" class="cc__next">
+        <cy-icon name="gps" size="24" /><text class="cc__next-pre">下一站</text><text class="cc__next-t">{{nextTitle}}</text>
+      </view>
+    </block>
+    <view wx:else class="cc__next cc__next--soon"><cy-icon name="lock" size="24" /><text class="cc__next-soon-text">{{nextHint || '敬请期待'}}</text></view>
+  </view>
+</view>

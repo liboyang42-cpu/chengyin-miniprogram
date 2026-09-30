@@ -1,0 +1,27 @@
+<view class="mc">
+  <text class="mc-intro">商家营销同意默认关闭。只有你明确打开后，该商家才能按渠道触达；关闭即立即退订。</text>
+  <view class="mc-loading" wx:if="{{state === 'loading'}}">正在加载…</view>
+  <view class="mc-error" wx:elif="{{state === 'error'}}">
+    <cy-inline-error kind="network" title="营销同意状态加载失败" sub="{{error}}" action="重试" bind:action="retry" />
+  </view>
+  <view class="mc-empty" wx:elif="{{state === 'empty'}}">完成一次真实报名后，可在这里管理对应商家的消息。</view>
+  <view class="mc-list" wx:else>
+    <view class="mc-merchant" wx:for="{{rows}}" wx:key="merchantRowId">
+      <text class="mc-name">{{item.merchantName}}</text>
+      <view class="mc-channel">
+        <view><text class="mc-label">站内活动消息</text><text class="mc-sub">活动提醒与商家动态</text></view>
+        <cy-switch checked="{{item.inAppOptedIn}}" disabled="{{!!savingKey}}"
+                   data-row="{{item.merchantRowId}}" data-owner="{{item.merchantOwnerMemberId}}"
+                   data-channel="IN_APP" bind:change="onConsentChange" />
+      </view>
+      <view class="mc-channel">
+        <view><text class="mc-label">商家优惠券</text><text class="mc-sub">真实入账到我的优惠券</text></view>
+        <cy-switch checked="{{item.couponOptedIn}}" disabled="{{!!savingKey}}"
+                   data-row="{{item.merchantRowId}}" data-owner="{{item.merchantOwnerMemberId}}"
+                   data-channel="COUPON" bind:change="onConsentChange" />
+      </view>
+    </view>
+  </view>
+  <cy-inline-error class="mc-error-text" wx:if="{{error && state !== 'error'}}" kind="data"
+    title="营销同意状态未更新" sub="{{error}}" />
+</view>

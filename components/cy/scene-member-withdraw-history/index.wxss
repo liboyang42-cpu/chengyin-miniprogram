@@ -1,0 +1,29 @@
+/* 骨架屏→内容淡切:isolated 组件收不到全局 components.wxss,@import 同一份定义 */
+@import '../../../style/fade-in.wxss';
+:host { display: block; height: 100%; }
+.txjl-scene { width: 100%; min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; padding-bottom: calc(var(--cy-space-4) + env(safe-area-inset-bottom)); }
+.txjl-state { display: flex; flex: 1; flex-direction: column; justify-content: center; }
+
+/* 记录卡与 scene-roam-history 共用半透明层级；商家/独立页走 fallback。 */
+.txjl { overflow: hidden; background: var(--cy-scene-card-bg, var(--cy-color-bg-surface-subtle)); border-radius: var(--cy-scene-card-radius, var(--cy-radius-lg)); padding: var(--cy-space-2); }
+.txjl_li { display: flex; justify-content: space-between; align-items: center; min-height: calc(var(--cy-btn-h) + var(--cy-space-5)); padding: var(--cy-space-3); box-sizing: border-box; overflow: hidden; gap: var(--cy-space-3); }
+.txjl_li + .txjl_li { margin-top: var(--cy-space-1); }
+.txjl-scene--merchant .txjl { padding: 0; background: transparent; border-radius: 0; }
+.txjl-scene--merchant .txjl_li { min-height: var(--cy-comp-sheet-merchant-row-h); padding: var(--cy-space-2) var(--cy-space-3); }
+.txjl-scene--merchant .txjl_li + .txjl_li { margin-top: 0; border-top: 1rpx solid var(--cy-color-border-subtle); }
+.txjl_li_left { flex: 1; min-width: 0; overflow: hidden; }
+.txjl-li__title { display: block; margin-bottom: var(--cy-legacy-6); color: var(--cy-text-title); font-size: var(--cy-font-body); }
+.txjl-li__time { display: block; color: var(--cy-text-body); font-size: var(--cy-font-caption); }
+.txjl_li_right { max-width: 300rpx; overflow: hidden; text-align: right; }
+.txjl-li__amount { display: block; color: var(--cy-text-title); font-size: var(--cy-font-title); font-weight: 700; }
+.txjl-st { display: block; color: var(--cy-text-secondary); font-size: var(--cy-font-caption); background: none; }
+.txjl-st--success { color: var(--cy-success); }
+.txjl-st--warn { color: var(--cy-color-status-warning); }
+.txjl-st--danger { color: var(--cy-danger); }
+.txjl-st--neutral { color: var(--cy-text-secondary); }
+.txjl-more { min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

@@ -1,0 +1,10 @@
+:host { display: block; }
+.fs { display: flex; flex-direction: column; gap: var(--cy-space-2); padding: var(--cy-space-3) var(--cy-space-4); border-radius: var(--cy-radius-md); background: var(--cy-color-action-secondary-bg); }
+.fs-row { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.fs-label { color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.fs-amount { color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+.fs-amount--strong { font-weight: 700; }
+.fs-note { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.fs-retry { color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+/* isolated 组件内全局 .cy-pressed 进不来,本地定义一份(同 scene-asset-earnings) */
+.cy-pressed { opacity: .88; }

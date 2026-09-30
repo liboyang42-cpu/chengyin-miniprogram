@@ -1,0 +1,13 @@
+<!-- 深链兼容壳：站内入口走 sceneStack，本页只服务分享/外部直达。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="hs-shell" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar plain custom-back bind:back="goBack" />
+  <cy-page-title title="漫游历史" safe-top="{{false}}" />
+  <view class="hs-shell__body">
+    <cy-scene-roam-history id="roamHistory" bind:open="openSession" bind:close="goBack" />
+  </view>
+</view>
+</view>

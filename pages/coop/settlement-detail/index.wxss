@@ -1,0 +1,7 @@
+@import '../../../style/merchant-light.wxss';
+
+page { background: var(--cy-bg-page); }
+.detail-page { min-height: 100vh; display: flex; flex-direction: column; padding: 0 var(--cy-page-x) var(--cy-space-5); box-sizing: border-box; background: var(--cy-bg-page); }
+
+.state-slot { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.refresh-state { display: block; margin-bottom: var(--cy-space-3); }

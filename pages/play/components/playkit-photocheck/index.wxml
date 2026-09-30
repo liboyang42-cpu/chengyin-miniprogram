@@ -1,0 +1,52 @@
+<!-- 拍照审核:拍一张,由页面传图 + 提交地址,判定全在服务端。
+     这一屏给一句人话判定、不过时的真实理由与剩余次数;降级(没能审)时只说没结论。 -->
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="pc g-col {{reducedMotion ? 'pk--reduced' : ''}} {{_motionReset ? 'pk--reset' : ''}}">
+    <view class="g-kicker">{{title || '拍一张'}}</view>
+    <view class="pc__note" wx:if="{{shotNote}}">{{shotNote}}</view>
+
+    <view class="pc__frame {{lastUrl ? 'is-filled' : ''}}" wx:if="{{lastUrl}}">
+      <image class="pc__shot" src="{{lastUrl}}" mode="aspectFill" aria-role="img" aria-label="上一张提交的照片" />
+    </view>
+    <view class="pc__frame" wx:else>
+      <cy-icon class="pc__ph" name="camera" size="72" />
+    </view>
+
+    <view class="pc__verdict pk-in pc__verdict--{{verdictKind}}" wx:if="{{verdict}}">{{verdict}}</view>
+    <view class="pc__reason pk-in pk-in--2" wx:if="{{reason}}">{{reason}}</view>
+    <view class="pc__tries" wx:if="{{triesLabel && !verdict && !reason}}">{{triesLabel}}</view>
+
+    <!-- 拍物成卡:判过当场就看到这张卡(照片卡,3D 转台由后台补,见施工文档 §3.3)。
+         卡只在「真判过 + 回包真带回了这张卡」时出现 —— 铸卡失败时宁可不演,
+         也不许摆一张册子里根本不存在的卡。 -->
+    <view class="pc__card" wx:if="{{passed && card}}">
+      <view class="pc__card-stage">
+        <cy-spin-card frames="{{card.frames}}" title="{{card.title}}"
+                      caption="{{card.caption}}" card-style="{{card.cardStyle}}" />
+      </view>
+      <text class="pc__card-note">{{card.generating ? '已收进藏品册 · 3D 生成中,稍后在藏品册里转着看' : '已收进藏品册'}}</text>
+    </view>
+  </view>
+
+  <view class="g-btn {{busy || passed || flagged ? 'g-btn--disabled' : ''}}" bindtap="onShoot"
+        aria-role="button" aria-label="{{busy ? '正在处理照片' : '拍一张'}}" hover-class="g-btn--press" hover-stay-time="80">
+    {{busy ? '看一眼…' : (passed || flagged ? '这一张已定' : (lastUrl ? '再拍一张' : '拍一张'))}}
+  </view>
+</cy-play-stage>
+
+<!-- 取景层(现场感 S1):作者配了轮廓才进得来 —— 镜头里浮着一条轮廓，把实物套进去再按快门。
+     ⚠️ 与 cy-play-stage 平级、不套在它里面:台面有 overflow:hidden 和抖动关键帧，
+     原生 camera 的同层渲染压在带动画的祖先上最容易翻车(2026-09-22 记在契约里)。 -->
+<view class="pcv" wx:if="{{framing}}">
+  <camera class="pcv__cam" device-position="back" flash="off" binderror="onFrameError"></camera>
+  <!-- 轮廓加载失败只是不画框(下面 binderror 收掉)，绝不拦玩家拍这一张 -->
+  <image wx:if="{{!outlineFailed}}" class="pcv__outline" src="{{frameUrl}}" mode="aspectFit"
+         style="opacity:{{frameOpacity / 100}}" binderror="onOutlineError"
+         aria-role="img" aria-label="要套进去的轮廓" />
+  <view class="pcv__tip">{{title || '这一景'}} —— 把它套进轮廓里</view>
+  <view class="pcv__shutter {{busy ? 'pcv__shutter--busy' : ''}}" bindtap="onFrameShutter"
+        aria-role="button" aria-label="{{busy ? '正在出片' : '按快门拍照'}}"
+        hover-class="pcv--press" hover-stay-time="80"></view>
+  <view class="pcv__cancel" bindtap="onFrameCancel" aria-role="button" aria-label="退出取景"
+        hover-class="pcv--press" hover-stay-time="80">退出取景</view>
+</view>

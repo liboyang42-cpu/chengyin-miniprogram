@@ -1,0 +1,24 @@
+{
+  "usingComponents": {
+    "tabBar": "/components/tabBar/index",
+    "cy-post-card": "/components/cy/post-card/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-card": "/components/cy/card/index",
+    "cy-club-card": "/components/cy/club-card/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-progress-status": "/components/cy/progress-status/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": true
+}

@@ -1,0 +1,137 @@
+<view class="{{isMerchantViewer ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page story-page">
+  <cy-nav-bar title="剧情与玩法" custom-back bind:back="goBack" />
+  <view class="club-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+
+  <!-- Tabs · 路线 / 玩法(Figma 228:135 / 228:152)。稿上没有整条底线,故 hairline=false。 -->
+  <cy-tabs class="story-tabs" tabs="{{tabs}}" active="{{tab}}" hairline="{{false}}" bind:change="onTab" />
+
+  <cy-error wx:if="{{loadError}}" title="剧情与玩法打不开" sub="{{loadError}}"
+            retry="{{missingParam ? '返回' : '重试'}}" bind:retry="onRetry" />
+  <cy-skeleton wx:elif="{{!loaded}}" type="list" loading-label="正在加载剧情与玩法" />
+
+  <!-- J1-A 路线:按章节分组的站点时间轴 -->
+  <block wx:elif="{{tab === 'route'}}">
+    <view wx:for="{{chapters}}" wx:key="id" class="story-chapter">
+      <view class="story-chapter__head">
+        <view class="story-chapter__title">{{item.title}}</view>
+        <view class="story-chapter__meta">{{item.meta}}</view>
+      </view>
+      <view wx:if="{{item.stops.length}}" class="story-stops">
+        <view class="story-stops__line" aria-hidden="true"></view>
+        <block wx:for="{{item.stops}}" wx:for-item="stop" wx:key="id">
+          <view wx:if="{{stop.walkText}}" class="story-walk">{{stop.walkText}}</view>
+          <view class="story-stop">
+            <view class="story-stop__seq">{{stop.seq}}</view>
+            <!-- 站点卡 / Stop card(Figma 组件 264:163) -->
+            <view class="stop-card">
+              <image wx:if="{{stop.cover}}" class="stop-card__cover" src="{{stop.cover}}" mode="aspectFill" lazy-load="true" />
+              <view wx:else class="stop-card__cover stop-card__cover--empty" aria-role="img" aria-label="{{stop.name}} 暂无图片">
+                <cy-icon name="image" size="32" />
+              </view>
+              <view class="stop-card__text">
+                <view class="stop-card__time">{{stop.time}}</view>
+                <view class="stop-card__name">{{stop.name}}</view>
+                <view class="stop-card__addr">
+                  <cy-icon name="gps" size="24" />
+                  <view class="stop-card__addr-text">{{stop.address}}</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+      <cy-empty wx:else size="sm" title="这一章还没有站点" sub="开放商家承接后，由承接商家补齐站点与玩法。" />
+    </view>
+    <cy-empty wx:if="{{!chapters.length}}" kind="empty" title="还没有章节" sub="这个团还没有排出路线。" />
+  </block>
+
+  <!-- J1-B 玩法:章节 chip → 本章剧情 → 本章玩法 -->
+  <block wx:elif="{{tab === 'play'}}">
+    <scroll-view class="story-chips" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="story-chips__track">
+        <view wx:for="{{chapters}}" wx:key="id"
+              class="story-chip {{index === activeChapterIndex ? 'story-chip--on' : ''}}"
+              data-index="{{index}}" bindtap="onChapterChip"
+              aria-role="button" aria-label="切换到{{item.chipLabel}}"
+              hover-class="cy-pressed" hover-stay-time="80">{{item.chipLabel}}</view>
+      </view>
+    </scroll-view>
+
+    <block wx:if="{{activeChapter}}">
+      <view class="story-sec">
+        <view class="story-sec__title">本章剧情</view>
+        <view class="story-sec__extra">{{activeChapter.title}}</view>
+      </view>
+      <view class="story-card">
+        <view wx:if="{{activeChapter.story}}" class="story-card__text {{storyExpanded ? '' : 'story-card__text--clamped'}}">{{activeChapter.story}}</view>
+        <view wx:else class="story-card__text story-card__text--muted">这一章还没有写剧情。</view>
+        <view wx:if="{{activeChapter.story}}" class="story-card__more" bindtap="toggleStory"
+              aria-role="button" aria-label="{{storyExpanded ? '收起本章剧情' : '展开本章剧情全文'}}"
+              hover-class="cy-pressed" hover-stay-time="80">{{storyExpanded ? '收起 ▴' : '展开全文 ▾'}}</view>
+      </view>
+
+      <view class="story-sec story-sec--play">
+        <view class="story-sec__title">本章玩法</view>
+        <view class="story-sec__extra">{{activeChapter.plays.length || 0}} 个</view>
+      </view>
+      <view wx:for="{{activeChapter.plays}}" wx:key="nodeId" class="play-card">
+        <image wx:if="{{item.cover}}" class="play-card__cover" src="{{item.cover}}" mode="aspectFill" lazy-load="true" />
+        <view class="play-card__scrim" aria-hidden="true"></view>
+        <view class="play-card__badge">{{item.badge}}</view>
+        <view class="play-card__seq">{{index + 1}}</view>
+        <view class="play-card__foot">
+          <view class="play-card__title">{{item.title}}</view>
+          <view class="play-card__meta">{{item.meta}}</view>
+          <view class="play-card__acts">
+            <view class="play-btn {{item.hasAnswer ? 'play-btn--ghost' : 'play-btn--solid'}}"
+                  data-template-id="{{item.templateId}}" bindtap="onViewTemplate"
+                  aria-role="button" aria-label="查看{{item.title}}的模板介绍"
+                  hover-class="cy-pressed" hover-stay-time="80">看看模板</view>
+            <view wx:if="{{item.hasAnswer}}" class="play-btn play-btn--solid"
+                  data-node-id="{{item.nodeId}}" data-title="{{item.title}}" bindtap="onViewAnswer"
+                  aria-role="button" aria-label="查看{{item.title}}的答案"
+                  hover-class="cy-pressed" hover-stay-time="80">查看答案</view>
+          </view>
+        </view>
+      </view>
+      <cy-empty wx:if="{{!activeChapter.plays.length}}" kind="empty" title="这一章还没有玩法" sub="承接商家补齐模板后会出现在这里。" />
+    </block>
+    <cy-empty wx:else kind="empty" title="还没有章节" sub="这个团还没有排出路线。" />
+  </block>
+
+  <!-- J1-C 查看答案(T1 底部弹窗) -->
+  <cy-scene-sheet show="{{answerVisible}}" variant="half" theme="player" title="{{answerTitle}}"
+                  mask-closable bind:close="closeAnswer">
+    <view class="ans">
+      <!-- CU-C-152:完整玩法名是副信息,可换行,不再挤进 nowrap 的弹层标题里被截断。 -->
+      <view wx:if="{{answerNodeName}}" class="ans__node">{{answerNodeName}}</view>
+      <view wx:if="{{answerLoading}}" class="ans__state">正在取答案…</view>
+      <cy-inline-error wx:elif="{{answerError}}" class="ans__err" kind="data"
+        title="答案没取到" sub="{{answerError}}" action="重试" bind:action="retryAnswer" />
+      <block wx:elif="{{answer}}">
+        <block wx:if="{{answer.question}}">
+          <view class="ans__label">题面</view>
+          <view class="ans__block"><view class="ans__text">{{answer.question}}</view></view>
+        </block>
+        <view class="ans__label">答案</view>
+        <view class="ans__block"><view class="ans__answer">{{answer.answerReveal || '这道题没有配答案'}}</view></view>
+        <block wx:if="{{answer.hints.length}}">
+          <view class="ans__label">提示</view>
+          <view class="ans__block ans__block--hints">
+            <view wx:for="{{answer.hints}}" wx:key="*this" class="ans__text">{{index + 1}} · {{item}}</view>
+          </view>
+        </block>
+        <block wx:if="{{answer.feedbackText}}">
+          <view class="ans__label">玩家答错时的反馈</view>
+          <view class="ans__block"><view class="ans__text ans__text--muted">{{answer.feedbackText}}</view></view>
+        </block>
+        <view class="ans__notice">答案只对俱乐部开放，用于现场判定玩家能否通过。玩家端看不到这一段。</view>
+      </block>
+    </view>
+  </cy-scene-sheet>
+</view>
+</view>

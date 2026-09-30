@@ -1,0 +1,11 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-skeleton": "/components/cy/skeleton/index"
+  }
+}

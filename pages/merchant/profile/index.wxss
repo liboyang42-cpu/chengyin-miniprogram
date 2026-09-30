@@ -1,0 +1,21 @@
+@import '../../../style/merchant-light.wxss';
+@import '../../../style/pr-settings.wxss';
+
+/* 兼容壳只剩过场态:骨架 / 错误 / 空,外加落地出口。
+   原来的 hero、相册、承接能力、据点任务卡、发起合作 CTA 样式随内容一起下线 ——
+   资料在 components/cy/profile 的「关于」,据点在 subpackageRoam/poi-detail。 */
+
+.pr-exits {
+  display: flex;
+  justify-content: center;
+  gap: var(--cy-space-4);
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-4) + env(safe-area-inset-bottom));
+}
+.pr-exit {
+  display: flex;
+  align-items: center;
+  min-height: 88rpx;
+  padding: 0 var(--cy-space-3);
+  font-size: var(--cy-font-label);
+  color: var(--cy-color-text-secondary);
+}

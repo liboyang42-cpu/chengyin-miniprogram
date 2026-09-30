@@ -1,0 +1,189 @@
+.flex-cb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-cc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* UI-02 返修(2026-09-18):底栏玻璃单独一组值,不再引用全局 --cy-color-bg-glass ——
+   它浅端是白 .88、深端 .82,压在浅灰页底上仍读成白条;而它还被弹窗/浮层共用,不改取值。
+   底栏要一眼看得出是玻璃:不透明度压到 .55 让滚动内容透光,模糊加深一档。 */
+.tabbar {
+  --tabbar-glass: rgba(255, 255, 255, 0.55); /* ds-ok: 底栏专用玻璃档,任务禁止改全局 --cy-color-bg-glass 取值 */
+}
+.tabbar.dark {
+  --tabbar-glass: rgba(28, 28, 30, 0.55); /* ds-ok: 底栏专用玻璃档,任务禁止改全局 --cy-color-bg-glass 取值 */
+}
+
+.tabbar .kg {
+  /* 悬浮导航无需占位块(原占位会在每页底部留出空块) */
+  height: 0;
+}
+
+.tabbar .list {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  bottom: 0;
+  z-index: 222;
+  padding: var(--cy-space-2) var(--cy-space-1-5);
+  padding-bottom: calc(16rpx + constant(safe-area-inset-bottom));
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  /* 2026-09-18 用户走查 UI-02:底栏是浮动控件,走半透明 + 背景模糊的玻璃,不再是白色实底。
+     返修:原来引用的全局玻璃 token 浅端是白 .88,压在同为浅灰的页底上仍读成白条,
+     改用底栏专用 --tabbar-glass(见文件头 .55 档),全局 token 取值不动。 */
+  background: var(--tabbar-glass);
+  backdrop-filter: blur(40rpx) saturate(160%);
+  -webkit-backdrop-filter: blur(40rpx) saturate(160%);
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+  box-shadow: 0 -2rpx 16rpx rgba(15, 23, 43, 0.08);
+}
+
+.tabbar .list .ul {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tabbar .list .ul .li {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  min-width: var(--cy-btn-h);
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+}
+
+/* 未选:图标减淡 */
+.tabbar .list .ul .li .tabbar__icon {
+  width: 64rpx;
+  height: 64rpx;
+  filter: none;
+  opacity: 0.45;
+  transition: opacity 0.2s ease;
+}
+
+/* 选中:统一品牌紫。2026-09-18 用户走查 UI-03 拍板 —— 底栏选中态全站一个紫
+   (--cy-ref-violet-500 #7A5CFF),玩家端与商家端不再一会紫一会黑;这条只裁决**选中态**,
+   不松动 2026-08-01「玩家域去紫」对 brand/selection 的约束。
+   图标资源本身不保证是纯黑,所以先用 brightness(0) 归一,再走滤镜链映射到 #7A5CFF
+   (逐通道实算:122.00 / 92.48 / 255.00)。滤镜不能读 CSS 变量,色值真源仍是那个原子紫 token。 */
+.tabbar .list .ul .li.active .tabbar__icon {
+  opacity: 1;
+  filter: brightness(0) invert(37%) sepia(10%) saturate(10000%) hue-rotate(206deg) brightness(125%) contrast(80%);
+}
+
+/* 首屏隐藏→向下滑动升起(滑动弹出) */
+.tabbar .list {
+  transition: transform 0.32s ease, opacity 0.32s ease;
+}
+.tabbar.is-down .list {
+  transform: translateY(140%);
+  opacity: 0;
+  pointer-events: none;
+}
+.tabbar--reduced-motion .list,
+.tabbar--reduced-motion .list .ul .li .tabbar__icon { transition: none; }
+
+.tabbar.dark .list {
+  /* 深色页同样走底栏专用玻璃值,不再写死旧深紫黑值(2026-09-18 UI-02 返修) */
+  background: var(--tabbar-glass);
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+  box-shadow: 0 -2rpx 16rpx rgba(0, 0, 0, 0.4);
+}
+.tabbar.dark .list .ul .li .tabbar__icon { filter: none; }
+.tabbar.dark .list .ul .li.active .tabbar__icon {
+  filter: brightness(0) invert(37%) sepia(10%) saturate(10000%) hue-rotate(206deg) brightness(125%) contrast(80%); /* UI-03 选中紫,同基础态 */
+  opacity: 1;
+}
+
+/* 玩家三模式黑白变体：未选图标只靠明度表达;选中态按 UI-03 统一给品牌紫(资源复用,靠滤镜换色)。 */
+.tabbar.monochrome .list {
+  /* 黑白变体只描述图标明度,底仍是玻璃(2026-09-18 UI-02:原来这里是 surface 实底,
+     浅色商家页因此是一整条白色;UI-02 返修后走底栏专用 --tabbar-glass .55 档) */
+  background: var(--tabbar-glass);
+  border-top-color: var(--cy-color-border-subtle);
+  box-shadow: var(--cy-shadow-card);
+}
+.tabbar.monochrome .list .ul .li .tabbar__icon {
+  filter: grayscale(1) brightness(0);
+}
+.tabbar.monochrome .list .ul .li.active .tabbar__icon {
+  opacity: 1;
+  filter: brightness(0) invert(37%) sepia(10%) saturate(10000%) hue-rotate(206deg) brightness(125%) contrast(80%);
+}
+.tabbar.monochrome.dark .list {
+  background: var(--tabbar-glass);
+  border-top-color: var(--cy-color-border-subtle);
+}
+.tabbar.monochrome.dark .list .ul .li .tabbar__icon {
+  filter: grayscale(1) brightness(0) invert(1);
+}
+.tabbar.monochrome.dark .list .ul .li.active .tabbar__icon {
+  filter: brightness(0) invert(37%) sepia(10%) saturate(10000%) hue-rotate(206deg) brightness(125%) contrast(80%);
+}
+
+/* 商家底栏背景透明度渐变(2026-09-19 用户拍板,七次修正):
+   终态:单元素单渐变 + 0→0.96 直线,顶行完全透明、底部近白。
+   禁磨砂(v2 否:白色雾边)、禁多段拼接(v5/v6 否:段界缝线)、
+   禁中段钉档(v7 否:0.55@45% 让上半段爬太快,顶部看着不透明)、
+   禁保留 border-top(透明 1rpx 边框在模拟器缩放下闪出一条近白线)。 */
+.tabbar.merchant .list {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.96) 100%); /* ds-ok: 单渐变 alpha 序列,token 无渐变档 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  /* 不是改色而是撤边:1rpx 透明边框在模拟器非整数缩放下,栏首行会闪出一条近白线(2026-09-19 v6 像素取证) */
+  border-top: none;
+  box-shadow: none;
+}
+
+/* 漫游地图沉浸态：只移除底栏面板，让地图连续铺到系统安全区。 */
+.tabbar.tabbar--immersive.monochrome.dark .list {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top-color: transparent;
+  box-shadow: none;
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }
+
+/* 右下角悬浮发布，与菜单共用同一个锚点。 */
+.tabbar__publish {
+  position: fixed;
+  right: var(--cy-page-x);
+  bottom: calc(var(--cy-tabbar-h) + var(--cy-float-gap));
+  z-index: var(--cy-z-tabbar);
+  width: var(--cy-comp-publish-trigger);
+  height: var(--cy-comp-publish-trigger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-action-primary-fg);
+  background: var(--cy-color-action-primary-bg);
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition: transform var(--cy-comp-publish-float) var(--cy-comp-publish-ease), opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+
+
+.tabbar__publish--open {
+  opacity: 0;
+  transform: translate3d(0, var(--cy-space-3), 0) scale(.55);
+  pointer-events: none;
+  transition: transform var(--cy-motion-standard) var(--cy-ease-out), opacity var(--cy-motion-standard) var(--cy-ease-out);
+}
+.tabbar__publish--reduced { transition: none; }

@@ -1,0 +1,46 @@
+<view class="sh sh--{{variant}} {{inset ? 'sh--inset' : ''}} {{footer ? 'sh--has-footer' : ''}} {{anchorSelector ? 'sh--morph' : ''}} {{_morphOpen ? 'sh--morph-open' : ''}} {{reducedMotion ? 'sh--reduced-motion' : ''}} {{_closing ? 'sh--closing' : ''}} {{_dragging ? 'sh--dragging' : ''}} {{_snapping ? 'sh--snap' : ''}}" wx:if="{{_render}}" style="{{_dragStyle}}{{variant === 'full' ? fullMaxH : ''}}">
+  <view class="sh__mask" bindtap="onMask" aria-role="button" aria-label="关闭当前面板" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="sh__panel {{anchorSelector ? 'sh__panel--morph' : ''}}" catchtap="noop" style="{{(_morphOpen && !_closing) ? '' : _morphStyle}}">
+    <!-- bottom:拖拽抓手(full 顶部是导航栏,不用抓手)。
+         2026-09-01:抓手从「装饰横条」补成真的可拖(见 index.js 顶部那段说明)。
+         触摸挂在 .sh__grip 上而不是 .sh__handle:横条只有 8rpx 高,直接当热区没法拖;
+         grip 用 ::after 反向撑出热区,不加 padding —— 加 padding 会把面板顶部推下去,
+         这条横条的位置是 Figma 给过稿的。 -->
+    <view class="sh__grip" wx:if="{{handle && variant !== 'full'}}"
+          catchtouchstart="onDragStart" catchtouchmove="onDragMove"
+          catchtouchend="onDragEnd" catchtouchcancel="onDragEnd"
+          aria-label="向下拖动关闭当前面板">
+      <view class="sh__handle"></view>
+    </view>
+
+    <!-- full:返回 + 标题 + 关闭。返回只退内部步骤(back),✕ 才是退出任务(requestclose)。
+         这一行不再吃 padding-top / padding-right:面板顶已经落在胶囊底下,✕ 直接贴弹层右缘(CU-M-163) -->
+    <view class="sh__nav" wx:if="{{variant === 'full'}}">
+      <view class="sh__nav-left">
+        <view class="sh__nav-btn" wx:if="{{canBack}}" bindtap="onBack" aria-role="button" aria-label="上一步" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="34" /></view>
+        <view class="sh__nav-title">{{navTitle}}</view>
+      </view>
+      <view class="sh__nav-btn sh__nav-btn--close" wx:if="{{closable}}" bindtap="onClose" data-testid="sheet-close" aria-role="button" aria-label="{{closeLabel}}" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="{{closeIcon}}" size="{{closeIconSize}}" /></view>
+    </view>
+    <!-- full:步骤进度(steps>1 才画) -->
+    <view class="sh__progress" wx:if="{{variant === 'full' && steps > 1}}">
+      <view class="sh__progress-seg {{index <= current ? 'sh__progress-seg--on' : ''}}"
+            wx:for="{{stepList}}" wx:key="*this"></view>
+    </view>
+
+    <!-- bottom:原有标题栏。⚠️ 这段 wxml 被 cy-sheet-close-accessibility-contract 逐字断言
+         (含 wx:if="{{title}}" 这个字面写法 + ".sh__head 不能被同名规则覆盖"),
+         保护 88rpx 关闭热区的无障碍语义 —— wxml 和 wxss 都不能动。
+         所以 full 变体**不用 title 属性**,改用独立的 navTitle(见 sh__nav):
+         调用方 variant="full" 时传 nav-title 而不是 title,本段自然不渲染,无需 CSS 隐藏。 -->
+    <view class="sh__head {{closable ? 'sh__head--closable' : ''}}" wx:if="{{title}}">
+      <view class="sh__title {{closable ? 'sh__title--closable' : ''}}">{{title}}</view>
+      <view class="sh__close" wx:if="{{closable}}" bindtap="onClose" data-testid="sheet-close" aria-role="button" aria-label="{{closeLabel}}" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="{{closeIcon}}" size="{{closeIconSize}}" /></view>
+    </view>
+
+    <view class="sh__body"><slot></slot></view>
+
+    <!-- 底部固定 CTA(命名 slot,处理安全区;full 类必须有,bottom 可选) -->
+    <view class="sh__footer" wx:if="{{footer}}"><slot name="footer"></slot></view>
+  </view>
+</view>

@@ -1,0 +1,76 @@
+<view class="cc-page theme-merchant m-flush-nav" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="" />
+  <!-- 稿 234:276:返回箭头右侧 gap10 接左对齐标题 19px Bold(不是 N3 居中)。cy-nav-bar 只支持居中标题,
+       plain 模式只留返回行,标题由页面贴在同一行(left = 返回钮 88rpx 宽),全页只出现一次。 -->
+  <cy-nav-bar plain custom-back bind:back="onNavBack" />
+  <view class="cc-nav-title" style="top: {{statusBarHeight}}px; height: {{navBarHeight}}px;" aria-role="heading">合作中心</view>
+  <!-- 稿 234:276:tab 左对齐(官方活动 / 广场),同一行右侧铃铛进协作邀请(收到的 / 我发出的) -->
+  <view class="cc-tabbar">
+    <cy-tabs class="cc-tabs" tabs="{{tabs}}" active="{{activeTab}}" bind:change="onTabChange" />
+    <view class="cc-bell" bindtap="goInbox" aria-role="button" aria-label="协作邀请：收到的与我发出的"
+      hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="bell" size="48" /></view>
+  </view>
+
+  <scroll-view scroll-y class="cc-scroll">
+    <!-- 广场 = 原「可承接」:★ 商家在这里做的是「要不要接这一站」,卡面给 模式/余席/档期/地点/结算方式/招商截止 -->
+    <block wx:if="{{activeTab === 'plaza'}}">
+      <cy-skeleton wx:if="{{routesLoading && !routes.length}}" type="card" count="{{2}}" />
+      <cy-error class="cy-fade-in" size="lg" wx:elif="{{routesError && !routes.length}}" title="路线没有加载出来" sub="{{routesError}}" retry="重新加载" bind:retry="loadRoutes" />
+      <view wx:else class="cc-list">
+        <view class="cc-refreshing" wx:if="{{routesLoading && routes.length}}" aria-role="status" aria-live="polite">正在刷新开放承接路线…</view>
+        <!-- CU-M-85:id 供参谋页带 ?topicId= 进来时定位;focus 只标命中那一条。 -->
+        <view class="cc-route {{item.focus ? 'cc-route--focus' : ''}}" id="cc-route-{{item.id}}" wx:for="{{routes}}" wx:key="key">
+          <view class="cc-route-top">
+            <text class="cc-mode" wx:if="{{item.modeText}}">{{item.modeText}}</text>
+            <text class="cc-seat cc-seat--{{item.seatTone}}" wx:if="{{item.seatText}}">{{item.seatText}}</text>
+          </view>
+          <view class="cc-route-main">
+            <view class="cc-route-cover"><image class="cc-route-cover__img" wx:if="{{item.cover && !item._coverFailed}}" src="{{item.cover}}" mode="aspectFill"
+              data-index="{{index}}" data-id="{{item.id}}" binderror="onRouteCoverError" /></view>
+            <view class="cc-route-info">
+              <text class="cc-route-date" wx:if="{{item.dateText}}">{{item.dateText}}</text>
+              <text class="cc-route-title">{{item.title}}</text>
+              <text class="cc-route-meta" wx:if="{{item.metaText}}">◎  {{item.metaText}}</text>
+            </view>
+          </view>
+          <view class="cc-route-foot">
+            <view class="cc-route-terms">
+              <text class="cc-route-settle" wx:if="{{item.termsText}}">{{item.termsText}}</text>
+              <text class="cc-route-deadline" wx:if="{{item.deadlineText}}">{{item.deadlineText}}</text>
+            </view>
+            <view class="cc-detail" data-id="{{item.id}}" bindtap="openTopic" aria-role="button" aria-label="看详情：{{item.title}}"
+              hover-class="cy-pressed" hover-stay-time="80">看详情</view>
+          </view>
+        </view>
+        <view class="cc-list-scope" wx:if="{{routeScopeText}}" aria-role="status">{{routeScopeText}}</view>
+        <cy-empty wx:if="{{!routes.length}}" fill size="lg" title="还没有开放的路线"
+          cta="刷新合作机会" bind:cta="loadAvailable" />
+      </view>
+    </block>
+
+    <block wx:else>
+      <cy-skeleton wx:if="{{eventsLoading && !events.length}}" type="card" count="{{2}}" />
+      <cy-error class="cy-fade-in" size="lg" wx:elif="{{eventsError && !events.length}}" title="官方活动没有加载出来" sub="{{eventsError}}" retry="重新加载" bind:retry="loadEvents" />
+      <view wx:else class="cc-list">
+        <view class="cc-refreshing" wx:if="{{eventsLoading && events.length}}" aria-role="status" aria-live="polite">正在刷新官方活动…</view>
+        <view class="cc-card cc-card--tap" wx:for="{{events}}" wx:key="id" data-id="{{item.id}}" bindtap="openEvent"
+          aria-role="button" aria-label="查看官方活动：{{item.title}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="cc-eyebrow">{{item.city || '全城'}}</text>
+          <text class="cc-card-title">{{item.title}}</text>
+          <text class="cc-card-copy">{{item.subtitle || ''}}</text>
+          <view class="cc-gap" wx:if="{{item.recruitmentGapLabel}}">
+            <text class="cc-gap-label">{{item.recruitmentGapLabel}}</text>
+            <text class="cc-gap-reason" wx:if="{{item.recruitmentGapText}}">{{item.recruitmentGapText}}</text>
+          </view>
+          <view class="cc-link"><text>查看活动</text><cy-icon name="arrow-right" size="28" /></view>
+        </view>
+        <cy-empty wx:if="{{!events.length}}" fill size="lg" title="还没有官方活动"
+          cta="刷新合作机会" bind:cta="loadAvailable" />
+      </view>
+    </block>
+    <view class="cc-bottom"></view>
+  </scroll-view>
+</view>

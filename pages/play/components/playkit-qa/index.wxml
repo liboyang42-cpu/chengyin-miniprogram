@@ -1,0 +1,79 @@
+<!-- 三种问答共用这一屏,模式由玩法本身决定(type / pick / shot),不从 chip 读。
+     铺成三个组件的话,同一处改动要改三遍,而它们的差别只在中间那一块。
+     ⚠️ 逐值照原型 playkit.html 的 .hdr / .qabody / .qaopt / .qaentry / .qafb。 -->
+<cy-play-stage id="cy-play-stage" skin="{{theme === 'light' ? 'qa' : 'qadark'}}" show="{{show}}" back-label="退出"
+               limit-seconds="{{limitSeconds}}" tries="{{triesCap}}"
+               bind:back="onClose" bind:run="onRun" bind:verdict="onVerdict" bind:burn="onBurn">
+  <view class="g-col qa {{intro ? 'qa--intro' : ''}} {{burning ? 'qa--burning' : ''}} {{reducedMotion ? 'qa--reduced' : ''}}">
+    <!-- 拍照那一档的大字默认回落成题干(见 advanced-game-preview 的 shotLead)。
+         两处印同一句话时,只留中间那一句 —— 上面再来一遍是重复,不是强调。 -->
+    <view class="qa__q" wx:if="{{!(mode === 'shot' && shotLead === title)}}">{{title}}</view>
+
+    <!-- 一进来题目在屏幕正中,一秒后选项才出现 —— 一屏一件事:
+         先让人把题读完,再给他可以按的东西。同时出现的话,人只会扫按钮。 -->
+    <view class="qa__body">
+      <!-- 题干附件:商家没配就整块不出。没内容就不要显示提示语 -->
+      <view class="qa__media" wx:if="{{hasImage}}">
+        <image class="qa__img" src="{{imageUrl}}" mode="aspectFill" aria-role="img" aria-label="题目配图" />
+      </view>
+      <view class="qa__audio" wx:if="{{audioUrl}}" bindtap="onToggleAudio"
+            aria-role="button" aria-label="{{playing ? '暂停题目音频' : '播放题目音频'}}"
+            hover-class="qa__press" hover-stay-time="80">{{playing ? '暂停' : '播放这段'}}</view>
+
+      <!-- 前置步骤:先做点什么再答(闭眼盲品那类)。商家没填就不出 -->
+      <!-- 拍照那一档的大字用的就是 lead,这里再画一遍就是同一句话印两遍 -->
+      <view class="qa__lead" wx:if="{{lead && mode !== 'shot'}}">{{lead}}</view>
+
+      <!-- ① 打字作答 -->
+      <block wx:if="{{mode === 'type'}}">
+        <input class="qa__input" value="{{typed}}" bindinput="onInput" confirm-type="done"
+               placeholder="在这里作答" placeholder-class="qa__ph" bindconfirm="onSubmitText" />
+      </block>
+
+      <!-- ② 选项作答。每一条的文案、对错、反馈都在它自己里面 -->
+      <block wx:elif="{{mode === 'pick'}}">
+        <view class="qa__opt {{item.state}} {{index === 0 ? 'qa__opt--first' : ''}}"
+              wx:for="{{optionList}}" wx:key="k"
+              data-i="{{index}}" bindtap="onPick"
+              aria-role="button" aria-label="选项 {{item.key}}:{{item.t}}"
+              hover-class="qa__press" hover-stay-time="80">
+          <view class="qa__opt-main">
+            <view class="qa__opt-k">{{item.key}}</view>
+            <!-- 这儿原先还有「选项配图」和「选项配音」两个角标。删掉的理由:**商家配不了** ——
+                 选项配置只有 {id, label, fb, correct},pickPlayKit 也只过桥 {id, t},
+                 img / audio 全链路没有一处产出。留着它只在夹具里演:实测选项 B 空出一个
+                 方框、选项 C 多一个播放角标,而玩家永远看不到。要做就连配置一起做。 -->
+            <view class="qa__opt-t">{{item.t}}</view>
+          </view>
+          <view class="qa__tail"></view>
+        </view>
+      </block>
+
+      <!-- ③ 拍照打卡:提示词大字摆在正中,那句话就是这一屏 -->
+      <block wx:else>
+        <view class="qa__shot-lead">{{shotLead}}</view>
+        <view class="qa__shot-note" wx:if="{{shotNote}}">{{shotNote}}</view>
+      </block>
+
+      <!-- 反馈是一块实心的话,不是一行浮字:上面一行小字说这是什么,下面才是内容 -->
+      <view class="qa__fb qa__fb-enter" wx:if="{{feedback}}">
+        <view class="qa__fb-h">{{fbHead}}</view>
+        {{feedback}}
+      </view>
+
+      <!-- 多选的服务端回执:整体对错 + 所选项的反馈(服务端没有逐项对错字段,
+           有也由这一块显示)。单选走上面那块,这里一个字段都不碰 —— 行为不变。 -->
+      <view class="qa__fb qa__fb-enter {{passed ? 'qa__fb--ok' : 'qa__fb--no'}}"
+            wx:if="{{multi && attempts > 0}}">
+        <view class="qa__fb-h">{{passed ? '答对了' : '再想想'}}</view>
+        {{feedbackText || (passed ? '' : '还不对,可以再选一次。')}}
+      </view>
+    </view>
+  </view>
+
+  <view class="g-btn {{ctaDisabled ? 'g-btn--disabled' : ''}} {{intro ? 'qa__cta--hold' : ''}} {{burning ? 'qa__cta--burn' : ''}}"
+        bindtap="onCta"
+        aria-role="button" aria-label="{{ctaLabel}}" hover-class="g-btn--press" hover-stay-time="80">
+    {{ctaLabel}}
+  </view>
+</cy-play-stage>

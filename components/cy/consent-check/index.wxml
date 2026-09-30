@@ -1,0 +1,5 @@
+<view class="cck" bindtap="onTap" hover-class="cck--press" hover-stay-time="80" aria-role="checkbox" aria-checked="{{checked}}" aria-label="{{text}}">
+  <icon wx:if="{{checked}}" class="cck__box" type="success" size="20" />
+  <icon wx:else class="cck__box" type="circle" size="20" color="var(--cy-color-text-tertiary)" />
+  <view class="cck__txt">{{text}}</view>
+</view>

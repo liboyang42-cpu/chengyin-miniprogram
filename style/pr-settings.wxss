@@ -1,0 +1,197 @@
+/* 定价/合作方 Settings 风 · 主包+分包共用(勿跨分包 @import 页面 wxss)
+ * 颜色走 token；商家页先 @import merchant-light.wxss 即自动浅色。
+ * ⚠️ 它必须住在主包 style/ 下:消费方分属两个不同分包(pages/merchant 与 pages/topic),
+ *   放进任一分包就成了跨分包 @import —— 正是本文件第一行禁的那件事。
+ *   2026-09-22 从 pages/merchant/style/ 挪来。 */
+page { background: var(--cy-bg-page); }
+
+.pr-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;   /* 配合各页 inline padding-top 补偿 fixed cy-nav-bar 高度 */
+  background: var(--cy-bg-page);
+  color: var(--cy-text-title);
+}
+
+.pr-ph { color: var(--cy-text-placeholder); }
+/* 顶栏已统一为 cy-nav-bar(§1.2);原 .pr-top/.pr-hd-* 自绘栏移除 */
+
+/* —— 滚动区 —— */
+.pr-scroll {
+  flex: 1;
+  height: 0;
+  box-sizing: border-box;
+}
+.pr-scroll-pad { height: 32rpx; }
+
+/* —— 区块 —— */
+.pr-sec { margin-top: 40rpx; }
+.pr-sec-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--cy-text-secondary);
+  padding: 0 var(--cy-page-x);
+  margin-bottom: var(--cy-space-1-5);
+  letter-spacing: 0.5rpx;
+}
+.pr-footnote {
+  padding: var(--cy-space-1-5) var(--cy-page-x) 0;
+  font-size: 22rpx;
+  line-height: 1.55;
+  color: var(--cy-text-secondary);
+}
+.pr-footnote--top {
+  margin-top: 0;
+  padding-bottom: 8rpx;
+}
+
+/* —— 分组卡片 —— */
+.pr-group {
+  margin: 0 var(--cy-page-x);
+  background: var(--cy-bg-card);
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: var(--cy-shadow-card);
+}
+.pr-group--gap { margin-top: 16rpx; }
+
+/* —— 行 —— */
+.pr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 96rpx;
+  padding: 0 var(--cy-space-3-5);
+  box-sizing: border-box;
+}
+.pr-row--border { border-bottom: 1rpx solid var(--cy-border-card); }
+.pr-row--compact { min-height: 84rpx; }
+.pr-row--ticket { min-height: 108rpx; padding-top: 16rpx; padding-bottom: 16rpx; }
+.pr-row--empty { opacity: 0.72; }
+.pr-row--sum { background: var(--cy-bg-subtle); }
+
+.pr-row-main { flex: 1; min-width: 0; }
+.pr-row-label {
+  font-size: 30rpx;
+  color: var(--cy-text-title);
+  line-height: 1.35;
+}
+.pr-row-label--muted { color: var(--cy-text-secondary); }
+.pr-row-sub {
+  margin-top: var(--cy-legacy-4);
+  font-size: 24rpx;
+  color: var(--cy-text-secondary);
+  line-height: 1.35;
+}
+.pr-row-value {
+  font-size: 30rpx;
+  color: var(--cy-text-body);
+  flex-shrink: 0;
+}
+.pr-row-value--accent { color: var(--cy-success); font-weight: 600; }
+.pr-row-value--link { color: var(--cy-info); }
+
+.pr-chevron {
+  font-size: 36rpx;
+  color: var(--cy-text-placeholder);
+  margin-left: var(--cy-space-1-5);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* —— 输入 —— */
+.pr-row-input {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--cy-legacy-4);
+  flex-shrink: 0;
+}
+.pr-yen { font-size: 28rpx; color: var(--cy-text-secondary); }
+.pr-unit { font-size: 28rpx; color: var(--cy-text-secondary); margin-left: var(--cy-legacy-4); } /* ds-ok */
+.pr-input {
+  width: 160rpx;
+  text-align: right;
+  font-size: 30rpx;
+  color: var(--cy-text-title);
+  height: 56rpx;
+}
+.pr-input--price {
+  width: 180rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+.pr-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: var(--cy-text-secondary);
+}
+
+/* —— 详情页 · 名称 + 查看 + 档案 —— */
+.pr-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cy-space-2-5);
+  padding: var(--cy-space-3-5) var(--cy-space-3-5) var(--cy-space-1-5);
+}
+.pr-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--cy-text-title);
+  line-height: 1.35;
+}
+.pr-view-link {
+  display: flex;
+  align-items: center;
+  gap: 2rpx;
+  flex-shrink: 0;
+  padding-top: var(--cy-legacy-4);
+}
+.pr-view-link-t {
+  font-size: 30rpx;
+  color: var(--cy-info);
+  line-height: 1.2;
+}
+.pr-view-chevron {
+  font-size: 36rpx;
+  color: var(--cy-info);
+  line-height: 1;
+  margin-top: -2rpx;
+}
+.pr-detail-block {
+  padding: 0 var(--cy-space-3-5) var(--cy-space-3-5);
+}
+.pr-detail-desc {
+  font-size: 28rpx;
+  color: var(--cy-text-body);
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+}
+.pr-detail-desc--muted { color: var(--cy-text-secondary); font-size: 26rpx; }
+.pr-detail-kv {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--cy-legacy-10) 0;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+.pr-detail-k {
+  width: 168rpx;
+  flex-shrink: 0;
+  color: var(--cy-text-secondary);
+}
+.pr-detail-v {
+  flex: 1;
+  min-width: 0;
+  color: var(--cy-text-body);
+}
+.pr-detail-v--link { color: var(--cy-info); }

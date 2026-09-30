@@ -1,0 +1,5 @@
+<view class="ct ct--{{kind}} {{entered ? 'ct--in' : ''}} {{reducedMotion ? 'ct--reduced-motion' : ''}}" wx:if="{{visible}}"
+      aria-role="alert" aria-label="{{title}}">
+  <cy-icon wx:if="{{glyph}}" class="ct__icon" name="{{glyph}}" size="32" aria-hidden="true" />
+  <text class="ct__text">{{title}}</text>
+</view>

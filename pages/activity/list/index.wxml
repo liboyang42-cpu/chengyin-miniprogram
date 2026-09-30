@@ -1,0 +1,81 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="oe-page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <!-- 导航条只承载页面身份(居中标题 + 裸 chevron 返回),不放任何 action:
+       右侧 action 会吃掉两倍宽度的居中槽,375pt 下这个入口(≈60px)直接把页面名
+       挤到隐藏(可用槽 15px < 88px 最小可读宽)。次级管理入口下沉到内容区的摘要行,
+       与既有「邀约 ›」并列 —— 见 vault《UI-WT2官方活动标题动作修复》。 -->
+  <cy-nav-bar title="官方活动" custom-back bind:back="onNavBack" />
+
+  <!-- L2 Browse:Search → Filter Tabs → Result summary 吸顶常驻(模板库 §4.2) -->
+  <view class="oe-screen" style="top: {{statusBarHeight + navBarHeight}}px;">
+    <cy-search wx:if="{{tab !== 3}}" value="{{keyword}}" placeholder="搜索活动名称或城市" bind:input="onSearchInput" />
+    <view class="oe-tabs">
+      <cy-tabs variant="chip" tabs="{{tabsCy}}" active="{{tab + ''}}" bind:change="onTab" />
+    </view>
+    <!-- 摘要行 = 列表的 section 头:左侧"这批是什么",右侧一组次级管理入口。
+         整行的显示条件放宽到「canPublish 或 有摘要可显示」,这样「我发布的」在
+         加载/错误态下**照样可达**(改动前它在导航条上是常驻的,不能因为下沉就丢可达性);
+         摘要文案与「邀约」各自保持原有 gating,行为不变。 -->
+    <view wx:if="{{canPublish || events.length || (!loading && !curError)}}" class="oe-summary-row">
+      <view class="oe-summary">{{(!events.length && (loading || curError)) ? '' : summary}}</view>
+      <view class="oe-row-links">
+        <view wx:if="{{canPublish}}" class="oe-manage-link" hover-class="cy-pressed" hover-stay-time="80"
+              aria-role="button" aria-label="我发布的" bindtap="goMine"><text>我发布的</text><cy-icon name="arrow-right" size="22" /></view>
+        <view wx:if="{{!loading && !curError}}" class="oe-inbox-link" bindtap="goInbox" aria-role="button" aria-label="邀约" hover-class="cy-pressed" hover-stay-time="80"><text>邀约</text><cy-icon name="arrow-right" size="22" /></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading && events.length===0}}">
+    <cy-skeleton type="feed-card" count="3" />
+  </view>
+  <cy-error class="cy-fade-in" wx:elif="{{curError && events.length===0}}"
+            title="活动列表没能打开" sub="{{errorMsg}}" bind:retry="onRetry" />
+  <cy-empty wx:elif="{{!loading && !curError && events.length===0}}" fill size="lg" class="fill-slot" kind="{{emptyKind}}" title="{{emptyTitle}}" sub="{{emptySub}}" />
+  <text class="oe-sync" wx:if="{{loading && events.length>0}}"
+        aria-role="status" aria-live="polite">正在更新活动列表…</text>
+  <view wx:if="{{events.length>0}}" class="oe-list">
+    <view wx:for="{{events}}" wx:key="id" class="cy-card oe-card" data-id="{{item.id}}" bindtap="openDetail" aria-role="button" aria-label="查看活动 {{item.title}}" hover-class="cy-pressed" hover-stay-time="80">
+      <!-- official_event.cover_img 可空(migration_official_event.sql:16 DEFAULT NULL)。
+           无封面时这块 75% 高的区域原本只剩一片纯色,与模板页/发布广场既有的
+           「封面暂不可用」兜底不一致 ⇒ 复用同一范式。
+           注:这里封面走 background-image,检测不到「URL 有但加载失败」,只兜「没有 URL」。 -->
+      <view class="oe-cover" style="{{item._coverStyle}}">
+        <view wx:if="{{!item._coverStyle}}" class="cover-error" aria-role="img"
+              aria-label="{{item.title}} 暂无封面">
+          <image class="cover-error-icon" src="/images/no_data.svg" mode="aspectFit" />
+          <text class="cover-error-text">封面暂不可用</text>
+        </view>
+      </view>
+      <view class="oe-body">
+        <view class="oe-title-row">
+          <text class="oe-title">{{item.title}}</text>
+          <cy-badge type="status" variant="{{item._statusVariant}}" icon="{{item._live ? 'play' : ''}}" label="{{item._statusText}}" />
+        </view>
+        <text wx:if="{{item.subtitle}}" class="oe-sub">{{item.subtitle}}</text>
+        <view wx:if="{{item._gapLabel}}" class="oe-gap">
+          <text class="oe-gap-label">{{item._gapLabel}}</text>
+          <text class="oe-gap-reason" wx:if="{{item._gapText}}">{{item._gapText}}</text>
+        </view>
+        <view class="oe-meta">
+          <text class="oe-time">{{item._timeText}}</text>
+          <text wx:if="{{item.city}}" class="oe-fact"> · {{item.city}}</text>
+          <text class="oe-fact"> · {{item.participants||0}} 人参与</text>
+        </view>
+        <view wx:if="{{item._pct>=0}}" class="oe-collective">
+          <view class="oe-bar"><view class="oe-bar-fill" style="width:{{ item._pct || 0 }}%"></view></view>
+          <text class="oe-pct">全城已点亮 {{ item._pct === 0 ? 0 : (item._pct || '--') }}%</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 2026-09-03 用户裁决:官方活动一律从 Web 后台上传,小程序不再提供「发起」入口。
+       连同整块全屏发布面板与它的日期区间弹层一起删掉 —— 留着 UI 却没有入口,
+       下一个人会以为它还在服役。服务端 /api/official/can-publish 仍在,
+       「我发布的」入口(上面的 oe-manage-link)不受影响,发布者仍要看自己发过什么。 -->
+</view>
+</view>

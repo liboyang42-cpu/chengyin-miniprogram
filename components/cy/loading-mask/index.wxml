@@ -1,0 +1,7 @@
+<view class="lm {{entered ? 'lm--in' : ''}} {{reducedMotion ? 'lm--reduced-motion' : ''}}" wx:if="{{visible}}" catchtouchmove="noop"
+      aria-role="alert" aria-live="assertive" aria-busy="true" aria-label="{{title}}">
+  <view class="lm__card">
+    <view class="lm__spinner" aria-hidden="true"></view>
+    <text class="lm__text">{{title}}</text>
+  </view>
+</view>

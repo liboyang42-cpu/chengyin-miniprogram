@@ -1,0 +1,223 @@
+@import '../../../../style/merchant-light.wxss';
+@import '../design.wxss';
+.npc-hero {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  flex-direction: column;
+  gap: 23rpx;
+  margin-bottom: 8rpx;
+}
+.npc-persona-note {
+  margin-top: 15rpx;
+  padding: 0 8rpx;
+}
+.npc-preview {
+  width: 277rpx;
+  height: 277rpx;
+  border-radius: 46rpx; /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */
+  overflow: hidden;
+}
+.npc-preview--large {
+  width: 338rpx;
+  height: 338rpx;
+}
+.npc-preview image,
+.npc-canvas {
+  width: 100%;
+  height: 100%;
+}
+.npc-stage {
+  padding: 46rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 23rpx;
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: 46rpx; /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */
+}
+.npc-sources {
+  display: flex;
+  gap: 19rpx;
+  width: 100%;
+}
+.npc-sources > view {
+  flex: 1;
+  height: 85rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cy-color-bg-surface);
+  border-radius: 43rpx; /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */
+  font-size: 25rpx; /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */
+}
+.npc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15rpx;
+}
+.npc-tile {
+  aspect-ratio: 1;
+  border-radius: 23rpx; /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 4rpx solid transparent;
+}
+.npc-tile--selected {
+  border-color: var(--cy-color-action-primary-bg);
+}
+.npc-tile-canvas {
+  width: 100%;
+  height: 148rpx;
+}
+.npc-work {
+  position: fixed;
+  left: -1000px;
+  top: -1000px;
+  width: 384px;
+  height: 384px;
+}
+.npc-voice {
+  min-height: 680rpx;
+}
+.npc-voice-mode {
+  position: relative;
+  padding: var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: 28rpx; /* ds-ok: reference Voice Mode 大圆角卡片 */
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.npc-voice-mode__title {
+  display: block;
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+}
+.npc-voice-progress {
+  display: flex;
+  gap: var(--cy-space-1);
+  margin: var(--cy-space-2) 0;
+}
+.npc-voice-progress__step {
+  height: 6rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-border-subtle);
+  flex: 1;
+}
+.npc-voice-progress__step--active { background: var(--cy-color-status-info); }
+.npc-voice-progress__step--done { background: var(--cy-color-status-success); }
+.npc-voice-stage {
+  position: relative;
+  height: 520rpx; /* ds-ok: reference Voice Mode 文字在圆圈上方的纵向比例 */
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+  overflow: hidden;
+}
+.npc-voice-prompt {
+  position: absolute;
+  z-index: 3;
+  top: var(--cy-space-3);
+  left: var(--cy-space-3);
+  right: var(--cy-space-3);
+  min-height: 150rpx;
+  color: var(--cy-color-text-primary);
+  font-size: 34rpx; /* ds-ok: 用户确认需要更大的居中逐句提示 */
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+}
+.npc-voice-ring,
+.npc-voice-orb {
+  position: absolute;
+  left: 50%;
+  top: 70%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.npc-voice-ring {
+  border: 2rpx solid var(--cy-color-border-default);
+  box-sizing: border-box;
+  opacity: .45;
+}
+.npc-voice-ring--outer { width: 430rpx; height: 430rpx; opacity: .2; } /* ds-ok: reference Voice Mode 双层圆环比例 */
+.npc-voice-ring--inner { width: 300rpx; height: 300rpx; }
+.npc-voice-orb {
+  width: 196rpx; /* ds-ok: reference Voice Mode 中央声纹比例 */
+  height: 196rpx;
+  background: var(--cy-color-bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid var(--cy-color-text-tertiary);
+  z-index: 2;
+}
+.npc-wave {
+  height: 64rpx; /* ds-ok: reference Voice UI 声纹几何 */
+  display: flex;
+  align-items: center;
+  gap: 5rpx; /* ds-ok: reference Voice UI 紧密声纹间距 */
+}
+.npc-wave view {
+  width: 5rpx; /* ds-ok: reference Voice UI 细声纹 */
+  height: 22rpx; /* ds-ok: reference Voice UI 声纹基线 */
+  border-radius: var(--cy-radius-pill);
+  background: currentColor;
+  transform-origin: center;
+  transition: transform var(--cy-motion-standard) var(--cy-ease-standard);
+}
+.npc-wave view:nth-child(2),
+.npc-wave view:nth-child(10) { height: 32rpx; }
+.npc-wave view:nth-child(3),
+.npc-wave view:nth-child(9) { height: 42rpx; }
+.npc-wave view:nth-child(4),
+.npc-wave view:nth-child(8) { height: 54rpx; }
+.npc-wave view:nth-child(5),
+.npc-wave view:nth-child(7) { height: 46rpx; }
+.npc-wave view:nth-child(6) { height: 62rpx; }
+.npc-voice-mode--listening .npc-wave view:nth-child(2n) { transform: scaleY(.52); }
+.npc-voice-mode--listening .npc-wave view:nth-child(3n) { transform: scaleY(.72); }
+.npc-voice-hold {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 100%;
+  max-width: none;
+  align-self: stretch;
+  height: 104rpx; /* ds-ok: reference Voice Mode 底部大按钮高度 */
+  margin-top: var(--cy-space-2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-text-primary);
+  color: var(--cy-color-text-inverse);
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  line-height: 104rpx;
+  text-align: center;
+}
+.npc-voice-hold::after { border: 0; }
+.npc-voice-hold--active { transform: scale(.98); }
+.npc-voice-hold[disabled] { opacity: .58; color: var(--cy-color-text-inverse); }
+.npc-voice-complete {
+  padding: var(--cy-space-4) var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface-subtle);
+  text-align: center;
+}
+.npc-voice-complete__title {
+  display: block;
+  margin-bottom: var(--cy-space-1);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+}
+/* ds-ok: native canvas needs a radius on its own surface. */
+.npc-canvas,.npc-preview image { border-radius:46rpx; } /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+.npc-tile-canvas { border-radius:23rpx; display:block; height:148rpx; } /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+.npc-option { display:flex; flex-direction:column; gap:6rpx; min-width:0; text-align:center; }
+.npc-tile { width:100%; height:156rpx; flex-shrink:0; }
+.npc-tile-name { font-size:21rpx;line-height:31rpx;color:var(--cy-color-text-tertiary); } /* ds-ok: Figma 商家定稿数值，原生截图已复核 */
+.npc-voice { min-height:680rpx; }

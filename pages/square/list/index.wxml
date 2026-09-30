@@ -1,0 +1,171 @@
+<view class="square theme-dark sq-page">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar
+    title="动态"
+    custom-back
+    bind:back="goBack"
+  />
+  <!-- 底层：帖文 Feed（始终在下面，抽屉收起后可见） -->
+  <scroll-view
+    scroll-y="{{true}}"
+    class="sq-feed-scroll"
+    style="height: {{pageH}}px; padding-top: 0;"
+    bindscroll="onFeedScroll"
+    bindscrolltolower="onReachBottom"
+    lower-threshold="240"
+    enhanced="{{true}}"
+    show-scrollbar="{{false}}">
+    <view class="sq-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <!-- 2026-08-07 用户裁决:广场帖文流不设大标题,顶部直接进内容(对齐 Live Campfire 参考) -->
+    <!-- A05：多场横滑并露出下一卡；单场自动铺满。没有真实头像时不伪造头像堆。 -->
+    <scroll-view class="sq-upcoming-track" scroll-x enhanced="{{true}}" show-scrollbar="{{false}}" wx:if="{{upcomingCards.length}}">
+      <view class="sq-upcoming-row">
+        <view class="sq-upcoming-card {{upcomingCards.length === 1 ? 'is-single' : ''}}" wx:for="{{upcomingCards}}" wx:key="id"
+          data-id="{{item.id}}" bindtap="goUpcoming" aria-role="button" aria-label="{{item.title}}，{{item.countdown}}" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="up-head flex-ac">
+            <text class="up-kicker">即将开始</text>
+            <text class="up-count">{{item.countdown}}</text>
+          </view>
+          <view class="up-title ep1">{{item.title}}</view>
+          <view class="up-sub ep1" wx:if="{{item.sub}}">{{item.sub}}</view>
+          <view class="up-foot" wx:if="{{item.avatars.length}}">
+            <view class="up-avatar-stack">
+              <image class="up-avatar" wx:for="{{item.avatars}}" wx:for-item="avatar" wx:key="*this" src="{{avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+              <text class="up-avatar-more" wx:if="{{item.avatarOverflow > 0}}">+{{item.avatarOverflow}}</text>
+            </view>
+            <text class="up-people">参与者</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="fabu post compose">
+      <view class="compose-row">
+        <image class="compose-avatar" src="{{avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+        <view class="compose-col">
+        <text class="compose-title">{{nickname || '城瘾玩家'}}</text>
+      <textarea
+        class="compose-input post-text"
+        placeholder-class="compose-ph"
+        maxlength="8000"
+        value="{{valCont}}"
+        bindinput="bindTextAreaBlur"
+        bindconfirm="submitFormData"
+        confirm-type="send"
+        aria-label="帖文内容"
+        auto-height
+        placeholder="有什么新鲜好玩的分享吗？" />
+
+      <view class="compose-body">
+          <view class="pic-list flex " wx:if="{{picList.length>0}}">
+            <view class="li" wx:for="{{ picList }}" wx:key="*this">
+              <image lazy-load="true" src="{{item}}" mode="widthFix" />
+              <view class="close">
+                <image lazy-load="true" catchtap="delPic" aria-role="button" aria-label="删除这张图片" data-inx="{{index}}" src="/pages/square/images/close3.png" mode="widthFix"  hover-class="cy-pressed" hover-stay-time="80"/>
+              </view>
+            </view>
+          </view>
+
+          <view class="file-list address" wx:if="{{address!=''}}">
+            <view class="li flex-cb">
+              <view class="icon">
+                <image lazy-load="true" src="/pages/square/images/icon_map5.png" mode="widthFix" />
+              </view>
+              <view class="tit ep1 flex-a compose-chip-txt">{{address}}</view>
+              <view class="close">
+                <image lazy-load="true" catchtap="clearLocation" aria-role="button" aria-label="清除已选地点" src="/pages/square/images/close2.png" mode="widthFix"  hover-class="cy-pressed" hover-stay-time="80"/>
+              </view>
+            </view>
+          </view>
+
+          <view class="file-list activity" wx:if="{{selectedActivity}}">
+            <view class="li flex-cb">
+              <view class="tit ep1 flex-a compose-chip-txt"><cy-icon class="activity-complete-icon" name="star" size="24" /><text>{{selectedActivity.name}} · 完成 {{selectedActivity.doneCount}}/{{selectedActivity.total}}</text></view>
+              <view class="close">
+                <image lazy-load="true" catchtap="clearActivity" aria-role="button" aria-label="清除已选活动" src="/pages/square/images/close2.png" mode="widthFix"  hover-class="cy-pressed" hover-stay-time="80"/>
+              </view>
+            </view>
+          </view>
+
+          <cy-inline-error wx:if="{{submitError}}" kind="{{submitErrorKind}}" title="{{submitError}}" sub="草稿与已选内容仍在这里" action="重试" bind:action="retrySubmit" />
+          <view class="compose-toolbar flex-cb">
+            <view class="btns flex-ac">
+              <button bindtap="uploadPic" aria-role="button" aria-label="上传图片">
+                <cy-icon name="image" size="44" />
+              </button>
+              <button bindtap="choosePoiForNode" aria-role="button" aria-label="为该节点选点">
+                <cy-icon name="pin" size="44" />
+              </button>
+              <button bindtap="openActivityPicker" aria-role="button" aria-label="选择活动">
+                <cy-icon name="flag" size="44" />
+              </button>
+            </view>
+            <!-- UI-15(2026-09-18 用户定):行内发布区去掉「扩大」icon 和「发布」两个字,
+                 发布动作收成一颗 88rpx 图标钮(arrow-right = 仓内既有「发送」语义 glyph,
+                 见 pages/merchant/reviews 的 icon-send;热区/加载/禁用语义不变)。 -->
+            <view class="compose-submit {{canSubmit && !submitting ? '' : 'compose-submit--off'}}"
+                  bindtap="submitFormData" aria-role="button"
+                  aria-label="{{submitting ? '正在发布帖文' : '发布帖文'}}"
+                  aria-disabled="{{!canSubmit || submitting}}"
+                  hover-class="{{canSubmit && !submitting ? 'cy-pressed' : ''}}" hover-stay-time="80">
+              <cy-icon wx:if="{{submitting}}" name="clock" size="44" />
+              <cy-icon wx:else name="arrow-right" size="44" />
+            </view>
+          </view>
+      </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="sq-refresh-status" wx:if="{{isRefreshing}}" aria-live="polite">正在刷新动态…</view>
+
+    <view class="list">
+      <cy-post-card wx:for="{{list}}" wx:key="id" post="{{item}}" index="{{index}}" user-id="{{userId}}"
+        show-follow show-more show-share show-favorite interactive-actions interactive-user interactive-media
+        accessibility-label="查看{{item.memberNickname || '城瘾玩家'}}的动态"
+        data-index="{{index}}" data-type="1" data-id="{{item.memberId}}"
+        bind:detail="jumpDetail" bind:user="onAvatarTap" bind:follow="followClick" bind:more="showAction"
+        bind:preview="previewImage" bind:like="lickClick" bind:favorite="favoriteClick" bind:comment="jumpDetail2"
+        bind:playdetail="goPlayTopicDetail" bind:remix="goRemixTemplate" bind:play="goPlay">
+      </cy-post-card>
+    </view>
+
+    <view class="sq-load-more-status" wx:if="{{isLoadingMore && list.length}}" aria-live="polite">正在加载更多动态…</view>
+    <cy-inline-error class="sq-load-more-error" wx:if="{{loadMoreError}}" kind="network" title="更多动态没有加载出来" sub="{{loadMoreError}}" action="重试" bind:action="retryLoadMore" />
+
+    <!-- 首屏加载铺骨架(2026-08-03「loading 全骨架」裁决):在此之前这里是一片纯黑,
+         A07 拍到的「广场加载态」就是那一屏什么都没有的黑。-->
+    <cy-skeleton class="fill-slot" wx:if="{{listLoading && !list.length}}" type="post-card" count="{{3}}" />
+    <cy-error class="fill-slot" wx:if="{{loadError && !list.length}}" fill="{{true}}" size="lg" title="加载失败" sub="网络开了点小差，请稍后再试" bindretry="onLoadRetry" auto-back />
+    <cy-empty class="fill-slot" wx:if="{{nodata && !list.length && !loadError}}" fill="{{true}}" size="lg" icon="/images/no_data.svg" title="广场还很安静" sub="成为第一个发布创意路线的人吧" />
+  </scroll-view>
+
+  <activity-picker show="{{activityPickerShow}}" bind:select="onActivitySelect" bind:close="onActivityPickerClose" />
+</view>
+
+<!-- H050/H051 帖文操作弹层(三合一:编辑 / 删除 / 举报,危险确认闸在组件内部)。
+     替换掉原来只有「举报」的自绘弹层 —— 它按 index 取行,能力少一半。 -->
+<cy-post-actions id="post-actions" show="{{postActionShow}}" owner="{{currentActionOwner}}"
+                 post-id="{{currentActionId}}" summary="{{currentActionSummary}}" bind:select="onPostAction" bind:close="closePostActions" />
+
+<!-- 新建帖文弹窗。⚠️ 必须挂在**页面顶层**,和其他弹层平级 ——
+     一开始误插进了上面那个自绘举报层里,那一层为假时它永远不渲染,
+     而且不报错、控制台零 error,只是点了没反应(2026-09-03 截图才看出来)。
+     挂这一层,压暗露出的底层就是真的广场列表(用户定:「新建帖文是弹窗,草稿就是弹窗叠弹窗」);
+     草稿那层长在组件内部,叠在它上面。
+     prefill:把行内 composer 已经写的半截带进去 —— 不带就是静默丢字。
+     edit-post:非空即编辑态(H050),正文/关联来自被点的那一行。 -->
+<cy-post-compose show="{{composeShow}}" prefill="{{composePrefill}}" edit-post="{{composeEdit}}"
+                 bind:close="onComposeClose" bind:published="onComposePublished" />
+
+<!-- T5 胶囊:点帖文头像时贴着头像开(Figma 339:740)。挂在页面顶层 ——
+     它是 fixed 层,塞进帖文卡里会被卡片的 overflow 裁掉。 -->
+<cy-popover show="{{avatarPopShow}}" anchor="{{avatarPopAnchor}}" items="{{avatarPopItems}}"
+            bind:pick="onAvatarPopPick" bind:close="onAvatarPopClose" />
+
+<!-- 发帖结果面板。发帖不跳页,收掉就留在广场;页内 cy-inline-error 仍是重试出口。 -->
+<cy-result-sheet show="{{resultSheet.show}}" kind="{{resultSheet.kind}}" title="{{resultSheet.title}}"
+  sub="{{resultSheet.sub}}" meta="{{resultSheet.meta}}" pill="{{resultSheet.pill}}" why="{{resultSheet.why}}"
+  duration="{{resultSheet.duration}}" bind:close="onResultSheetClose" />

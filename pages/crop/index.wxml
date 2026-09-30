@@ -1,0 +1,64 @@
+<!-- 裁剪页:顶部标题栏 / 中间黑底裁剪区 / 底部 Cancel·Choose(参考 Threads 选图裁剪) -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="crop">
+  <view class="crop__nav" style="padding-top:{{navPadTop}}px;">
+    <view class="crop__nav-inner" style="height:{{navContentH}}px;">
+      <text class="crop__title">{{title}}</text>
+    </view>
+  </view>
+
+  <!-- 只有 missing 才换成浅色面:waiting 留在取景台底色上,否则正常流程会从浅色面跳回黑台,
+       等于把刚修掉的那次闪烁换了个颜色再闪一遍 -->
+  <view class="crop__stage {{sourceState === 'missing' || sourceState === 'error' ? 'crop__stage--empty' : ''}}"
+        catchtouchstart="onTouchStart"
+        catchtouchmove="onTouchMove"
+        catchtouchend="onTouchEnd"
+        catchtouchcancel="onTouchEnd">
+    <view class="crop__missing" wx:if="{{sourceState === 'missing'}}">
+      <cy-empty fill size="lg" kind="missing-param" title="没有可裁剪的图片" sub="请返回上一页重新选择图片后再裁剪。" />
+    </view>
+    <view class="crop__missing" wx:elif="{{sourceState === 'error'}}">
+      <cy-error fill size="lg" title="图片没能打开" sub="{{sourceError}}" retry="重试" bind:retry="onRetrySource" auto-back />
+    </view>
+    <!-- waiting 明确为加载态，不使用裸文字占位，也不冒充无源空态。 -->
+    <view class="crop__waiting"
+          wx:elif="{{sourceState === 'waiting'}}"
+          aria-role="status"
+          aria-live="polite"
+          aria-label="正在准备要裁剪的图片">
+      <cy-empty fill size="lg" kind="loading" title="正在准备图片" sub="读取完成后即可拖动和缩放" />
+    </view>
+    <!-- 框外纯黑:图片超出部分直接裁掉,不做半透明蒙层(跟参考图一致)。
+         居中交给 CSS flex,不用 JS 算 top —— 舞台真实高度只有布局知道,JS 再算一遍必然对不齐 -->
+    <view wx:else class="crop__frame"
+          style="width:{{frameW}}px;height:{{frameH}}px;">
+      <image wx:if="{{ready}}"
+             class="crop__img"
+             src="{{src}}"
+             mode="scaleToFill"
+             style="width:{{imgW}}px;height:{{imgH}}px;transform:translate3d(calc(-50% + {{tx}}px), calc(-50% + {{ty}}px), 0) scale({{scale}});" />
+    </view>
+    <view wx:if="{{exportError}}" class="crop__export-error">
+      <cy-inline-error kind="error" title="裁剪没有完成" sub="{{exportError}}" action="使用原图" bind:action="onUseOriginal" />
+    </view>
+  </view>
+
+  <view class="crop__bar {{sourceState === 'missing' ? 'crop__bar--missing' : ''}}" style="height:{{bottomBarH}}px;">
+    <view class="crop__action {{sourceState === 'missing' ? 'crop__action--return' : ''}}" hover-class="crop__action--press" bindtap="onCancel" aria-role="button" aria-label="{{sourceState === 'missing' ? '返回上一页' : '取消'}}">
+      <text>{{sourceState === 'missing' ? '返回上一页' : '取消'}}</text>
+    </view>
+    <view wx:if="{{sourceState === 'ready'}}" class="crop__action crop__action--confirm {{busy ? 'crop__action--busy' : ''}}" hover-class="crop__action--press" bindtap="onConfirm">
+      <text>{{busy ? '处理中' : (exportError ? '重试裁剪' : '选取')}}</text>
+    </view>
+    <view wx:elif="{{sourceState === 'error'}}" class="crop__action crop__action--confirm" hover-class="crop__action--press" bindtap="onUseOriginal" aria-role="button" aria-label="使用未经裁剪的原图">
+      <text>使用原图</text>
+    </view>
+  </view>
+
+  <!-- 离屏画布:仅用于导出,不可见但必须在渲染树里(display:none 会拿不到节点) -->
+  <canvas id="cropCanvas" type="2d" class="crop__canvas"></canvas>
+</view>
+</view>

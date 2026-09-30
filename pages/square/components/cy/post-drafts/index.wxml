@@ -1,0 +1,76 @@
+<!-- cy-post-drafts · 草稿弹层(Figma 379:923)。两个 state:Filled / Loading;
+     稿上没画的 Empty 走 cy-empty(一条草稿都没有时不能是一块空白面板)。
+     面板外观(玻璃底 / 遮罩 / 顶部圆角)全部由 cy-sheet 出,这里只画内容。 -->
+<!-- 草稿是 **T4 上层·新推入**(弹层四型真源 25:6869):全屏叠在 T3 新建帖文之上。
+     · 高度/位置:sheetStyle 由调用方给 —— 它比 T3 下层再低 22pt(稿 66 → 88),
+       且必须让开微信胶囊,只有调用方拿得到胶囊坐标。
+     · 底色:暂**不动**,仍吃 cy-sheet 的玻璃底。真源 ⑥ 二轮修正要求 T2/T3/T4 一律实色
+       #4D4D4D,但那是**整套设计系统**的改动(全站每个 T2/T3 都要跟),
+       只把这两个弹窗改浅会与其余所有弹层不一致 —— 比不改更糟。留作单独一轮。
+     ⚠️ 2026-09-03 这块判错过两轮:先按 379:922 样张量成 69.4% 做了 70vh 半屏,
+        又拿「压暗后仍露在上面」当理由否掉全屏。真源是四型板,不是那张样张 ——
+        T4 的「露出下层」靠的是**下层推后 + dim**,不是把上层做矮。
+     ⚠️ 不用 variant="full":那档自带「返回/标题/✕」顶栏,与本组件自绘的顶栏打架。 -->
+<cy-sheet show="{{show}}" bind:close="onClose" style="{{sheetStyle}}">
+  <view class="pd">
+    <!-- Header:左「取消」+ 居中标题 + 右占位。两侧都 flex:1 ⇒ 标题真居中,
+         不靠人肉数一个和「取消」等宽的空 view。 -->
+    <!-- 顶栏照弹层四型真源(2026-09-01 修订「关闭:✕ 只给全屏」):
+         标题左对齐大字 30px,✕ 固定右上角、圆形 40pt。
+         ⚠️ 原来这里是「取消」文字 + 居中标题 —— 那是 T1 底部弹窗的长相,而草稿是 T4 全屏叠。
+            真源写死「凡是关闭这个动作一律用圆形 ✕,不用文字」。 -->
+    <view class="pd-head">
+      <view class="pd-head__title">草稿</view>
+      <view class="pd-close" bindtap="onClose"
+            aria-role="button" aria-label="关闭草稿列表"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="close-sm" size="44" />
+      </view>
+    </view>
+    <view class="pd-hr"></view>
+
+    <!-- Loading:骨架与真行同一套几何(头像 80rpx + 内容列从 128rpx 起),加载完不横向跳。 -->
+    <view wx:if="{{loading}}" class="pd-skeleton"
+          aria-role="status" aria-live="polite" aria-label="正在读取草稿">
+      <view class="pd-row" wx:for="{{[1, 2, 3]}}" wx:key="*this">
+        <view class="pd-skeleton-bar pd-skeleton-avatar"></view>
+        <view class="pd-col">
+          <view class="pd-skeleton-bar pd-skeleton-line pd-skeleton-line--name"></view>
+          <view class="pd-skeleton-bar pd-skeleton-line pd-skeleton-line--sum1"></view>
+          <view class="pd-skeleton-bar pd-skeleton-line pd-skeleton-line--sum2"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Filled -->
+    <view wx:elif="{{drafts.length}}" class="pd-list">
+      <view class="pd-row" wx:for="{{drafts}}" wx:key="key" data-index="{{index}}"
+            bindtap="onSelect" aria-role="button" aria-label="继续编辑这条草稿"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <view class="pd-avatar"><cy-avatar size="80" src="{{item.avatar}}" name="{{item.nickname}}" /></view>
+        <view class="pd-col">
+          <view class="pd-name-row">
+            <view class="pd-name">{{item.nickname}}</view>
+            <view class="pd-date">{{item.date}}</view>
+          </view>
+          <view class="pd-sum">{{item.summary}}</view>
+        </view>
+        <!-- catchtap:删除不能顺带把整行的「继续编辑」也点了。 -->
+        <view class="pd-del" data-index="{{index}}" catchtap="onDelete"
+              aria-role="button" aria-label="删除这条草稿"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <cy-icon name="trash" size="40" />
+        </view>
+      </view>
+      <view class="pd-count">只有 {{drafts.length || 0}} 条草稿</view>
+    </view>
+
+    <!-- Empty:稿上没有这一态,但一条草稿都没有时面板不能是一片空白。 -->
+    <cy-empty wx:else kind="empty" title="还没有草稿"
+              sub="写到一半退出时会自动存成草稿，回到这里就能接着写。" />
+  </view>
+</cy-sheet>
+
+<!-- 删除的危险确认闸长在组件内部(2026-09-02 Q1=A 拍板):接入页只监听 bind:delete,
+     拿到事件时用户**已经**过完确认弹窗,页面不必也不应再自建一道闸。 -->
+<cy-danger-confirm id="pd-danger" bind:confirm="onDeleteConfirmed" />

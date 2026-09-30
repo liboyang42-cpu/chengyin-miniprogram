@@ -1,0 +1,61 @@
+<wxs src="../../../../../utils/wxs/money.wxs" module="money" />
+<!-- 选场次 / 选票种(稿 11 240:401 · 11a 240:446)。T1 = cy-sheet 默认 bottom 半屏。
+     多日先选日期,单日跳过日期直接写明是哪天。 -->
+<cy-sheet show="{{show}}" title="{{singleDay ? '选择票种' : '选择场次'}}" footer="{{true}}" bind:close="onClose">
+  <view class="sp">
+    <text class="sp-single" wx:if="{{singleDay && singleDayText}}">{{singleDayText}}</text>
+
+    <block wx:if="{{!singleDay}}">
+      <view class="sp-h">日期</view>
+      <scroll-view class="sp-scroll" scroll-x enable-flex>
+        <view class="sp-day {{pickedActivityId === item.id ? 'is-on' : ''}}"
+              wx:for="{{days}}" wx:key="id" data-id="{{item.id}}" bindtap="onPickDay"
+              aria-role="button" aria-label="选择 {{item.week}} {{item.day}}"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <text class="sp-day-w" wx:if="{{item.week}}">{{item.week}}</text>
+          <text class="sp-day-d">{{item.day}}</text>
+        </view>
+      </scroll-view>
+    </block>
+
+    <view class="sp-h">票种</view>
+    <cy-skeleton wx:if="{{ticketsState === 'loading'}}" type="list" count="{{2}}" />
+    <!-- M1-3 门卡:不是读不出来,是这一场只对俱乐部成员开放 —— 重试无意义,出口是加入俱乐部 -->
+    <cy-empty wx:elif="{{ticketsState === 'gate'}}" kind="empty" size="lg"
+              title="{{ticketsError}}" sub="加入俱乐部后即可购买这场活动的票"
+              cta="{{gateClubId ? '去加入俱乐部' : ''}}" bind:cta="goGateClub" />
+    <!-- 读不到 ≠ 这场没票可买:分开说,否则玩家会以为卖光了 -->
+    <cy-error wx:elif="{{ticketsState === 'error'}}" title="票种没读出来"
+              sub="{{ticketsError}}" retry="重试" bind:retry="retryTickets" />
+    <cy-empty wx:elif="{{ticketsState === 'empty'}}" kind="empty" size="lg"
+              title="这一场还没有放票" sub="{{singleDay ? '稍后再回来看一次，放票后会在这里列出可买的票种' : '换一个日期看看，或者晚点再来'}}" />
+    <cy-empty wx:elif="{{ticketsState === 'idle'}}" kind="empty" size="lg"
+              title="先选一个日期" sub="选好日期后这里会列出可买的票种" />
+    <view wx:else>
+      <view class="sp-ticket {{pickedTicketId === item.id ? 'is-on' : ''}} {{item.remaining === 0 ? 'is-off' : ''}}"
+            wx:for="{{tickets}}" wx:key="id" data-id="{{item.id}}" bindtap="onPickTicket"
+            aria-role="button" aria-label="选择 {{item.name}}" aria-disabled="{{item.remaining === 0}}"
+            hover-class="{{item.remaining === 0 ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        <view class="sp-ticket-main">
+          <text class="sp-ticket-n">{{item.name}}</text>
+          <text class="sp-ticket-r" wx:if="{{item.rule}}">{{item.rule}}</text>
+        </view>
+        <view class="sp-ticket-side">
+          <text class="sp-ticket-p" wx:if="{{item.price != null}}">{{money.amount(item.price)}}</text>
+          <!-- 稿上没有「余 N 张」这一行,只在真的卖完时说一句 —— 那是必须说的状态 -->
+          <text class="sp-ticket-left" wx:if="{{item.remaining === 0}}">已售罄</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view slot="footer" class="sp-foot">
+    <view class="sp-total" wx:if="{{totalText}}">
+      <text class="sp-total-n">共 1 张</text>
+      <text class="sp-total-v">{{totalText}}</text>
+    </view>
+    <view class="sp-cta">
+      <cy-btn variant="primary" style="width:100%" disabled="{{!pickedTicketId}}" bindtap="onNext">下一步 · 去结算</cy-btn>
+    </view>
+  </view>
+</cy-sheet>

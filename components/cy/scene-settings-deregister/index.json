@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-agreement-sheet": "/components/cy/agreement-sheet/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index"
+  }
+}

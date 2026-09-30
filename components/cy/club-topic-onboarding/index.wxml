@@ -1,0 +1,81 @@
+<cy-scene-sheet
+  wx:if="{{show}}"
+  show="{{true}}"
+  variant="half"
+  title="承接商家"
+  mask-closable="{{true}}"
+  bind:close="onClose"
+>
+  <view class="cto">
+    <cy-skeleton wx:if="{{loadState === 'loading'}}" type="form-section" count="4" loading-label="正在读取招商信息" />
+    <cy-error wx:elif="{{loadState === 'error'}}" title="招商信息没能打开" sub="{{loadErrorText}}" retry="重试" bind:retry="onRetry" />
+    <cy-empty wx:elif="{{loadState === 'empty'}}" kind="empty" title="还没有可招商的{{mode === 'chapter' ? '章节' : '节点'}}" sub="回到编辑主题页配置后再来招商" />
+
+    <!-- ============ mode = node:城市定向按节点招商(J3-A) ============ -->
+    <block wx:elif="{{loadState === 'ready' && mode === 'node'}}">
+      <text class="cto__hint">先选要招商的节点，再去招商。一个节点只能有一家承接。</text>
+      <text class="cto__summary">已招 {{doneCount}}/{{totalCount}} 站 · {{pendingCount || 0}} 家待确认</text>
+      <view class="cto__progress"><view class="cto__progress-fill" style="width:{{progressPct || 0}}%;"></view></view>
+
+      <block wx:for="{{sections}}" wx:key="chapterName" wx:for-item="section">
+        <view class="cto__section-head">
+          <text class="cto__section-title">{{section.chapterName}}</text>
+          <text class="cto__section-meta">{{section.stationCount}} 站 · 已招 {{section.wonCount}}</text>
+        </view>
+        <block wx:for="{{section.nodes}}" wx:key="id" wx:for-item="node" wx:for-index="ni">
+          <view class="cto__node {{node.state === 'open' ? 'cto__node--open' : ''}}">
+            <view class="cto__node-seq">{{node.seq || ni + 1}}</view>
+            <view class="cto__node-text">
+              <text class="cto__title">{{node.name}}</text>
+              <text class="cto__meta">{{node.sub}}</text>
+            </view>
+            <view class="cto__node-trail" wx:if="{{node.state !== 'open'}}">
+              <text class="cto__title">{{node.merchantName}}</text>
+              <text class="cto__status cto__status--{{node.state === 'won' ? 'success' : 'warning'}}">{{node.statusLabel}}</text>
+            </view>
+            <view wx:else class="cto__cta" data-id="{{node.id}}" bindtap="onInviteNode" aria-role="button" aria-label="去招商 {{node.name}}" hover-class="cy-pressed" hover-stay-time="80">去招商</view>
+          </view>
+        </block>
+      </block>
+
+      <view class="cto__pool-btn" bindtap="onViewPool" aria-role="button" aria-label="查看候选池" hover-class="cy-pressed" hover-stay-time="80">查看候选池</view>
+    </block>
+
+    <!-- ============ mode = chapter:自由探索按章节招商(J3-B) ============ -->
+    <block wx:elif="{{loadState === 'ready' && mode === 'chapter'}}">
+      <text class="cto__chapter-heading">自由探索 · 按章节招商</text>
+      <text class="cto__hint">{{introCopy}}</text>
+
+      <block wx:for="{{chapters}}" wx:key="id" wx:for-item="chapter">
+        <view class="cto__chapter-card">
+          <view class="cto__chapter-head">
+            <text class="cto__chapter-name">{{chapter.name}}</text>
+            <text class="cto__chip cto__chip--{{chapter.recruiting ? 'success' : 'default'}}">{{chapter.statusLabel}}</text>
+          </view>
+          <text class="cto__meta">{{chapter.category}} · 需可容纳 {{chapter.capacityText}}</text>
+
+          <block wx:if="{{chapter.recruiting}}">
+            <view class="cto__tags">
+              <text class="cto__tag" wx:for="{{chapter.tags}}" wx:key="*this" wx:for-item="tag">{{tag}}</text>
+            </view>
+            <text class="cto__approved">已通过 {{chapter.approvedCount}} / 上限 {{chapter.capLimit || 0}} 家</text>
+            <text class="cto__meta">{{chapter.thresholdText}}</text>
+            <view class="cto__hairline"></view>
+            <view class="cto__chapter-foot">
+              <text class="cto__link" data-id="{{chapter.id}}" bindtap="onEditConditions" aria-role="button" aria-label="设置招募条件" hover-class="cy-pressed" hover-stay-time="80">设置招募条件</text>
+              <view class="cto__pill" data-id="{{chapter.id}}" bindtap="onViewApplications" aria-role="button" aria-label="查看申请 {{chapter.pendingCount}}" hover-class="cy-pressed" hover-stay-time="80">查看申请 {{chapter.pendingCount}}</view>
+            </view>
+          </block>
+          <block wx:else>
+            <text class="cto__meta">开放后，同品类商家可申请承接本章节</text>
+            <view class="cto__actions-end">
+              <view class="cto__outline-btn" data-id="{{chapter.id}}" bindtap="onOpenRecruiting" aria-role="button" aria-label="开放招募" hover-class="cy-pressed" hover-stay-time="80">开放招募</view>
+            </view>
+          </block>
+        </view>
+      </block>
+
+      <text class="cto__footnote">商家申请通过后，还要各自提交点位并过点位审核，才会出现在玩家路线上。</text>
+    </block>
+  </view>
+</cy-scene-sheet>

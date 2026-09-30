@@ -1,0 +1,2 @@
+/* cy-danger-confirm 本身不画东西:确认/失败走 cy-modal,结果回执走 cy-result-sheet。 */
+:host { display: block; }

@@ -1,0 +1,73 @@
+@import '../../style/merchant-light.wxss';
+
+/* 根因2(总控排查):cy-empty 的 fill 变体优先用 flex:1 吃满父容器剩余空间,
+   前提是**从 page 根到组件的整条**父容器链都是 flex column 且有确定高度,断一层就吃不到。
+   ⚠️ 上一轮只补到 .coupon-page/.david 两层、漏了 page 根和各层的 min-height:0,
+   总控串行复拍实测仍未居中 —— 这次按统一配方把整条链补齐。 */
+page{ display: flex; flex-direction: column; min-height: 100vh; background: var(--cy-bg-page); }
+
+.coupon-page {
+  box-sizing: border-box;
+  padding: 8rpx 0 calc(140rpx + env(safe-area-inset-bottom)); /* ds-ok: 140rpx 是给底部固定新建按钮(cy-footer-bar)预留的避让高度,不是留白间距 */
+  background: var(--cy-bg-page);
+  display: flex;
+  flex-direction: column;
+  /* 高度改由 page 根的 100vh 经 flex:1 下发;不再自带 min-height:100vh
+     (它和作为 flex 项所需的 min-height:0 互相打架) */
+  flex: 1;
+  min-height: 0;
+}
+
+
+
+
+.david{width: auto;overflow: hidden; margin: 0 var(--cy-page-x); color: var(--cy-text-title); flex: 1; min-height: 0; display: flex; flex-direction: column;}
+
+/* QA 复核(根因2 实测坑):cy-empty 是 isolated 组件,:host 自带 display:block,优先级
+   (0,1,0)比这里的选择器高,四件套必须带 !important 才穿得进宿主节点。
+   .fill-slot 与裸标签两条并存:标签选择器本批实测命中过宿主,类选择器按总控统一配方补上,
+   两条同值不冲突(本轮禁开 DevTools,无法逐条实测,故保留冗余而不是二选一)。 */
+.fill-slot,
+cy-empty,
+cy-error {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+.david_tkb_li{ width: 100%; overflow: hidden; position: relative; margin-bottom: var(--cy-space-2-5); min-height: 204rpx; background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); box-shadow: none;}
+.david_tkb_li image.d_bgtu{display: none;}
+.david_tkb_li_con{ width: 100%; overflow: hidden; position: relative; padding: 0 var(--cy-space-3) var(--cy-space-3); box-sizing: border-box;}
+/* 卡头改上下两行:券名独占整行、最多两行,有效期胶囊落到下一行。原来左右并排时
+   秒级有效期胶囊 flex-shrink:0 把券名挤成「城市运…」(2026-09-16 FILLED/21 实拍)。 */
+.david_tkb_li_con_top{ width: 100%; min-height: 72rpx; display: flex; flex-direction: column; align-items: flex-start; gap: var(--cy-space-1); padding-top: var(--cy-space-3); box-sizing: border-box;}
+.david_tkb_li_con_top_tit{ width: 100%; font-size: var(--cy-font-title); font-weight: bold; color: var(--cy-text-title); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; word-break: break-all;}
+.david_tkb_li_con_top_time{ max-width: 100%; min-height: 40rpx; line-height: 40rpx; background: var(--cy-bg-card-2); padding: 0 var(--cy-legacy-10); font-size: var(--cy-font-caption); color: var(--cy-text-title); border-radius: var(--cy-radius-pill);}
+/* 状态胶囊:已失效/已停发用 danger-soft + danger 前景(显式声明,不用继承)。 */
+.david_tkb_li_con_top_status{ max-width: 100%; min-height: 40rpx; line-height: 40rpx; background: var(--cy-bg-card-2); padding: 0 var(--cy-legacy-10); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); border-radius: var(--cy-radius-pill);}
+.david_tkb_li_con_top_status--danger{ background: var(--cy-danger-soft); color: var(--cy-danger);}
+.david_tkb_li_con_ly{ display: flex; align-items: center; gap: var(--cy-space-2); padding: var(--cy-space-2-5); overflow: hidden; border-radius: var(--cy-radius-md);}
+.david_tkb_li_con_ly_left{ min-width: 0; flex: 1;}
+.david_tkb_li_con_ly_left_sm{ font-size: var(--cy-font-label); font-weight: bold;white-space:nowrap;  overflow: hidden;  text-overflow: ellipsis; color: var(--cy-text-body);}
+.david_tkb_li_con_ly_right{ width: 160rpx; flex-shrink: 0; overflow: hidden;}
+.david_tkb_li_con_ly_right_txt{ width: 100%; text-align: center; font-size: var(--cy-font-body); margin-bottom: var(--cy-legacy-10);  height: 38rpx; color: var(--cy-text-title);}
+.david_tkb_li_con_ly_right_but{ width: 100%; height: 52rpx; line-height: 52rpx; font-size: var(--cy-font-body); font-weight: 700; background: var(--cy-btn-solid-bg); border-radius: var(--cy-radius-sm); text-align: center; color: var(--cy-btn-solid-fg);}
+.david_tkb_li_con_ly_right_kcs{ height: 52rpx; line-height: 52rpx; font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title);text-align: right; padding-top: var(--cy-legacy-10);}
+.david_tkb_li_con_ly_right_kcs text{ margin-right: var(--cy-legacy-10);}
+
+.hong { color: var(--cy-danger);}
+/* 日期胶囊底换成浅色软底后必须显式声明前景,继承 .hong 的 --cy-danger 在 danger-soft 浅粉底上
+   对比度不达标(同 subpackageMember/signup 曾修过的 P1-5 问题,见 wt3b-visual-semantics-contract.test.js)。 */
+.hong .david_tkb_li_con_top_time{ background: var(--cy-danger-soft); color: var(--cy-danger);}
+.hong .david_tkb_li_con_ly_right_but{ background: var(--cy-danger);}
+
+.coupon-detail { display: flex; flex-direction: column; gap: var(--cy-space-3); color: var(--cy-text-title); }
+.coupon-detail-heading { display: flex; align-items: center; gap: var(--cy-space-2); }
+.coupon-detail-name { flex: 1; min-width: 0; font-size: var(--cy-font-title); font-weight: 700; word-break: break-all; }
+.coupon-detail-type, .coupon-detail-label { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.coupon-detail-description { font-size: var(--cy-font-body); line-height: var(--cy-leading-normal); white-space: pre-wrap; word-break: break-all; }
+.coupon-detail-validity { display: flex; flex-direction: column; gap: var(--cy-space-1); font-size: var(--cy-font-body); }
+.coupon-batch-stats { padding: var(--cy-space-3); display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--cy-space-2); border-radius: var(--cy-radius-md); color: var(--cy-text-body); background: var(--cy-bg-card-2); font-size: var(--cy-font-label); }
+.coupon-batch-label, .coupon-batch-note, .tkbox_stop_hint { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal); }
+.coupon-batch-code { color: var(--cy-text-title); font-size: var(--cy-font-subtitle); word-break: break-all; }
+.tkbox_stop_hint { margin-top: var(--cy-space-2); }

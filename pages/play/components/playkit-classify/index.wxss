@@ -1,0 +1,94 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-classify · 分类题(设计规格:Figma 04 Blocks · 分类) */
+.cf { color: var(--ink); }
+.cf__prompt {
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  line-height: 1.4;
+}
+.cf__list {
+  width: 100%;
+  border-radius: var(--cy-radius-md);     /* 圆角 12 = 24rpx */
+  background: var(--soft);
+  overflow: hidden;
+}
+.cf__row { padding: 24rpx; box-sizing: border-box; text-align: left; }
+.cf__row + .cf__row { border-top: 1rpx solid var(--cy-color-border-subtle); }  /* 行间 0.5px */
+.cf__head {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.cf__label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  line-height: 1.4;
+}
+/* 行尾的对错小圆:只吃判定结果,不参与布局(判定前整个不渲染) */
+.cf__tail {
+  flex: none;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: var(--cy-type-micro);
+  font-weight: 800;
+}
+/* 只有整体通过才逐条变绿(那意味着每张都放对了);判错不逐张标红 */
+.cf__row.is-right .cf__tail { background: var(--ok); color: var(--cy-color-text-inverse); }
+/* 分段控件:灰色半透明槽 + 选中的深灰块(带轻投影,像被按下去的一块) */
+.cf__seg {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 18rpx;
+  padding: 6rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-subtle);
+}
+.cf__seg-b {
+  flex: 1;
+  min-width: 0;
+  padding: 14rpx 10rpx;
+  border-radius: var(--cy-radius-sm);
+  text-align: center;
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  color: var(--sub);
+  transition: background .16s ease, color .16s ease;
+}
+.cf__seg-b.is-on {
+  background: var(--cy-color-bg-raised);
+  color: var(--ink);
+  font-weight: 800;
+  box-shadow: 0 6rpx 16rpx rgba(0, 0, 0, .28);   /* ds-ok 选中块轻投影,照设计稿 */
+}
+.cf__seg-b.is-good {
+  background: var(--ok);
+  color: var(--cy-color-text-inverse);
+  font-weight: 800;
+}
+.cf__press { opacity: .88; }
+.g-btn--press { opacity: .88; }
+.cf--reduced .cf__seg-b { transition: none; }
+.cf__foot {
+  flex: none;
+  font-size: var(--cy-type-caption);
+  color: var(--sub);
+}
+.cf__fb {
+  flex: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 26rpx 30rpx;
+  border-radius: var(--cy-radius-md);
+  font-size: var(--cy-type-body);
+  line-height: 1.6;
+  text-align: left;
+}
+.cf__fb.is-ok { background: var(--cy-color-status-success-soft); color: var(--cy-color-status-success); }
+.cf__fb.is-no { background: var(--cy-color-status-danger-soft); color: var(--cy-color-status-danger); }

@@ -1,0 +1,30 @@
+<cy-play-stage id="cy-play-stage" skin="guess" show="{{show}}" back-label="退出"
+               limit-seconds="{{limitSeconds}}" tries="{{maxTries}}"
+               bind:back="onClose" bind:verdict="onVerdict">
+  <view class="g-col pp {{reducedMotion ? 'pp--reduced' : ''}}">
+    <view class="pp__q">{{title}}</view>
+
+    <view class="pp__grid">
+      <!-- 名字在图**外面**:压在色块里看起来就是「标题在图片里」。
+           色块只装图和判定角标,名字和说明落在页面底色上、左对齐。 -->
+      <view class="pp__poster pp__poster--deal {{item.state}}" wx:for="{{posters}}" wx:key="id"
+            style="animation-delay:{{index * 70}}ms"
+            data-i="{{index}}" bindtap="onPick"
+            aria-role="button" aria-label="{{item.name}}"
+            hover-class="pp__press" hover-stay-time="80">
+        <view class="pp__tile" style="background:{{item.tint}};color:{{item.ink}}">
+          <image class="pp__art" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+          <!-- 商家还没传图时画「这儿有一张图」,不假装某张图 ——
+               原型里那几张咖啡插画是 demo 内容,不是这个玩法的一部分。
+               铺一块纯色也不行:那读起来像加载失败。 -->
+          <view class="pp__ph" wx:else>
+            <view class="pp__ph-frame"><view class="pp__ph-sun"></view><view class="pp__ph-hill"></view></view>
+          </view>
+          <view class="pp__verdict" wx:if="{{item.mark}}">{{item.mark}}</view>
+        </view>
+        <view class="pp__nm">{{item.name}}</view>
+        <view class="pp__pz" wx:if="{{item.note && revealed}}">{{item.note}}</view>
+      </view>
+    </view>
+  </view>
+</cy-play-stage>

@@ -1,0 +1,4 @@
+<view class="rb rb-club" wx:if="{{role === 'club'}}">CLUB</view>
+<view class="rb rb-merchant" wx:elif="{{role === 'merchant'}}">商户</view>
+<view class="rb rb-official" wx:elif="{{role === 'official'}}">官方</view>
+<view class="rb rb-player" wx:elif="{{showPlayer}}">玩家</view>

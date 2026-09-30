@@ -1,0 +1,40 @@
+<view class="team-page theme-dark" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar back />
+  <cy-page-title title="加入队伍" safe-top="{{false}}" flush="{{true}}" />
+  <cy-skeleton wx:if="{{loading && !team}}" type="detail" count="{{1}}" loading-label="正在读取队伍邀请" />
+  <cy-state-shell wx:elif="{{error && !team}}" kind="{{errorKind}}"
+                  title="{{error}}" sub="{{errorSub}}" primary="{{errorAction}}"
+                  fill size="lg" bind:primary="onErrorAction" auto-back />
+  <block wx:else>
+    <view class="team-refresh-state">
+      <text wx:if="{{refreshing && team}}" class="team-sync" aria-role="status">正在核对邀请状态…</text>
+    </view>
+  <block wx:if="{{team}}">
+    <view class="team-head">
+      <view class="team-eyebrow">TEAM INVITATION</view>
+      <view class="team-title">{{team.title || '一起出发的玩家队伍'}}</view>
+      <view class="team-sub">你收到一份组队邀请。组队与否不影响活动举行，入队不会代替报名或购票。</view>
+    </view>
+    <view class="team-card">
+      <view class="team-meta">
+        <view class="team-meta-item"><text class="team-meta-value">{{team.joinedCount}} / {{team.maxMembers}}</text><text class="team-meta-key">当前成员</text></view>
+        <view class="team-meta-item"><text class="team-meta-value">邀请制</text><text class="team-meta-key">加入方式</text></view>
+      </view>
+      <view class="team-note">加入后会进入队伍群聊。退队与退票互不联动。</view>
+    </view>
+    <cy-inline-error wx:if="{{joinError}}" title="暂时无法加入" sub="{{joinError}}"
+                     action="重试加入" bind:action="join" />
+    <view class="team-actions">
+      <view wx:if="{{joined}}" class="team-action primary" bindtap="goDetail"
+            aria-role="button" aria-label="查看已加入的队伍" hover-class="team-action--pressed">查看队伍</view>
+      <view wx:elif="{{team.status == 0}}" class="team-action primary {{joining ? 'disabled' : ''}}" bindtap="join"
+            aria-role="button" aria-label="{{joining ? '正在加入队伍' : '接受邀请并加入'}}"
+            aria-busy="{{joining}}" aria-disabled="{{joining}}" hover-class="team-action--pressed">{{joining ? '加入中…' : '接受邀请并加入'}}</view>
+      <view wx:else class="team-action disabled secondary" aria-role="button" aria-disabled="true">{{team.status == 1 ? '队伍已满' : '队伍已结束'}}</view>
+    </view>
+  </block>
+  </block>
+</view>

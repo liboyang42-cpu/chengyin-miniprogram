@@ -1,0 +1,62 @@
+<!-- 藏品册(施工文档第四版 §3.3,样稿 artifact 9U7HFWDfbinjmt2tppvVGp):
+     物品从上往下掉、堆在地面线上;右上角 ✦ 聚成一团,再按一下落回去;点一件放大看。
+     堆是 canvas 画的(最近 40 件),分类筛选在服务端做。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <view class="oc-root">
+    <cy-nav-bar plain />
+    <cy-page-title title="藏品册" />
+    <view class="oc-bar">
+      <cy-tabs class="oc-chips" variant="chip" tabs="{{cats}}" active="{{filter}}" bind:change="onFilter" />
+      <view class="oc-gather {{ball ? 'is-on' : ''}}" wx:if="{{cards.length > 1}}" bindtap="onGather"
+            aria-role="button" aria-label="{{ball ? '让它们落下来' : '聚成一团'}}" hover-class="cy-pressed" hover-stay-time="80"></view>
+    </view>
+
+    <view class="oc-pile">
+      <canvas type="2d" id="ocPile" class="oc-pile__cv {{active ? 'is-hidden' : ''}}" bindtap="onTapPile" hover-class="oc-pile--press" hover-stay-time="80"
+              aria-role="img" aria-label="藏品堆，共 {{cards.length}} 件，点一件放大看"></canvas>
+      <!-- 失败 / 首屏加载 / 真空态互斥:失败时空态不得替它背书。
+           整页失败沿用产品裁决(零按钮说清原因 → 自动返回),所以不挂 retry;切分类失败只提示并退回原分类。 -->
+      <cy-error class="oc-state" fill="{{true}}" size="lg" icon="/images/no_data.svg"
+                wx:if="{{error}}" title="藏品册没打开" sub="卡都还在，只是这次没读到" auto-back />
+      <cy-skeleton class="oc-state" wx:elif="{{loading && !cards.length}}" type="card" count="{{2}}" />
+      <cy-empty class="oc-state" wx:elif="{{loaded && !cards.length}}" fill="{{true}}" size="lg"
+                title="{{filter === '全部' ? '还没有收过东西' : '这一类还没收过东西'}}"
+                sub="在玩过的节点里拍一件东西，判过就收进这里" />
+    </view>
+  </view>
+
+  <!-- 放大态:有转台就左右拖着转,有贴纸就看贴纸,都没有是照片卡 -->
+  <cy-sheet show="{{!!active}}" title="{{active.title || '藏品'}}" bind:close="onCloseActive">
+    <view class="oc-big" wx:if="{{active}}">
+      <view class="oc-big__stage">
+        <cy-spin-card wx:if="{{active.frames.length > 1}}" frames="{{active.frames}}" title="{{active.title}}"
+                      card-style="{{active.cardStyle}}" tilt="{{true}}" />
+        <image wx:elif="{{active.cutoutUrl}}" class="oc-big__obj" src="{{active.cutoutUrl}}" mode="aspectFit"
+               aria-role="img" aria-label="{{active.title}}" />
+        <cy-spin-card wx:else frames="{{active.frames}}" title="{{active.title}}"
+                      caption="{{active.caption}}" card-style="{{active.cardStyle}}" tilt="{{true}}" />
+      </view>
+      <view class="oc-group">
+        <view class="oc-row">
+          <view class="oc-dot oc-dot--name"><cy-icon name="edit" size="24" /></view>
+          <text class="oc-k">名称</text><text class="oc-v">{{active.title}}</text>
+        </view>
+        <view class="oc-row" wx:if="{{active.category}}">
+          <view class="oc-dot oc-dot--cat"><cy-icon name="list" size="24" /></view>
+          <text class="oc-k">分类</text><text class="oc-v oc-v--dim">{{active.category}}</text>
+        </view>
+      </view>
+      <block wx:if="{{active.place}}">
+        <view class="oc-sec">物品信息</view>
+        <view class="oc-group">
+          <view class="oc-row">
+            <view class="oc-dot oc-dot--place"><cy-icon name="gps" size="24" /></view>
+            <text class="oc-k">地点</text><text class="oc-v oc-v--dim">{{active.place}}</text>
+          </view>
+        </view>
+      </block>
+      <text class="oc-big__note" wx:if="{{active.generating}}">3D 生成中，好了以后可以左右拖着转一圈</text>
+    </view>
+  </cy-sheet>
+</view>

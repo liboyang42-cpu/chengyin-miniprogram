@@ -1,0 +1,312 @@
+<page-meta page-style="{{ fontScaleStyle }}"></page-meta>
+<wxs src="../../utils/wxs/money.wxs" module="money" />
+<view class="index theme-dark v3 {{reducedMotion ? 'v3--reduced-motion' : ''}}" wx:if="{{!_needsRedirect}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-starfield />
+
+  <scroll-view scroll-y="{{true}}" class="v3-scroll" style="height:{{scrollH}}px;"
+        scroll-with-animation="{{true}}"
+        bindscroll="onMainScroll" lower-threshold="240" bindscrolltolower="onPagerLower"
+        refresher-enabled
+        refresher-triggered="{{refreshing}}"
+        bindrefresherrefresh="onRefresh">
+    <view class="v3-scroll-inner">
+
+      <!-- Banner 顶到页面顶部，头像浮层，白点在图最底部 -->
+      <view id="sec-hero" class="v3-hero-banner v3-hero-banner--enter" style="height:{{heroBannerH}}px;">
+        <swiper class="v3-hero-swiper" style="height:{{heroBannerH}}px;" current="{{bannerCurrent}}" bindchange="onBannerChange"
+                circular="{{heroBannerList.length > 1}}" autoplay="{{!reducedMotion}}" interval="5500" duration="450">
+          <swiper-item wx:for="{{heroBannerList}}" wx:key="id" data-inx="{{index}}" bindtap="onHeroBannerTap"
+                       class="v3-hero-action" aria-role="{{item.route ? 'button' : 'img'}}"
+                       aria-label="{{item.route ? '打开' : ''}}{{item.name || '城瘾精选'}}"
+                       hover-class="{{item.route ? 'cy-pressed' : 'none'}}" hover-stay-time="80">
+            <image wx:if="{{item._type === 'cover'}}" class="v3-hero-art" src="{{item.poster}}" mode="aspectFill" />
+            <image wx:else class="v3-hero-motion" src="{{reducedMotion ? item.poster : item.motionSrc}}" mode="aspectFit" />
+            <view class="v3-hero-copy" wx:if="{{item.title}}">
+              <text class="v3-hero-action-title">{{item.title}}</text>
+              <text class="v3-hero-action-subtitle">{{item.subtitle}}</text>
+            </view>
+            <view class="v3-hero-fade v3-hero-fade--action"></view>
+          </swiper-item>
+        </swiper>
+        <view class="v3-hero-head" style="padding-top:{{capsuleTop}}px;">
+          <image class="v3-home-logo" style="top:{{capsuleTop}}px;" src="/images/cy_logo_mark.png" mode="aspectFit"
+                 aria-role="img" aria-label="城瘾" />
+          <view class="v3-hero-actions flex-ac" style="top:{{heroActionsTop}}px; right:{{heroActionsRight}}px;">
+            <view class="v3-avatar" bindtap="goUser" aria-role="button" aria-label="打开我的主页" hover-class="cy-pressed" hover-stay-time="80">
+              <image src="{{userInfo.avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+            </view>
+          </view>
+          <view class="v3-hero-greet-row" style="top:{{heroActionsTop}}px; padding-right:{{heroActionsReserve}}px;">
+            <text class="v3-hero-hi">Hi, {{userInfo.nickname || '旅人'}}!</text>
+            <view wx:if="{{userInfo.nickname}}" class="v3-hero-mem flex-ac">
+              <view class="v3-hero-mem-badge flex-ac flex-c">
+                <image class="v3-hero-mem-ic" src="/images/index-figma/icon-member.png" mode="aspectFit" />
+              </view>
+              <text class="v3-hero-mem-txt">玩家</text>
+              <text wx:if="{{city}}" class="v3-hero-mem-loc">· {{city}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="v3-hero-dots">
+          <view wx:for="{{heroBannerList}}" wx:key="id"
+                class="v3-hero-dot {{bannerCurrent === index ? 'on' : ''}}"></view>
+        </view>
+      </view>
+
+      <!-- 推荐主题：紧跟 Banner，作为首页首个内容区块 -->
+      <view id="sec-reco" class="v3-sec v3-sec-reco">
+        <view class="v3-sec-head">
+          <text class="v3-sec-title">推荐主题</text>
+        </view>
+        <view class="v3-sec-state" wx:if="{{listLoading.recommendedTopicList && !recoHero}}">
+          <cy-skeleton type="feed-card" count="1" />
+        </view>
+        <view class="v3-sec-state" wx:elif="{{listErr.recommendedTopicList && !recoHero}}">
+          <cy-error title="推荐主题没能加载出来" sub="网络请求失败，重试会重新拉取一次"
+                    retry="重试" data-list="recommendedTopicList" bind:retry="retryList" />
+        </view>
+        <view class="v3-sec-state" wx:elif="{{!listLoading.recommendedTopicList && !recoHero}}">
+          <cy-empty title="还没有能推给你的主题" sub="下面的主题列表里先逛逛" />
+        </view>
+        <text class="v3-sec-sync" wx:if="{{listLoading.recommendedTopicList && recoHero}}"
+              aria-role="status" aria-live="polite">正在更新推荐主题…</text>
+        <text class="v3-sec-sync" wx:if="{{listErr.recommendedTopicList && recoHero}}"
+              data-list="recommendedTopicList" bindtap="retryList" aria-role="button"
+              aria-label="推荐主题刷新失败，点此重试" hover-class="cy-pressed" hover-stay-time="80">已显示上次内容，本次刷新失败 · 重试</text>
+        <swiper class="v3-reco-swiper" wx:if="{{recoCards.length}}" current="{{recoCurrent}}"
+                circular="{{recoCards.length > 1}}" previous-margin="40rpx" next-margin="60rpx"
+                duration="{{reducedMotion ? 0 : 280}}" easing-function="easeOutCubic"
+                skip-hidden-item-layout="{{true}}" bindtransition="onRecoTransition" bindchange="onRecoChange">
+          <swiper-item wx:for="{{recoCards}}" wx:key="id">
+            <view class="v3-reco-slide">
+              <view class="v3-reco-card" style="{{recoCardStyles[index]}}" data-index="{{index}}"
+                    bindtap="goRecoHero" hover-class="cy-pressed" hover-stay-time="80">
+                <image class="v3-reco-hero-img" src="{{item.cover || '/images/index-figma/reco-hero.jpg'}}" mode="aspectFill" />
+                <view class="v3-reco-hero-mask"></view>
+                <view class="v3-reco-club flex-ac" wx:if="{{item.clubLabel}}">
+                  <image class="v3-reco-club-av" src="{{item.clubAvatar || item.cover}}" mode="aspectFill" />
+                  <text>{{item.clubLabel}}</text>
+                </view>
+                <view class="v3-reco-body">
+                  <!-- 无分类但在 Beta 期时这一行也要出,否则 Beta 标识会跟着分类一起消失 -->
+                  <view class="v3-reco-tags flex-ac" wx:if="{{item.tags.length || item.betaFlag==1}}">
+                    <text class="v3-reco-tag v3-reco-tag--beta" wx:if="{{item.betaFlag==1}}">Beta 试玩</text>
+                    <text class="v3-reco-tag v3-reco-tag--accent" wx:if="{{item.tags[0]}}">{{item.tags[0]}}</text>
+                    <view class="v3-reco-tag v3-reco-tag--status flex-ac" wx:if="{{item.statusLabel}}">
+                      <view class="v3-reco-status-dot"></view>
+                      <text>{{item.statusLabel}}</text>
+                    </view>
+                  </view>
+                  <view class="v3-reco-title">{{item.name}}</view>
+                  <text class="v3-reco-meta ep1">{{item.metaLine}}</text>
+                </view>
+                <view class="v3-reco-focus-mask"></view>
+              </view>
+            </view>
+          </swiper-item>
+        </swiper>
+      </view>
+
+      <!-- 继续探索：由服务端进行中的游戏会话(优先)或 /registration/my-joined 的真实报名记录驱动，空时不占首屏。 -->
+      <view class="v3-continue" wx:if="{{continueExplore}}" bindtap="goContinueExplore" hover-class="cy-pressed" hover-stay-time="80">
+        <image wx:if="{{continueExplore.cover}}" class="v3-continue-cover" src="{{continueExplore.cover}}" mode="aspectFill" />
+        <view class="v3-continue-cover v3-continue-cover--fallback" wx:else>
+          <cy-icon name="gps" size="40" />
+        </view>
+        <view class="v3-continue-body">
+          <text class="v3-continue-kicker">{{continueExplore.kicker}}</text>
+          <text class="v3-continue-title ep1">{{continueExplore.title}}</text>
+          <text class="v3-continue-sub ep1">{{continueExplore.sub}}</text>
+        </view>
+        <view class="v3-continue-cta">继续</view>
+      </view>
+
+      <!-- 附近活动：Figma 双列竖卡 -->
+      <view id="sec-nearby" class="v3-sec">
+        <view class="v3-sec-head">
+          <text class="v3-sec-title">附近活动</text>
+        </view>
+        <!-- 错误与空态必须分开:请求失败时原码停在 [] 并渲染「正在搜寻…」= 页面永久假装在加载 -->
+        <view class="v3-sec-state" wx:if="{{listLoading.nearbyActivityList && !nearbyActivityList.length}}">
+          <cy-skeleton type="feed-card" count="2" />
+        </view>
+        <view class="v3-sec-state" wx:elif="{{listErr.nearbyActivityList && !nearbyActivityList.length}}">
+          <cy-error title="附近活动没能加载出来" sub="网络请求失败，重试会重新拉取一次"
+                    retry="重试" data-list="nearbyActivityList" bind:retry="retryList" />
+        </view>
+        <view class="v3-sec-state" wx:elif="{{!listLoading.nearbyActivityList && !nearbyActivityList.length}}">
+          <cy-empty title="你附近暂时没有可点亮的节点" sub="换个时间再来，或看看下面的推荐主题" />
+        </view>
+        <text class="v3-sec-sync" wx:if="{{listLoading.nearbyActivityList && nearbyActivityList.length}}"
+              aria-role="status" aria-live="polite">正在更新附近活动…</text>
+        <scroll-view wx:if="{{nearbyActivityList.length}}" scroll-x="{{true}}" class="v3-rail" show-scrollbar="{{false}}">
+          <view class="v3-nearby-row">
+            <view class="v3-nearby-card" wx:for="{{nearbyActivityList}}" wx:key="id"
+                  bindtap="goActivity" data-index="{{index}}" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+              <image class="v3-nearby-bg" src="{{item.cover || item.imgUrl || '/images/index-figma/nearby-card.jpg'}}" mode="aspectFill" />
+              <view class="v3-nearby-mask"></view>
+              <view class="v3-nearby-body">
+                <view class="v3-nearby-title ep2">{{item.name}}</view>
+                <view class="v3-nearby-meta flex-ac">
+                  <text class="v3-nearby-live" wx:if="{{item.started}}">LIVE</text>
+                  <text class="v3-nearby-time ep1" wx:else>{{item.formattedDateTime}}</text>
+                  <view class="v3-nearby-viewers flex-ac" wx:if="{{item.distance}}">
+                    <image class="v3-nearby-view-ic" src="/images/index-figma/icon-viewers.png" mode="aspectFit" />
+                    <text>{{item.distance}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 即将上线：Figma 紧凑评论卡横滑 -->
+      <view id="sec-upcoming" class="v3-sec" wx:if="{{listLoading.upcomingActivityList || listErr.upcomingActivityList || upcomingActivityList.length}}">
+        <view class="v3-sec-head">
+          <text class="v3-sec-title">即将上线</text>
+        </view>
+        <!-- 原码只判 length:请求失败时整段静默消失,用户看不出「加载失败」还是「本来就没有」 -->
+        <view class="v3-sec-state" wx:if="{{listLoading.upcomingActivityList && !upcomingActivityList.length}}">
+          <cy-skeleton type="feed-card" count="2" />
+        </view>
+        <view class="v3-sec-state" wx:elif="{{listErr.upcomingActivityList && !upcomingActivityList.length}}">
+          <cy-error title="即将上线没能加载出来" sub="网络请求失败，重试会重新拉取一次"
+                    retry="重试" data-list="upcomingActivityList" bind:retry="retryList" />
+        </view>
+        <text class="v3-sec-sync" wx:if="{{listLoading.upcomingActivityList && upcomingActivityList.length}}"
+              aria-role="status" aria-live="polite">正在更新即将上线…</text>
+        <scroll-view wx:if="{{upcomingActivityList.length}}" scroll-x="{{true}}" class="v3-rail" show-scrollbar="{{false}}">
+          <view class="v3-upcoming-row">
+            <view class="v3-upreview" wx:for="{{upcomingActivityList}}" wx:key="id"
+                  bindtap="goActivity" data-index="{{index}}" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+              <image class="v3-upreview-bg" src="{{item.cover || '/images/index-figma/nearby-card.jpg'}}" mode="aspectFill" />
+              <view class="v3-upreview-mask"></view>
+              <view class="v3-upreview-body">
+                <view class="v3-upreview-txt">
+                  <view class="v3-upreview-title ep1">{{item.name}}</view>
+                  <view class="v3-upreview-sub ep1">{{item.addressName || item.formattedDateTime}}</view>
+                  <view class="v3-upreview-desc ep1">{{item.description || item.formattedDateTime}}</view>
+                  <view class="v3-upreview-foot flex-ac">
+                    <image class="v3-upreview-star" src="/images/index-figma/icon-star.png" mode="aspectFit" />
+                    <text class="v3-upreview-djs {{item.started ? 'is-started' : ''}}">{{item.rating || item.remainingTime || '即将开始'}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 全部 Feed -->
+      <view id="sec-feed" class="v3-feed">
+        <view class="page-tab">
+          <cy-tabs variant="wide" tabs="{{[{key:'0',label:'主题'},{key:'1',label:'活动'}]}}"
+                   active="{{activeTab}}" style="--cy-tabs-accent: var(--cy-text-title)" bind:change="switchTab" />
+        </view>
+
+        <view class="v2-feed" wx:if="{{activeTab === '0'}}">
+          <view class="v2-fitem" wx:for="{{bottomTopicList}}" wx:key="id">
+            <view class="v2-fcard" bindtap="goTopic" data-index="{{index}}" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="v2-fcard-l">
+                <view class="v2-feyebrow ep1" wx:if="{{item.feedTypeLabel}}">{{item.feedTypeLabel}}</view>
+                <view class="v2-ftitle ep2">{{item.name}}</view>
+                <view class="v2-ftags flex-ac">
+                  <text class="v2-ftag" wx:for="{{item.feedTags}}" wx:key="*this">{{item}}</text>
+                </view>
+              </view>
+              <view class="v2-fgrid v2-fgrid--{{item.feedGridMode || '1'}}">
+                <block wx:for="{{item.feedImages}}" wx:for-item="im" wx:for-index="gi" wx:key="*this">
+                  <view class="v2-fcell">
+                    <image src="{{im}}" mode="aspectFill" />
+                    <view class="v2-fmore" wx:if="{{gi === 1 && item.moreCount}}">+{{item.moreCount}}</view>
+                    <view class="v2-fcount" wx:if="{{gi === 3 && item.feedBadgeCount}}">{{item.feedBadgeCount}}</view>
+                  </view>
+                </block>
+              </view>
+            </view>
+            <view class="v2-status" bindtap="goTopic" data-index="{{index}}" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="v2-status-row flex-b">
+                <text class="v2-status-k">价格</text>
+                <text class="v2-status-v price">{{money.amount(item.minAmout)}} 起</text>
+              </view>
+              <view class="v2-status-row flex-b">
+                <text class="v2-status-k">时间</text>
+                <text class="v2-status-v">{{item.formattedDateTime}}</text>
+              </view>
+              <view class="v2-status-row flex-b last">
+                <text class="v2-status-k">地点</text>
+                <text class="v2-status-v ep1">{{item.addressName}}</text>
+              </view>
+            </view>
+          </view>
+          <cy-inline-error wx:if="{{bottomTopicFailedPage}}" class="feed-load-more-error" kind="network"
+            title="{{bottomTopicFailedPage > 1 ? '更多主题没有加载出来' : '主题列表没有加载出来'}}"
+            sub="{{bottomTopicFailedPage > 1 ? '已加载的主题仍可查看' : '下拉刷新或点重试再拉一次'}}"
+            action="重试" bind:action="retryBottomTopic" />
+          <view class="loading-more" wx:if="{{isBottomLoading}}"><text>正在加载更多</text></view>
+          <view class="no-more" wx:if="{{!hasMoreBottomTopic && bottomTopicList.length > 0}}"><text>· 没有更多了 ·</text></view>
+        </view>
+
+        <view class="v2-feed" wx:if="{{activeTab === '1'}}">
+          <view class="v2-fitem" wx:for="{{bottomActivityList}}" wx:key="id">
+            <view class="v2-fcard" bindtap="goActivity" data-index="{{index}}" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="v2-fcard-l">
+                <view class="v2-feyebrow ep1" wx:if="{{item.feedTypeLabel}}">{{item.feedTypeLabel}}</view>
+                <view class="v2-ftitle ep2">{{item.name}}</view>
+                <view class="v2-ftags flex-ac">
+                  <text class="v2-ftag" wx:for="{{item.feedTags}}" wx:key="*this">{{item}}</text>
+                </view>
+              </view>
+              <view class="v2-fgrid v2-fgrid--{{item.feedGridMode || '1'}}">
+                <block wx:for="{{item.feedImages}}" wx:for-item="im" wx:for-index="gi" wx:key="*this">
+                  <view class="v2-fcell">
+                    <image src="{{im}}" mode="aspectFill" />
+                    <view class="v2-fmore" wx:if="{{gi === 1 && item.moreCount}}">+{{item.moreCount}}</view>
+                    <view class="v2-fcount" wx:if="{{gi === 3 && item.feedBadgeCount}}">{{item.feedBadgeCount}}</view>
+                  </view>
+                </block>
+              </view>
+            </view>
+            <view class="v2-status" bindtap="goActivity" data-index="{{index}}" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="v2-status-row flex-b">
+                <text class="v2-status-k">价格</text>
+                <text class="v2-status-v price">{{money.amount(item.minAmout)}} 起</text>
+              </view>
+              <view class="v2-status-row flex-b">
+                <text class="v2-status-k">时间</text>
+                <text class="v2-status-v">{{item.formattedDateTime}}</text>
+              </view>
+              <view class="v2-status-row flex-b last">
+                <text class="v2-status-k">地点</text>
+                <text class="v2-status-v ep1">{{item.addressName}}</text>
+              </view>
+            </view>
+          </view>
+          <cy-inline-error wx:if="{{bottomActivityFailedPage}}" class="feed-load-more-error" kind="network"
+            title="{{bottomActivityFailedPage > 1 ? '更多活动没有加载出来' : '活动列表没有加载出来'}}"
+            sub="{{bottomActivityFailedPage > 1 ? '已加载的活动仍可查看' : '下拉刷新或点重试再拉一次'}}"
+            action="重试" bind:action="retryBottomActivity" />
+          <view class="loading-more" wx:if="{{isBottomLoading}}"><text>正在加载更多</text></view>
+          <view class="no-more" wx:if="{{!hasMoreBottomActivity && bottomActivityList.length > 0}}"><text>· 没有更多了 ·</text></view>
+        </view>
+      </view>
+
+      <view class="v3-scroll-pad"></view>
+    </view>
+  </scroll-view>
+
+  <view class="tkbg" wx:if="{{showPhoneModal}}" bindtap="closePhoneModal" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="关闭手机号授权"></view>
+  <view class="tkbox" wx:if="{{showPhoneModal}}">
+    <view class="tkbox_tpis">请点击按钮获取您的手机号码，完善账户信息</view>
+    <button class="tkbox_but" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">获取</button>
+    <view class="tkbox_skip" bindtap="closePhoneModal" hover-class="cy-pressed" hover-stay-time="80">稍后再说</view>
+  </view>
+  <tabBar raised="{{_navUp}}" dark="{{true}}" monochrome="{{true}}" />
+</view>
+
+<!-- 隐私授权闸(真弹窗):页内组件,不压页面栈。app.js 在需要授权时调本页 showPrivacyGate()。 -->
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

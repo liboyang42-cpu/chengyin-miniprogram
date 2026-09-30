@@ -1,0 +1,102 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-pricepair · 猜图(原型真源:模板编辑页 v2 · playkit guess) */
+.pp { color: var(--ink); }
+.pp__q { font-size: var(--cy-type-sheet-title); font-weight: 900; line-height: 1.4; }
+.pp__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18rpx;                             /* ds-ok 原型 .grid 9px */
+  width: 100%;
+}
+/* 竖排两层:上面方形色块,下面名字。中间 14rpx(原型 7px) */
+.pp__poster {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  text-align: left;
+}
+.pp__tile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 6rpx;                    /* ds-ok 海报是硬角,不跟卡片圆角走 */
+  overflow: hidden;
+}
+/* 画在图块里往里缩一圈:原型 .poster .art 四边各留 14px,
+   贴边铺满的话彩色块就没了,四张海报看着像四张照片 */
+.pp__art {
+  position: absolute;
+  left: 28rpx; top: 28rpx;                /* ds-ok 原型 14px */
+  /* image 有自带尺寸,只给四边不给宽高的话它会用默认的 300×225 —— 得写死 */
+  width: calc(100% - 56rpx);
+  height: calc(100% - 56rpx);
+  border-radius: 16rpx;                   /* ds-ok 原型 8px */
+}
+/* 图位占位:一个画框 + 太阳 + 山。用当前格子的 ink 色描线,所以深格浅格都读得清 */
+.pp__ph {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .32;
+}
+.pp__ph-frame {
+  position: relative;
+  width: 96rpx; height: 76rpx;
+  border: 5rpx solid currentColor;
+  border-radius: 8rpx;  /* ds-ok 图卡的小角,照原型 */
+  overflow: hidden;
+}
+.pp__ph-sun {
+  position: absolute;
+  left: 16rpx; top: 14rpx;
+  width: 18rpx; height: 18rpx;
+  border-radius: 50%;
+  background: currentColor;
+}
+.pp__ph-hill {
+  position: absolute;
+  left: -10rpx; right: -10rpx; bottom: -26rpx;
+  height: 46rpx;
+  border-radius: 50% 50% 0 0;
+  background: currentColor;
+}
+/* 判定角标留在图上 —— 它说的是「这张对不对」,属于图不属于名字 */
+.pp__verdict {
+  position: absolute;
+  left: 20rpx; top: 18rpx;
+  font-size: var(--cy-type-micro);
+  font-weight: 900;
+  letter-spacing: 4rpx;
+  color: inherit;                         /* 跟着格子的 ink 走:深格浅字、浅格深字 */
+}
+.pp__nm { font-size: var(--cy-type-body); font-weight: 800; line-height: 1.3; }  /* ds-ok 原型 13.5px */
+.pp__pz { font-size: var(--cy-type-caption); font-weight: 600; line-height: 1.4; color: var(--sub); }  /* ds-ok 原型 11.5px */
+.pp__press { opacity: .9; }
+.pp__poster.is-dim { opacity: .34; filter: saturate(.4); }   /* ds-ok 原型 .poster.dim */
+.pp__poster.is-right .pp__tile { box-shadow: inset 0 0 0 6rpx var(--ok); }
+.pp__poster.is-wrong .pp__tile { box-shadow: inset 0 0 0 6rpx var(--accent); }
+
+/* 发牌:几张先侧着、缩着进来,一张接一张 —— 原型 dealin .62s。
+   直接淡入的话几张同时到位,看不出「这是一副牌」。每张的延时写在行内。 */
+/* ⚠️ 不写 both:both 会让元素在动画真正开始前一直停在 0% 那帧(opacity:0)。
+   实测有一次整屏几张图全是空的 —— 动画没跑起来,而「没跑起来」等于「看不见」。
+   基态就是可见,动画只负责从看不见走到可见,不跑也不会丢内容。 */
+.pp__poster--deal { animation: pp-deal .62s cubic-bezier(.2, .85, .25, 1); }
+@keyframes pp-deal {
+  0%   { opacity: 0; transform: rotateY(88deg) scale(.72); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+/* 刚点的那一张弹一下(原型 pop .18s)。对错两态都是「刚点完」的那一下 */
+.pp__poster.is-right, .pp__poster.is-wrong { animation: pp-pop .18s cubic-bezier(.2, .8, .2, 1); }
+@keyframes pp-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+.pp--reduced .pp__poster--deal,
+.pp--reduced .pp__poster.is-right,
+.pp--reduced .pp__poster.is-wrong { animation: none; }

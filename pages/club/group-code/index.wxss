@@ -1,0 +1,9 @@
+/* 团码展示完全复用 cy-qr-voucher；多场次时在此页先明确选择一场。 */
+/* ⚠️ 不在容器上加左右 padding:cy-page-title 内部已自带 var(--cy-page-x),
+   容器再加一层会让标题相对返回箭头整体右缩(实测踩过的坑)。子项各自补边距。 */
+.session-picker { min-height: 100vh; box-sizing: border-box; padding-bottom: var(--cy-space-6); background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.session-picker__nav-spacer { width: 100%; }
+.session-picker__hint { margin: 0 var(--cy-page-x); color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.session-picker__item { margin: var(--cy-space-3) var(--cy-page-x) 0; padding: var(--cy-space-4) var(--cy-space-3); display: flex; justify-content: space-between; align-items: center; border-radius: var(--cy-radius-sm); background: var(--cy-bg-card-2); font-size: var(--cy-font-body); }
+.session-invalid { min-height: 100vh; box-sizing: border-box; padding-bottom: var(--cy-space-6); background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.session-invalid__manage { min-height: 88rpx; margin: var(--cy-space-4) var(--cy-page-x) 0; padding: 0 var(--cy-space-4); box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; border-radius: var(--cy-radius-pill); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); }

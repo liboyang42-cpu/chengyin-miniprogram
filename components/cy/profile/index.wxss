@@ -1,0 +1,911 @@
+/* 骨架屏→内容淡切:isolated 组件收不到全局 components.wxss,@import 同一份定义 */
+@import '../../../style/fade-in.wxss';
+:host { display: block; min-height: 100vh; }
+.pc-page { min-height: 100vh; position: relative; color: var(--cy-color-text-primary); }
+.pc-player {
+  /* 玩家中心与 Play / Roam 共用黑白灰语义；商家视角仍由 theme-merchant 控制。 */
+  --cy-color-selection: var(--cy-color-text-primary);
+  --cy-color-brand: var(--cy-color-text-primary);
+  --cy-color-brand-strong: var(--cy-color-text-primary);
+  --cy-color-brand-soft: var(--cy-color-action-secondary-bg);
+  --cy-color-status-success: var(--cy-color-text-primary);
+  --cy-color-status-warning: var(--cy-color-text-primary);
+  --cy-color-status-danger: var(--cy-color-text-primary);
+  --cy-color-status-info: var(--cy-color-text-primary);
+  --cy-brand: var(--cy-color-text-primary);
+  --cy-accent-strong: var(--cy-color-text-primary);
+}
+
+/* ============================================================
+ * 商家视角 —— 日间 token 真源 = style/tokens.wxss 的 .theme-light/.theme-merchant,
+ * 根节点已挂 theme-merchant,本页不再手抄。原先这里是 18 行字面值副本,值已与真源分叉且
+ * 停在 R1 对比度修正之前(text-secondary 与 placeholder 都是 R1 前的旧值 —— placeholder 白底实测 2.56:1)。
+ *
+ * 下面两段不能省,原因是实测出来的(Chrome 计算值,非推断):
+ *   ② 旧名别名层与 ①'' 组件层在 page{} 上就完成了 var() 替换 —— 后代元素再覆盖 --cy-color-*,
+ *   它们不跟随。所以:
+ *   · 本页自己的样式全部改读 --cy-color-*,天然跟随 .theme-merchant;
+ *   · 但页内读别名的组件(style/components.wxss 的 cy-tabs、cy-empty/cy-error、roleBadge)
+ *     只能靠在挂主题的这个元素上把别名重声明一遍才跟得上。值一律指回真源,不写字面值,
+ *     真源改了这里自动跟随 —— 这正是原来那份手抄副本做不到、于是烂掉的地方。
+ *   · ①'' 组件层(--cy-comp-*)页面无权声明(DS §2.1),故 cy-card / cy-btn 在本页不可用,
+ *     它们在商家视角会渲成夜间样式。详见 PR 说明。
+ * ============================================================ */
+.pc-merchant {
+  /* 去品牌化:商家工作台不出品牌紫 —— 与 style/merchant-light.wxss §②「黑 CTA」同一约定。
+     selection 的日值就是深墨(ref-ink-900),与原手抄的 --cy-brand 字面值逐字相同,零漂移。 */
+  --cy-color-brand: var(--cy-color-selection);
+
+  /* 别名 shim:只列页内组件真正读到的那些 */
+  --cy-bg-page:          var(--cy-color-bg-page);
+  --cy-bg-card-2:        var(--cy-color-bg-surface-subtle);
+  --cy-border-card:      var(--cy-color-border-subtle);
+  --cy-brand:            var(--cy-color-brand);
+  --cy-text-title:       var(--cy-color-text-primary);
+  --cy-text-body:        var(--cy-color-text-secondary);
+  --cy-text-secondary:   var(--cy-color-text-tertiary);
+  --cy-text-inverse:     var(--cy-color-text-inverse);
+  --cy-btn-solid-bg:     var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg:     var(--cy-color-action-primary-fg);
+  /* roleBadge 读它;不跟随时会拿夜间那档亮紫压浅底 = 实测 2.73:1。日真源 brand-strong
+     是 R1 专为浅底调的文字级紫(5.21:1)。这里不做去品牌化:roleBadge 是身份徽章,不是 CTA/进度。 */
+  --cy-accent-strong:    var(--cy-color-brand-strong);
+
+  background: var(--cy-color-bg-page);
+}
+
+/* 顶部封面(可上传,入口在「···」→ 更换背景 / onChangeHeroBg)。
+ * 2026-08-04 用户定「和 Xbox 一样:有顶部上传图片 + 渐变」——原来 blur(52rpx)+opacity .62
+ * +玩家态再叠 grayscale(1),把上传的图糊成一片黑,等于有图跟没图一样(实拍即纯黑屏)。
+ * 现在只留一点点柔化保证白字可读,图本身要看得出是图。 */
+/* ⚠️ 高度必须 ≤ .pc-page-fade 收到实底的位置,否则遮罩管不到的那几十 rpx 会露出裸图,
+   底部又冒一条硬线(2026-08-04 二轮实拍:hero 比 fade 高 20rpx,就露出一道棕黄边)。 */
+.pc-hero-bg { position: fixed; top: 0; left: 0; right: 0; height: 880rpx; z-index: 0; overflow: hidden; }
+.pc-hero-bg-img { width: 110%; height: 110%; margin: -5%; filter: blur(10rpx); opacity: 0.92; transform: scale(1.02); }
+/* 页面透明度渐变（对标 Xbox：Tab 上方收束为实底，非图片染色）。
+ * stops 是 bg-page 同色的 alpha 阶:小程序无 color-mix(),「token 色 @ alpha」无法表达,
+ * 且 token 层无渐变表达 —— 故保留字面值,末端仍收到 token 实底上。
+ * 2026-08-04 用户「图片和下面纯黑纯白要有过渡,现在有一条很明显的分界线」,
+ * 同日追加「只有分界线那里过渡,别把整张图都变成过渡」——两条一起约束成:
+ *   · 上半段 alpha 恒 0 → 封面**保持清晰**,不做任何压暗(第一版从 26% 就起压 = 蒙住整张图,改错了);
+ *   · 只在接近底边的一段做柔化,且这段要够长(≈40% 高度)、stop 够密(每档落差 ≤0.18),
+ *     否则又回到「落差挤在十几个 px 里」= 人眼读成硬线(初版 .34→.70 挤在 12% 就是这么来的)。 */
+.pc-page-fade {
+  position: fixed; top: 0; left: 0; right: 0; height: 900rpx; z-index: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(2,1,4,0) 0%, rgba(2,1,4,0) 56%, rgba(2,1,4,0.10) 66%, rgba(2,1,4,0.26) 75%, rgba(2,1,4,0.46) 82%, rgba(2,1,4,0.66) 88%, rgba(2,1,4,0.84) 93%, rgba(2,1,4,0.95) 97%, var(--cy-color-bg-page) 100%); /* ds-ok */
+}
+/* 商家态同一套结构,只是收到日间白底(用户:「商家版页需要一样 只不过是白色的」)。
+ * 原来 display:none 把商家的封面整块砍了,那是「白色蒙版」时代的遗留。
+ * ⚠️ 白页文字是深色,压在彩色封面上会糊(2026-08-04 首轮实拍:「Lv.1 城市探索者」「连续探索」
+ * 几乎读不出)。曾用 opacity:.32 把封面压成水印解决,但用户「没那么清晰」——封面清晰度优先。
+ * 封面图本身不压 opacity;文字不加描边、不加底板(用户 2026-08-04 明确否掉描边)。
+ * 可读性靠下面这层白纱渐变解决(2026-09-24 起首屏段抬高,见下条)。 */
+/* 2026-08-20:纱色从纯白改为与页底同色(#F3F4F4=243,244,244)。原来 93%~97% 处是
+ * 近纯白纱、100% 跳到灰底 —— 白与 #F3F4F4 的色差在图层交界读成一条白色横带
+ * (用户圈出的「像两个图层,上图下灰」)。同色收束后交界不可见。 */
+/* 2026-09-24 裁决(CU-M-14/M-33/M-65/M-76):深色/杂色封面上店名、城市角色、口号、顶栏「主页」读不清。
+ * 先试过只给店名那一列垫玻璃底板,走查判为「像没退出的输入框」的回归,用户定改成封面渐变:
+ * 顶栏~身份行这段(0~44%)白纱抬到 .52~.60,深色字压在最暗的照片上也有 ≥4.5:1;
+ * 往下照旧逐档收到页底同色,不加底板、不加描边(8-04 否掉描边的约定不变)。 */
+.pc-merchant .pc-page-fade {
+  background: linear-gradient(180deg, rgba(243,244,244,0.52) 0%, rgba(243,244,244,0.60) 18%, rgba(243,244,244,0.60) 44%, rgba(243,244,244,0.66) 56%, rgba(243,244,244,0.74) 66%, rgba(243,244,244,0.82) 75%, rgba(243,244,244,0.88) 82%, rgba(243,244,244,0.92) 88%, rgba(243,244,244,0.95) 93%, rgba(243,244,244,0.98) 97%, var(--cy-color-bg-page) 100%); /* ds-ok */
+}
+.pc-merchant .pc-nav-ico,
+.pc-merchant .pc-avatar-edit-ico,
+.pc-merchant .pc-tool-ico {
+  filter: brightness(0);
+  opacity: 0.78;
+}
+
+.pc-statusbar, .pc-nav, .pc-scroll { position: relative; z-index: 1; }
+.pc-scroll { box-sizing: border-box; background: transparent; }
+/* 左右内距 space-3(24rpx) → --cy-page-x(32rpx):全站页边距单一真源,本页原比其余 9 页外扩 8rpx */
+.pc-body { padding: var(--cy-space-1) var(--cy-page-x) calc(var(--cy-space-5) + var(--cy-tabbar-h)); box-sizing: border-box; }
+
+/* 顶栏 */
+.pc-nav { display: flex; align-items: center; padding: 0 var(--cy-page-x); box-sizing: border-box; }
+.pc-nav-side { width: var(--cy-btn-h); }
+.pc-nav-center { flex: 1; text-align: center; }
+.pc-nav-title {
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}   /* 尺寸/色走 .cy-h2;保留 700 字重避免变粗 */
+/* 2026-08-20 用户定:去掉圆形玻璃底,只留裸图标(尺寸/热区不变) */
+.pc-nav-btn {
+  width: var(--cy-btn-h); height: var(--cy-btn-h);
+  display: flex; align-items: center; justify-content: center;
+}
+.pc-nav-ico { width: var(--cy-legacy-36); height: var(--cy-legacy-36); }
+
+/* 首屏身份区:身份头 + 三项统计。2026-08-04 用户定「删掉现在的黑色长方块背景」——
+ * 对标 Xbox,头像/名称/好友关注全部直接铺在顶部封面渐变上,不套面板。
+ * 横向内距归零,让它与下面各分节共用 .pc-body 的 --cy-page-x,不多缩进一截。 */
+.pc-idcard {
+  margin-bottom: var(--cy-space-4);
+  padding: var(--cy-space-2) 0 0;
+}
+
+/* 身份头 */
+.pc-gamer { display: flex;   gap: var(--cy-space-3); padding: var(--cy-space-2-5) var(--cy-space-1) var(--cy-space-3-5); align-items: flex-start; /* ds-ok: 20rpx/28rpx 无同值 spacing token */ }
+.pc-avatar-wrap { position: relative; flex-shrink: 0; }
+.pc-avatar-ring {
+  width: 132rpx; height: 132rpx; border-radius: 50%; padding: var(--cy-legacy-4); box-sizing: border-box;
+  background: linear-gradient(135deg, var(--cy-color-brand), #7048E8); /* ds-ok 头像环装饰渐变:token 层无渐变表达;终点取品牌紫深端与起点同族,非文字、不承载信息 */
+}
+.pc-player .pc-avatar-ring {
+  background: linear-gradient(135deg, var(--cy-color-text-primary), var(--cy-color-border-strong));
+}
+.pc-player.pc-self .pc-avatar-ring {
+  background: var(--cy-comp-profile-avatar-ring);
+}
+.pc-avatar { width: 100%; height: 100%; border-radius: 50%; border: 3rpx solid var(--cy-color-bg-page); background: var(--cy-color-bg-surface-subtle); box-sizing: border-box; display: block; }
+/* 商家主体没 logo 时的 lettermark:沿用同一个圆和描边,只换内容。 */
+.pc-avatar--initial {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-display); font-weight: 600; line-height: 1;
+}
+.pc-avatar-edit {
+  position: absolute; top: 0; right: 0; width: var(--cy-legacy-36); height: var(--cy-legacy-36); border-radius: 50%;
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-strong);
+  display: flex; align-items: center; justify-content: center;
+}
+.pc-avatar-edit-ico { width: var(--cy-legacy-18); height: var(--cy-legacy-18); }
+.pc-avatar-dot {
+  position: absolute; bottom: var(--cy-legacy-6); right: var(--cy-legacy-6); width: var(--cy-legacy-22); height: var(--cy-legacy-22); border-radius: 50%;
+  background: var(--cy-color-status-success); border: 4rpx solid var(--cy-color-bg-page);
+}
+.pc-gamer-main { flex: 1; min-width: 0; }
+/* 昵称 40rpx(废弃 token --cy-font-display)→ section-title 36:页面标题已由顶栏「我的」(.cy-h2)承担,
+   昵称是身份头这个模块的标题;同页最大字是成就 tab 的 56rpx G 分,给 page-title 48 会压过它。
+   font-weight 800 → 700(DS §12.5 字重封顶) */
+.pc-gamer-name { font-size: var(--cy-type-section-title); font-weight: 700; line-height: 1.2; }
+.pc-gamer-lv {
+  margin-top: var(--cy-space-1); display: flex; flex-wrap: wrap; align-items: center; gap: var(--cy-space-1);
+  /* 用户定:品牌紫只做极少数强调时刻，等级徽章不是。原来用的是品牌色变量，
+     在深色卡上既跳又跟全站黑白基调冲突 ⇒ 收到可读的次级文字色。
+     契约 P1-K 盯的就是这件事(原来钉在旧 .explorer-kicker 上)。
+     ⚠️ 注释里刻意不写出那个变量名 —— 契约是纯文本匹配，写出来同样判红。 */
+  font-size: var(--cy-type-label); font-weight: 600; color: var(--cy-color-text-secondary);
+}
+.pc-role-badge { display: inline-flex; }
+.pc-lv-badge { width: 71rpx; height: 33rpx; vertical-align: middle; }
+/* 2026-08-04 用户「上海/连续探索/好友/关注/粉丝 商家玩家的字体都看不清,颜色再加深」:
+   secondary/tertiary 两档灰是给「压在实底上」调的,这几行现在压在封面照片上,明度落在
+   照片中段就读不出。提到 text-primary —— 它在两个主题下各自解析(玩家近白、商家近墨),
+   所以一条规则同时治两态。只提这两处压图的,页面其余层级不动。 */
+.pc-gamer-meta {   margin-top: var(--cy-legacy-10); display: flex; flex-wrap: wrap; gap: var(--cy-space-2); font-size: var(--cy-type-caption); color: var(--cy-color-text-primary); /* ds-ok: 10rpx 无同值 spacing token */ }
+/* 原为 📍 emoji 充当图标(DS §9 禁止),改 cy-icon gps;emoji 是模板里写死的、不来自数据,故可换 */
+.pc-gamer-loc { display: inline-flex; align-items: center; gap: var(--cy-space-1); }
+.pc-gamer-slogan { margin-top: var(--cy-legacy-14); font-size: var(--cy-type-label); color: var(--cy-color-text-primary); line-height: 1.45; }
+.pc-edit-link { margin-top: var(--cy-space-1-5); font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+
+/* 三项统计 */
+/* 收进身份卡后,下外边距交给 .pc-idcard 统一给(原来那份会在卡内多出一段空白) */
+.pc-stats {
+  display: flex; align-items: center;
+  padding: var(--cy-space-3) 0;
+}
+.pc-statcol { flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--cy-space-1); }
+.pc-stat-n { font-size: var(--cy-type-section-title); font-weight: 700; }
+.pc-stat-l { font-size: var(--cy-type-caption); color: var(--cy-color-text-primary); }
+.pc-stat-div { width: 2rpx; height: 52rpx; background: var(--cy-color-border-subtle); }
+.pc-metric-error { display: flex; flex-direction: column; align-items: center; padding-bottom: var(--cy-space-3); }
+
+/* 主操作(未收编 cy-btn:组件层 --cy-comp-btn-* 不跟随本页的 class 主题,见顶部说明) */
+.pc-actions { display: flex; gap: var(--cy-space-2); margin: var(--cy-space-1-5) 0 var(--cy-space-2-5); /* ds-ok: 12rpx/20rpx 无同值 spacing token */ }
+/* 2026-08-04 用户定:「按钮都是 80% 的透明度且都需要是纯黑 纯白」。
+ * 纯值刻意不走 token —— action-primary-bg 在夜间是「星白」(#F5F6FA 一类)、日间是墨黑(#1x1x1x),
+ * 都不是纯 #fff/#000;用户要的就是那两个端点值,套 token 反而拿不到。故字面值 + ds-ok。
+ * 玩家(深页)=纯白底纯黑字,商家(白页)=纯黑底纯白字,两边都压 .8 alpha 让封面透出来。 */
+/* ★ !important 不是偷懒,是必需:style/components.wxss:309 那条全局「按钮矫正层」把 .pc-primary
+   连同几十个旧类一起 `background: var(--cy-btn-solid-bg) !important` 钉死了。没有 !important
+   的页面规则一律打不过它 —— 实测本页 .pc-primary 的 computed 值一直是 rgb(246,247,250)/
+   rgb(51,54,60)(即 token 星白/墨灰),用户要的「纯白纯黑 + 80%」从来没生效过;同一批里
+   .pc-more 因为不在那份类名清单里,反而是唯一听页面的。
+   矫正层在 style/(禁区)且波及全站按钮,不能为本页去动它,故在页面侧用 .pc-page 提特异性做局部豁免。 */
+.pc-primary, .pc-more {
+  height: var(--cy-btn-h); border-radius: var(--cy-radius-lg);
+  border: none;
+  font-size: var(--cy-type-body); font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+/* 玩家(深页)=纯白 @80%;商家(白页)=纯黑不透明 —— 用户「商户的核销按钮就要纯黑的吧」,
+   白底会把 20% 透出来合成 #333,所以商家这半边不压 alpha。 */
+.pc-page .pc-primary, .pc-page .pc-more {
+  background: rgba(255, 255, 255, 0.8) !important; /* ds-ok: 用户指定纯白 @80% */
+  color: #000000 !important;                       /* ds-ok: 用户指定纯黑 */
+}
+.pc-page.pc-merchant .pc-primary, .pc-page.pc-merchant .pc-more {
+  background: #000000 !important;                  /* ds-ok: 用户指定纯黑 */
+  color: #FFFFFF !important;                       /* ds-ok: 用户指定纯白 */
+}
+.pc-page .pc-primary--follow {
+  background: var(--cy-color-text-primary) !important;
+  color: var(--cy-color-bg-page) !important;
+}
+.pc-page .pc-primary--followed {
+  background: var(--cy-color-bg-surface-subtle) !important;
+  color: var(--cy-color-text-secondary) !important;
+}
+.pc-page .pc-primary--follow,
+.pc-page .pc-primary--followed {
+  transition: transform var(--cy-motion-standard) var(--cy-ease-out), opacity var(--cy-motion-fast) var(--cy-ease-out);
+}
+.pc-primary--pending { opacity: 0.72; transform: scale(0.985); }
+.pc-follow-result { display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1); }
+.pc-follow-check { display: flex; align-items: center; justify-content: center; }
+.pc-primary--settled .pc-follow-check {
+  animation: pc-follow-settled var(--cy-motion-standard) var(--cy-ease-out) both;
+}
+@keyframes pc-follow-settled {
+  0% { opacity: 0; transform: scale(0.72); }
+  68% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.pc-reduced-motion .pc-primary--follow,
+.pc-reduced-motion .pc-primary--followed { transition: none; }
+.pc-reduced-motion .pc-primary--settled .pc-follow-check { animation: none; }
+.pc-primary { flex: 1; }
+.pc-more { width: var(--cy-btn-h); flex: none; }
+/* 玩家自己页只保留一枚横向票夹主按钮。 */
+.pc-ticket { width: 100%; gap: var(--cy-space-1); }
+.pc-ticket-icon { display: flex; align-items: center; justify-content: center; }
+.pc-btn-press { opacity: 0.88; }
+
+/* 探索值 */
+.pc-exp-row {
+  display: flex; align-items: center; gap: var(--cy-space-1-5); margin-bottom: var(--cy-space-2-5); padding: 0 var(--cy-space-1); /* ds-ok: 12rpx/20rpx 无同值 spacing token */
+}
+.pc-exp-badge {
+  width: 44rpx; height: 44rpx; border-radius: 50%; background: var(--cy-color-bg-surface);
+  border: 2rpx solid var(--cy-color-border-strong); font-size: var(--cy-type-caption); font-weight: 700;
+  display: flex; align-items: center; justify-content: center; color: var(--cy-color-brand);
+}
+.pc-exp-label { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.pc-exp-val { font-size: var(--cy-type-card-title); font-weight: 700; margin-left: auto; }
+
+/* 城市身份卡。
+   ⚠️ 这里原本还有一条 .pc-idcard{background:bg-surface;border:...} —— 与上面「首屏身份区」
+   同名、且因为在后面而实际胜出,是首屏那块黑长方块的真正来源(上面那条 bg-elevated 从没生效过)。
+   2026-08-04 按用户「删掉黑色长方块背景」一并去掉;同理原 .pc-merchant .pc-idcard 的
+   透明化补丁(2026-07-31 只治商户那半边)也不再需要 —— 现在两态都不套面板。
+   本组余下的 -head/-lv/-line/-grid/-cell 在 wxml 里已无对应节点(死样式),不属本次范围,未动。 */
+.pc-idcard-head { display: flex; align-items: baseline; gap: var(--cy-space-1-5); }
+.pc-idcard-lv { font-size: var(--cy-type-card-title); font-weight: 700; color: var(--cy-color-brand); }
+.pc-idcard-title { font-size: var(--cy-type-body); font-weight: 700; }
+.pc-idcard-line { height: 2rpx; background: var(--cy-color-border-subtle); margin: var(--cy-space-2-5) 0; }
+.pc-idcard-grid { display: flex; flex-wrap: wrap; }
+.pc-idcell { width: 33.33%; padding: var(--cy-space-1-5) 0; box-sizing: border-box; }
+.pc-idcell-n { display: block; font-size: var(--cy-type-card-title); font-weight: 700; }
+.pc-idcell-l { display: block; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-legacy-4); }
+
+/* 成就 Tab · Xbox 积分 + 本月排名 */
+.pc-gs-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--cy-space-1) var(--cy-space-1) var(--cy-space-2-5); /* ds-ok: 20rpx 无同值 spacing token */
+}
+.pc-public-achievements {
+  display: flex;
+  gap: var(--cy-space-2);
+  padding: var(--cy-space-3) 0;
+}
+.pc-public-stat {
+  flex: 1;
+  min-height: 160rpx;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1);
+}
+.pc-public-stat-n { font-size: var(--cy-type-section-title); font-weight: 700; }
+.pc-public-stat-l { font-size: var(--cy-type-caption); color: var(--cy-color-text-secondary); }
+.pc-gs-main { display: flex; align-items: center; gap: var(--cy-space-1-5); }
+.pc-gs-icon {
+  width: 44rpx; height: 44rpx; border-radius: 50%;
+  background: var(--cy-color-bg-surface-subtle); border: 2rpx solid var(--cy-color-border-strong);
+  font-size: var(--cy-type-caption); font-weight: 600; color: var(--cy-color-text-primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.pc-gs-num { font-size: var(--cy-type-display); font-weight: 600; line-height: 1; color: var(--cy-color-text-primary); }
+/* 命中区撑到 88rpx=44pt(Apple HIG 44pt / Material 48dp / 微信 ≥44px)。
+   负 margin 抵消 padding 让文字视觉位置不变;取 8rpx 与 .pc-gs-row 的
+   右内边距(8rpx)严格相等 —— 取 16rpx 会顶出容器 8rpx。 */
+.pc-gs-link {
+  font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary);
+  min-height: var(--cy-btn-h); padding: 0 var(--cy-space-1); margin: 0 -8rpx; /* ds-ok: -8rpx 负值无法直接映射 token */
+  box-sizing: border-box; display: inline-flex; align-items: center;
+  transition: opacity var(--cy-motion-fast);
+}
+
+/* 排名横幅。
+   ⚠️ 底色必须保持【单色相且两端都够暗】:卡上全部文字是反白的,而白字对比度的上限
+   由渐变最亮的一端决定。曾用紫→蓝→绿三色渐变(亮度跨度 2.6x),白字在绿端上限仅
+   2.55:1 —— 那是底色托不住文字,调字色无解。当前两端白字 ≥8.79:1。 */
+.pc-rank {
+  border-radius: var(--cy-radius-md); padding: var(--cy-space-3-5) 32rpx; margin-bottom: 24rpx;
+  color: rgba(255,255,255,1); /* ds-ok: 深紫渐变底上的反白文字,DS 无 on-dark-violet 文字 token */
+  background: linear-gradient(135deg, #4A2FB8 0%, #2E1C7A 100%); /* ds-ok: 深紫 hero 底,DS 无暗紫 surface token;单色相为承载反白文字 */
+  transition: transform var(--cy-motion-fast), opacity var(--cy-motion-fast);
+}
+.pc-rank-title { display: block; margin-bottom: var(--cy-legacy-18); font-size: var(--cy-type-label); color: rgba(255,255,255,0.92); /* ds-ok: 同上,反白 92% */ }
+.pc-rank-body { display: flex; align-items: center; }
+.pc-rank-left { flex: 1; }
+.pc-rank-no { font-size: 44rpx; /* ds-ok: 存量排名数字号,DS 无 44rpx 档(28/24/22/56) */ font-weight: 600; line-height: 1.1; }
+.pc-rank-delta { display: block; margin-top: var(--cy-legacy-6); font-size: var(--cy-type-label); color: #B8F5D8; /* ds-ok: 成功态浅色 tint,DS 无浅端 success-on-dark token */ }
+.pc-rank-sep { width: 2rpx; height: var(--cy-space-6); background: rgba(255,255,255,0.25); margin: 0 var(--cy-space-3); /* ds-ok: 2rpx/background 无同值 token */ }
+.pc-rank-right { flex: 1; text-align: right; }
+.pc-rank-k { display: block; font-size: var(--cy-type-caption); color: rgba(255,255,255,0.8); /* ds-ok: 同上,反白 80% */ }
+.pc-rank-v { display: block; font-size: var(--cy-type-body); font-weight: 600; margin-top: var(--cy-legacy-6); }
+.pc-rank-exp { display: block; font-size: var(--cy-type-label); margin-top: var(--cy-legacy-4); color: #B8F5D8; /* ds-ok: 同 .pc-rank-delta */ }
+/* 高度按视觉比例定,不按 44pt 命中区定:本元素没有自己的 bindtap,
+   它只是整卡可点的视觉提示,命中区是整张 .pc-rank(远大于 44pt)。
+   撑到 88rpx 会让它占掉卡片约 1/4 高度、空态下比真实数据还抢眼。 */
+.pc-compare {
+  margin-top: var(--cy-space-2-5); height: var(--cy-legacy-72); border-radius: var(--cy-radius-pill);
+  background: rgba(0,0,0,0.22); /* ds-ok: 渐变底上的压暗胶囊,DS 无 on-gradient 容器 token */ font-size: var(--cy-type-label); font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1);
+}
+.pc-player .pc-rank {
+  color: var(--cy-color-text-primary);
+  background: var(--cy-color-bg-elevated);
+  border: 1rpx solid var(--cy-color-border-subtle);
+}
+.pc-player .pc-rank-title { color: var(--cy-color-text-secondary); }
+.pc-player .pc-rank-delta,
+.pc-player .pc-rank-exp { color: var(--cy-color-text-primary); }
+.pc-player .pc-rank-sep { background: var(--cy-color-border-strong); }
+.pc-player .pc-rank-k { color: var(--cy-color-text-tertiary); }
+.pc-player .pc-compare { background: var(--cy-color-action-secondary-bg); }
+
+/* 勋章墙入口(承接原成就页 Shader 数字装置) */
+.pc-wall {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--cy-space-3-5) 32rpx; margin-bottom: 24rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle);
+  transition: transform var(--cy-motion-fast), opacity var(--cy-motion-fast);
+}
+.pc-wall-l { display: flex; flex-direction: column; gap: var(--cy-legacy-6); }
+.pc-wall-t { font-size: var(--cy-type-body); font-weight: 600; color: var(--cy-color-text-primary); }
+.pc-wall-s { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+/* 「可进入」的指示符必须看得清,故走 secondary 而非 placeholder 档:
+   placeholder 档在商户浅色下压白卡只有 2.56:1,不达 WCAG AA;secondary 为 4.76:1。 */
+.pc-wall-arrow { color: var(--cy-color-text-tertiary); }
+
+/* 按压反馈 —— 微信 view 原生 hover-class;只用 transform+opacity(合成层,不触发重排)。
+   Material 有 ripple、iOS 有 highlight,零反馈的可点卡片在三家规范里都不合格。 */
+.pc-tap { opacity: 0.86; transform: scale(0.985); }
+.pc-tap-text { opacity: 0.6; }
+
+/* 区块标题 */
+.pc-sec-head { display: flex; align-items: center; justify-content: space-between; margin: var(--cy-space-1) var(--cy-space-1) var(--cy-legacy-14); /* ds-ok: 14rpx 无同值 spacing token */ }
+/* 区块标题原为 label(24rpx)+ tertiary,与右侧文字动作同字号同色 ⇒ 整页少一档层级、看不出分组。
+   收到区块标题档(36rpx / 主文字色),动作保持小字并降一档到 secondary —— 分组感来自这两档的差值。 */
+.pc-sec-tit { font-size: var(--cy-type-section-title); font-weight: 700; color: var(--cy-color-text-primary); margin: var(--cy-space-3-5) var(--cy-space-1) var(--cy-space-2); /* ds-ok: 28rpx 无同值 spacing token */ }
+.pc-sec-tit--flush { margin-top: 0; }
+/* --sm:比常规区块标题小一档，但仍高于 .pc-sec-link(24rpx)以保留分组层级("我的订单"/"我的项目") */
+.pc-sec-tit--sm { font-size: var(--cy-type-card-title); }
+.pc-sec-link { min-height: var(--cy-btn-h); display: inline-flex; align-items: center; gap: var(--cy-space-1); font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+/* CU-M-27:区块头的动作链在这页会被**固定**封面(.pc-hero-bg position:fixed)垫在身后,
+   向下滚动时各分节都要穿过这条封面带。09-24 那轮把商家首屏白纱抬到 .52~.60,保证的是
+   深色**主文字**在最暗照片上 ≥4.5:1;secondary(#404040)在同一合成点(#7E7E7E)只有
+   2.55:1 —— 于是「管理全部 →」压在深色封面上糊成一片(走查实测)。
+   封面上的可读性按裁决只靠纱色、不加描边/底板,所以文字要取该域纱色对应的最强档;
+   与区块标题的层级差改由字号承担(30rpx vs 24rpx,见上)。玩家暗色域不动:它的纱是
+   压暗用的近黑纱,亮字方向本来就对,且首屏 0 压暗段任何色值都救不回来。 */
+.pc-merchant .pc-sec-link { color: var(--cy-color-text-primary); }
+/* C7:我的项目入口待处理角标 */
+.pc-sec-left { display: flex; align-items: center; gap: var(--cy-space-1); }
+.pc-sec-badge { min-width: var(--cy-space-4); height: var(--cy-space-4); padding: 0 var(--cy-space-1); box-sizing: border-box; border-radius: var(--cy-radius-pill); background: var(--cy-color-status-danger); color: var(--cy-color-text-inverse); font-size: var(--cy-type-micro); line-height: 32rpx; text-align: center; /* ds-ok: line-height 32rpx 非间距属性无同值 token */ }
+
+/* 主题进度行 */
+.pc-theme-list { margin-bottom: var(--cy-space-2-5); }
+.pc-theme {
+  display: flex; align-items: center; gap: var(--cy-legacy-18); padding: var(--cy-legacy-22) var(--cy-space-3); margin-bottom: var(--cy-space-1-5); /* ds-ok: 18rpx/22rpx/12rpx 无同值 spacing token */
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-md);
+}
+.pc-theme-ico { width: var(--cy-legacy-72); height: var(--cy-legacy-72); border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle);
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-type-section-title); flex-shrink: 0; }
+.pc-theme-main { flex: 1; min-width: 0; }
+.pc-theme-name { font-size: var(--cy-type-body); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-theme-sub { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-legacy-6); }
+.pc-theme-go { font-size: var(--cy-type-label); color: var(--cy-color-brand); flex-shrink: 0; }
+
+/* AI 推荐卡 */
+.pc-ai {
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md); padding: var(--cy-space-3) var(--cy-space-3-5); margin-bottom: var(--cy-space-3); /* ds-ok: 28rpx 无同值 spacing token */
+}
+.pc-ai-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--cy-space-1-5); }
+.pc-ai-tag {
+  font-size: var(--cy-type-caption); font-weight: 700; color: var(--cy-color-brand);
+  background: var(--cy-color-brand-soft); padding: var(--cy-legacy-4) var(--cy-legacy-14); border-radius: var(--cy-radius-pill);
+}
+.pc-ai-go { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.pc-ai-line { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); line-height: 1.55; margin-top: var(--cy-legacy-6); }
+
+/* Tab（紧挨主按钮下方） */
+.pc-tabs { margin-bottom: var(--cy-space-4); }   /* 归一 .cy-tabs 后仅保留下方间距;Tab 视觉走全局 .cy-tabs */
+/* .pc-tab / .pc-tab-on 已归一至全局 .cy-tabs__item(见 style/components.wxss §5.2) */
+
+/* 未收编 cy-card:组件读 --cy-comp-card-bg,不跟随本页 class 主题 ⇒ 商家视角会渲成夜间深卡 */
+/* 2026-08-20 用户定:关于页信息卡与「我的资产」同款 —— surface-subtle 灰底、1rpx 细描边,
+   不再用白色选框底(白卡浮在灰页上像输入框)。 */
+.pc-card {
+  background: var(--cy-color-bg-surface-subtle); border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md); padding: var(--cy-space-1) 0; margin-bottom: var(--cy-space-1);
+}
+
+/* 项目 Tab · 区块标题 + 横向滑动卡片(对标关于 pc-sec-head 排版) */
+.pc-hscroll { width: 100%; white-space: nowrap; margin-bottom: var(--cy-space-3); }
+.pc-hscroll-inner { display: inline-flex; gap: var(--cy-space-2-5); padding: 0 var(--cy-space-1) var(--cy-space-1); /* ds-ok: 20rpx 无同值 spacing token */ }
+/* 描边原为写死的「白 20%」:同一条规则 background 走 var、border 走字面 ⇒ 商家视角
+   白卡配 20% 白描边 = 描边消失(实测 1.00:1)。改跟对照组 .pc-card 同一个 border-subtle */
+.pc-proj-card {
+  display: inline-flex; align-items: center; gap: var(--cy-space-2-5);
+  width: 560rpx; min-height: 176rpx; padding: var(--cy-space-4) var(--cy-space-3-5); box-sizing: border-box; /* ds-ok: 560rpx/176rpx/28rpx 无同值 token */
+  border-radius: var(--cy-radius-md); vertical-align: top; white-space: normal;
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle);
+}
+.pc-proj-card--solo { display: flex; width: auto; margin: 0 var(--cy-space-1) var(--cy-space-3); min-height: 140rpx; /* ds-ok: 140rpx 无同值 spacing token */ }
+.pc-proj-body { flex: 1; min-width: 0; }
+.pc-proj-title {
+  font-size: var(--cy-type-body); font-weight: 700; color: var(--cy-color-text-primary);
+  line-height: 1.35;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pc-proj-sub {
+  margin-top: var(--cy-space-1); font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); line-height: 1.45;
+  overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.pc-proj-thumb {
+  flex-shrink: 0; width: 128rpx; height: 128rpx; border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+/* 项目 Tab · Xbox 列表风(与团体-我的项目一致) */
+.pc-xbox-list { display: flex; flex-direction: column; gap: var(--cy-space-3-5); margin-bottom: var(--cy-space-3); /* ds-ok: 28rpx 无同值 spacing token */ }
+/* 2026-08-20 项目卡 v2(用户定):G 积分/浏览量/时间百分比对商家无决策价值,整排删掉;
+   只留 封面/名称/档期/状态章。改白卡承托 —— 原先内容裸排在封面渐变图层上,
+   图层交界的白横带正好穿过卡片(见 .pc-merchant .pc-page-fade 注释)。 */
+.pc-xbox-proj {
+  display: flex; align-items: center; gap: var(--cy-space-2-5);
+  padding: var(--cy-space-3);
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-md);
+}
+.pc-xbox-proj:active { opacity: 0.82; }
+.pc-xbox-cover-wrap {
+  flex-shrink: 0; width: 120rpx; height: 120rpx; border-radius: var(--cy-radius-sm); overflow: hidden;
+  background: var(--cy-color-bg-surface-subtle);
+}
+.pc-xbox-cover { width: 100%; height: 100%; display: block; }
+.pc-xbox-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pc-xbox-name {
+  font-size: var(--cy-type-body); font-weight: 700; color: var(--cy-color-text-primary); line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pc-xbox-status {
+  flex-shrink: 0; padding: var(--cy-space-1) var(--cy-space-2-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  font-size: var(--cy-type-label); font-weight: 600; color: var(--cy-color-text-secondary);
+}
+.pc-xbox-status--done { color: var(--cy-color-text-tertiary); }
+.pc-xbox-time {
+  margin-top: var(--cy-space-1); font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); line-height: 1.4;
+}
+
+/* 推荐列表 */
+.pc-rec { display: flex; gap: var(--cy-legacy-18); padding: var(--cy-legacy-18) var(--cy-space-3); border-bottom: 1rpx solid var(--cy-color-border-subtle); /* ds-ok: 18rpx/1rpx 无同值 token */ }
+.pc-rec:last-child { border-bottom: none; }
+.pc-rec-cover { width: 112rpx; height: 112rpx; border-radius: var(--cy-radius-sm); flex-shrink: 0; background: var(--cy-color-bg-surface-subtle); }
+.pc-rec-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.pc-rec-name { font-size: var(--cy-type-body); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-rec-sub { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-legacy-6); }
+
+/* 动态 Feed */
+.pc-feed { margin-top: var(--cy-space-1); }
+.pc-post {
+  background: transparent; border: none;
+  border-radius: 0; padding: var(--cy-space-3) var(--cy-space-1); margin-bottom: var(--cy-space-1);
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.pc-post:last-child { border-bottom: none; }
+.pc-post-head { display: flex; gap: var(--cy-space-2); align-items: center; }
+.pc-post-meta { flex: 1; }
+.pc-post-name { display: block; font-size: var(--cy-type-label); font-weight: 700; }
+.pc-post-time { display: block; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-space-1); }
+.pc-post-body { margin: var(--cy-space-2) 0 var(--cy-space-1-5); font-size: var(--cy-type-body); line-height: 1.5; color: var(--cy-color-text-secondary); /* ds-ok: 12rpx 无同值 spacing token */ }
+.pc-post-pics { white-space: nowrap; width: 100%; }
+.pc-post-pic { width: 220rpx; height: 220rpx; border-radius: var(--cy-radius-sm); margin-right: var(--cy-space-1-5); display: inline-block; }
+.pc-post-tools { display: flex; align-items: center; gap: var(--cy-space-3); margin-top: var(--cy-space-2); }
+.pc-tool { display: flex; align-items: center; gap: var(--cy-space-1); font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); background: transparent; padding: 0; margin: 0; line-height: 1; }
+.pc-tool-ico { width: 30rpx; height: 30rpx; }
+.pc-tool-share { border: none; }
+.pc-tool-share::after { border: none; }
+.pc-tool.is-on { color: var(--cy-color-text-primary); }
+
+/* 足迹 */
+.pc-fp-filters { display: flex; gap: var(--cy-space-2); margin: var(--cy-space-1) 0 var(--cy-space-2); flex-wrap: wrap; }
+.pc-fp-filter {
+  font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); padding: var(--cy-legacy-10) var(--cy-legacy-22); border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle);
+}
+.pc-fp-filter-on { color: var(--cy-color-text-primary); border-color: var(--cy-color-brand); background: var(--cy-color-brand-soft); }
+.pc-map-wrap { position: relative; height: 420rpx; border-radius: var(--cy-radius-md); overflow: hidden; margin-bottom: var(--cy-space-2-5); }
+.pc-map { width: 100%; height: 100%; }
+.pc-map-overlay {
+  position: absolute; left: var(--cy-space-3); bottom: var(--cy-space-3); padding: var(--cy-space-2) var(--cy-space-2-5); border-radius: var(--cy-radius-sm); /* ds-ok: 20rpx 无同值 spacing token */
+  background: rgba(2,1,4,0.72); backdrop-filter: blur(8rpx); /* ds-ok 压地图的玻璃底 = bg-page @ 72%;小程序无 color-mix(),「token 色 @ alpha」无法表达 */
+}
+.pc-map-city { display: block; font-size: var(--cy-type-body); font-weight: 700; }
+.pc-map-hint { display: block; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-legacy-4); }
+.pc-fp-stats { display: flex; flex-wrap: wrap; gap: var(--cy-space-1-5); margin-bottom: var(--cy-space-2); /* ds-ok: 12rpx 无同值 spacing token */ }
+.pc-fpcell {
+  width: calc(50% - 6rpx); box-sizing: border-box; background: var(--cy-color-bg-surface);
+  border: 2rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-md); padding: var(--cy-legacy-22) var(--cy-space-3); /* ds-ok: 22rpx/6rpx/2rpx 无同值 token */
+}
+.pc-fpcell-n { display: block; font-size: var(--cy-type-card-title); font-weight: 700; }
+.pc-fpcell-l { display: block; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-legacy-4); }
+.pc-replay { text-align: center; font-size: var(--cy-type-label); color: var(--cy-color-brand); padding: var(--cy-space-2) 0 var(--cy-space-1); }
+
+/* 勋章 */
+.pc-medal-grid { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); }
+.pc-medal {
+  width: calc(33.33% - 12rpx); box-sizing: border-box; text-align: center;
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-md); padding: var(--cy-space-2-5) var(--cy-space-1-5);
+}
+/* font-size 在这里是拿字号当 icon 尺寸使,不是字阶语义;废弃 token --cy-font-display(40)无同值目标,
+   取最近的 section-title 36 —— 它撑的是 96rpx 圆盘里的兜底 emoji,4rpx 差无功能影响。此类为死码(只报不删) */
+.pc-medal-disc {
+  width: var(--cy-space-8); height: var(--cy-space-8); border-radius: 50%; margin: 0 auto var(--cy-space-1-5); /* ds-ok: 12rpx 无同值 spacing token */
+  background: var(--cy-color-bg-surface-subtle); display: flex; align-items: center; justify-content: center; overflow: hidden;
+  font-size: var(--cy-type-section-title);
+}
+.pc-medal-disc-ico { width: 100%; height: 100%; }
+.pc-medal-name { display: block; font-size: var(--cy-type-caption); font-weight: 700; line-height: 1.3; }
+.pc-medal-lv { margin-top: var(--cy-legacy-6); font-size: var(--cy-type-caption); color: var(--cy-color-brand); }
+.pc-medal-more { text-align: center; font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); padding: var(--cy-space-3) 0; }
+
+/* 资料 */
+/* 门店 AI 形象卡(npc_profile scope 2 门店分身)。像素素材放大必须关插值,否则 64px 的图拉到 128rpx
+   会被浏览器双线性插值糊成一团 —— 那正是「像素风」唯一会看错的地方。
+   image-rendering 是可继承属性,写在 <image> 外层能传到微信内部的 <img>。 */
+.pc-npc {
+  display: flex; align-items: center; gap: var(--cy-space-2-5);
+  padding: var(--cy-space-3) var(--cy-space-3-5); margin: var(--cy-space-2) 0;
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+}
+.pc-npc-avatar {
+  /* ds-ok: 128rpx 像素画布边长,无同值 spacing token;显式定尺寸避开 image 默认 240px 高 */
+  width: 128rpx; height: 128rpx; flex-shrink: 0;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-subtle);
+  image-rendering: pixelated;
+}
+.pc-npc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.pc-npc-name { font-size: var(--cy-type-card-title); font-weight: 700; color: var(--cy-color-text-primary); }
+.pc-npc-greet { font-size: var(--cy-type-body); line-height: 1.5; color: var(--cy-color-text-secondary); }
+/* 「聊聊」入口。★ 触达区不小于 44pt(88rpx):文字本身只有一行高,
+   不撑到 88rpx 的话点不中,而形象卡整块又不该可点(点整块会和"看形象"混淆)。 */
+.pc-npc-chat-entry {
+  flex-shrink: 0; min-width: 112rpx; min-height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 var(--cy-space-3);
+  font-size: var(--cy-type-body); font-weight: 600;
+  color: var(--cy-color-brand);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.pc-about-head { display: flex; align-items: center; justify-content: space-between; }
+.pc-about-edit {
+  min-height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-2);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  color: var(--cy-color-status-info);
+  font-size: var(--cy-type-label);
+}
+.pc-about { padding: var(--cy-space-3) var(--cy-space-3-5); font-size: var(--cy-type-body); line-height: 1.55; color: var(--cy-color-text-secondary); margin-bottom: var(--cy-space-1); /* ds-ok: 28rpx 无同值 spacing token */ }
+.pc-tags { display: flex; flex-wrap: wrap; gap: var(--cy-space-1-5); margin-bottom: var(--cy-space-2); padding: 0 var(--cy-space-1); /* ds-ok: 12rpx 无同值 spacing token */ }
+.pc-tag {
+  font-size: var(--cy-type-label); padding: var(--cy-space-1) var(--cy-legacy-18); border-radius: var(--cy-radius-pill); /* ds-ok: 18rpx 无同值 spacing token */
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle); color: var(--cy-color-text-secondary);
+}
+.pc-tag--muted { color: var(--cy-color-text-tertiary); }
+.pc-info-list { background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-md); overflow: hidden; }
+.pc-info-link { color: var(--cy-color-text-tertiary); }
+
+/* 独立成组的单行 cell(加入时间 / 会员续费):cy-cell 自带 96rpx 行高与左右 32rpx padding */
+.pc-solo-cell { display: block; margin-bottom: var(--cy-space-1); }
+
+/* 底部 sheet 由 cy-sheet 提供(chrome + 遮罩 + 头)。
+   2026-09-02:删掉 .pc-sheet-mask / -head / -title / -close 四条 —— 它们是上一轮收编到
+   cy-sheet 之后剩下的死码,wxml/js 全仓零引用。留着的代价不是那几行样式,是「这页还有一套
+   自造遮罩」的假象:下一个人照着它再写一个 z-index:90 的浮层,就绕过了 z 分档。 */
+
+/* 商家财务卡骨架:wxml 零引用,是拆掉功能后剩下的死码(只报不删) */
+.pc-vcard {
+  position: relative; overflow: hidden; margin-bottom: var(--cy-space-2-5);
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-lg); padding: var(--cy-space-4) var(--cy-legacy-36) var(--cy-legacy-36); /* ds-ok: 36rpx/2rpx 无同值 token */
+}
+.pc-vcard-glow { position: absolute; width: 280rpx; height: 280rpx; border-radius: 50%; filter: blur(70rpx); opacity: 0.45; }
+.pc-vcard-glow--purple { background: #7048E8; top: -120rpx; right: -40rpx; } /* ds-ok 卡背辉光装饰:token 层无辉光表达,取品牌紫深端;非文字、被 blur(70rpx) 打散 */
+.pc-vcard-glow--blue { background: var(--cy-color-brand); bottom: -140rpx; left: -60rpx; }
+.pc-player .pc-vcard-glow--purple { background: var(--cy-color-border-strong); }
+.pc-player .pc-vcard-glow--blue { background: var(--cy-color-text-primary); }
+.pc-vcard-top { position: relative; display: flex; justify-content: space-between; align-items: center; }
+.pc-vcard-pill { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.pc-vcard-link { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+/* 72rpx 无同值 token;它是金额 ⇒ data-xl(DS:金额 / 里程 / 核心数字)。800 → 700 封顶 */
+.pc-vcard-amount { position: relative; font-size: var(--cy-type-data-xl); font-weight: 700; margin-top: var(--cy-space-1-5); color: var(--cy-color-text-primary); }
+.pc-vcard-stats { position: relative; display: flex; gap: var(--cy-space-5); margin-top: var(--cy-space-2-5); /* ds-ok: 20rpx 无同值 spacing token */ }
+.pc-vcard-stat-v { display: block; font-size: var(--cy-type-body); font-weight: 700; }
+.pc-vcard-stat-v--green { color: var(--cy-color-status-success); }
+.pc-vcard-stat-l { display: block; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); margin-top: var(--cy-legacy-4); }
+
+/* 入口行分组容器:行样式已收编进 cy-cell(DS §3.11),cell 自带左右 32rpx padding,容器不加边距
+ * (与已迁移的 pages/shezhi 同一写法);未套 cy-card 的原因见本文件顶部 */
+.pc-menu { padding: var(--cy-legacy-4) 0; margin-bottom: var(--cy-space-1); /* ds-ok: 4rpx 无同值 spacing token */ }
+
+/* 入口图标网格:6 个入口(角色互斥 ⇒ 常态 5 个)压成 4 列 = 2 行,替掉原来 6 行整宽 cell。
+   图标底走明度阶,不加边框(与身份卡同一分层语言)。 */
+.pc-entries { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--cy-space-3) var(--cy-space-2); padding: var(--cy-space-3) var(--cy-space-2); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-elevated); margin-bottom: var(--cy-space-2); }
+.pc-entry { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: var(--cy-space-1); }
+.pc-entry-ico { width: var(--cy-btn-h); height: var(--cy-btn-h); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); display: flex; align-items: center; justify-content: center; }
+.pc-entry-t { font-size: var(--cy-type-caption); color: var(--cy-color-text-secondary); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+/* 成就行 */
+.pc-achv-list { padding: var(--cy-space-1) var(--cy-space-3); }
+.pc-achv { display: flex; align-items: center; gap: var(--cy-legacy-18); padding: var(--cy-legacy-18) 0; border-bottom: 1rpx solid var(--cy-color-border-subtle); }
+.pc-achv:last-child { border-bottom: none; }
+.pc-achv-ico { width: var(--cy-btn-h); height: var(--cy-btn-h); border-radius: var(--cy-radius-md); flex-shrink: 0; background: var(--cy-color-bg-surface-subtle); }
+/* medalImg 缺失时仍保留勋章占位尺寸,以通用 star 表达已获得的勋章。 */
+.pc-achv-ico--fallback { display: flex; align-items: center; justify-content: center; color: var(--cy-color-brand); }
+.pc-achv-main { flex: 1; min-width: 0; }
+.pc-achv-name { font-size: var(--cy-type-body); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 原是 <text>✓</text> 文本符号充当图标(DS §9 禁止)⇒ cy-icon check;色 = currentColor,故这里只给 color */
+.pc-achv-ok { color: var(--cy-color-brand); flex-shrink: 0; }
+.pc-theme-pct { font-size: var(--cy-type-label); font-weight: 700; color: var(--cy-color-text-tertiary); flex-shrink: 0; }
+
+/* 当前权益。未收编 cy-cell:leading 是承载「解锁/未解锁」状态的实色圆点,
+   而 cy-cell 的 icon 只吃图片 src,收编会把状态色弄丢 */
+.pc-benefits { padding: var(--cy-space-1) var(--cy-space-3-5); margin-bottom: var(--cy-space-1); /* ds-ok: 28rpx 无同值 spacing token */ }
+.pc-benefit { display: flex; align-items: center; gap: var(--cy-space-2); padding: var(--cy-legacy-22) 0; border-bottom: 1rpx solid var(--cy-color-border-subtle); /* ds-ok: 22rpx/1rpx 无同值 token */ }
+.pc-benefit:last-child { border-bottom: none; }
+/* 原为 ✓/锁 文本符号 + 写死的纯白前景:白字压 success 实测夜 2.55:1(需 4.5)= 不可读。
+   换 cy-icon check/lock + text-inverse(「紫/白底上的反色字」正是实色块上的前景语义):夜 7.82 / 日 5.34 */
+.pc-benefit-dot {
+  width: 40rpx; height: 40rpx; border-radius: 50%; background: var(--cy-color-status-success); color: var(--cy-color-text-inverse);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pc-benefit--lock .pc-benefit-dot { background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-tertiary); }
+.pc-benefit-text { flex: 1; font-size: var(--cy-type-label); color: var(--cy-color-text-primary); }
+.pc-benefit--lock .pc-benefit-text { color: var(--cy-color-text-tertiary); }
+/* 原是 <text>›</text> ⇒ cy-icon arrow-right */
+.pc-benefit-arrow { color: var(--cy-color-text-placeholder); flex-shrink: 0; }
+
+/* 商家「关于」:品牌口号 + 门店相册 + 营业信息 / 承接能力的键值行。
+   全部走语义 token,和玩家 About 用同一批变量 ⇒ theme-merchant 切白时整组跟着切,
+   不会出现「卡片白了、文字还是夜间色」那种就地求值残留。 */
+.pc-gamer-slogan { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.pc-mgimg {
+  width: 240rpx; height: 180rpx; border-radius: var(--cy-radius-sm); /* ds-ok: 240rpx/180rpx 无同值 token */
+  background: var(--cy-color-bg-surface-subtle); flex-shrink: 0;
+}
+.pc-mrows { padding: 0; }
+.pc-mrow {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2);
+  min-height: 88rpx; padding: var(--cy-space-2) var(--cy-space-3-5); /* ds-ok: 88rpx/28rpx 无同值 token */
+}
+.pc-mrow + .pc-mrow { border-top: 2rpx solid var(--cy-color-border-subtle); }
+.pc-mrow-k { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); flex-shrink: 0; }
+.pc-mrow-v { font-size: var(--cy-type-label); color: var(--cy-color-text-primary); text-align: right; }
+.pc-mrow-v--link {
+  color: var(--cy-color-status-info);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--cy-space-1);
+}
+
+/* 探索作品 */
+.pc-works { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); margin-bottom: var(--cy-space-2); padding: 0 var(--cy-space-1); }
+.pc-work-pic { width: 150rpx; height: 150rpx; border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle); }
+
+.pc-info-row--solo {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--cy-space-3) var(--cy-space-3-5); margin-bottom: var(--cy-space-1); /* ds-ok: 28rpx 无同值 spacing token */
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-md);
+}
+
+.pc-renew {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 30rpx var(--cy-space-3-5); margin-top: var(--cy-space-2); /* ds-ok: 30rpx/28rpx 无同值 spacing token */
+  background: var(--cy-color-bg-surface); border: 2rpx solid var(--cy-color-border-subtle); border-radius: var(--cy-radius-md);
+}
+.pc-renew-name { font-size: var(--cy-type-body); font-weight: 700; color: var(--cy-color-brand); }
+.pc-renew-arrow { font-size: var(--cy-type-section-title); color: var(--cy-color-text-tertiary); }
+
+/* [P0-2] ③ 选章核销面板 —— 装在 cy-sheet 的 slot 里,条数不设上限
+   (wx.showActionSheet 上限 6 项,超了只能截断 = 静默丢选项) */
+.chpick { padding-bottom: var(--cy-space-2); }
+.chpick__hint {
+  padding: 0 var(--cy-space-1) var(--cy-space-2-5); /* ds-ok: 20rpx 无同值 spacing token */
+  font-size: var(--cy-type-label);
+  line-height: 1.5;
+  color: var(--cy-color-text-tertiary);
+}
+.chpick__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx var(--cy-space-1); /* ds-ok: 30rpx 无同值 spacing token */
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+}
+.chpick__name {
+  flex: 1;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+  /* 章节名可能很长,别把箭头挤出屏幕 */
+  margin-right: var(--cy-space-2);
+}
+.chpick__chev {
+  color: var(--cy-color-text-tertiary);
+}
+
+/* ==== 积分任务弹窗(pts-)====
+ * 参照:FocusFlight 票券卡(虚线分隔/双列统计)+ Xbox Rewards 双列大数字头 + Pangea 行式任务。
+ * 全部走 token,零硬编码;容器由 cy-sheet 提供(遮罩/圆角/标题/关闭)。 */
+.pts-hero {
+  display: flex;
+  align-items: center;
+  padding: var(--cy-space-3) 0 var(--cy-space-3-5); /* ds-ok: 28rpx 无同值 spacing token */
+}
+.pts-hero__col {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+.pts-hero__label {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+  margin-bottom: var(--cy-space-1);
+}
+.pts-hero__num {
+  font-size: var(--cy-type-display);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+.pts-hero__div {
+  width: 2rpx;
+  height: var(--cy-btn-h-xs); /* ds-ok: 2rpx 无同值 spacing token */
+  background: var(--cy-color-border-strong);
+  flex-shrink: 0;
+}
+.pts-loading {
+  padding: var(--cy-space-5) 0;
+  text-align: center;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+}
+.pts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-scene-card-gap, var(--cy-space-2-5));
+}
+.pts-row {
+  display: flex;
+  align-items: center;
+  padding: var(--cy-scene-card-pad-y, var(--cy-space-3-5)) var(--cy-scene-card-pad-x, var(--cy-space-4));
+  border-radius: var(--cy-scene-card-radius, var(--cy-comp-sheet-history-card-radius));
+  background: var(--cy-scene-card-bg, var(--cy-comp-sheet-player-history-card));
+}
+.pts-row__main {
+  flex: 1;
+  min-width: 0;
+  margin-right: var(--cy-space-3);
+}
+.pts-row__name {
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  color: var(--cy-color-text-primary);
+}
+.pts-row__desc {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+  margin-top: var(--cy-legacy-4);
+}
+.pts-row__side {
+  flex-shrink: 0;
+  text-align: right;
+}
+.pts-row__gain {
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+.pts-row__done {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+  margin-top: var(--cy-legacy-4);
+}
+.pts-row__done.is-zero { opacity: .6; }
+
+/* 我的资产:与「我的订单」「我的项目」同段级的余额卡,整卡可点进账户收益。
+   取用现有 token,不新造尺寸;--empty 档给取不到余额时的「—」压低对比度,
+   避免它看起来像一个确定的读数。 */
+.pc-asset {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--cy-space-3-5) var(--cy-space-3);
+  margin: 0 var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  box-sizing: border-box;
+}
+.pc-asset__main { display: flex; flex-direction: column; gap: var(--cy-space-1); min-width: 0; }
+.pc-asset__label { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+/* --cy-type-data-xl 的语义就是「金额 / 里程 / 核心数字」,DS 里金额只有这一档;
+   不拿 card-title 之类按数值凑,那是标题语义(见 memory:token 名对≠语义对)。 */
+.pc-asset__value { font-size: var(--cy-type-data-xl); font-weight: 700; color: var(--cy-color-text-primary); }
+.pc-asset__value--empty { color: var(--cy-color-text-tertiary); }
+.pc-asset__yen { font-size: var(--cy-type-label); font-weight: 700; margin-right: 4rpx; } /* ds-ok: 币符与数字的贴合间距 */
+.pc-asset__arrow { color: var(--cy-color-text-tertiary); flex: none; }
+.pc-team-entry { margin-top: var(--cy-space-3); overflow: hidden; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface); }
+
+/* ===== 发起合作底栏(访客看商家主页)===== */
+.pc-coop-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  z-index: var(--cy-z-sticky);
+  padding: var(--cy-space-2) var(--cy-space-3) calc(var(--cy-space-2) + env(safe-area-inset-bottom));
+  background: var(--cy-color-bg-page);
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+}
+.pc-coop-btn {
+  height: var(--cy-btn-h);
+  min-width: 88rpx;
+  min-height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-comp-btn-radius);
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-size: var(--cy-type-body); font-weight: 600;
+}
+
+/* 招牌主推卡(4-12):横排 图 + 标题 + 箭头,与关于区其它行同一套 token,不另起卡片皮 */
+.pc-featured { display: flex; align-items: center; gap: var(--cy-space-2-5); padding: var(--cy-space-2); }
+.pc-featured-img {
+  width: 160rpx; height: 120rpx; flex-shrink: 0;  /* ds-ok: 160rpx/120rpx 无同值 token */
+  border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface);
+}
+.pc-featured-img--fallback { display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-tertiary); }
+.pc-featured-title {
+  flex: 1; min-width: 0; font-size: var(--cy-type-card-title); font-weight: 700;
+  color: var(--cy-color-text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pc-featured-arrow { flex-shrink: 0; color: var(--cy-color-text-tertiary); }
+
+/* ===== 商家版关于:大白卡退场,文字直接落页面底(2026-08-20 用户拍板) =====
+   只动商家视角;玩家暗色视角的 .pc-card 维持原样 */
+.pc-merchant .pc-card { background: transparent; border: none; margin-bottom: var(--cy-space-3); }
+.pc-merchant .pc-featured { padding-left: 0; padding-right: 0; }
+.pc-merchant .pc-about { padding-left: 0; padding-right: 0; }
+.pc-merchant .pc-mrow { padding-left: 0; padding-right: 0; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

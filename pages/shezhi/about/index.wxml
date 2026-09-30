@@ -1,0 +1,40 @@
+<view class="about-page {{isMerchantView ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar plain custom-back bind:back="onBack" />
+  <view class="about-nav-space" style="height:{{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="关于" safe-top="{{false}}" />
+
+  <view class="about-content">
+    <view class="about-app">
+      <image class="about-app__logo" src="/images/cy_logo_mark.png" mode="aspectFit" />
+      <view class="about-app__name">城瘾</view>
+      <view class="about-app__version">版本 {{version}}</view>
+      <view class="about-app__desc">发现城市，也发现新的自己</view>
+    </view>
+
+    <view class="about-section">
+      <view class="about-section__title">我的二维码</view>
+      <view class="about-section__intro">你的城瘾身份码，用来在活动现场亮明身份。这项功能还在开通中，开通后会自动出现在这里。</view>
+      <cy-qr-voucher
+        embedded="{{true}}"
+        surface="host"
+        show="{{true}}"
+        state="error"
+        show-logo="{{false}}"
+        error-text="玩家个人码待生成"
+        retry-text=""
+        mask-closable="{{false}}"
+        bind:retry="explainQrPending"
+      />
+    </view>
+
+    <view class="about-section about-section--menu">
+      <cy-cell tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_agreement.svg" title="用户服务协议" description="查看服务条款" bind:tap="openAgreement" />
+      <cy-cell tint="{{isMerchantView ? '' : 'mono'}}" icon="/pages/shezhi/images/icon_headset.svg" title="联系我们" open-type="contact" hairline="{{false}}" />
+    </view>
+  </view>
+</view>
+
+<cy-agreement-sheet show="{{showAgreementSheet}}" type="service" theme="{{isMerchantView ? 'merchant' : 'player'}}" bind:close="closeAgreement" />

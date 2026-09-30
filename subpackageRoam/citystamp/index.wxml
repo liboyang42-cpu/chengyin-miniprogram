@@ -1,0 +1,139 @@
+<!-- 城市贴纸 / 今日城市签 · 投一张换一张(§6.4)
+     整套从「城瘾玩法试玩台」原样搬来,视觉不改,只把 DOM 事件换成小程序的手势与 canvas。
+     三屏一页:拍照 → 写签 → 换票。放在分包里是因为信箱那张实物图有 37KB,
+     主包资源棘轮只准降,而这套玩法是点进来才用,分包按需下载正合适。 -->
+<view class="cs theme-dark {{reducedMotion ? 'cs--reduced-motion' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />
+
+  <!-- 底垫本模式的地图截图:城市签那两屏是黑玻璃,街道和点位要透得出来(§6.5) -->
+  <image wx:if="{{mapShot}}" class="cs__bg" src="{{mapShot}}" mode="aspectFill" />
+  <view wx:else class="cs__bg cs__bg--ph"></view>
+
+  <!-- ══ ① 拍照:取景框半屏落在地图上,地图和底部按钮仍在 ══
+       2026-09-11 抽成共用组件 cy-proto-cam —— 漫游与集邮册也用同一件(用户裁决:
+       「不是 canon 了 用原型的」),这里只剩「拍到一张之后进写签」这一段接线。 -->
+  <cy-proto-cam show="{{step === 'cam'}}" bind:shot="onCamShot" bind:close="onCamClose" />
+
+  <!-- ══ ② 写签:留言条 + 信箱。写完投进去,机器才吐出上一个人那张 ══ -->
+  <view wx:if="{{step === 'write'}}" class="sg" style="padding-top:{{topSafe}}px">
+    <view class="sg__nav">
+      <view class="sg__navbtn" bindtap="onBack" aria-role="button" aria-label="返回" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="back" size="28" />
+      </view>
+      <view class="sg__navt"><text class="sg__navt-b">{{title}}</text><text class="sg__navt-s">{{dateLabel}} · {{place}}</text></view>
+      <view class="sg__navbtn sg__navbtn--ghost"></view>
+    </view>
+
+    <!-- 留言条:可以拖进投信口,也可以点下面那枚按钮 -->
+    <view class="sgnote {{noteGrab ? 'grab' : ''}} {{sent ? 'is-sent' : ''}}"
+          style="transform:translate({{noteDx}}px,{{noteDy}}px) rotate({{noteRot}}deg) scale({{noteScale}});opacity:{{noteOpacity}};transition:{{noteTrans}}"
+          bindtouchstart="onNoteDown" bindtouchmove="onNoteMove" bindtouchend="onNoteUp" bindtouchcancel="onNoteUp">
+      <view class="sgnote__h">
+        <view class="sgnote__hl">
+          <text class="sgnote__ht">给下一个来这里的人留一句</text>
+          <text class="sgnote__c">{{note.length}}/{{CAPTION_MAX}}</text>
+        </view>
+        <!-- 照片是正方形,不是拱形(§6.4)。没拍就是个虚线框,点它去拍 -->
+        <view class="sgnote__shot {{photo ? 'has' : ''}}" catchtap="onRetake"
+              aria-role="button" aria-label="{{photo ? '重拍' : '拍一张'}}" hover-class="cy-pressed" hover-stay-time="80">
+          <image wx:if="{{photo}}" src="{{photo}}" mode="aspectFill" />
+          <cy-icon wx:else name="camera" size="26" />
+        </view>
+      </view>
+      <textarea class="sgnote__ta" value="{{note}}" maxlength="{{CAPTION_MAX}}" disabled="{{sent}}"
+                placeholder="比如：巷口那家豆浆七点才开，别去早了" placeholder-class="sgnote__ph"
+                bindinput="onNoteInput" adjust-position="{{false}}" aria-label="留一句给下一个人" />
+      <view class="sgnote__meta"><text>{{place}}</text><text>{{timeLabel}}</text></view>
+    </view>
+
+    <!-- 信箱是实物照片(抠底 PNG)。只有「信滑进投信口」这一层是叠上去的 -->
+    <view class="sgpb {{boxArmed ? 'armed' : ''}}">
+      <view class="sgpb__wrap" style="transform:translateY({{boxY}}rpx);transition:{{boxTrans}}">
+        <image class="sgpb__img" src="/subpackageRoam/citystamp/mailbox.png" mode="widthFix" />
+        <view class="sgpb__slot">
+          <view class="sgpb__letter" style="transform:translateY({{letterY || 0}}%);opacity:{{letterOpacity}};transition:{{letterTrans}}"></view>
+        </view>
+      </view>
+    </view>
+
+    <text class="sghint">{{hint}}</text>
+    <view class="sgfoot">
+      <!-- 空着也能投(§6.4):写是代价,但那一句可以不写 —— 拍了照就已经付过了 -->
+      <view class="sgbtn {{sending ? 'is-off' : ''}}" bindtap="onSend"
+            aria-role="button" aria-label="投进信箱" hover-class="cy-pressed" hover-stay-time="80">{{sendLabel}}</view>
+    </view>
+  </view>
+
+  <!-- ══ ③ 换票:打出来的是上一个来这里的人留的那张 ══ -->
+  <view wx:if="{{step === 'print'}}" class="sg" style="padding-top:{{topSafe}}px">
+    <view class="sg__nav">
+      <view class="sg__navbtn" bindtap="onBack" aria-role="button" aria-label="返回" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="back" size="28" />
+      </view>
+      <view class="sg__navt"><text class="sg__navt-b">{{title}}</text><text class="sg__navt-s">{{dateLabel}} · {{place}}</text></view>
+      <view class="sg__navbtn sg__navbtn--ghost"></view>
+    </view>
+
+    <!-- 拉丝银打印机。撕断之后槽里留一小截纸头 -->
+    <view class="sgprinter">
+      <view class="sgscrew sgscrew--1"></view><view class="sgscrew sgscrew--2"></view>
+      <view class="sgscrew sgscrew--3"></view><view class="sgscrew sgscrew--4"></view>
+      <view class="sgprinter__slot"></view>
+      <view wx:if="{{torn}}" class="sgprinter__stub"></view>
+    </view>
+
+    <!-- 没换到票就别画一张空小票:如实说清楚,并留一条回去的路 -->
+    <view wx:if="{{!got}}" class="sgempty">
+      <text class="sgempty__t">{{gotReason || '还没有可以换的票'}}</text>
+      <text class="sgempty__s">你留的那句已经投进去了，等下一个人来换。</text>
+    </view>
+
+    <view wx:else class="sgpaperwrap">
+      <view class="sgpaper {{torn ? 'held' : ''}}"
+            style="transform:translateY({{paperY}}px) rotate({{paperRot}}deg);transition:{{paperTrans}}"
+            bindtouchstart="onPaperDown" bindtouchmove="onPaperMove" bindtouchend="onPaperUp" bindtouchcancel="onPaperUp">
+        <view class="sgslip">
+          <view class="sgslip__od">
+            <view>
+              <text class="sgslip__k">出发</text>
+              <text class="sgslip__addr">{{place}}</text>
+              <text class="sgslip__sm">{{timeLabel}}</text>
+            </view>
+            <view class="sgslip__od-r">
+              <text class="sgslip__k">签号</text>
+              <text class="sgslip__big">{{serial}}</text>
+              <text class="sgslip__sm">你是第几位</text>
+            </view>
+          </view>
+          <view class="sgslip__hr"></view>
+          <view class="sgslip__grid">
+            <view><text class="sgslip__k">留签人</text><text class="sgslip__v">这一站的某个人</text></view>
+            <view><text class="sgslip__k">留于</text><text class="sgslip__v">{{gotAt}}</text></view>
+          </view>
+          <view class="sgslip__hr"></view>
+          <image class="sgslip__photo" src="{{gotPic}}" mode="aspectFill" />
+          <view class="sgslip__hr"></view>
+          <text class="sgslip__k sgslip__k--lead">留给你的一句</text>
+          <!-- TA 那句盖着灰色刮层,刮开六成才解锁「收下,出发」 -->
+          <view class="sgslip__poem">
+            <text class="poem">{{gotCaption || '（这一位没留字，只留了一张照片）'}}</text>
+            <canvas wx:if="{{!revealed}}" class="sgcover" type="2d" id="sgcover"
+                    bindtouchstart="onScratch" bindtouchmove="onScratch" bindtouchend="onScratchEnd"></canvas>
+          </view>
+          <view class="sgslip__hr"></view>
+          <view class="sgbar">
+            <view class="sgbar__i" wx:for="{{bars}}" wx:key="index" style="width:{{item.w}}px;margin-right:{{item.g}}px"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <text class="sghint">{{hint}}</text>
+    <view class="sgfoot">
+      <view class="sglnk" wx:if="{{got}}" bindtap="onSave" aria-role="button" aria-label="保存到相册" hover-class="cy-pressed" hover-stay-time="80">保存到相册</view>
+      <view class="sgbtn {{(got && !revealed) ? 'is-off' : ''}}" bindtap="onDone"
+            aria-role="button" aria-label="收下，出发" hover-class="cy-pressed" hover-stay-time="80">收下，出发</view>
+    </view>
+  </view>
+</view>

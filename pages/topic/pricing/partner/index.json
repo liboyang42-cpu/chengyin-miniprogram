@@ -1,0 +1,17 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F4F4",
+  "backgroundColorTop": "#F3F4F4",
+  "backgroundColorBottom": "#F3F4F4",
+  "usingComponents": {
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  }
+}

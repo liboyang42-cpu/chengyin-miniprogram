@@ -1,0 +1,9 @@
+// 时间滚轮的展示层补零。
+// JS 侧数组必须保持数字(调用方要拿它做算术),所以补零只能在渲染时做。
+// 收口前:merchantapply / publish-activity 显示「9时 0分」、couponInfo 显示「9时 05分」、
+// merchant-apply 显示「09:00」—— 同一个 App 三种口径。
+function pad2(n) {
+  var s = '' + n;
+  return s.length < 2 ? '0' + s : s;
+}
+module.exports = { pad2: pad2 };

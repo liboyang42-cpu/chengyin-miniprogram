@@ -1,0 +1,41 @@
+/* 骨架屏→内容淡切:isolated 组件收不到全局 components.wxss,@import 同一份定义 */
+@import '../../../style/fade-in.wxss';
+:host { display: block; height: 100%; }
+.poi-body { padding-bottom: var(--cy-space-5); }
+.poi-hero { overflow: hidden; border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.poi-cover { width: 100%; height: 240rpx; display: block; }
+.poi-identity { display: flex; gap: var(--cy-space-2); padding: var(--cy-space-3); }
+.poi-logo { width: 96rpx; height: 96rpx; flex: none; }
+.poi-identity__copy { min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.poi-name { color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 700; }
+.poi-status { color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.poi-role { color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+.poi-tags { display: flex; flex-wrap: wrap; gap: var(--cy-space-1); padding: 0 var(--cy-space-3) var(--cy-space-3); }
+.poi-tag, .poi-node__badge { padding: var(--cy-space-1) var(--cy-space-2); border-radius: var(--cy-radius-pill); background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.poi-section, .poi-node { margin-top: var(--cy-space-3); }
+.poi-section__title, .poi-node__title { display: block; margin-bottom: var(--cy-space-2); color: var(--cy-color-text-primary); font-size: var(--cy-type-section-title); font-weight: 700; }
+.poi-featured { display: flex; align-items: center; gap: var(--cy-space-2); padding: var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); }
+.poi-featured__image { width: 120rpx; height: 96rpx; border-radius: var(--cy-radius-sm); }
+.poi-featured__placeholder { width: 120rpx; height: 96rpx; flex: none; display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface); color: var(--cy-color-text-tertiary); }
+.poi-node { padding: var(--cy-space-3); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.poi-node__title { margin-top: var(--cy-space-2); margin-bottom: var(--cy-space-1); font-size: var(--cy-type-card-title); }
+.poi-node__meta { display: block; color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.poi-recovery { margin-top: var(--cy-space-3); }
+.poi-node__actions { display: flex; gap: var(--cy-space-2); margin-top: var(--cy-space-3); }
+.poi-action { flex: 1; min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; border: 2rpx solid var(--cy-color-border-strong); border-radius: var(--cy-radius-md); color: var(--cy-color-text-primary); font-size: var(--cy-type-label); }
+.poi-action--primary { border-color: var(--cy-color-action-primary-bg); background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+.poi-action--primary.is-done { opacity: .68; }
+.poi-action.is-disabled { opacity: .58; }
+.poi-gallery { white-space: nowrap; }
+.poi-gallery__image { width: 220rpx; height: 160rpx; display: inline-block; margin-right: var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); }
+.poi-story { display: block; color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); line-height: var(--cy-leading-normal); }
+.poi-group { border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.poi-row { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--cy-space-3); padding: var(--cy-space-3); border-bottom: 1rpx solid var(--cy-color-border-subtle); color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); }
+.poi-row:last-child { border-bottom: 0; }
+.poi-row__value { color: var(--cy-color-text-primary); text-align: right; }
+.poi-row__link { text-decoration: underline; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

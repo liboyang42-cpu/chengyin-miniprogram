@@ -1,0 +1,75 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-match · 连线题(设计规格:Figma 04 Blocks · 连线) */
+.ma { color: var(--ink); }
+.ma__prompt {
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  line-height: 1.4;
+}
+/* 两列等宽卡片:一列一个问题,一列一份材料 —— 谁连谁靠角标认,不靠线 */
+.ma__cols {
+  display: flex;
+  gap: 24rpx;
+  width: 100%;
+}
+.ma__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+.ma__card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-height: 112rpx;
+  padding: 20rpx 22rpx;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);     /* 圆角 12 = 24rpx */
+  background: var(--soft);
+  text-align: left;
+}
+/* 选中:白色 1.5px 描边。用 inset 投影而不是 border —— border 会把卡片撑大 3rpx,点一下跳一下 */
+.ma__card.is-sel { box-shadow: inset 0 0 0 3rpx var(--ink); }
+.ma__t {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  line-height: 1.4;
+}
+/* 配对角标:白底黑字,同一个序号出现在左右两张卡上 */
+.ma__badge {
+  flex: none;
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-micro);
+  font-weight: 800;
+}
+/* 只有整体通过才变绿:那意味着每条连线都在答案里。判错不逐条标红(服务端不给逐条对错) */
+.ma__badge.is-right { background: var(--ok); color: var(--cy-color-text-inverse); }
+.ma__press { opacity: .88; }
+.g-btn--press { opacity: .88; }
+.ma--reduced .ma__card { transition: none; }
+.ma__fb {
+  flex: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 26rpx 30rpx;
+  border-radius: var(--cy-radius-md);
+  font-size: var(--cy-type-body);
+  line-height: 1.6;
+  text-align: left;
+}
+.ma__fb.is-ok { background: var(--cy-color-status-success-soft); color: var(--cy-color-status-success); }
+.ma__fb.is-no { background: var(--cy-color-status-danger-soft); color: var(--cy-color-status-danger); }

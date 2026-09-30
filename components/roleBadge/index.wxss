@@ -1,0 +1,39 @@
+.rb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32rpx;
+  padding: 0 var(--cy-legacy-14);
+  border-radius: 10rpx;
+  font-size: 18rpx;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--cy-text-inverse);
+  letter-spacing: 1rpx;
+  vertical-align: middle;
+}
+
+/* 俱乐部:品牌紫渐变 + 紫光晕 */
+.rb-club {
+  background-image: linear-gradient(151deg, var(--cy-accent-strong) 7%, #6248E8 100%);
+  box-shadow: 0 0 16rpx rgba(122, 92, 255, 0.7);
+  font-family: 'Kavoon', sans-serif;
+}
+
+/* 商户:蓝渐变 + 蓝光晕(Figma 107-10371) */
+.rb-merchant {
+  background-image: linear-gradient(25deg, #3BADF5 6%, #0083DA 98%);
+  box-shadow: 0 0 16rpx rgba(60, 179, 255, 0.7);
+}
+
+/* 官方:纯黑 + 浅黑光晕(Figma 109-10406) */
+.rb-official {
+  background: #000;
+  box-shadow: 0 0 12rpx rgba(21, 21, 21, 0.3);
+}
+
+/* 玩家:中性灰(无 Figma,按方案灰色) */
+.rb-player {
+  background: var(--cy-bg-subtle);
+  color: var(--cy-text-body);
+}

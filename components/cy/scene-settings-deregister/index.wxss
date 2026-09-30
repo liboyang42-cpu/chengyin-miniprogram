@@ -1,0 +1,21 @@
+:host { display: block; height: 100%; }
+.deregister-scene { min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; padding-bottom: calc(var(--cy-space-4) + env(safe-area-inset-bottom)); color: var(--cy-text-title); }
+.deregister-card { padding: var(--cy-space-5) var(--cy-space-4); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.deregister-card--blocked { text-align: center; }
+.deregister-title { display: block; font-size: var(--cy-font-title); font-weight: 700; }
+.deregister-title--danger { color: var(--cy-danger); }
+.deregister-copy, .deregister-time, .deregister-blocker { display: block; margin-top: var(--cy-space-3); color: var(--cy-text-body); font-size: var(--cy-font-body); line-height: var(--cy-leading-normal); }
+.deregister-link { min-height: var(--cy-btn-h); display: flex; align-items: center; margin-top: var(--cy-space-2); color: var(--cy-text-title); font-size: var(--cy-type-body); text-decoration: underline; }
+.deregister-check { min-height: var(--cy-btn-h); display: flex; align-items: center; margin-top: var(--cy-space-3); font-size: var(--cy-font-label); }
+.deregister-code-row { display: flex; align-items: center; min-height: var(--cy-btn-h); margin-top: var(--cy-space-3); padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-action-secondary-bg); }
+.deregister-code-input { flex: 1; height: var(--cy-btn-h); color: var(--cy-text-title); font-size: var(--cy-font-body); }
+.deregister-code-send { display: flex; align-items: center; height: var(--cy-btn-h); padding-left: var(--cy-space-3); color: var(--cy-text-title); font-size: var(--cy-font-label); text-decoration: underline; }
+.deregister-code-send.is-disabled { opacity: .58; }
+.deregister-inline-status { display: block; margin-top: var(--cy-space-2); color: var(--cy-color-status-success); font-size: var(--cy-font-label); }
+.deregister-action { display: block; margin-top: var(--cy-space-4); }
+.deregister-loading { flex: 1; display: flex !important; min-height: 0; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

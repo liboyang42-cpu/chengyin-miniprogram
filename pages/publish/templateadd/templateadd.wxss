@@ -1,0 +1,32 @@
+/* page{} 是真正的整页背景,WXML 根节点挂的 theme-topic-editor class 不保证连带作用到它
+   (实测:只有 nav-bar 等子节点变白,scroll 区域底色仍是默认深色)——在 page{} 自身这层
+   直接重声明 --cy-color-bg-page,而不是另挂字面值:这样 cy-nav-bar 默认读的
+   --cy-comp-nav-bg → var(--cy-color-bg-page) 也会从这层继承到同一个白,顶栏和铺满层
+   不会在导航条下缘出现色带(custom-nav-page-surface-contract 门禁盯的就是这条)。 */
+page {
+  --cy-color-bg-page: #F3F4F4; /* ds-ok: 主题创建域画布浅灰,在 page{} 真值层重声明见上注释 */
+  background: var(--cy-color-bg-page);
+}
+
+.theme-topic-editor { min-height: 100vh; box-sizing: border-box; padding-bottom: calc(152rpx + env(safe-area-inset-bottom)); }
+
+.fbox_sr{width: 650rpx; height: 104rpx; background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); margin: 250rpx auto 0 auto;box-shadow: 0px 8px 64px 0px rgba(0, 0, 0, .16); animation: ta-rise var(--cy-motion-slow) var(--cy-ease-out) var(--cy-motion-fast) both;} /* ds-ok: 250rpx 是输入框刻意的垂直定位偏移,不是排版间距 */
+.fbox_sr input{ width: 94%; height: 104rpx;margin:0 auto; text-align: center; font-size: var(--cy-font-body);}
+.ta-cta { animation: ta-rise var(--cy-motion-slow) var(--cy-ease-out) var(--cy-motion-standard) both; }
+.ta--reduced-motion .fbox_sr,
+.ta--reduced-motion .ta-cta { animation: none !important; }
+
+@keyframes ta-rise {
+  0% { opacity: 0; transform: translateY(18rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.templateadd-placeholder { color: var(--cy-color-text-tertiary); }
+.templateadd-feedback { margin: var(--cy-space-3) var(--cy-page-x) 0; }
+.templateadd-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--cy-space-2-5) var(--cy-page-x) calc(var(--cy-space-2-5) + env(safe-area-inset-bottom));
+  background: var(--cy-bg-card);
+}

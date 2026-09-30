@@ -1,0 +1,20 @@
+{
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-footer-bar": "/components/cy/footer-bar/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-category-sheet": "/components/cy/category-sheet/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-state-shell": "/components/cy/state-shell/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-progress-status": "/components/cy/progress-status/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationBarTitleText": "个人资料",
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white"
+}

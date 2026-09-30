@@ -1,0 +1,44 @@
+:host { display: block; }
+.cdready__title {
+  display: block;
+  margin-bottom: 20rpx;
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-page-title);
+  font-weight: 700;
+}
+.cdready__section { margin-bottom: 20rpx; }
+.cdready__section-title {
+  display: block;
+  margin-bottom: 16rpx;
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+}
+.cdready__section-sub {
+  display: block;
+  margin-bottom: 20rpx;
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption);
+}
+.cdready__primary {
+  margin-top: 24rpx;
+  padding: 30rpx 0;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  text-align: center;
+}
+.cdready__primary.is-disabled { opacity: .45; }
+.cdready__caption {
+  display: block;
+  margin-top: 20rpx;
+  text-align: center;
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption);
+}
+.cdready__caption--warning { color: var(--cy-color-status-warning); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,按仓库既有组件做法本地定义一份 */
+.cy-pressed { opacity: .88; }

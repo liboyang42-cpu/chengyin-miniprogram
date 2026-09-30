@@ -1,0 +1,2 @@
+page { background: var(--cy-color-bg-page); }
+.pd-shell { min-height: 100vh; box-sizing: border-box; background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }

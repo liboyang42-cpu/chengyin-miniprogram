@@ -1,0 +1,166 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="{{pageTitle}}" safe-top="{{false}}" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="4" />
+  <!-- 2026-08-26:权限拒绝原来和加载失败共用一个 error 态,渲染成「暂时不可用 + 重新加载」——
+       给了一个永远点不成功的重试按钮,用户不会知道是权限问题。现在拆成三条。 -->
+  <cy-error wx:elif="{{state === 'no-permission'}}" fill size="lg" retry=""
+            title="你没有成员治理的权限" sub="{{errorText || '成员治理只开给主理人与副主理人。'}}" auto-back />
+  <cy-error wx:elif="{{state === 'network-error'}}" title="网络连接失败" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+  <cy-error wx:elif="{{state === 'error'}}" title="治理功能暂时不可用" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+  <cy-empty wx:elif="{{state === 'empty'}}" fill size="lg" title="暂无可治理成员" sub="成员加入后可在这里进行安全治理；历史记录也会保留。" />
+
+  <block wx:elif="{{state === 'ready'}}">
+    <view class="section action-section" wx:if="{{mode === 'report'}}">
+      <text class="section-title">向平台提交治理举报</text>
+      <!-- CU-C-82:原来只要一句静态标题,表单里既没有目标名称也没有目标标识,
+           用户被要求写「可核实的具体事实」却看不见自己在举报哪一条。 -->
+      <view class="ds-card">
+        <view class="row">
+          <view class="row-text">
+            <text class="row-title">举报目标</text>
+            <text class="row-desc">{{reportTargetLabel}}</text>
+          </view>
+        </view>
+      </view>
+      <text class="action-note">请只提交可核实的具体事实。平台审核前，不会自动认定违规或执行封禁。</text>
+      <view class="platform-button {{actingKey ? 'disabled' : ''}}" bindtap="reportTarget"
+        aria-role="button" aria-disabled="{{actingKey !== ''}}" hover-class="{{actingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">填写事实并提交平台</view>
+    </view>
+
+    <!-- CU-C-84:能否申诉的前提是「本人当前有没有有效封禁」,判据来自 /cases/mine 的 activeBan。
+         没有就把表单换成空态 —— 原来表单常显,用户填完一遍提交时才被后端拒掉。 -->
+    <view class="section action-section" wx:if="{{mode === 'appeal' && banKnown && !activeBan}}">
+      <text class="section-title">对当前有效封禁提出申诉</text>
+      <cy-empty size="sm" title="当前没有可申诉的封禁" sub="只有被本俱乐部限期封禁时才能向平台提交申诉。" />
+    </view>
+
+    <view class="section action-section" wx:if="{{mode === 'appeal' && (!banKnown || activeBan)}}">
+      <text class="section-title">对当前有效封禁提出申诉</text>
+      <!-- 申诉对象只写了「当前有效封禁」一句时,用户得自己对时间;把这条封禁的来源与期限摆出来 -->
+      <view class="ds-card" wx:if="{{activeBan}}">
+        <view class="row">
+          <view class="row-text">
+            <text class="row-title">封禁中的这条</text>
+            <text class="row-desc">{{activeBan.sourceText}} · {{activeBan.bannedAtText}} · {{activeBan.expiresText}}</text>
+            <text class="row-desc" wx:if="{{activeBan.banReason}}">封禁原因：{{activeBan.banReason}}</text>
+          </view>
+        </view>
+      </view>
+      <text class="action-note">申诉进入平台治理队列；俱乐部主理人和副主理人不能裁决。申诉通过后解除封禁，但不会自动恢复成员身份。</text>
+      <view class="platform-button {{actingKey ? 'disabled' : ''}}" bindtap="appealBan"
+        aria-role="button" aria-disabled="{{actingKey !== ''}}" hover-class="{{actingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">填写理由并提交申诉</view>
+    </view>
+
+    <!-- Figma 290:621「治理记录」在最上面，「对成员执行」第二——manage 模式下把顺序对齐；
+         封禁/解封仍是既有独立按钮而非稿子的行内文案，保留三段式确认与解封权限判断不变。 -->
+    <view class="section" wx:if="{{mode === 'manage'}}">
+      <text class="section-title">治理记录</text>
+      <view class="ds-card" wx:if="{{bans.length}}">
+        <view class="row" wx:for="{{bans}}" wx:key="id">
+          <view class="row-text">
+            <text class="row-title">成员「{{item.targetNickname}}」</text>
+            <!-- 稿 R6:「仅平台可解封」属于**左侧描述行**,和来源/时间拼在一句里;
+                 右栏只有一个状态标签。早先把它并排放右栏会挤住左侧描述,
+                 后来改成右栏竖排两行 —— 那是稿子明确没有的形态,现在归位。 -->
+            <text class="row-desc">{{item.sourceText}} · {{item.bannedAtText}} · {{item.expiresText}}{{item.isActive && item.sourceType === 'PLATFORM' ? ' · 仅平台可解封' : ''}}</text>
+            <text class="row-desc" wx:if="{{item.unbanReason}}">解封说明：{{item.unbanReason}}</text>
+          </view>
+          <!-- 右栏:状态恒显示 + 可解封时才出动作。
+               早先的 wx:if/wx:elif 串接错(第一段判 !canClubUnban、第二段独立判 canClubUnban),
+               俱乐部封禁行只渲染出「解封」、状态文字整个丢失(2026-09-02 截图实证)。 -->
+          <view class="row-side">
+            <text class="row-value row-value--{{item.status}}">{{item.statusText}}</text>
+            <view wx:if="{{item.canClubUnban}}" class="row-link {{actingKey ? 'row-link--disabled' : ''}}"
+              data-id="{{item.id}}" data-version="{{item.version}}" bindtap="unbanMember"
+              aria-role="button" aria-disabled="{{actingKey !== ''}}"
+              hover-class="{{actingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">解封</view>
+          </view>
+        </view>
+      </view>
+      <cy-empty wx:else size="sm" title="暂无治理记录" />
+    </view>
+
+    <!-- 稿 R6 290:621:「对成员执行」是一张四行卡(选择成员 › / 选择期限 › /
+         封禁原因 / 转让主理人),不是拆成带编号的两节 —— 与角色页 R1 同一个形态。 -->
+    <view class="section" wx:if="{{mode === 'manage' && members.length}}">
+      <text class="section-title">对成员执行</text>
+      <view class="ds-card">
+        <view class="row" bindtap="openMemberPicker" aria-role="button"
+          aria-label="选择成员" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="row-title">选择成员</text>
+          <text class="row-pick">{{selectedMemberName || '未选择'}}</text><cy-icon class="row-pick-arrow" name="slide-arrow" size="28" />
+        </view>
+        <view class="row" bindtap="openDurationPicker" aria-role="button"
+          aria-label="选择期限" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="row-title">选择期限</text>
+          <text class="row-pick">{{selectedDurationLabel || '未选择'}}</text><cy-icon class="row-pick-arrow" name="slide-arrow" size="28" />
+        </view>
+        <view class="row {{!selectedMemberId || actingKey ? 'row--disabled' : ''}}" bindtap="banSelectedMember"
+          aria-role="button" aria-disabled="{{!selectedMemberId || actingKey !== ''}}"
+          hover-class="{{!selectedMemberId || actingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          <text class="row-title">封禁原因</text>
+          <text class="row-act row-act--danger">填写原因并封禁</text>
+        </view>
+        <view wx:if="{{isOwner}}" class="row {{!selectedMemberId || actingKey ? 'row--disabled' : ''}}"
+          bindtap="transferSelectedOwner" aria-role="button"
+          aria-disabled="{{!selectedMemberId || actingKey !== ''}}"
+          hover-class="{{!selectedMemberId || actingKey ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          <view class="row-text">
+            <text class="row-title">转让主理人</text>
+            <text class="row-desc">转让后你将失去主理人权限</text>
+          </view>
+          <text class="row-act row-act--warning">转让给所选成员</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{mode !== 'manage'}}">
+      <text class="section-title">我的平台工单</text>
+      <view class="ds-card" wx:if="{{cases.length}}">
+        <view class="row" wx:for="{{cases}}" wx:key="id">
+          <view class="row-text">
+            <text class="row-title">{{item.typeText}}</text>
+            <text class="row-desc">{{item.reason}}</text>
+            <text class="row-desc">提交于 {{item.createTimeText}}</text>
+            <text class="row-desc" wx:if="{{item.decisionReason}}">平台说明：{{item.decisionReason}}</text>
+          </view>
+          <text class="row-value row-value--{{item.status}}">{{item.statusText}}</text>
+        </view>
+      </view>
+      <cy-empty wx:else size="sm" title="暂无已提交工单" />
+    </view>
+  </block>
+</view>
+</view>
+
+<cy-sheet show="{{memberPickerVisible}}" title="选择成员" closable maskClosable bind:close="closeMemberPicker">
+  <view class="picker">
+    <view class="picker-row {{selectedMemberId == item.memberId ? 'picker-row--on' : ''}}"
+      wx:for="{{members}}" wx:key="memberId" data-member-id="{{item.memberId}}" bindtap="pickMember"
+      aria-role="button" aria-pressed="{{selectedMemberId == item.memberId}}"
+      aria-label="选择成员 {{item.nickname}}" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-avatar size="72" src="{{item.avatar || '/images/d_profile.png'}}" name="{{item.nickname}}" />
+      <text class="picker-name">{{item.nickname}}</text>
+      <text class="picker-mark">{{selectedMemberId == item.memberId ? '已选' : '选择'}}</text>
+    </view>
+  </view>
+</cy-sheet>
+
+<cy-sheet show="{{durationPickerVisible}}" title="选择期限" closable maskClosable bind:close="closeDurationPicker">
+  <view class="picker">
+    <view class="picker-row {{selectedDurationDays == item.days ? 'picker-row--on' : ''}}"
+      wx:for="{{durationOptions}}" wx:key="days" data-days="{{item.days}}" bindtap="pickDuration"
+      aria-role="button" aria-pressed="{{selectedDurationDays == item.days}}"
+      aria-label="选择期限 {{item.label}}" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="picker-name">{{item.label}}</text>
+      <text class="picker-mark">{{selectedDurationDays == item.days ? '已选' : '选择'}}</text>
+    </view>
+  </view>
+</cy-sheet>
+

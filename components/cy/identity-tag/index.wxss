@@ -1,0 +1,30 @@
+/* 规格逐项对齐 Figma(ku2oaN9ag1XUMC9lKNnrcr,BIZ=107:10367 / CLUB=107:10402):
+   落地尺寸以 134:401(用户在 09 画板上摆好的那颗)为准,比组件原稿小一圈:
+   24×12px → 48×24rpx;圆角 5px → 10rpx;白字 7px → 14rpx;外发光 57.355px → 115rpx。
+   位置:紧跟名字后 4px(→ 8rpx),与名字行垂直居中。
+   ⚠️ 稿子里的字体是 Kavoon(Google Fonts 展示体),小程序拿不到 —— 见 index.js 注释旁的
+   说明:这里退到系统无衬线 + 700 字重 + 轻微字距,不用 wx.loadFontFace 去拉远程字体
+   (会闪、会失败,而这只是两个 4 字母的角标)。 */
+.idt {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48rpx;
+  height: 24rpx;
+  border-radius: 10rpx;   /* ds-ok: 稿上是 5px 定值角标,不是 token 档位(--cy-radius-sm=16rpx 已经比整颗标签的一半还大) */
+  /* 发光半径按稿等比换算;不透明度 .70 照抄 */
+  box-shadow: 0 0 115rpx rgba(60, 179, 255, .70);   /* ds-ok: BIZ 品牌光,色值与 .70 直接取自 Figma 107:10367,不参与主题换色 */
+  background-image: linear-gradient(25.24deg, #3BADF5 6.35%, #0083DA 98.31%);   /* ds-ok: BIZ 品牌渐变,Figma 107:10367 逐项照搬;这是身份识别色,深浅色主题下都必须是同一个蓝 */
+}
+.idt--club {
+  box-shadow: 0 0 115rpx rgba(255, 166, 84, .70);   /* ds-ok: CLUB 品牌光,取自 Figma 107:10402 */
+  background-image: linear-gradient(151.46deg, #FFA654 7.31%, #F26702 100.03%);   /* ds-ok: CLUB 品牌渐变,Figma 107:10402 逐项照搬;同上,不随主题变 */
+}
+.idt__t {
+  font-size: 14rpx;   /* ds-ok: 稿上 7px 角标字,比 --cy-font-caption 最小档还小,没有对应 token */
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: .5rpx;
+  color: #FFFFFF;   /* ds-ok: 压在品牌渐变上的固定白,不能跟着主题走成深色 */
+}

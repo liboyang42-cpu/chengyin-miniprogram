@@ -1,0 +1,39 @@
+<!-- cy-play-stage · 玩法整屏台面。
+     原型里玩法占满整块手机,不是半屏 sheet —— 这些屏都要「整屏就是判定区」
+     (变色就点)、「墙就是手机的四条边」(弹球)、「整屏被油盖住」(倒计时),
+     压在半屏里这三件事全部不成立。 -->
+<!-- ⚠️ --pk-top 必须把顶上这两行(限时条 / 还能错)算进去。原型里它们是 `flex:none`
+     排在流里、天然把内容顶下去(见 .tlimit);我们为了让各屏自己刷底色做成了绝对定位,
+     那就得手动让位 —— 2026-09-16 实证:限时条接通那天起,它正好压在题干上。 -->
+<view class="st skin-{{skin || 'none'}} {{shaking ? 'st--shake' : ''}}" wx:if="{{show}}" style="--pk-top:{{contentTop}}px">
+  <view class="st__back" style="top:{{topPad + 12}}px" bindtap="onBack"
+        aria-role="button" aria-label="退出这个玩法"
+        hover-class="st__press" hover-stay-time="80"><cy-icon name="back" size="30" />{{backLabel}}</view>
+
+  <!-- 限时条:开了限时才有。走完直接判负,不是把数字停住 -->
+  <view class="st__limit" style="top:{{topPad + 62}}px" wx:if="{{limitSeconds > 0}}">
+    <text class="st__limit-t">限时</text>
+    <view class="st__limit-bar"><view class="st__limit-fill" style="transform:scaleX({{limitScale}})"></view></view>
+    <text class="st__limit-n">{{limitLeft}}s</text>
+  </view>
+
+  <!-- 还能错几次:用完才判失败。选择题按「选项数 - 1」封顶,封顶在调用方算 -->
+  <view class="st__tries" style="top:{{triesTop}}px" wx:if="{{triesTotal > 0}}">
+    <text class="st__tries-t">还能错</text>
+    <view class="st__tries-dot {{index < triesLeft ? '' : 'st__tries-dot--used'}}"
+          wx:for="{{triesDots}}" wx:key="*this"></view>
+  </view>
+
+  <!-- ⚠️ 这一层必须铺满整屏:有几个玩法(抽卡、猜图)自己在里面刷底色,
+       把它往下挪的话,上面那条会露出台面的底色,读成「游戏被框在一张卡里」。
+       内容的上边距改由 --pk-top 传给 .g-col(见 style/play-surface.wxss)—— 用
+       topPad(真实状态栏高)算,不用 env():env(safe-area-inset-top) 在开发者工具里
+       只有十几 px,照它调完真机会差三十多 px。 -->
+  <view class="st__body"><slot></slot></view>
+
+  <cy-play-countin show="{{countingIn}}" bind:done="onCountedIn" />
+  <cy-play-calibrate show="{{calibrating}}" label="{{calibrateLabel}}" ms="{{calibrateMs}}"
+                     bind:tick="onCalibrateTick" bind:done="onCalibrated" />
+  <cy-play-verdict show="{{verdict !== ''}}" kind="{{verdict}}"
+                   timed-out="{{timedOut}}" text="{{verdictText}}" />
+</view>

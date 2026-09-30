@@ -1,0 +1,77 @@
+<view class="coupon-page theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar />
+  <cy-page-title title="优惠券" />
+
+<cy-skeleton wx:if="{{loadState === 'loading'}}" type="list" count="3" />
+<cy-error wx:elif="{{loadState === 'error'}}" class="fill-slot cy-fade-in" fill size="lg" title="优惠券加载失败" sub="{{errorMsg}}" retry="重试" bind:retry="retryLoad" auto-back />
+
+<view class="david" wx:else>
+  <view class="david_tkb_li" bindtap="tpClick" data-item="{{item}}" wx:for="{{list}}" wx:key="id" hover-class="cy-pressed" hover-stay-time="80">
+    <view class="david_tkb_li_con">
+      <view class="david_tkb_li_con_top">
+        <view class="david_tkb_li_con_top_tit">{{item.name}}</view>
+        <view class="david_tkb_li_con_top_time">{{item.startDay}} – {{item.endDay}}</view>
+        <view wx:if="{{item.statusText && item.statusText !== '进行中'}}" class="david_tkb_li_con_top_status {{item.statusTone === 'danger' ? 'david_tkb_li_con_top_status--danger' : ''}}">{{item.statusText}}</view>
+      </view>
+      <view class="david_tkb_li_con_ly">
+        <view class="david_tkb_li_con_ly_left">
+          <!-- 兜底不能用字段自己的标签词:缺说明时原来显示字面量「优惠券说明」,看起来像一条真说明
+             (2026-08-19 D13 实拍)。同 baoming 结算页的「活动名称」是同一类错误。 -->
+          <view class="david_tkb_li_con_ly_left_sm">{{item.description || '未填写说明'}}</view>
+        </view>
+        <view class="david_tkb_li_con_ly_right">
+          <view class="david_tkb_li_con_ly_right_txt">
+            <text>{{item.couponTypeText}}</text>
+          </view>
+          <view class="david_tkb_li_con_ly_right_kcs">
+            <text>{{item.remainCount}}</text>库存数
+          </view>
+        </view>
+      </view>
+    </view>
+    <image lazy-load="true" class="d_bgtu" src="/subpackageMember/images/d_subtraction.png" mode="widthFix" />
+  </view>
+  
+  <!-- 空状态提示;aaa 标准(标准速查表)——fill 撑满居中+放大 -->
+  <!-- CU-M-142:券的用途在页标题副文案里已经写过一遍,空态再写「可用于主题、节点与到店核销」
+       就是同屏两句同样的话;底部「新建」按钮本来就在屏上,不用再指一次。 -->
+  <cy-empty wx:if="{{loadState === 'ready' && list.length === 0}}" kind="empty" fill size="lg" class="fill-slot" title="还没有优惠券" />
+</view>
+
+<!-- 用户原话"新建按钮放到下面":原在导航栏右上角的文字入口移到底部固定按钮 -->
+<cy-footer-bar wx:if="{{loadState === 'ready' && !tpShow}}">
+  <cy-btn variant="primary" bindtap="GoAdd">新建</cy-btn>
+</cy-footer-bar>
+
+<cy-sheet show="{{tpShow}}" title="优惠券详情" footer="{{true}}" bind:close="tpClose">
+  <view class="coupon-detail">
+    <view class="coupon-detail-heading">
+      <cy-icon name="coupon" size="56" />
+      <view class="coupon-detail-name">{{currentCoupon.name}}</view>
+    </view>
+    <view class="coupon-detail-type">{{currentCoupon.couponTypeText}} · {{currentCoupon.statusText}}</view>
+    <view class="coupon-detail-description">{{currentCoupon.description === '—' ? '未填写说明' : currentCoupon.description}}</view>
+    <view class="coupon-detail-validity">
+      <text class="coupon-detail-label">有效期（北京时间）</text>
+      <text>{{currentCoupon.startDay}}</text>
+      <text>至 {{currentCoupon.endDay}}</text>
+    </view>
+    <view class="coupon-batch-stats">
+      <view>已领取 {{currentCoupon.receiveCount}} / {{currentCoupon.publishCount}}</view>
+      <view>剩余 {{currentCoupon.remainCount}}</view>
+    </view>
+    <block wx:if="{{currentCoupon.code !== '—'}}">
+      <view class="coupon-batch-label">发布批次券码</view>
+      <view class="coupon-batch-code">{{currentCoupon.code}}</view>
+    </block>
+    <view class="coupon-batch-note">用户领取后会生成个人核销凭证；商家在核销台扫码处理。</view>
+  </view>
+  <view slot="footer" wx:if="{{currentCoupon.canStop}}">
+    <cy-btn variant="danger" data-item="{{currentCoupon}}" catchtap="stopCoupon">停发该券</cy-btn>
+    <view class="tkbox_stop_hint">停发后不能再被领取、发放；已领到的券照常可用、可核销。</view>
+  </view>
+</cy-sheet>
+</view>

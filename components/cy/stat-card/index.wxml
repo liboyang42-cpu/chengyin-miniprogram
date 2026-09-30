@@ -1,0 +1,15 @@
+<view class="sc" style="{{_colStyle}}">
+  <view
+    class="sc__card"
+    style="{{item.spanStyle}}"
+    wx:for="{{_cards}}"
+    wx:key="key"
+  >
+    <view class="sc__head">
+      <text class="sc__label">{{item.label}}</text>
+      <!-- 右上角小件:占比 / 趋势。没有就整块不渲染,不占位 -->
+      <text wx:if="{{item.trend}}" class="sc__trend">{{item.trend}}</text>
+    </view>
+    <text class="sc__value sc__value--{{item.tone}} sc__value--{{item.sizeStep}} {{item.missing ? 'sc__value--missing' : ''}}">{{item.value}}</text>
+  </view>
+</view>

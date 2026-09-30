@@ -1,0 +1,258 @@
+@import '../../../style/merchant-light.wxss';
+
+.cc-page {
+  background: var(--cy-color-bg-page);
+  box-sizing: border-box;
+  color: var(--cy-color-text-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.cc-tabs {
+  padding: 0 var(--cy-space-3);
+}
+
+.cc-scroll {
+  box-sizing: border-box;
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  padding: var(--cy-space-3) var(--cy-space-3) 0;
+}
+
+.cc-refreshing {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+  line-height: var(--cy-leading-normal);
+  min-height: var(--cy-btn-h-sm);
+  padding: var(--cy-space-1) 0;
+}
+
+.cc-list-scope {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+  line-height: var(--cy-leading-normal);
+  padding: var(--cy-space-1) 0 var(--cy-space-3);
+}
+
+.cc-eyebrow {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+}
+
+.cc-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3); /* 稿 234:276 卡间距 12 */
+}
+
+.cc-card {
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1-5);
+  padding: var(--cy-space-3);
+}
+
+.cc-card--tap {
+  min-height: var(--cy-btn-h);
+}
+
+.cc-card-title {
+  color: var(--cy-color-text-primary);
+  flex: 1;
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: var(--cy-leading-normal);
+}
+
+.cc-card-copy,
+.cc-link {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-body);
+  line-height: var(--cy-leading-loose);
+}
+
+.cc-gap {
+  align-items: baseline;
+  color: var(--cy-color-status-warning);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--cy-type-label);
+  gap: var(--cy-space-1);
+  line-height: var(--cy-leading-normal);
+}
+
+.cc-gap-label {
+  font-weight: 700;
+}
+
+.cc-link {
+  align-items: center;
+  color: var(--cy-color-text-primary);
+  display: flex;
+  font-size: var(--cy-type-label);
+  gap: var(--cy-space-2);
+}
+
+/* 稿 234:276 tab 行:左对齐两项 + 右侧铃铛 */
+.cc-nav-title {
+  align-items: center;
+  color: var(--cy-color-text-primary);
+  display: flex;
+  font-size: 38rpx; /* ds-ok 稿 234:276 导航标题 19px Bold,type 阶无 19 */
+  font-weight: 700;
+  left: 88rpx;
+  position: fixed;
+  z-index: calc(var(--cy-z-nav) + 1);
+}
+
+/* 分隔线由 cy-tabs 自带底边给(只留一条);铃铛不在 tab 组件内,底线止于铃铛左侧 */
+.cc-tabbar {
+  align-items: center;
+  display: flex;
+  gap: var(--cy-space-2);
+  padding: 28rpx var(--cy-space-3) 0; /* 稿:标题下留 14 */
+}
+
+.cc-tabbar .cc-tabs {
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-bell {
+  align-items: center;
+  color: var(--cy-color-text-primary);
+  display: flex;
+  flex: none;
+  height: 88rpx;
+  justify-content: center;
+  width: 88rpx;
+}
+
+/* 可承接主题卡:白底 r16 p14 行距 14,无阴影 */
+.cc-route {
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+  padding: 28rpx;
+}
+
+/* CU-M-85:从参谋页带 topicId 进来时,命中那条加一圈描边 —— 滚过去之后还得看得出来是哪条。 */
+.cc-route--focus {
+  box-shadow: 0 0 0 2rpx var(--cy-color-action-primary-bg);
+}
+
+.cc-route-top,
+.cc-route-foot {
+  align-items: center;
+  display: flex;
+  gap: var(--cy-space-2);
+  justify-content: space-between;
+}
+
+.cc-mode {
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-sm);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+  line-height: 42rpx;
+  padding: 0 16rpx;
+}
+
+.cc-seat {
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+}
+
+.cc-seat--ok { color: var(--cy-color-status-success); }
+.cc-seat--tight { color: var(--cy-color-status-warning); }
+
+.cc-route-main {
+  align-items: center;
+  display: flex;
+  gap: var(--cy-space-3);
+}
+
+.cc-route-cover {
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-md);
+  flex: none;
+  height: 144rpx;
+  overflow: hidden;
+  width: 200rpx;
+}
+
+/* 纯色占位常驻作底,封面可用时铺满盖住;空 URL / 加载失败时 image 不渲染,露出占位(稿 234:276) */
+.cc-route-cover__img {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.cc-route-info,
+.cc-route-terms {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10rpx;
+  min-width: 0;
+}
+
+.cc-route-terms { gap: 6rpx; }
+
+.cc-route-date,
+.cc-route-meta,
+.cc-route-deadline {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+}
+
+.cc-route-date,
+.cc-route-meta { font-weight: 500; }
+
+.cc-route-title {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-card-title);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-route-foot {
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+  padding-top: 28rpx;
+}
+
+.cc-route-settle {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+}
+
+/* 黑色胶囊「看详情」:视觉 32px,命中区外扩到 44pt */
+.cc-detail {
+  align-items: center;
+  background: var(--cy-btn-solid-bg);
+  border-radius: var(--cy-radius-lg);
+  color: var(--cy-btn-solid-fg);
+  display: flex;
+  flex: none;
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  height: 64rpx;
+  padding: 0 32rpx;
+  position: relative;
+}
+
+.cc-detail::after { bottom: -12rpx; content: ''; left: 0; position: absolute; right: 0; top: -12rpx; }
+
+.cc-bottom {
+  height: var(--cy-space-5);
+}

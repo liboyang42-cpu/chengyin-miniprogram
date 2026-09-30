@@ -1,0 +1,39 @@
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出"
+               bind:back="onClose">
+  <view class="g-col ma {{reducedMotion ? 'ma--reduced' : ''}}">
+    <view class="ma__prompt">{{prompt}}</view>
+
+    <!-- 不画线:点左边一张再点右边一张,两张卡各出现同一个序号角标 -->
+    <view class="ma__cols">
+      <view class="ma__col">
+        <view class="ma__card {{selected === item.id ? 'is-sel' : ''}}"
+              wx:for="{{leftRows}}" wx:key="id" data-id="{{item.id}}" bindtap="onTapLeft"
+              aria-role="button" aria-label="左侧条目:{{item.label}}"
+              hover-class="ma__press" hover-stay-time="80">
+          <view class="ma__t">{{item.label}}</view>
+          <!-- 整体通过才变绿(那意味着每条都在答案里);判错不逐条标红 —— 服务端不给逐条对错 -->
+          <view class="ma__badge {{verdict === 'ok' ? 'is-right' : ''}}" wx:if="{{item.badge}}">{{item.badge}}</view>
+        </view>
+      </view>
+      <view class="ma__col">
+        <view class="ma__card {{selected === item.id ? 'is-sel' : ''}}"
+              wx:for="{{rightRows}}" wx:key="id" data-id="{{item.id}}" bindtap="onTapRight"
+              aria-role="button" aria-label="右侧条目:{{item.label}}"
+              hover-class="ma__press" hover-stay-time="80">
+          <view class="ma__t">{{item.label}}</view>
+          <view class="ma__badge {{verdict === 'ok' ? 'is-right' : ''}}" wx:if="{{item.badge}}">{{item.badge}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 反馈条:判错也要说清楚「这一次不扣生命」,而且不许逐条标红 -->
+    <view class="ma__fb {{verdict === 'ok' ? 'is-ok' : 'is-no'}}" wx:if="{{verdict}}">
+      {{verdict === 'ok' ? '连好了 · 这一题过了' : '还有没连对的地方 · 这次不扣生命'}}
+    </view>
+  </view>
+
+  <view class="g-btn {{pairedCount >= total && total > 0 ? '' : 'g-btn--disabled'}}" bindtap="onSubmit"
+        aria-role="button" aria-label="提交连好的线" hover-class="g-btn--press" hover-stay-time="80">
+    提交
+  </view>
+</cy-play-stage>

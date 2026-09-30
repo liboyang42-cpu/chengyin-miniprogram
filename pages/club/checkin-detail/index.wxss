@@ -1,0 +1,73 @@
+/* Figma K3 核销详情 · 俱乐部端。俱乐部端全暗,不挂 theme-merchant。 */
+.ckd {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-6) + env(safe-area-inset-bottom));
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+
+.ckd-head { display: flex; align-items: flex-start; gap: var(--cy-space-3); padding: var(--cy-space-3) 0 var(--cy-space-4); }
+.ckd-ava { flex: none; }
+.ckd-head-main { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 6rpx; }
+.ckd-name { font-size: var(--cy-font-label); font-weight: 700; }
+.ckd-session { color: var(--cy-color-text-secondary); font-size: var(--cy-font-caption); }
+.ckd-phone-row { display: flex; align-items: center; gap: var(--cy-space-2); }
+.ckd-phone { color: var(--cy-color-text-primary); font-size: var(--cy-font-caption); }
+/* 没权限时那一格是说明文字,压成次级色,别看着像一个可复制的号码 */
+.ckd-phone--masked { color: var(--cy-color-text-tertiary); }
+.ckd-head-state { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: 4rpx; }
+.ckd-state { font-size: var(--cy-font-caption); font-weight: 700; }
+/* 已核销是「正常走完」,不是危险 —— danger 留给退款/失败。同仓 topic-detail
+   的 .cli-state--VERIFIED 也是 success,两处别再分叉。 */
+.ckd-state--VERIFIED { color: var(--cy-color-status-success); }
+.ckd-state--PENDING { color: var(--cy-color-status-warning); }
+.ckd-state--CONTACTED { color: var(--cy-color-status-warning); }
+.ckd-state--REFUNDED { color: var(--cy-color-text-tertiary); }
+.ckd-state-time { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+
+.ckd-card { box-sizing: border-box; padding: var(--cy-space-4); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-raised); }
+.ckd-topic { display: flex; gap: var(--cy-space-3); }
+.ckd-cover { flex: none; width: 234rpx; height: 160rpx; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-elevated); }
+.ckd-cover--empty { background: var(--cy-color-bg-elevated); }
+.ckd-topic-main { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 8rpx; }
+.ckd-topic-time { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.ckd-topic-name { font-size: var(--cy-font-label); font-weight: 700; }
+.ckd-topic-order { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); word-break: break-all; }
+
+.ckd-divider { height: 1rpx; margin: var(--cy-space-4) 0; background: var(--cy-color-border-subtle); }
+
+.ckd-kv { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cy-space-3); padding: var(--cy-space-2) 0; }
+.ckd-k { flex: none; color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.ckd-v { flex: 1; min-width: 0; color: var(--cy-color-text-primary); font-size: var(--cy-font-caption); text-align: right; }
+.ckd-v--amount { font-weight: 700; }
+.ckd-v--verified { color: var(--cy-color-status-success); }
+/* 已退款把实付压成中性:钱退回去了,再用强调色显示原价会读成还欠着 */
+.ckd-v--muted { color: var(--cy-color-text-tertiary); font-weight: 400; }
+
+.ckd-rail { position: relative; display: flex; justify-content: space-between; padding: var(--cy-space-2) 0 0; }
+.ckd-rail-line { position: absolute; top: 18rpx; right: 40rpx; left: 40rpx; height: 2rpx; background: var(--cy-color-border-subtle); }
+.ckd-rail-step { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; gap: var(--cy-space-2); }
+.ckd-dot { width: 20rpx; height: 20rpx; border-radius: var(--cy-radius-pill); }
+.ckd-dot--success { background: var(--cy-color-status-success); }
+.ckd-dot--warning { background: var(--cy-color-status-warning); }
+.ckd-dot--danger { background: var(--cy-color-status-danger); }
+.ckd-dot--muted { background: var(--cy-color-bg-interactive); }
+.ckd-rail-label { font-size: var(--cy-font-caption); text-align: center; }
+.ckd-rail-label--success { color: var(--cy-color-status-success); }
+.ckd-rail-label--warning { color: var(--cy-color-status-warning); }
+.ckd-rail-label--danger { color: var(--cy-color-status-danger); }
+.ckd-rail-label--muted { color: var(--cy-color-text-tertiary); }
+.ckd-rail-label.is-current { font-weight: 700; }
+
+.ckd-note { display: block; margin-top: var(--cy-space-3); color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+
+/* 底部清退退款(2026-09-09 从名册挪来) */
+.ckd-foot { margin: var(--cy-space-5) var(--cy-page-x) calc(var(--cy-space-5) + env(safe-area-inset-bottom)); }
+.ckd-refund { margin-top: var(--cy-space-3); min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-radius-pill); background: var(--cy-color-status-danger);
+  color: var(--cy-color-text-primary); font-size: var(--cy-font-body); font-weight: 700; }
+.ckd-refund.is-disabled { opacity: .45; }
+.ckd-foot-note { display: block; margin-top: var(--cy-space-2); color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption); line-height: 1.5; }
+

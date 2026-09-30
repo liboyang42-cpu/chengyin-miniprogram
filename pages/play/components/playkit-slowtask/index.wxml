@@ -1,0 +1,35 @@
+<cy-sheet show="{{show}}" handle="{{true}}" bind:close="onClose">
+  <view class="sl">
+    <!-- 关闭一律是右上角的叉号(§6.5)。这枚画在卡自己身上而不是交给 cy-sheet 的头部:
+         cy-sheet 只有传了 title 才出 ✕,而传 title 会把标题挪到眉标上面 —— 那是重排一张过了稿的卡。 -->
+    <view class="sl__x" bindtap="onClose" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-icon name="close-sm" size="44" />
+    </view>
+    <view class="pk-eyebrow">{{eyebrow}}</view>
+    <view class="pk-title">{{title}}</view>
+
+    <!-- 未开始:一句话 + 一个按钮,不要求任何前置动作(稿:低摩擦开始) -->
+    <view wx:if="{{!started}}" class="sl__intro">{{startHint}}</view>
+
+    <!-- 等待中:说清还要等多久,不催促也不倒计时到秒 —— 这是低压循环,秒级倒计时会制造压力 -->
+    <view wx:elif="{{!claimed && daysLeft > 0}}" class="sl__wait">
+      <view class="sl__moon"><cy-icon name="clock" size="44" /></view>
+      <view class="sl__days">还有 {{daysLeft || 0}} 天</view>
+      <view class="sl__waithint">{{waitHint}}</view>
+    </view>
+
+    <view wx:elif="{{!claimed}}" class="sl__ready">已经准备好了，领取后揭示今天的发现。</view>
+
+    <!-- 已领取:内容用刮开揭示,把"看见"变成主动动作；也有可见的直接揭示按钮。 -->
+    <view wx:else class="sl__done">
+      <cy-scratch label="今日进度" threshold="0.4">
+        <view class="sl__unlock">{{unlockText}}</view>
+      </cy-scratch>
+    </view>
+  </view>
+  <view slot="footer" class="sl__cta">
+    <cy-btn wx:if="{{!started}}" variant="primary" bindtap="onStart">{{startLabel}}</cy-btn>
+    <cy-btn wx:elif="{{daysLeft > 0}}" variant="ghost" disabled="{{true}}">{{waitCta}}</cy-btn>
+    <cy-btn wx:elif="{{!claimed}}" variant="primary" bindtap="onClaim">{{unlockLabel}}</cy-btn>
+  </view>
+</cy-sheet>

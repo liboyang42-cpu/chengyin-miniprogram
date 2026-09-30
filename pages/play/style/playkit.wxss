@@ -1,0 +1,210 @@
+/* style/playkit.wxss —— v5.1「新玩法」组件共享样式(Figma 组件库 v5.1,node 45:248)
+ *
+ * 为什么单独一份:稿里 9 个玩法 sheet 共用同一套壳(eyebrow / 大标题 / 说明行 / 选项行 /
+ * 底部提示+XP)。各组件 @import 这一份,而不是各抄一遍 —— 否则改一次字号要改九处。
+ *
+ * 稿是 375px 画布,小程序 1px = 2rpx。字号/圆角一律映射到既有 token,不新造档位:
+ *   12px eyebrow → --cy-type-label(24rpx) · 13px 正文 → --cy-type-body(28rpx)
+ *   11px → --cy-type-caption · 10px → --cy-type-micro · 24~26px 标题 → --cy-type-sheet-title
+ * 稿里的红 CTA(#ff3b30)与紫(#8c5cff)不复刻:2026-08-05 主 CTA 已去色相为 token
+ * --cy-color-action-primary-bg,tokens 是比这张稿更新的真源。
+ */
+
+/* 眉标:12px / 字距 1.5px,稿里九个 sheet 全一致 */
+.pk-eyebrow {
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  letter-spacing: 3rpx;
+  color: var(--cy-color-text-secondary);
+}
+
+/* 大标题:稿里是两行硬断行的 Black,行高 34~36px */
+.pk-title {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 900;
+  line-height: 1.36;
+  color: var(--cy-color-text-primary);
+}
+
+/* 说明行(步骤 / 玩法解释) */
+.pk-desc {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--cy-color-text-secondary);
+}
+.pk-desc--dim { color: var(--cy-color-text-tertiary); }
+
+/* 玻璃卡:稿里 bg rgba(255,255,255,.06) + border rgba(255,255,255,.14) */
+.pk-card {
+  background: var(--cy-color-play-surface-subtle);
+  border: 2rpx solid var(--cy-color-play-accent-soft);
+  border-radius: var(--cy-radius-lg);
+  box-sizing: border-box;
+}
+
+/* 选项行:50px 高、圆角 14px、左侧圆形字母角标 */
+.pk-option {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  min-height: 100rpx;
+  padding: 0 var(--cy-space-3);
+  margin-top: var(--cy-space-2);
+  background: var(--cy-color-play-surface-subtle);
+  border: 2rpx solid var(--cy-color-play-accent-soft);
+  border-radius: var(--cy-radius-md);
+  box-sizing: border-box;
+}
+.pk-option--on {
+  border-color: var(--cy-color-status-info);
+  background: var(--cy-color-status-info-soft);
+}
+.pk-option__key {
+  flex: none;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid var(--cy-color-play-line);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-caption);
+  font-weight: 900;
+  color: var(--cy-color-text-secondary);
+}
+.pk-option--on .pk-option__key {
+  border-color: var(--cy-color-status-info);
+  color: var(--cy-color-status-info);
+}
+.pk-option__label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: var(--cy-color-text-primary);
+}
+
+/* 底部一行:左边猫向导旁白,右边 XP —— 稿里九个 sheet 的收尾都是这个形状 */
+.pk-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-3);
+  padding-bottom: var(--cy-space-1);
+}
+.pk-foot__hint {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+.pk-foot__xp {
+  flex: none;
+  font-size: var(--cy-type-caption);
+  font-style: italic;
+  font-weight: 900;
+  color: var(--cy-color-status-info);
+}
+
+/* 大数字(倒计时 / 步数 / 功德数):稿里统一 Inter Black Italic */
+.pk-figure {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-data-xl);
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--cy-color-text-primary);
+}
+
+/* 胶囊小标(到点 / 新! / 分类 chip) */
+.pk-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-caption);
+  font-weight: 700;
+  background: var(--cy-color-play-surface-subtle);
+  border: 2rpx solid var(--cy-color-play-accent-soft);
+  color: var(--cy-color-text-secondary);
+}
+.pk-pill--on {
+  background: var(--cy-color-action-primary-bg);
+  border-color: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+}
+.pk-pill--ok {
+  background: var(--cy-color-status-success-soft);
+  border-color: var(--cy-color-status-success);
+  color: var(--cy-color-status-success);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,与 cy-sheet 同样在本地补一份(只减淡不位移) */
+.cy-pressed { opacity: .88; }
+
+/* 图标步骤行(ADA 借鉴卡 E ← Sago Mini):不读字也能开始玩。
+   ★ 它**替代**原来那行整句说明,不与之并排 —— 并排的话读者仍会去读那行字,等于没改。
+   整句说明降级为本行的 aria-label,读屏器仍然听得到。 */
+.pk-steps {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-1);
+  margin-top: var(--cy-space-2-5);
+}
+.pk-steps__item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-1);
+}
+/* 序号 + 图标同处一个圆:序号定顺序,图标定动作,两者分开会让这一行读起来像两排东西 */
+.pk-steps__badge {
+  position: relative;
+  width: 76rpx;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-play-surface-subtle);
+  border: 2rpx solid var(--cy-color-play-accent-soft);
+  color: var(--cy-color-text-primary);
+}
+.pk-steps__no {
+  position: absolute;
+  top: -6rpx;
+  right: -6rpx;
+  min-width: 28rpx;
+  height: 28rpx;
+  padding: 0 6rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-text-primary);
+  color: var(--cy-color-action-primary-fg);
+  font-size: var(--cy-type-micro);
+  font-weight: 900;
+  line-height: 1;
+}
+.pk-steps__label {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-secondary);
+  text-align: center;
+}
+/* 步骤之间的连接线:让「① → ② → ③」的顺序不靠数字硬认 */
+.pk-steps__link {
+  flex: none;
+  align-self: flex-start;
+  width: 24rpx;
+  height: 2rpx;
+  margin-top: 38rpx;
+  background: var(--cy-color-play-accent-soft);
+}

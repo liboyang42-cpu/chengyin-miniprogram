@@ -1,0 +1,65 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- E-13(2026-09-16):need 原为 club:member:list:read,比后端宽 —— 客户读写三条线
+       都走 canGovernClub(主理人/老管理员/MEMBER_MANAGE),CLUB_OPERATOR 过得了这层闸
+       却会被后端拒,看到的是页内错误而不是权限提示。改为 club:member:manage 对齐。 -->
+  <cy-access-gate id="cy-access-gate" kind="club" need="club:member:manage" club-id="{{clubId}}" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="客户" safe-top="{{false}}" />
+  <!-- 这一行是数据统计,不是标题下的小标题(小标题已全线删除):它随筛选变化,不解释页面。 -->
+  <view class="cus-count" wx:if="{{state === 'ready' || state === 'empty'}}">{{countText}}</view>
+
+  <scroll-view class="cus-chips" scroll-x enhanced show-scrollbar="{{false}}"
+               wx:if="{{state === 'ready' || state === 'empty'}}">
+    <view class="cus-chiprow">
+      <view class="cus-chip {{filterKey === item.key ? 'cus-chip--on' : ''}}"
+            wx:for="{{filters}}" wx:key="key" data-key="{{item.key}}" bindtap="onFilterTap"
+            aria-role="button" aria-pressed="{{filterKey === item.key}}" aria-label="按 {{item.label}} 筛选客户"
+            hover-class="cy-pressed" hover-stay-time="80">{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <!-- 条件直接挂在 cy-search 上:套一层只做内边距的 view 会被状态可见性门禁判成空白分支(它看不见组件内部) -->
+  <cy-search class="cus-search" wx:if="{{state === 'ready' || state === 'empty'}}"
+             value="{{keyword}}" placeholder="搜索" bind:input="onKeywordInput" bind:confirm="onKeywordConfirm" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="5" loading-label="正在加载客户名单" />
+  <cy-error wx:elif="{{state === 'no-permission'}}" fill size="lg"
+            title="当前岗位没有客户查看权限" sub="{{errorText || '当前账号没有查看权限'}}" retry="" bind:back="goBack" auto-back custom-back />
+  <!-- auto-back 只认首屏:名单读出来之后的每一次搜索 / 换筛选都会再发一次请求,
+       那一次失败若也自动退页,用户刚打的关键词会跟着页面一起没(审查C A1)。 -->
+  <cy-error wx:elif="{{state === 'network-error'}}" fill size="lg" title="客户名单加载失败"
+            sub="{{errorText}}" retry="重试加载" bind:retry="retry" auto-back="{{!everLoaded}}" />
+  <cy-error wx:elif="{{state === 'error'}}" fill size="lg" title="客户名单加载失败"
+            sub="{{errorText}}" retry="重试加载" bind:retry="retry" auto-back="{{!everLoaded}}" />
+  <!-- CU-C-05:筛选/搜索下没结果 ≠ 从来没有客户,别让人以为名单丢了;清掉筛选即回全部 -->
+  <cy-empty wx:elif="{{state === 'empty' && (filterKey !== 'all' || keyword)}}" fill size="lg" title="没有符合条件的客户"
+            sub="换个筛选或关键词试试" cta="查看全部客户" bind:cta="clearFilters" />
+  <cy-empty wx:elif="{{state === 'empty'}}" fill size="lg" title="还没有客户"
+            sub="有人买过本俱乐部的票之后，这里会按人汇总他的到店与退款。" />
+
+  <view wx:else class="cus-list">
+    <view class="cus-row" wx:for="{{items}}" wx:key="memberId" data-member-id="{{item.memberId}}"
+          bindtap="openCustomer" aria-role="button" aria-label="查看客户 {{item.displayName}}"
+          hover-class="cy-pressed" hover-stay-time="80">
+      <cy-avatar class="cus-ava" size="80" src="{{item.avatar}}" name="{{item.displayName}}" />
+      <!-- 分隔线只从头像右侧起(Figma 从 72px 起),所以正文与箭头共用一个带下边框的容器 -->
+      <view class="cus-body">
+        <view class="cus-main">
+          <view class="cus-nameline">
+            <text class="cus-name">{{item.displayName}}</text>
+            <text wx:if="{{item.hasRemark}}" class="cus-remarktag">备注</text>
+          </view>
+          <text class="cus-meta">{{item.metaText}}</text>
+          <text wx:if="{{item.subText}}" class="cus-sub">{{item.subText}}</text>
+        </view>
+        <!-- 稿子(141:90)这里是细 ›,不是 K2 记录卡上那根带横杠的 →;两个字形是有意区分的 -->
+        <cy-icon class="cus-chevron" name="slide-arrow" size="28" />
+      </view>
+    </view>
+  </view>
+</view>
+</view>

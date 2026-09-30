@@ -1,0 +1,125 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-photocheck · 拍照审核(契约 §2.2)
+ * 皮面走 play-surface 的暗版(--ink/--sub/--soft/--ok 由 stage 的 skin 传下来),
+ * 这里只画取景框与那一句判定。⚠️ 本仓没有全局 border-box。 */
+.pc__note {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--sub);
+}
+.pc__frame {
+  margin-top: var(--cy-space-5);
+  width: 100%;
+  height: 480rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--cy-radius-xl);
+  border: 2rpx dashed var(--cy-color-border-strong);
+  background: var(--soft);
+}
+.pc__frame.is-filled { border-style: solid; border-color: var(--cy-color-border-subtle); }
+.pc__shot { width: 100%; height: 100%; }
+.pc__ph { color: var(--sub); }
+.pc__verdict {
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  color: var(--sub);
+}
+.pc__verdict--ok { color: var(--ok); }
+.pc__verdict--no { color: var(--accent); }
+/* 不过时的真实理由(服务端 lastReason):比判定低一档,不与判定抢焦点 */
+.pc__reason {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-label);
+  line-height: 1.6;
+  color: var(--sub);
+}
+.pc__tries {
+  margin-top: var(--cy-space-3);
+  font-size: var(--cy-type-label);
+  color: var(--sub);
+}
+
+/* ===== 取景层(现场感 S1:轮廓对齐) =====
+ * 整屏黑台 + 实时取景 + 浮在镜头上的轮廓 + 一颗快门。
+ * 底色/框线沿用裁剪台那两档现成 token —— 同为「纯黑取景台」，不另起一档皮肤。
+ * ⚠️ 这一层不带入场动效:它是 wx:if 新建的节点，没有前一个值，transition 播不动，
+ *      而新增关键帧要顶全仓棘轮(2026-09-22 实测写过一版死的，已撤)。 */
+.pcv {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--cy-z-sheet);  /* 与 cy-play-stage 同档:它在台面之后，同档即压在上面 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--cy-comp-crop-stage-bg);
+}
+.pcv__cam { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.pcv__outline {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 58%;
+  transform: translateY(-50%);
+}
+.pcv__tip {
+  position: absolute;
+  top: calc(var(--cy-space-5) * 2);
+  max-width: 70%;
+  padding: var(--cy-space-2) var(--cy-space-4);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-glass);
+  font-size: var(--cy-type-label);
+  line-height: 1.6;
+  color: var(--cy-color-text-primary);
+}
+.pcv__shutter {
+  position: absolute;
+  bottom: calc(var(--cy-space-5) * 2);
+  width: 132rpx;
+  height: 132rpx;
+  box-sizing: border-box;
+  border: 8rpx solid var(--cy-comp-crop-frame-line);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-text-primary);
+}
+.pcv__shutter--busy { opacity: .45; }
+.pcv__cancel {
+  position: absolute;
+  right: var(--cy-space-5);
+  top: calc(var(--cy-space-5) * 2);
+  padding: var(--cy-space-2) var(--cy-space-4);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-glass);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-primary);
+}
+.pcv--press { opacity: .72; }
+/* 拍物成卡(契约 §10.2):判过当场那一张。卡面自身比例由 cy-spin-card 定(竖明信片),
+   这里只管占位与居中 —— 铺满整屏会把「一张卡」读成「一张海报」。
+   ⚠️ 尺寸挂在普通 class 的包装层上:组件标签选择器在本仓是禁项(component-wxss-selector-lint)。 */
+.pc__card {
+  margin-top: var(--cy-space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pc__card-stage {
+  width: 100%;
+  max-width: 460rpx;
+}
+.pc__card-note {
+  margin-top: var(--cy-space-3);
+  font-size: var(--cy-type-label);
+  color: var(--sub);
+}

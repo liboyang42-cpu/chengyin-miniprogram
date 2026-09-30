@@ -1,0 +1,31 @@
+/* cy-toast · 轻提示:底部居中胶囊,不挡操作,色随主题(与 cy-modal 同一档面板色)
+ * 进出场用 transition(棘轮:toast 这类快速重触发元素不开 @keyframes),减动效下直接切换。 */
+:host { display: block; }
+.ct {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 160rpx);
+  z-index: var(--cy-z-toast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  max-width: 600rpx;
+  padding: var(--cy-space-2-5) var(--cy-space-4);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-comp-modal-panel);
+  border: 2rpx solid var(--cy-border-card);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+  line-height: 1.4;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 16rpx);
+  transition: opacity var(--cy-motion-standard) var(--cy-ease-out), transform var(--cy-motion-standard) var(--cy-ease-out);
+}
+.ct.ct--in { opacity: 1; transform: translate(-50%, 0); }
+.ct.ct--reduced-motion { transition: none; }
+.ct__icon { flex: none; }
+.ct--success .ct__icon { color: var(--cy-color-status-success); }
+.ct--error .ct__icon { color: var(--cy-color-status-danger); }
+.ct__text { word-break: break-all; }

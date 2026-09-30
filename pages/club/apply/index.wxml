@@ -1,0 +1,219 @@
+<view class="theme-dark {{reducedMotion ? 'cy-motion-reduced' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <!-- N1 素色返回行:大标题交给下面的 TitleWrap,右侧 actions 槽放步数 -->
+  <cy-nav-bar plain custom-back bind:back="onHeaderBack" tint="light">
+    <view slot="actions" class="stepcount"
+          wx:if="{{bootstrapState === 'ready' && mode==='form'}}">{{step}} / 4</view>
+  </cy-nav-bar>
+  <!-- 规范顶距挂在 .page 上(与 club/enroll 同写法):它把 nav 一起包住,才不会同时
+       被顶距契约当成「nav 与标题之间的夹层」。夹在中间的进度条与 eyebrow
+       因此一点顶距都不能带,呼吸靠自身高度撑,见 wxss。 -->
+  <view class="head">
+    <view class="prog {{morphing ? 'prog--ghost' : ''}}" wx:if="{{bootstrapState === 'ready' && mode==='form'}}"
+          aria-role="status" aria-live="polite" aria-label="第{{step}}步，共4步，{{stepTitle}}">
+      <view wx:for="{{dots}}" wx:key="*this"
+            class="prog__seg {{item < step ? 'on' : ''}}" aria-hidden="true"></view>
+    </view>
+
+    <view class="step-head {{stepIn ? 'cy-rise-in' : ''}}" wx:if="{{mode !== 'intro'}}">
+      <view class="eyebrow" wx:if="{{bootstrapState === 'ready' && mode==='form'}}">成为主理人</view>
+      <cy-page-title title="{{mode==='done' ? '成为主理人' : stepTitle}}" safe-top="{{false}}" />
+    </view>
+  </view>
+
+  <cy-skeleton wx:if="{{bootstrapState === 'checking-role'}}" type="card" count="2" />
+  <cy-state-shell class="bootstrap-state" wx:elif="{{bootstrapState === 'error'}}" kind="data" size="lg" fill
+    title="主理人资格未确认" sub="{{bootstrapError}}" primary="重新检查" bind:primary="retryBootstrap" auto-back custom-back bind:back="onExit" />
+  <cy-error class="bootstrap-state" wx:elif="{{bootstrapState === 'blocked'}}" size="lg" fill retry=""
+    title="当前账号不能申请" sub="商户与俱乐部主理人身份不能由同一账号同时持有" bind:back="onExit" auto-back custom-back />
+
+  <!-- ===== 开场屏(四步之前) ===== -->
+  <view class="intro {{morphing ? 'intro--out' : 'cy-rise-in'}}"
+        wx:if="{{bootstrapState === 'ready' && (mode==='intro' || morphing)}}">
+    <view class="intro__eyebrow">成为主理人</view>
+    <view class="intro__title">把你带的人，
+变成你的俱乐部</view>
+    <view class="intro__sub">四步，大约两分钟。</view>
+    <view class="intro__points">
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>填完身份立即生效，不用等审核</text></view>
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>最多可以建 2 个俱乐部</text></view>
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>L1–L5 等级由平台后台评定，不影响先开始运营</text></view>
+    </view>
+    <view class="intro-cta"><cy-btn variant="primary" accessibilityLabel="开始申请" bindtap="startForm">开始申请</cy-btn></view>
+    <view class="intro__fine">联系方式只用于平台沟通，不对外展示。</view>
+  </view>
+
+  <!-- 开场胶囊 → 进度条:共享元素形变。
+       CTA 与进度轨等宽(都是 375 - 2×--cy-page-x),所以只需要「上移 + 纵向压扁」,
+       全程 transform / opacity / border-radius,一个布局属性都不动。 -->
+  <view class="morph" wx:if="{{morph}}" aria-hidden="true"
+        style="left:{{morph.x}}px; top:{{morph.y}}px; width:{{morph.w}}px; height:{{morph.h}}px;
+               transform: translate({{morphRun ? morph.dx : 0}}px, {{morphRun ? morph.dy : 0}}px)
+                          scale({{morphRun ? morph.sx : 1}}, {{morphRun ? morph.sy : 1}});
+               border-radius: {{morphRun ? 3 : 999}}px;">
+    <view class="morph__track" style="opacity:{{morphRun ? 1 : 0}}"></view>
+    <view class="morph__fill" style="transform: scaleX({{morphRun ? morph.fx : 1}})"></view>
+  </view>
+
+  <!-- ===== 表单 ===== -->
+  <scroll-view scroll-y class="body" wx:if="{{bootstrapState === 'ready' && mode==='form'}}">
+
+    <!-- 步骤1 主理人实名 -->
+    <view class="step cy-rise-in" wx:if="{{step===1}}">
+      <view class="legend">标 <text class="req" aria-hidden="true">*</text> 的是必填</view>
+      <view class="field">
+        <text class="field__label">实名/昵称<text class="req" aria-hidden="true">*</text></text>
+        <view class="field__box {{leaderName ? 'is-filled' : ''}}">
+          <input class="field__ctrl" data-field="leaderName" value="{{leaderName}}" bindinput="onInput" placeholder="你的称呼" placeholder-class="field__ph"
+                 aria-required="true" aria-label="实名或昵称，必填" />
+        </view>
+      </view>
+      <view class="field">
+        <text class="field__label">联系方式<text class="req" aria-hidden="true">*</text></text>
+        <view class="field__box {{phone ? 'is-filled' : ''}}">
+          <input class="field__ctrl" data-field="phone" value="{{phone}}" bindinput="onInput" placeholder="手机号或微信号" placeholder-class="field__ph"
+                 aria-required="true" aria-label="联系方式，必填" />
+        </view>
+      </view>
+      <view class="field">
+        <text class="field__label">身份说明（选填）</text>
+        <view class="field__box {{identity ? 'is-filled' : ''}}">
+          <input class="field__ctrl" data-field="identity" value="{{identity}}" bindinput="onInput" placeholder="如 高校社团负责人 / 户外领队" placeholder-class="field__ph" />
+        </view>
+      </view>
+      <view class="field">
+        <text class="field__label">联合创始人（选填）</text>
+        <view class="field__box {{coFounders ? 'is-filled' : ''}}">
+          <input class="field__ctrl" data-field="coFounders" value="{{coFounders}}" bindinput="onInput" placeholder="多人用逗号分隔" placeholder-class="field__ph" />
+        </view>
+      </view>
+      <view class="hint">联系方式仅供平台沟通,不对外展示。</view>
+    </view>
+
+    <!-- 步骤2 组织经验 -->
+    <view class="step cy-rise-in" wx:if="{{step===2}}">
+      <view wx:for="{{expOptions}}" wx:key="*this"
+            class="opt {{experience===item ? 'on' : ''}}"
+            data-val="{{item}}" bindtap="pickExp" aria-role="radio"
+            aria-checked="{{experience===item}}" aria-label="{{item}}" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="opt__label">{{item}}</text>
+        <view class="opt__radio" aria-hidden="true"></view>
+      </view>
+      <view class="field mt">
+        <text class="field__label">最大带队人数（选填）</text>
+        <view class="field__box {{maxEventSize ? 'is-filled' : ''}}">
+          <input class="field__ctrl" type="number" data-field="maxEventSize" value="{{maxEventSize}}" bindinput="onInput" placeholder="如 50" placeholder-class="field__ph" />
+        </view>
+      </view>
+      <view class="field">
+        <text class="field__label">平均参与人数（选填）</text>
+        <view class="field__box {{avgEventSize ? 'is-filled' : ''}}">
+          <input class="field__ctrl" type="number" data-field="avgEventSize" value="{{avgEventSize}}" bindinput="onInput" placeholder="如 20" placeholder-class="field__ph" />
+        </view>
+      </view>
+      <view class="hint">这些是后台定级(L1-L5)的参考依据,如实填写即可。</view>
+    </view>
+
+    <!-- 步骤3 能力自评 -->
+    <view class="step cy-rise-in" wx:if="{{step===3}}">
+      <view class="cap {{canDesignRoute ? 'on' : ''}}" data-field="canDesignRoute" bindtap="toggleBool"
+            aria-role="checkbox" aria-checked="{{!!canDesignRoute}}" aria-label="能设计城市路线" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cap__main"><text class="cap__t">能设计城市路线</text><text class="cap__d">选点、排顺序、控制时长</text></view>
+        <view class="cap__check" aria-hidden="true"></view>
+      </view>
+      <view class="cap {{canDesignTask ? 'on' : ''}}" data-field="canDesignTask" bindtap="toggleBool"
+            aria-role="checkbox" aria-checked="{{!!canDesignTask}}" aria-label="能设计任务或解谜" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cap__main"><text class="cap__t">能设计任务 · 解谜</text><text class="cap__d">关卡、线索、通关判定</text></view>
+        <view class="cap__check" aria-hidden="true"></view>
+      </view>
+      <view class="cap {{canNpc ? 'on' : ''}}" data-field="canNpc" bindtap="toggleBool"
+            aria-role="checkbox" aria-checked="{{!!canNpc}}" aria-label="能带NPC或角色" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cap__main"><text class="cap__t">能带 NPC · 角色</text><text class="cap__d">现场角色、剧情推进</text></view>
+        <view class="cap__check" aria-hidden="true"></view>
+      </view>
+      <view class="cap {{canMerchantCoop ? 'on' : ''}}" data-field="canMerchantCoop" bindtap="toggleBool"
+            aria-role="checkbox" aria-checked="{{!!canMerchantCoop}}" aria-label="能与商家联动" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cap__main"><text class="cap__t">能与商家联动</text><text class="cap__d">找店、谈条件、对接执行</text></view>
+        <view class="cap__check" aria-hidden="true"></view>
+      </view>
+      <view class="hint">已选 {{capCount || 0}} 项 · 一项都不选也能提交</view>
+    </view>
+
+    <!-- 步骤4 资质证明 -->
+    <view class="step cy-rise-in" wx:if="{{step===4}}">
+      <view class="cap {{hasGuideCert ? 'on' : ''}}" data-field="hasGuideCert" bindtap="toggleBool"
+            aria-role="switch" aria-checked="{{!!hasGuideCert}}" aria-label="持导游或旅游资质" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cap__main"><text class="cap__t">持导游 / 旅游资质</text><text class="cap__d">有证的话审核会快一些</text></view>
+        <view class="sw" aria-hidden="true"><view class="sw__knob"></view></view>
+      </view>
+      <view class="field mt">
+        <text class="field__label">资质 / 案例图</text>
+        <cy-upload urls="{{certImages}}" max="9" uploading="{{certUploading}}" error-indexes="{{certErrorIndexes}}" bind:add="addCerts" bind:remove="removeCert" bind:retry="retryCert" />
+      </view>
+      <view class="hint">导游证、活动照片、社群截图都算,最多 9 张。</view>
+
+      <!-- RUN-52 发布者实名:放最后一步(用户裁决「放最后一步」)。已登记的人不再给填字段的
+           入口 —— 只回状态、改绑走人工,所以这里连值都不下发。 -->
+      <view class="sec-label mt">发布者实名</view>
+      <block wx:if="{{!identityRegistered}}">
+        <view class="field">
+          <text class="field__label">真实姓名<text class="req" aria-hidden="true">*</text></text>
+          <view class="field__box {{realName ? 'is-filled' : ''}}">
+            <input class="field__ctrl" data-field="realName" value="{{realName}}" bindinput="onInput"
+                   placeholder="与身份证一致" placeholder-class="field__ph"
+                   aria-required="true" aria-label="真实姓名，必填" />
+          </view>
+        </view>
+        <view class="field">
+          <text class="field__label">身份证号<text class="req" aria-hidden="true">*</text></text>
+          <view class="field__box {{idCard ? 'is-filled' : ''}}">
+            <input class="field__ctrl" data-field="idCard" value="{{idCard}}" bindinput="onInput"
+                   type="idcard" maxlength="18" placeholder="18 位" placeholder-class="field__ph"
+                   aria-required="true" aria-label="身份证号，必填" />
+          </view>
+        </view>
+        <cy-consent-check class="ca-consent" checked="{{identityConsented}}" text="{{identityHint}}"
+                          bind:change="onIdentityConsent" />
+        <view class="hint">填过一次就不再出现。营业执照、导游证仍在上方「资质 / 案例图」,两件事互不替代。</view>
+      </block>
+      <view class="hint" wx:else>{{identityDoneHint}}</view>
+    </view>
+
+    <cy-inline-error class="ca-alert" wx:if="{{submitError && step===4}}" kind="{{submitErrorKind}}"
+      title="提交没有完成" sub="{{submitError}}" action="重试" bind:action="retrySubmit" />
+    <view class="body-pad"></view>
+  </scroll-view>
+
+  <!-- ===== 表单底部按钮 ===== -->
+  <view class="bottom" wx:if="{{bootstrapState === 'ready' && mode==='form'}}">
+    <cy-btn variant="primary" loading="{{submitting}}"
+      disabled="{{!canNext || submitting}}" accessibilityLabel="{{step===4 ? '成为俱乐部主理人' : '下一步'}}"
+      bindtap="onNext">{{step===4 ? (submitting ? '提交中…' : '成为俱乐部主理人') : '下一步'}}</cy-btn>
+  </view>
+
+  <!-- ===== 完成态(填完即有) ===== -->
+  <cy-skeleton wx:if="{{bootstrapState === 'ready' && mode==='done' && doneState==='loading'}}" type="card" count="1" />
+  <cy-error class="done-error" wx:if="{{bootstrapState === 'ready' && mode==='done' && doneState!=='ready' && doneState!=='loading'}}" fill
+    title="主理人状态未确认" sub="身份信息不完整，暂不能展示完成页" retry="重新确认" bind:retry="retryLeaderStatus" />
+  <scroll-view scroll-y class="body" wx:if="{{bootstrapState === 'ready' && mode==='done' && doneState==='ready'}}">
+    <view class="sec-label">已成为主理人</view>
+    <view class="card status-card">
+      <view class="st-row">
+        <view class="st-badge ok">已生效</view>
+      </view>
+      <view class="st-desc">你已成为俱乐部主理人,身份立即生效。L1-L5 等级由平台后台稍后评定,不影响你现在创建与运营俱乐部。</view>
+      <view class="st-kv" wx:if="{{submissionReceipt && submissionReceipt.leaderName}}"><text class="k">主理人</text><text class="v">{{submissionReceipt.leaderName}}</text></view>
+      <view class="st-kv"><text class="k">可建俱乐部</text><text class="v">最多 2 个</text></view>
+    </view>
+    <view class="foot">接下来创建你的第一个俱乐部,开始招募成员、发布城市路线。</view>
+    <view class="body-pad"></view>
+  </scroll-view>
+
+  <view class="bottom" wx:if="{{bootstrapState === 'ready' && mode==='done' && doneState==='ready'}}">
+    <cy-btn variant="primary" bindtap="goCreateClub">创建我的俱乐部</cy-btn>
+  </view>
+</view>
+</view>

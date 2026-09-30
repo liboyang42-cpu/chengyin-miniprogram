@@ -1,0 +1,36 @@
+/* 加载结束后内容挂载淡入:isolated 组件收不到全局 components.wxss,@import 同一份定义 */
+@import '../../../style/fade-in.wxss';
+:host { display: block; height: 100%; }
+.task-body { height: 100%; min-height: 0; display: flex; flex-direction: column; }
+.task-search { padding: var(--cy-space-2) 0; flex: none; }
+.task-search__input { width: 100%; height: var(--cy-btn-h); box-sizing: border-box; padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); }
+.task-tabs { display: flex; gap: var(--cy-space-1); padding: var(--cy-space-1) 0 var(--cy-space-2); flex: none; }
+.task-tab { flex: 1; min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-pill); color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+.task-tab--on { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+.task-summary { padding: var(--cy-space-1) 0 var(--cy-space-2); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); flex: none; }
+.task-list { flex: 1; min-height: 0; }
+.task-card { overflow: hidden; margin-bottom: var(--cy-space-3); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.task-card__cover { height: 220rpx; background-color: var(--cy-color-bg-surface); background-position: center; background-size: cover; }
+/* CU-C-59 无封面占位:token 与活动列表 .cover-error 对齐(--cy-space-1 / --cy-text-secondary /
+   --cy-font-caption / --cy-leading-normal)。不设 background —— 盖在既有卡片底色上,再铺一层会顶掉它。 */
+.task-cover-error { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--cy-space-1); color: var(--cy-text-secondary); }
+.task-cover-error__icon { width: 96rpx; height: 72rpx; flex: 0 0 auto; }
+.task-cover-error__text { font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal); }
+.task-card__body { padding: var(--cy-space-3); }
+.task-card__title-row { display: flex; align-items: flex-start; gap: var(--cy-space-2); }
+.task-card__title { flex: 1; min-width: 0; color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 700; }
+.task-card__sub, .task-card__meta, .task-card__progress-text { display: block; margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.task-card__progress { margin-top: var(--cy-space-2); }
+.task-card__bar { height: var(--cy-space-1); overflow: hidden; border-radius: var(--cy-radius-pill); background: var(--cy-color-border-subtle); }
+.task-card__bar-fill { height: 100%; border-radius: inherit; background: var(--cy-color-text-primary); }
+
+.task-tab--press { opacity: 0.62; }
+.task-card--press { opacity: 0.82; }
+.task-stale, .task-refreshing { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); min-height: 88rpx; box-sizing: border-box; padding: var(--cy-space-2) var(--cy-space-3); margin-bottom: var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-color-status-warning-soft); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.task-refreshing { justify-content: center; background: var(--cy-color-bg-surface-subtle); }
+.task-stale__action { display: flex; align-items: center; justify-content: center; min-width: 88rpx; min-height: 88rpx; color: var(--cy-color-text-primary); font-weight: 700; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

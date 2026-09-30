@@ -1,0 +1,147 @@
+/* cy-calendar · 月历网格
+ *
+ * 布局:7 列等分,每格宽 100/7%。每月 1 号靠 WXS 算的 margin-left 推到正确的星期几下,
+ * 不渲染空占位格(空格子会进无障碍树,而且每月最多多 6 个节点)。
+ *
+ * 区间色带:浅色带画在**格子**上(占满格宽),实心端点画在格子内部的圆上。
+ * 相邻格子的背景天然相接,色带就连通了 —— 不需要额外画一层横条,也就不会有对不齐的问题。
+ */
+:host { display: block; }
+
+.cyc {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* —— 周头 —— */
+.cyc__weekhead {
+  display: flex;
+  padding: var(--cy-space-2) 0;
+}
+.cyc__wd {
+  flex: 1 1 0;
+  text-align: center;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+}
+/* 周末列压一档色:城瘾的活动/场次高度依赖周末,一眼能扫到才有用。
+   只用颜色区分、不加背景 —— 周头是静态信息,给底色会被误读成可点 */
+.cyc__wd--weekend { color: var(--cy-color-text-secondary); }
+
+/* —— 滚动区 —— */
+.cyc__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cyc__month { padding-bottom: var(--cy-space-4); }
+
+.cyc__title {
+  padding: var(--cy-space-3) var(--cy-space-1) var(--cy-space-2);
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+
+.cyc__days {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* —— 单格 —— */
+.cyc__day {
+  position: relative;
+  width: calc(100% / 7);
+  height: 88rpx;              /* 与 --cy-btn-h 同档:触达区不低于 88rpx */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.cyc__cell {
+  position: relative;
+  z-index: 1;                 /* 压在色带之上 */
+  width: 64rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+  opacity: var(--cyc-press-opacity, 1);
+  transform: scale(var(--cyc-press-scale, 1));
+  transition: background var(--cy-motion-fast) var(--cy-ease-out),
+              color var(--cy-motion-fast) var(--cy-ease-out),
+              transform var(--cy-motion-press) var(--cy-ease-out),
+              opacity var(--cy-motion-press) var(--cy-ease-out);
+}
+
+.cyc__mark {
+  position: relative;
+  z-index: 1;
+  margin-top: -6rpx;
+  font-size: var(--cy-type-micro);
+  color: var(--cy-color-text-tertiary);
+  line-height: 1;
+}
+
+/* 按压:效果落在内部那个圆上,不压整格 —— 整格带着色带一起变淡,相邻的中间段会跟着闪。
+   声明写在 .cyc__day--press 自身(而不是只写后代选择器),两个理由:
+     ① hover-class 挂在格子上,按压类必须自己就有真实声明,否则「按下去没反应」;
+     ② 用变量传给子元素,效果仍然只作用在圆上。
+   ⚠️ disabled 的格子不挂这个 class(见 wxml 的条件式):
+      给不可点的元素按压态是伪造可交互暗示,比没有反馈更糟。 */
+.cyc__day--press { --cyc-press-scale: .94; --cyc-press-opacity: .72; }
+/* 减少动态效果:撤位移,保留减淡 —— 反馈不能归零,否则按下去毫无回应 */
+.cyc--reduced-motion .cyc__day--press { --cyc-press-scale: 1; }
+
+/* —— 不可选 —— */
+/* hover-class 是常量(门禁要能静态解析),所以按压类照挂;这里把效果压回去。
+   ⚠️ 不可点的元素给按压态是伪造可交互暗示,比没有反馈更糟 —— 视觉上必须纹丝不动。 */
+.cyc__day--disabled.cyc__day--press { --cyc-press-scale: 1; --cyc-press-opacity: 1; }
+.cyc__day--disabled .cyc__cell { color: var(--cy-color-text-disabled); }
+.cyc__day--disabled .cyc__mark { color: var(--cy-color-text-disabled); }
+
+/* —— 单选 —— */
+.cyc__day--selected .cyc__cell {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-weight: 700;
+}
+
+/* —— 区间:端点实心圆 —— */
+.cyc__day--start .cyc__cell,
+.cyc__day--end .cyc__cell,
+.cyc__day--start-end .cyc__cell {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-weight: 700;
+}
+
+/* —— 区间:中间段整格铺浅底,相邻格相接即连通 —— */
+.cyc__day--middle { background: var(--cy-color-brand-soft); }
+.cyc__day--middle .cyc__cell { color: var(--cy-color-brand-strong); }
+
+/* 端点各铺半格,把实心圆和中间段接上。
+   start 铺右半、end 铺左半;start-end(起止同一天)两边都不铺,否则会甩出半截色带。
+   ⚠️ 端点落在行首/行尾时,这半格会贴到容器边 —— 视觉上是「色带延续到下一行」,
+      与参考图一致,不是 bug。 */
+.cyc__day--start::before,
+.cyc__day--end::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--cy-color-brand-soft);
+}
+.cyc__day--start::before { left: 50%; right: 0; }
+.cyc__day--end::before { right: 50%; left: 0; }
+/* 只有 start 还没选 end 时不该出现半截色带 —— 由 JS 保证此时 type 只有 'start'
+   且没有任何 middle/end,这里靠 :has 做不到,改由 .cyc--picking 关掉 */
+.cyc--picking .cyc__day--start::before { display: none; }
+
+/* —— 减少动态效果:撤过渡,但颜色变化保留(反馈不能归零) —— */
+.cyc--reduced-motion .cyc__cell { transition: none; }

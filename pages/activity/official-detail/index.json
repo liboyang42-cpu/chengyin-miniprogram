@@ -1,0 +1,17 @@
+{
+  "navigationBarTitleText": "活动详情",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F4F4",
+  "usingComponents": {
+    "cy-state-shell": "/components/cy/state-shell/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom"
+}

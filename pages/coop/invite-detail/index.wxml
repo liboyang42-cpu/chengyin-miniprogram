@@ -1,0 +1,198 @@
+<wxs src="../../../utils/wxs/money.wxs" module="money" />
+<!-- Figma 02d-1 ~ 02d-5 协作详情。五张稿是同一页的五个状态,不是五个页面:
+     顶部大字给状态、封面在终态压暗一档、条款卡永远完整显示(它是这条邀约的存档),
+     底部按 收件箱/发件箱 × 状态 决定给哪些动作。 -->
+<!-- ⚠️ 02d 五张稿画的是暗色,这里做成浅色:pages/coop 属商家工作域,仓库有强制契约
+     「页面顶层必须含 theme-merchant」,父页 coop/list 也是浅色。一页单方面翻暗只会
+     在流程中间插一次明暗跳变。这笔账并进读我已记的那条「俱乐部端全暗 vs 这些页浅色」,
+     要翻就整域一起翻。theme-merchant 重映射的是同名 token,所以下面的样式与暗色版一致。 -->
+<view class="coop-detail theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- E-01(2026-09-16 P0):去掉页面级 cy-access-gate kind="merchant"。
+       本页 /api/coop/list、/api/coop/handle(受邀方可为 to_type=club 的群主)、
+       /api/coop/contact、/api/coop/perks/attach、/api/coop/review/save 都不要求商家身份
+       (ApiCoopController:1215-1250 / :399-418 / :738-763 / :896-925),而俱乐部主理人
+       按身份互斥不可能有商家行 ⇒ 挂着商家守卫等于把所有主理人锁在协作执行页外。
+       准入由后端 403 + 页内 error/notfound 态承担,和 pages/coop/list 同口径。 -->
+  <cy-nav-bar plain />
+  <cy-nav-spacer />
+  <!-- 自定义导航页的硬契约:实底顶栏没标题就得页内有 cy-page-title 承接。
+       稿上顶部那个大字是**状态**(待确认/已接受/已过期),不是页名,两者都要有。 -->
+  <cy-page-title title="协作详情" safe-top="{{false}}" flush="{{true}}" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="card" count="3" loading-label="正在加载协作详情" />
+  <cy-error wx:elif="{{state === 'missing'}}" fill size="lg" title="打不开这条邀约" sub="{{errorText}}"
+            retry="回协作邀请" bind:retry="goBack" />
+  <cy-error wx:elif="{{state === 'notfound'}}" fill size="lg" title="这条邀约不在当前列表里了"
+            sub="它可能已经被撤回，或移到了另一侧。回列表看看最新的。"
+            retry="回协作邀请" bind:retry="goBack" />
+  <cy-error wx:elif="{{state !== 'ready'}}" fill size="lg" title="协作详情没加载出来" sub="{{errorText}}"
+            auto-back custom-back bind:back="goBack" retry="重试" bind:retry="retry" />
+
+  <block wx:else>
+    <view class="inline-state" wx:if="{{actionReceipt}}" aria-role="status" aria-live="polite">{{actionReceipt}}</view>
+    <!-- 行内错误走统一组件承接(U6:裸错误文案必须带恢复出口;这里是说明态,没有可重试的动作) -->
+    <cy-inline-error wx:if="{{actionError}}" kind="data" title="这个操作没完成" sub="{{actionError}}" />
+
+    <view class="hd">
+      <text class="hd-status hd-status--{{tone}}">{{statusText}}</text>
+      <text class="hd-from">{{box === 'sent' ? '发给' : '来自'}} {{invite.partnerName || '对方'}}</text>
+    </view>
+
+    <!-- 终态把封面压暗一档:与可操作的状态分开,但条款仍完整显示。
+         CU-M-110 / CU-C-121:没有封面数据时整块 380rpx 灰底是纯空的,把主题名推到屏幕中段
+         —— 容器一起不渲染,而不是只藏掉里面的 <image>。 -->
+    <view class="cover {{tone === 'closed' ? 'cover--dim' : ''}}" wx:if="{{invite.cover}}">
+      <image class="cover-img" src="{{invite.cover}}" mode="aspectFill" lazy-load="true" />
+    </view>
+
+    <view class="meta">
+      <text class="meta-title">{{invite.topicText}}</text>
+      <text wx:if="{{invite.countdownText}}" class="meta-line">{{invite.countdownText}}</text>
+      <text class="meta-line">{{invite.typeText}}</text>
+      <text class="meta-line" wx:if="{{invite.viewerPartyName}}">{{box === 'received' ? '接收俱乐部' : '发起俱乐部'}}：{{invite.viewerPartyName}}</text>
+      <!-- 联系方式给不给由后端定(§3.8 只在已接受时下发)。没下发就照实说明,不留空、也不假装有 -->
+      <view class="meta-contact">
+        <text class="meta-contact-label">联系方式</text>
+        <block wx:if="{{invite.partnerContact}}">
+          <text class="meta-contact-value">{{invite.partnerContact}}</text>
+          <text wx:if="{{invite.partnerPhone}}" class="meta-copy" bindtap="copyPhone" aria-role="button"
+                aria-label="复制对方电话" hover-class="cy-pressed" hover-stay-time="80">复制</text>
+        </block>
+        <!-- CU-M-90:内部条款号(§3.8)只留在上面那条注释里,用户可见文案不出现 -->
+        <text wx:elif="{{invite.status === 0}}" class="meta-contact-none">{{box === 'received' ? '接受合作后可查看联系方式' : '对方接受后可查看联系方式'}}</text>
+        <!-- CU-C-09/25:已接受却没下发 = 对方没留联系方式,不是「未接受」;站内会话仍可用 -->
+        <text wx:elif="{{invite.status === 1}}" class="meta-contact-none">对方没有留联系方式，可用下方「联系合作方」站内沟通</text>
+        <text wx:else class="meta-contact-none">邀约已结束，无法联系对方</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="card-title">合作条款</text>
+      <view class="kv"><text class="k">合作双方</text><text class="v">{{invite.typeText}}</text></view>
+      <view class="kv"><text class="k">分润</text><text class="v">{{invite.termsText || '—'}}</text></view>
+      <view wx:if="{{invite.slotText}}" class="kv"><text class="k">席位</text><text class="v">{{invite.slotText}}</text></view>
+      <!-- 保证金单独给强调色:它是唯一一条要掏钱的 -->
+      <view class="kv"><text class="k">保证金</text>
+        <text class="v {{invite.depositDueText ? 'v--owed' : ''}}">{{invite.depositDueText || '无'}}</text></view>
+    </view>
+
+    <view class="card">
+      <text class="card-title">留言</text>
+      <!-- CU-M-47:留言恒由发起方写(建约时的 message,后端只有建约写入,处理动作不覆盖它),
+           所以发言身份只看方向:box=sent 即我是发起方 → 我方;写死「对方」会把本人写的留言标错。 -->
+      <view wx:if="{{invite.message}}" class="bubble">
+        <text class="bubble-text">{{invite.message}}</text>
+        <text wx:if="{{invite.timeText}}" class="bubble-time">{{box === 'sent' ? '我方' : '对方'}} · {{invite.timeText}}</text>
+      </view>
+      <!-- 处理理由的作者同样按方向推:status=2 拒绝只可能由受邀方写,status=3 撤回只可能由发起方写
+           (取消已接受合作走 cancelAcceptedInvite,只记信用日志、不写 handleReason)。 -->
+      <view wx:if="{{invite.handleReason}}" class="bubble bubble--reason">
+        <text class="bubble-text">{{invite.handleReason}}</text>
+        <text class="bubble-time">{{box === 'sent' ? (invite.status === 3 ? '我方' : '对方') : (invite.status === 2 ? '我方' : '对方')}} · 处理理由</text>
+      </view>
+      <text wx:if="{{!invite.message && !invite.handleReason}}" class="bubble-empty">还没有留言。</text>
+
+      <block wx:if="{{inputKind}}">
+        <text class="field-label">{{inputLabel}}</text>
+        <textarea class="field" value="{{draft}}" placeholder="{{inputPlaceholder}}" placeholder-class="field-ph"
+                  maxlength="100" bindinput="onDraftInput" auto-height="{{false}}" />
+        <cy-inline-error wx:if="{{draftError}}" kind="data" title="撤回要写个理由" sub="{{draftError}}" />
+        <text class="field-count">{{draft.length}} / 100</text>
+      </block>
+      <text wx:elif="{{invite.status === 1}}" class="bubble-empty">需要对齐事项时，请点击上方“联系合作方”进入单聊。</text>
+      <!-- CU-C-124:失效邀约不再在这里补一句「不能再留言」—— 上面那条「还没有留言」已经把
+           这一栏说清，页底动作条还留着唯一一句「没有可执行的操作」对应实际可做的事。 -->
+    </view>
+
+    <!-- 已接受:卡片上搬来的履约动作按「列表行」收纳在此(联系合作方 / 申报供给 / 评价 / 取消合作),
+         底部动作条只留 ≤2 并排按钮 —— 不把动作堆成弹窗按钮。 -->
+    <view class="card" wx:if="{{invite.status === 1 && !invite.legacyReadonly}}">
+      <text class="card-title">合作操作</text>
+      <view class="op" wx:if="{{projectActionVisible}}" bindtap="openAcceptedProject" aria-role="button" aria-label="打开这条主题的项目页" hover-class="cy-pressed" hover-stay-time="80">
+        <!-- CU-M-92:这一跳走 ?topicId=,由后端判身份进承接视图(关系入口 + 自己的点位/章节)。
+             文案只说「进入项目」—— 承接配置里能配什么取决于他真接了哪一站,不在这里承诺。 -->
+        <text class="op-name">进入项目</text>
+        <cy-icon name="arrow-right" size="24" />
+      </view>
+      <view class="op" bindtap="contactPartner" aria-role="button" aria-label="联系合作方" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="op-name">联系合作方</text>
+        <cy-icon name="arrow-right" size="24" />
+      </view>
+      <!-- CU-C-10:供给 = 受邀商家自己的常备权益模板(attachPerks 只认受邀方 + 模板 merchantId=本人)。
+           俱乐部/发起方没有可申报的来源,点了只会「商家身份无效」⇒ 只给「收到的 · 受邀方是商家」。 -->
+      <view class="op" wx:if="{{box === 'received' && invite.toType === 'merchant'}}" bindtap="openPerkPick" aria-role="button" aria-label="申报本次合作供给" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="op-name">申报供给</text>
+        <cy-icon name="arrow-right" size="24" />
+      </view>
+      <!-- CU-C-27:互评一次性(后端「已评价过该合作」),评过就回读成「已评价 ★N」,不再给空白评分面板 -->
+      <view class="op" wx:if="{{(box === 'received' || invite.toType === 'merchant') && myReviewStars}}" aria-label="已评价本次合作，{{myReviewStars}}">
+        <text class="op-name">已评价</text>
+        <text class="op-hint">{{myReviewStars}}</text>
+      </view>
+      <view class="op" wx:elif="{{box === 'received' || invite.toType === 'merchant'}}" bindtap="reviewCoop" aria-role="button" aria-label="评价本次合作" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="op-name">评价</text>
+        <cy-icon name="arrow-right" size="24" />
+      </view>
+      <!-- 取消合作是涉资动作(锁价前可取消并退保证金):后端 status==1 双方都可取消
+           (ApiCoopController 取消分支只拦「既非发起方又非收件方」),所以这一行不按 box 分侧。
+           锁价后按后端 termsFrozen 置灰,只做说明不发请求 -->
+      <view class="op" wx:if="{{!invite.termsFrozen}}" bindtap="cancelAccepted" aria-role="button" aria-label="取消合作" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="op-name op-name--danger">取消合作</text>
+        <cy-icon name="arrow-right" size="24" />
+      </view>
+      <view class="op op--disabled" wx:if="{{invite.termsFrozen}}" bindtap="explainCancelLocked" aria-role="button" aria-label="已锁价，取消合作需联系客服" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="op-name">取消合作</text>
+        <text class="op-hint">已锁价，需联系客服</text>
+      </view>
+    </view>
+
+    <!-- 底部动作条。收件箱待确认给两个(拒绝次要 / 接受实心);发件箱待确认只能撤回,
+         按稿单动作不给实心;已接受欠保证金时给唯一实心(其余动作在上面那组列表行里);终态给一条不可点的说明。 -->
+    <view class="acts">
+      <block wx:if="{{invite.legacyReadonly}}">
+        <view class="act act--dead">历史商家节点邀约仅供查看</view>
+      </block>
+      <block wx:elif="{{invite.status === 0 && box === 'received'}}">
+        <view class="act act--ghost" bindtap="reject" aria-role="button" aria-label="拒绝这条邀约"
+              hover-class="{{submitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">拒绝</view>
+        <view class="act act--solid" bindtap="accept" aria-role="button" aria-label="接受合作"
+              hover-class="{{submitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">接受合作</view>
+      </block>
+      <block wx:elif="{{invite.status === 0 && box === 'sent'}}">
+        <view class="act act--ghost act--wide" bindtap="withdraw" aria-role="button" aria-label="撤回邀约"
+              hover-class="{{submitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">撤回邀约</view>
+      </block>
+      <block wx:elif="{{invite.status === 1}}">
+        <view wx:if="{{depositActionVisible}}" class="act act--solid act--wide" bindtap="goDeposit" aria-role="button" aria-label="去缴纳保证金"
+              hover-class="cy-pressed" hover-stay-time="80">去缴纳保证金</view>
+        <view wx:else class="act act--dead">合作进行中，条款已冻结</view>
+      </block>
+      <block wx:else>
+        <view class="act act--dead">这条邀约已失效，没有可执行的操作</view>
+      </block>
+    </view>
+  </block>
+
+  <!-- 供给申报勾选浮层:随卡片动作从 pages/coop/list 搬来,口径原样(ds 主题宿主 class 同样兜住变量继承) -->
+  <cy-sheet class="theme-merchant" show="{{showPerkPick}}" title="申报本次供给" handle closable maskClosable bind:close="closePerkPick">
+  <view class="pk-hint">勾选本次合作提供的礼品/券(来自你的常备权益)。到店玩家可领,成本按核销人头计入结算。</view>
+  <cy-skeleton wx:if="{{perkState === 'loading'}}" type="list" count="3" />
+  <cy-error wx:elif="{{perkState === 'error'}}" title="常备权益没加载出来" sub="{{perkErrorText}}" bind:retry="retryPerkPick" />
+  <scroll-view wx:elif="{{perkState === 'ready'}}" scroll-y class="pk-list">
+    <view class="pk-item {{item.checked ? 'on' : ''}}" wx:for="{{perkTemplates}}" wx:key="id" catchtap="togglePerk" data-idx="{{index}}" aria-role="checkbox" aria-checked="{{item.checked}}" aria-label="选择供给：{{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="pk-box {{item.checked ? 'on' : ''}}"></view>
+      <view class="pk-main">
+        <view class="pk-name">{{item.typeText}} · {{item.name}}</view>
+        <view class="pk-meta">成本 {{money.amount(item.unitCost)}}{{item.quota ? ' · 配额 ' + item.quota : ''}}</view>
+      </view>
+    </view>
+    <cy-empty wx:if="{{!perkTemplates.length}}" size="sm" title="还没有常备权益" sub="去「承接档案」维护后再来" />
+  </scroll-view>
+    <view class="pk-save {{perkSaving ? 'dis' : ''}}" wx:if="{{perkState === 'ready'}}" catchtap="submitPerks" aria-role="button" aria-label="确认申报本次供给" aria-disabled="{{perkSaving}}" hover-class="{{perkSaving ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{perkSaving ? '申报中…' : '确认申报'}}</view>
+  </cy-sheet>
+  <cy-option-sheet show="{{reviewSheetShow}}" title="这次合作打几分" items="{{reviewSheetItems}}" confirm-text="下一步"
+                   bind:select="onReviewSheetSelect" bind:cancel="onReviewSheetCancel" />
+</view>

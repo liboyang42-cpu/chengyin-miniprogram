@@ -1,0 +1,213 @@
+/* ★ 共享页的旧 alias 桥接：.theme-merchant 只重声明了语义真值层，
+   而本页大量子元素（.reg-opt / .sz-card 等）读的是 --cy-bg-card 这类**别名**，
+   别名在 tokens.wxss 的 page{} 里已就地求值成暗色快照并按值继承下来 ——
+   不引这个文件，商家视角下页面本体变白了、里面的行卡还是黑底，
+   而文字色靠变量继承变了深色 ⇒ 黑底深灰字（实拍 shezhi 选身份弹窗就是这样）。
+   这个文件本来就是为这件事写的，全仓只有 6 个页面引了它，本页漏了。 */
+@import '../../style/merchant-light-scope.wxss';
+
+page { background-color: var(--cy-bg-page); }
+
+.sz-page { padding-bottom: 64rpx; }
+
+/* 商户视角:上面那条 page{} 是**无作用域**全局规则,不认子节点 .sz-page 上的 .theme-merchant,
+   所以底色始终是外层暗色;而文字走的 --cy-text-title 在 .theme-merchant 里被重声明成了深墨
+   ⇒ 深字落暗底(实测「设置」标题文字取到 ink-900 深墨、压在近黑页底上,对比度仅 1.17:1)。
+   参照 member/index 的 `.pc-merchant .pc-page-fade`,在类作用域内把底色重新声明一遍。
+
+   ★ 必须读 ① 语义真值 --cy-color-bg-page,**不能**读 ② 别名 --cy-bg-page:
+     别名在 tokens.wxss 的 page{} 里就已就地求值成暗色快照并按值继承;而 .theme-merchant
+     只重声明了真值层(--cy-color-bg-page)和部分文字别名(--cy-text-title/--cy-text-secondary),
+     并没有重声明 --cy-bg-page —— 那段"旧 alias 桥接"在 style/merchant-light-scope.wxss 里,
+     本页既没 @import 它、app.wxss 也没全局引它。
+     实测负控:写 var(--cy-bg-page) 时 .sz-page 背景取到的仍是暗色页底值,对比度还是 1.17:1,
+     即"改了等于没改"。同一条坑 style/merchant-light.wxss:243-247 有原文记载。
+
+   min-height 让浅底铺满视口:内容不足一屏时,下方不会露出外层暗色 page{} 底。
+   整条规则用 .theme-merchant 收窄作用域 ⇒ 玩家视角(.theme-dark)完全不受影响。 */
+.sz-page.theme-merchant {
+  background: var(--cy-color-bg-page);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 顶部导航:统一走 cy-nav-bar(‹ 返回 + 单一标题),原生栏标题已由 navigationStyle:custom 关闭 */
+
+/* Menu:行样式已收编进 cy-cell(DS §3.11),cell 自带左右 32rpx padding,容器不再加边距。
+   用户原话"间距大一点":页面作用域内把行高钩子调大(自定义属性穿透 isolated,同 .sz-logout
+   既有手法,不改共享组件);标题区→列表改由共享 cy-page-title 的 space-5 统一提供。 */
+.sz-menu {
+  --cy-comp-cell-min-h: 112rpx;
+  /* 用户原话「间距大一点」:行高钩子之外再给行与行之间一档真实间隙。
+     cy-cell 宿主默认 display:block,不显式转成块级 flex 项时 gap 不生效。 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-2);
+}
+.sz-menu cy-cell { display: block; }
+
+/* Profile Card */
+/* 8pt 网格:外边距 40→32rpx(落 16/24/32/48/64 五档);
+   卡片层级改由表面明度阶表达(bg-card→bg-elevated),撤掉那层几乎看不见的投影 */
+.sz-card {
+  position: relative;
+  /* 左右外边距 24 → --cy-page-x(32):原来卡比 cy-cell 的行内距还宽,卡边缘会顶出列表一截 */
+  margin: var(--cy-space-4) var(--cy-page-x) 0;
+  padding: var(--cy-space-4);
+  padding-right: 120rpx; /* ds-ok: 给右侧编辑圆钮(88rpx 命中区)+呼吸留出的结构性避让区,不是留白间距 */
+  min-height: 198rpx;
+  box-sizing: border-box;
+  background: var(--cy-bg-elevated);
+  border-radius: var(--cy-radius-lg);
+}
+
+.sz-card-avatar {
+  width: 130rpx;
+  height: 130rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  position: absolute;
+  left: 32rpx;
+  top: 34rpx;
+}
+.sz-card-avatar image { width: 130rpx; height: 130rpx; vertical-align: top; }
+
+.sz-card-name {
+  display: block;
+  margin-left: 162rpx; /* ds-ok: 162rpx = 头像 left:32 + width:130,让文字紧跟头像右沿,是布局对齐值 */
+  font-size: var(--cy-font-title);
+  font-weight: 600;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-tight);
+}
+
+.sz-card-row {
+  display: flex;
+  align-items: center;
+  margin-left: 162rpx; /* ds-ok: 同 .sz-card-name,和头像宽度配对的对齐值 */
+  margin-top: 8rpx;
+  height: var(--cy-legacy-36);
+}
+/* 电话/邮箱图标源色为浅色主题深slate,暗底卡片上染成浅灰以匹配二级信息 */
+.sz-card-row-icon { width: var(--cy-space-3-5); height: var(--cy-space-3-5); flex-shrink: 0; margin-right: var(--cy-space-1-5); filter: brightness(0) invert(0.9); }
+.sz-card-row-text { font-size: var(--cy-font-label); color: var(--cy-text-title); font-weight: 500; }
+
+.sz-card-edit {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  /* 命中区 72 → 88rpx(DS §3.8 / WCAG 2.2 SC 2.5.8);圆钮视觉随之到 88rpx */
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1rpx solid var(--cy-border-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sz-card-edit image { width: 40rpx; height: 40rpx; }
+
+/* 退出账号 = 可逆动作 ⇒ 中性语义(cy-btn variant="secondary")。
+   ⚠️ 类名不要改回 .sz-bottom-btn —— style/components.wxss 有一条 !important 会把它钉成红实底。
+
+   夜端 secondary 的默认档在本页底色(--cy-color-bg-page)上实测不可辨(C03-R2 真实图坐实):
+     · 按钮面 --cy-comp-btn-secondary-bg = --cy-bg-subtle = 半透明微亮底 ⇒ 与页底仅 1.06:1
+     · 描边   --cy-border-line          = border-strong 半透明白  ⇒ 仅 1.45:1(WCAG 1.4.11 要 3:1)
+     · 文案   --cy-comp-btn-secondary-fg = text-secondary        ⇒ 本身 9.48:1 达标,不是病因
+   ⇒ 在**页面作用域**内把这三个组件钩子重映射到**已有** token(自定义属性穿透 isolated,
+     是本仓既有机制),不改 shared 文件、不新造色值:
+     面 → bg-elevated(与上方身份卡同档明度)· 文案 → text-primary(与新面 16.81:1)
+     描边 → text-tertiary(与页底 6.29:1,轮廓真的勾得出来)
+   ⚠️ 记名:夜端没有任何**表面**档 token 能让「面 vs 页底」达 3:1(elevated 也只 1.16:1),
+     故可辨性由文案+图标+描边承担,面只提供「有个身子」。补面档 token 需总控在 token 层做。 */
+.sz-logout {
+  margin: var(--cy-space-4) var(--cy-page-x) 0;
+  --cy-comp-btn-secondary-bg: var(--cy-color-bg-elevated);
+  --cy-comp-btn-secondary-fg: var(--cy-color-text-primary);
+  --cy-border-line: var(--cy-color-text-tertiary);
+}
+/* icon_logout.svg 源色是浅色主题的深 slate,不染色在暗底上等于看不见。
+   沿用同文件 .sz-card-row-icon(第 52 行)与 cy-cell tint="mono" 的既有手法。 */
+.sz-logout-icon { width: 34rpx; height: 34rpx; filter: brightness(0) invert(0.9); }
+
+.sz-attribution {
+  margin: var(--cy-space-5) var(--cy-page-x) 0;
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-elevated);
+}
+.sz-attribution__title {
+  margin-bottom: var(--cy-space-3);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+}
+.sz-attribution__name,
+.sz-attribution__body,
+.sz-attribution__link {
+  font-size: var(--cy-type-label);
+  line-height: var(--cy-leading-normal);
+}
+.sz-attribution__name { color: var(--cy-color-text-primary); }
+.sz-attribution__body { margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); }
+.sz-attribution__link { margin-top: var(--cy-space-2); color: var(--cy-color-text-secondary); text-decoration: underline; }
+.sz-attribution__divider { height: 1rpx; margin: var(--cy-space-3) 0; background: var(--cy-color-border-subtle); }
+
+.reg-mask.show { opacity: 1; visibility: visible; }
+.reg-sheet.show { transform: translateY(0); }
+.reg-opt {
+  display: flex; align-items: center; gap: 24rpx;
+  /* 原来这几处写的是 iOS 浅色系统灰的字面半透明值(残留):深灰压在深色 sheet 上几乎看不见。
+     本页根节点挂类作用域主题(theme-merchant/theme-dark),故读 v2 真 token 而非 v1 别名(DS §3.10-1)。 */
+  padding: var(--cy-space-3-5) var(--cy-page-x); background: var(--cy-bg-card); border-top: 1rpx solid var(--cy-color-border-subtle);
+}
+.reg-opt:active { background: var(--cy-bg-page); }
+.reg-ic {
+  width: 84rpx; height: 84rpx; border-radius: 22rpx; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.reg-ic image { width: 44rpx; height: 44rpx; }
+.reg-ic.club { background: var(--cy-color-status-info-soft); }
+.reg-ic.shop { background: var(--cy-color-status-success-soft); }
+.reg-opt-body { flex: 1; }
+.reg-opt-t { font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title); }
+.reg-opt-s { font-size: var(--cy-font-label); color: var(--cy-color-text-secondary); margin-top: var(--cy-legacy-6); }
+/* --cy-font-display 已在 tokens.wxss:282 标废弃(全局规范 G8)⇒ 收到区块标题档 */
+.reg-arrow { font-size: var(--cy-font-title); color: var(--cy-color-text-tertiary); }
+.reg-opt:last-of-type { border-radius: 0 0 28rpx 28rpx; }
+
+/* ===== 商户视角(浅底)覆盖 ===== 放在基础规则之后:主题覆盖惯例 + 避免被
+   c03-r3 契约里 /\.sz-logout-icon\s*\{/ 这类"取第一个匹配"的正则先命中。
+   ★ 下面四条都是"底色由暗转浅"之后暴露/引发的,同源同治:
+
+   ① 身份卡:.sz-card 读的 --cy-bg-elevated 同样是 ②别名,在 .theme-merchant 里拿到的还是
+      暗色快照(实测仍是暗端 elevated 值),而卡内 .sz-card-name 已是深墨 ink-900
+      ⇒ 卡片自己就是一块"深字落暗底",和本次要修的是同一个 bug,只是之前整页都黑看不出来。
+      改读 ①真值层,随主题重新求值。
+   ② 编辑圆钮:白 8% 的面 + ②别名描边,在浅底上等于隐形,换成浅端 surface/border 真值。
+   ③ 图标反相:.sz-card-row-icon / .sz-logout-icon 的 brightness(0) invert(.9) 是给暗底页
+      把深色线性图标染白用的;浅底下就是白图标压白底 ⇒ 商户视角不反相,用源色(深 slate)。
+      同理 wxml 里 7 个 cy-cell 的 tint="mono" 已改成商户视角不传(mono 的注释原文就是
+      "暗底页把深色线性图标统一染白")—— 不改的话菜单图标会在浅底上全部消失,
+      那是本次改底色**引入**的回归,不是原有问题。
+   ④ 编辑钮里的 icon_pen.svg 源色就是纯白(实测逐像素取到纯白),原本靠深色圆底托着
+      (实测 14.71:1);圆底转浅后白笔压浅面只剩 1.10:1,同属本次引入的回归。
+      走本仓既有手法 brightness(0) 压黑 + opacity 收敛(同 couponInfo 的 chevron 处理)。 */
+.theme-merchant .sz-card {
+  background: var(--cy-color-bg-elevated);
+}
+.theme-merchant .sz-attribution { background: var(--cy-color-bg-elevated); }
+.theme-merchant .sz-card-edit {
+  background: var(--cy-color-bg-surface-subtle);
+  border-color: var(--cy-color-border-subtle);
+}
+.theme-merchant .sz-card-row-icon,
+.theme-merchant .sz-logout-icon {
+  filter: none;
+}
+.theme-merchant .sz-card-edit image {
+  filter: brightness(0);
+  opacity: 0.68;
+}

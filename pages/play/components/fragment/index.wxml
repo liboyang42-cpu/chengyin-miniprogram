@@ -1,0 +1,7 @@
+<view class="frag-mask {{show?'frag-mask--on':''}} {{fly?'frag-mask--fly':''}} {{reducedMotion ? 'frag-mask--reduced-motion' : ''}}" wx:if="{{show}}" catchtap="onTap" hover-class="cy-pressed" hover-stay-time="80">
+  <view class="frag-card {{flip?'frag-card--flip':''}} {{fly?'frag-card--fly':''}}">
+    <view class="frag-step">故事碎片 · {{step}}</view>
+    <view class="frag-text">{{text}}</view>
+    <view class="frag-tip">轻触收下,继续走</view>
+  </view>
+</view>

@@ -1,0 +1,34 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="al-root">
+  <cy-nav-bar />
+  <!-- .al-root 本身有横向 padding,cy-page-title 不 flush 会被推成双倍缩进(2026-07-31 组件统一清单) -->
+  <cy-page-title title="集邮册" flush="{{true}}" />
+  <!-- 计数是权威口吻的大字:数据没回来就别先说「0 枚」(截图 057 把「0 枚」和「加载中…」同屏了) -->
+  <view class="al-hd" wx:if="{{loaded}}">
+    <text class="al-n">{{total}}</text>
+    <text class="al-u">枚</text>
+  </view>
+
+  <view class="al-stage" style="height:{{stageH}}px;">
+    <view class="al-item" wx:for="{{items}}" wx:key="id"
+          style="left:{{item.x}}px;top:{{item.y}}px;width:{{cellImgW}}px;height:{{cellImgH}}px;transform:rotate({{item.rot}}deg);z-index:{{item.z}};">
+      <image class="al-img" src="{{item.picUrl}}" mode="aspectFill" lazy-load></image>
+    </view>
+  </view>
+
+  <!-- 失败 / 首屏加载 / 真空态三条挂同一条 wx:if 链,互斥:失败时空态不得替它背书。
+       整屏失败态只在「一枚都还没渲染出来」时用;已经有邮票时那是**续页**失败,不该整屏报错 -->
+  <cy-error class="al-state-fill" fill="{{true}}" size="lg" icon="/images/no_data.svg" wx:if="{{error && !items.length}}" title="集邮册没打开" sub="邮票都还在,只是这次没读到" retry="重新载入" bind:retry="retryLoad" auto-back />
+  <cy-skeleton wx:elif="{{loading && !items.length}}" type="card" count="{{2}}" />
+  <cy-empty wx:elif="{{loaded && total === 0}}" title="还没有邮票" sub="上街拍一张，城市就进你的册子了" cta="打开集邮相机" bind:cta="goCamera" />
+
+  <!-- 续页加载才用这行字:首屏走骨架,同页不叠两个加载反馈(微信官方指南) -->
+  <view class="al-more" wx:if="{{loading && items.length}}">正在读取下一页</view>
+  <!-- 续页失败:已看到的邮票留在原地,只在页尾给这一页的重试(不整屏报错) -->
+  <view class="al-more" wx:elif="{{error && items.length}}" bindtap="retryLoad" aria-role="button" aria-label="重试加载这一页" hover-class="cy-pressed" hover-stay-time="80">这一页没读到 · 点此重试</view>
+  <view class="al-fab" bindtap="goCamera" wx:if="{{total > 0}}" aria-role="button" aria-label="打开集邮相机" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="plus" size="40" /></view>
+</view>
+</view>

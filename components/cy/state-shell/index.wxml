@@ -1,0 +1,16 @@
+<view class="state-shell {{fill ? 'state-shell--fill' : ''}} state-shell--theme-{{theme}}"
+      aria-role="group">
+  <!-- _autoBack:整页加载失败(稿 356-5220)交给 cy-error 的零钮 fail 半屏 + 自动返回;只认加载失败类 kind,见 index.js AUTO_BACK_KINDS -->
+  <cy-error wx:if="{{_autoBack || _renderer === 'error'}}" auto-back="{{_autoBack}}" custom-back="{{customBack}}"
+            title="{{_title}}" sub="{{_sub}}" aria="{{aria}}" retry="{{_primary}}" secondary="{{secondary}}" fill="{{fill}}" size="{{size}}"
+            bind:retry="onPrimary" bind:secondary="onSecondary" bind:back="onBack" />
+  <cy-empty wx:else kind="{{_emptyKind}}"
+            title="{{_title}}" sub="{{_sub}}" aria="{{aria}}" cta="{{_primary}}" fill="{{fill}}" size="{{size}}"
+            bind:cta="onPrimary" />
+  <block wx:if="{{!_autoBack}}">
+  <view wx:if="{{_renderer !== 'error' && secondary}}" class="state-shell__secondary"
+        aria-role="button" aria-label="{{secondary}}"
+        hover-class="state-shell__secondary--pressed" hover-stay-time="80"
+        bindtap="onSecondary">{{secondary}}</view>
+  </block>
+</view>

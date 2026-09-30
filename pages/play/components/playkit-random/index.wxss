@@ -1,0 +1,221 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-random · 抽卡(逐像素照原型 playkit.html 的 .dk / .dkdeck / .dkcard)
+ *
+ * 一副卡摊成扇形叠在中间,不是一张孤零零的卡:三张可见,后面还有更多。
+ * 「这是一副牌」这件事必须先看得见,不然抽出来那张就没有来处。
+ * ⚠️ 这一段全是玩法皮肤,ds-ok。值照抄原型。
+ */
+.dk {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  overflow: hidden;
+  background: #0b6adc;                       /* ds-ok 原型 .dk */
+  color: #fff;                               /* ds-ok */
+}
+.dk__wipe {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+.dk__stage {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 44rpx;
+  padding: calc(env(safe-area-inset-top) + 200rpx) var(--cy-page-x) 200rpx;
+  box-sizing: border-box;
+}
+.dk__deck {
+  position: relative;
+  width: 428rpx;                             /* ds-ok 原型 214px */
+  aspect-ratio: 270 / 430;
+}
+.dk__card {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  border-radius: 44rpx;                      /* ds-ok 原型 22px */
+  background: #e6e3e4;                       /* ds-ok 原型 .paper */
+  color: #111114;                            /* ds-ok */
+  padding: 30rpx 30rpx 24rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24rpx 48rpx rgba(0, 0, 0, .3);  /* ds-ok 卡牌的投影与眉标,逐值照原型 */
+  /* 照原型 .dkcard:.9s 的重curve + 迟 .48s 才开始的淡出。
+     .42s 那条是上一版自己定的,松手弹回去太快,读不出「一副厚牌」的分量。 */
+  transition: transform .9s cubic-bezier(.5, .05, .25, 1), opacity .3s ease .48s;
+}
+/* 扇形:第一张微微左倾,后两张往右上错开并缩小 —— 照原型的 data-pos */
+.dk__card--0 { transform: rotate(-2.2deg); z-index: 30; }
+/* 甩出去:向左折走并翻面,不是简单地平移消失 —— 一张纸离开一副牌是这么走的 */
+.dk__card--out {
+  transform-origin: 92% 50%;
+  z-index: 31;
+  animation: dk-fold .9s cubic-bezier(.38, .06, .32, 1) forwards;
+}
+@keyframes dk-fold {
+  0%   { transform: translate(0, 0)       rotateY(0deg)    rotate(-2.2deg); opacity: 1; }
+  45%  { transform: translate(-58%, 2%)   rotateY(-48deg)  rotate(-4deg);   opacity: 1; }
+  75%  { transform: translate(-95%, 3%)   rotateY(-92deg)  rotate(-5deg);   opacity: 1; }
+  100% { transform: translate(-112%, 4%)  rotateY(-116deg) rotate(-6deg);   opacity: 0; }
+}
+.dk--reduced .dk__card--out { animation: none; opacity: 0; }
+/* 拖着的时候不要过渡,不然手指和卡片会脱节 */
+.dk__card--drag { transition: none; }
+.dk__card--hidden { opacity: 0; z-index: 1; transform: translate(80%, -6%) rotate(16deg) scale(.94); }
+.dk__card--1 { transform: translate(5%, -2%) rotate(2deg) scale(.985); z-index: 20; }
+.dk__card--2 { transform: translate(9%, -4%) rotate(5.5deg) scale(.97); z-index: 10; }
+.dk--reduced .dk__card { transition: none; }
+
+.dk__tag {
+  align-self: flex-start;
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+  color: #fff;                               /* ds-ok */
+  background: #0b6adc;                       /* ds-ok */
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;  /* ds-ok 卡牌的投影与眉标,逐值照原型 */
+  letter-spacing: 2rpx;
+}
+.dk__h {
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -.01em;
+  margin: 26rpx 4rpx auto;
+}
+/* 图案贴着卡的下沿,左右各出一点点 —— 原型 margin: auto -6px -2px */
+.dk__art {
+  width: calc(100% + 24rpx);
+  margin: auto -12rpx -4rpx;
+  display: block;
+}
+.dk__deckname { font-size: var(--cy-type-caption); font-weight: 800; letter-spacing: 6rpx; opacity: .7; }  /* ds-ok 卡牌的投影与眉标,逐值照原型 */
+
+.dk__act {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: calc(env(safe-area-inset-bottom) + 60rpx);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+/* 手势提示做进按钮本身:「换一张」往左、「就这张」往右 —— 按钮的位置就在说往哪儿滑 */
+.dk__actbtn {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  color: #fff;                               /* ds-ok */
+  letter-spacing: -.01em;
+  padding: 8rpx 12rpx;
+}
+.dk__press { opacity: .7; }
+
+/* 三个尖角依次亮起,像往那个方向流。逐值照原型 chflow:1.35s ease-in-out infinite,
+   三个延迟 0 / .16 / .32s,底 .28 亮到 1。
+   ⚠️ 原型是一条 SVG 里三个 path,我们的图标集不许手改,所以改用三颗小图标叠出同一效果。 */
+/* 三个尖角要挨得很紧(原型在 26px 宽里放三个,间距 7.5px),所以用负外边距压回去 —— gap 收不了负值。
+   ⚠️ 逐颗写死类名,不用 `> *` 也不用 :nth-child —— **WXSS 不支持通配符选择器**
+   (`error at token *`,只有真编译才报;仓里的 lint 查不出来)。 */
+.dk__ch { display: flex; align-items: center; }
+.dk__chi {
+  opacity: .28;                                                    /* ds-ok 逐值照原型 chflow */
+  animation: dk-chflow 1.35s ease-in-out infinite;                 /* ds-ok */
+}
+.dk__chi--2 { margin-left: -8rpx; animation-delay: .16s; }         /* ds-ok */
+.dk__chi--3 { margin-left: -8rpx; animation-delay: .32s; }         /* ds-ok */
+/* 往左那颗按钮:三个尖角的流向要跟着方向倒过来 */
+.dk__ch--l .dk__chi--1 { animation-delay: .32s; }                  /* ds-ok */
+.dk__ch--l .dk__chi--3 { animation-delay: 0s; }                    /* ds-ok */
+.dk--reduced .dk__chi { animation: none; opacity: .6; }
+@keyframes dk-chflow {
+  0%, 60%, 100% { opacity: .28; }  /* ds-ok 逐值照原型 */
+  30% { opacity: 1; }
+}
+
+/* 详情面板:整屏推上来。逐块照抄原型 .dkdetail —— 浅纸底、大标题、一条彩规、正文 */
+.dk__detail {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 38;
+  background: #f1f0f0;                       /* ds-ok 原型 .dkdetail */
+  color: #1f1f1f;                            /* ds-ok */
+  padding: calc(env(safe-area-inset-top) + 150rpx) 44rpx 68rpx;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+/* 四块依次浮起来,不是整块一起冒 —— 一起冒读起来像换了个页面。
+   ⚠️ 不用 `> view:nth-child(n)`:小程序组件 WXSS 不支持标签选择器与 nth-child,
+   写了不报错、只是**整条规则不生效**。所以每块各挂一个类,延迟写死。 */
+.dk__up { animation: dk-up .5s both; }
+.dk__up--2 { animation-delay: .1s; }
+.dk__up--3 { animation-delay: .18s; }
+.dk__up--4 { animation-delay: .26s; }
+@keyframes dk-up { from { opacity: 0; transform: translateY(20rpx); } }
+.dk--reduced .dk__up { animation: none; }
+
+.dk__pill {
+  display: inline-block;
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+  color: #3c4043;                            /* ds-ok */
+  background: #e0dede;                       /* ds-ok */
+  padding: 10rpx 24rpx;
+  border-radius: 999rpx;  /* ds-ok 卡牌的投影与眉标,逐值照原型 */
+}
+.dk__dh {
+  font-size: var(--cy-type-page-title);
+  font-weight: 800;
+  line-height: 1.16;
+  letter-spacing: -.02em;
+  margin-top: 12rpx;
+}
+.dk__rule { height: 8rpx; width: 112rpx; border-radius: 4rpx; margin-top: 52rpx; }  /* ds-ok 卡牌的投影与眉标,逐值照原型 */
+.dk__dbody {
+  margin-top: 40rpx;
+  font-size: var(--cy-type-body);
+  line-height: 1.85;
+  color: #3c4043;                            /* ds-ok */
+}
+.dk__dback {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-top: 60rpx;
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  color: #3c4043;                            /* ds-ok */
+}
+
+/* 两颗动作按钮每隔几秒各自往外弹一下再回来(原型 springL / springR 3.4s):
+   一副牌摆在那儿不动,人不知道这两颗是可以按的。 */
+.dk__actbtn--l { animation: dk-spring-l 3.4s cubic-bezier(.3, 1.5, .4, 1) infinite; }
+.dk__actbtn--r { animation: dk-spring-r 3.4s cubic-bezier(.3, 1.5, .4, 1) infinite; }
+@keyframes dk-spring-l {
+  0%, 58% { transform: none; }
+  68% { transform: translateX(-26rpx); }
+  78% { transform: translateX(12rpx); }
+  86% { transform: translateX(-6rpx); }
+  92% { transform: translateX(2rpx); }
+  100% { transform: none; }
+}
+@keyframes dk-spring-r {
+  0%, 58% { transform: none; }
+  68% { transform: translateX(26rpx); }
+  78% { transform: translateX(-12rpx); }
+  86% { transform: translateX(6rpx); }
+  92% { transform: translateX(-2rpx); }
+  100% { transform: none; }
+}
+.dk--reduced .dk__actbtn--l, .dk--reduced .dk__actbtn--r { animation: none; }

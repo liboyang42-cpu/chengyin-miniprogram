@@ -1,0 +1,39 @@
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出"
+               bind:back="onClose">
+  <view class="g-col so {{reducedMotion ? 'so--reduced' : ''}}">
+    <view class="so__prompt">{{prompt}}</view>
+
+    <!-- 分组列表:一行一句,行间一条 0.5px 分隔线。序号是这一行的位置,不是身份 -->
+    <view class="so__list">
+      <!-- 回执只有整体对错:判错时**不**逐行标红(服务端不给逐位置对错,
+           整列红等于假装知道错在第几位),只留整体提示条并让人继续排 -->
+      <view class="so__row {{verdict === 'ok' ? 'is-right' : ''}} {{dragging === index ? 'is-dragging' : ''}}"
+            wx:for="{{rows}}" wx:key="id">
+        <view class="so__no">{{index + 1}}</view>
+        <image class="so__img" wx:if="{{item.img}}" src="{{item.img}}" mode="aspectFill" aria-role="img" aria-label="待排项配图" />
+        <view class="so__label">{{item.label}}</view>
+        <!-- 无障碍不是附加项:拖拽之外每条都留了上移 / 下移两个按钮。
+             判错后把手留着(还要重排再交),通过才收起来。 -->
+        <view class="so__nudge" wx:if="{{verdict !== 'ok'}}" data-i="{{index}}" bindtap="onUp"
+              aria-role="button" aria-label="把这一条上移一位"
+              hover-class="so__press" hover-stay-time="80">↑</view>
+        <view class="so__nudge" wx:if="{{verdict !== 'ok'}}" data-i="{{index}}" bindtap="onDown"
+              aria-role="button" aria-label="把这一条下移一位"
+              hover-class="so__press" hover-stay-time="80">↓</view>
+        <view class="so__grip" wx:if="{{verdict !== 'ok'}}" data-i="{{index}}"
+              bindtouchstart="onDragStart" bindtouchmove="onDragMove" bindtouchend="onDragEnd"
+              aria-role="button" aria-label="按住拖动这一条">≡</view>
+      </view>
+    </view>
+
+    <!-- 反馈条:判错也要说清楚「这一次不扣生命」,不然玩家不知道自己损失了什么 -->
+    <view class="so__fb {{verdict === 'ok' ? 'is-ok' : 'is-no'}}" wx:if="{{verdict}}">
+      {{verdict === 'ok' ? '排好了 · 这一题过了' : (finished ? '次数用完了 · 这次不扣生命' : '还没排对 · 这次不扣生命')}}
+    </view>
+  </view>
+
+  <view class="g-btn {{rows.length ? '' : 'g-btn--disabled'}}" bindtap="onSubmit"
+        aria-role="button" aria-label="提交排好的顺序" hover-class="g-btn--press" hover-stay-time="80">
+    提交
+  </view>
+</cy-play-stage>

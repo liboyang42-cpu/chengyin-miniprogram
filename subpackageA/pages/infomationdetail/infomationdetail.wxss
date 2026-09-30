@@ -1,0 +1,101 @@
+@charset "UTF-8";
+page{ background: var(--cy-bg-page);}
+/* 顶距交还给 cy-page-title(自带 safeTop):容器再补 padding-top = 让位两次,标题会比同批其它页低一档。
+   左右统一 --cy-page-x,与页标题对齐。 */
+.container {
+  padding: 0 var(--cy-page-x) var(--cy-space-7);
+  min-height: 100vh;
+  background: var(--cy-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 空态/错误态在"标题下方到屏幕底部"的剩余空间里居中(aaa 标准):host 本身吃 flex:1
+   撑满 .container 剩下的高度,同时自己也是 flex 容器,让组件内部的 fill(flex:1)有依附。 */
+.if-fill { flex: 1; display: flex; }
+
+.detail-content {
+  padding-top: var(--cy-space-5);
+}
+
+.detail-title {
+  font-size: var(--cy-font-title);
+  font-weight: bold;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+  margin-bottom: var(--cy-space-2-5);
+}
+
+.detail-meta {
+  margin-bottom: var(--cy-space-4);
+  padding-bottom: var(--cy-space-2-5);
+  border-bottom: 1rpx solid var(--cy-border-line);
+}
+
+
+.detail-time {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+
+.html-content {
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-title);
+}
+
+/* 富文本内容样式 */
+.html-content image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: var(--cy-space-2-5) 0;
+}
+
+.html-content p {
+  margin: var(--cy-space-2-5) 0;
+  word-break: break-all;
+}
+
+.html-content h1, .html-content h2, .html-content h3 {
+  font-weight: bold;
+  margin: var(--cy-space-4) 0 var(--cy-space-2-5) 0;
+}
+
+.html-content h1 {
+  font-size: var(--cy-font-title);
+}
+
+.html-content h2 {
+  font-size: var(--cy-font-subtitle);
+}
+
+.html-content h3 {
+  font-size: var(--cy-font-subtitle);
+}
+
+.html-content ul, .html-content ol {
+  padding-left: 40rpx; /* ds-ok: 富文本列表项符号缩进,排版性质非页面布局间距 */
+  margin: var(--cy-space-2-5) 0;
+}
+
+.html-content li {
+  margin: var(--cy-legacy-10) 0;
+}
+
+.html-content a {
+  color: var(--cy-accent);
+  text-decoration: none;
+}
+
+.html-content blockquote {
+  border-left: 6rpx solid var(--cy-border-line);
+  padding-left: var(--cy-space-2-5);
+  margin: var(--cy-space-2-5) 0;
+  color: var(--cy-text-body);
+  background: var(--cy-bg-page);
+  padding: var(--cy-space-2-5);
+}
+
+/* 本页底色为 card 档:导航钩子跟随同色(2026-07-29 导航统一) */
+page { --cy-comp-nav-bg: var(--cy-bg-card); }

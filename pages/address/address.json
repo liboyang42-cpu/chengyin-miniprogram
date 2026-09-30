@@ -1,0 +1,20 @@
+{
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-footer-bar": "/components/cy/footer-bar/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationBarTitleText": "参与人信息",
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true
+}

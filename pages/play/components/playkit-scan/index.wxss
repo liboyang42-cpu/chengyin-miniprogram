@@ -1,0 +1,286 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-scan · 扫码参与(原型真源:模板编辑页 v2 · 编辑页 PV.scan)
+ * ⚠️ 那份预览跑的是 .pvscreen 375×812 的真尺寸,所以 1px = 2rpx 照旧。
+ * 整段是玩法道具色,ds-ok。
+ */
+.sc { color: var(--ink); }
+/* ⚠️ 取景框那圈 0 0 0 2000rpx 的压暗会盖在**同层**的其他元素上(小程序的合成顺序
+   和浏览器不同,浏览器里后画的兄弟节点在上面)。所以框外的东西都要单独抬一层,
+   否则白气泡会被压成灰的 —— 截图并排看才发现的。 */
+.sc__q, .sc__bub, .sc__sub, .sc__pic { position: relative; z-index: 1; }
+.sc__q {
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: 1.45;
+}
+.sc__wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36rpx;                               /* ds-ok 原型 .pv-scanwrap 18px */
+}
+.sc__frame {
+  position: relative;
+  flex: none;                               /* 不加的话会被这一列拉长,方框变成竖条 */
+  width: 424rpx;                            /* ds-ok 原型 .pv-scan 212px */
+  height: 424rpx;
+  border-radius: 40rpx;                     /* ds-ok 原型 20px */
+  background: #0C0C10;                      /* ds-ok */
+  /* 第二层是把框外整块压暗 —— 「洞」是靠外面暗下去看出来的,不是靠画一条边 */
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, .07), 0 0 0 2000rpx rgba(0, 0, 0, .35);  /* ds-ok 取景框与扫描线,逐值照原型 */
+  overflow: hidden;
+}
+.sc__c {
+  position: absolute;
+  width: 60rpx; height: 60rpx;              /* ds-ok 原型 30px */
+  border: 5rpx solid #FFFFFF;               /* ds-ok 原型 2.5px */
+  border-radius: 6rpx;                      /* ds-ok 原型 3px */
+  opacity: .95;
+}
+.sc__c--tl { left: 24rpx; top: 24rpx; border-right: 0; border-bottom: 0; }
+.sc__c--tr { right: 24rpx; top: 24rpx; border-left: 0; border-bottom: 0; }
+.sc__c--bl { left: 24rpx; bottom: 24rpx; border-right: 0; border-top: 0; }
+.sc__c--br { right: 24rpx; bottom: 24rpx; border-left: 0; border-top: 0; }
+/* 原型动的是 top(布局属性,每帧 layout)。这里换成位移,行程与它一致:
+   28rpx 起,走到 392rpx —— 落点和原型的 calc(100% - 16px) 同一条线上。 */
+.sc__line {
+  position: absolute;
+  left: 24rpx; right: 24rpx; top: 28rpx;    /* ds-ok 原型 12px / 14px */
+  height: 4rpx;                             /* ds-ok 原型 2px */
+  border-radius: 4rpx;  /* ds-ok 取景框与扫描线,逐值照原型 */
+  opacity: .75;
+  background: linear-gradient(90deg, transparent, #FFFFFF, transparent);  /* ds-ok 取景框与扫描线,逐值照原型 */
+  animation: sc-scan 2.1s cubic-bezier(.5, 0, .5, 1) infinite;
+}
+@keyframes sc-scan {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(364rpx); }
+  100% { transform: translateY(0); }
+}
+/* 关掉动效之后线停在中间:线不见了的话,这个框就真成了一张静态图 */
+.sc__frame--reduced .sc__line { animation: none; transform: translateY(182rpx); }
+
+/* 回的那条是**给玩家的话**,所以是白底黑字的气泡,不是这一屏的界面色 */
+.sc__bub {
+  max-width: 86%;
+  padding: 22rpx 28rpx;                     /* ds-ok 原型 .pv-bub 11px 14px */
+  border-radius: 28rpx;                     /* ds-ok 原型 14px */
+  background: #FFFFFF;                      /* ds-ok */
+  color: #000000;                           /* ds-ok */
+  font-size: var(--cy-type-body);
+  line-height: 1.6;
+  text-align: center;
+}
+/* 语音条:三种回复长一个样的话,「回什么」这个选择就白设了 */
+.sc__bub--voice {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;                               /* ds-ok 原型 9px */
+  width: 344rpx;                            /* ds-ok 原型 172px */
+  box-sizing: border-box;
+}
+.sc__press { opacity: .88; }
+.sc__play {
+  flex: none;
+  width: 0; height: 0;
+  border-left: 22rpx solid #000000;         /* ds-ok 原型 11px */
+  border-top: 14rpx solid transparent;
+  border-bottom: 14rpx solid transparent;
+}
+.sc__bub--playing .sc__play {
+  width: 18rpx; height: 22rpx;
+  border: 0;
+  background: #000000;                      /* ds-ok 播放中改成暂停条,必须跟气泡黑字同色 */
+  box-shadow: inset 6rpx 0 0 #FFFFFF, inset -6rpx 0 0 #FFFFFF; /* ds-ok */
+}
+.sc__wave { flex: 1; display: flex; align-items: center; gap: 6rpx; }
+.sc__wave-b { width: 6rpx; border-radius: 4rpx; background: #000000; opacity: .55; }  /* ds-ok */
+.sc__sec { flex: none; font-size: var(--cy-type-label); opacity: .6; }     /* ds-ok 原型 12px */
+.sc__sub {
+  margin-top: 12rpx;                        /* ds-ok 原型 .pv-sub 6px */
+  font-size: var(--cy-type-label);
+  color: #8E8E98;                           /* ds-ok */
+  text-align: center;
+}
+.sc__pic {
+  width: 100%;
+  height: 300rpx;                           /* ds-ok 原型 .pv-img 150px(scan 那处行内改的) */
+  border-radius: 24rpx;                     /* ds-ok 原型 12px */
+}
+/* 商家还没传图时画的是「这儿有一张图」,不是假装某张图 */
+.sc__pic--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(135deg, #17171C 0 20rpx, #1D1D23 20rpx 40rpx);  /* ds-ok */
+  color: #5C5C66;                           /* ds-ok */
+  font-size: var(--cy-type-label);
+}
+
+/* —— 显形(OVERLAY,AR 契约 §2.2)——
+   叠加层是普通 view:image/camera 都是原生同层渲染,stamp-camera 跑在生产的就是这个写法。
+   只动 transform 和透明度,不写新的 @keyframes(本仓动效棘轮只减不增)。 */
+/* 显形档整屏取景(用户 2026-09-22 定调):铺满四边,不再是 560rpx 的方洞,上面也不留地址栏。 */
+.sc__cam {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 1;                               /* ds-ok 在台面底色之上、台面「退出」键(12)之下 */
+  overflow: hidden;
+  background: #0C0C10;                      /* ds-ok 相机没出画面前的垫色 */
+}
+.sc__cam-el {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+}
+/* 准星:参照 SAP Fiori「AR Scanner」的 scan guide & crosshair —— 小而轻,只标出「中心在这儿」。
+   不复用老三档 .sc__c(60rpx 角标、480rpx 框):那一套放在整屏相机上就是扫码框。 */
+.sc__aim {
+  position: absolute;
+  left: 50%; top: 44%;
+  width: 150rpx; height: 150rpx;            /* ds-ok 小准星,不是取景框 */
+  z-index: 2;
+  transform: translate(-50%, -50%);
+}
+.sc__tick {
+  position: absolute;
+  width: 34rpx; height: 34rpx;              /* ds-ok */
+  border: 4rpx solid rgba(255, 255, 255, .92);  /* ds-ok 压在镜头画面上的线一律白 */
+  box-sizing: border-box;
+}
+.sc__tick--tl { left: 0; top: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 10rpx; }     /* ds-ok */
+.sc__tick--tr { right: 0; top: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 10rpx; }    /* ds-ok */
+.sc__tick--bl { left: 0; bottom: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 10rpx; }  /* ds-ok */
+.sc__tick--br { right: 0; bottom: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 10rpx; } /* ds-ok */
+/* 说明条:Apple HIG「必要说明放在屏幕固定位置,用半透明控件,别挡画面」 */
+.sc__pill {
+  position: absolute;
+  left: 32rpx; right: 32rpx;                /* ds-ok */
+  bottom: calc(env(safe-area-inset-bottom) + 48rpx);  /* ds-ok 贴底,避开 Home 条 */
+  z-index: 2;
+  padding: 24rpx 32rpx;                     /* ds-ok */
+  border-radius: 32rpx;                     /* ds-ok */
+  background: rgba(12, 12, 16, .62);        /* ds-ok 半透明深底:亮画面上字也读得清,又不把画面盖死 */
+  text-align: center;
+}
+.sc__pill-t {
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: 1.4;
+  color: #FFFFFF;                           /* ds-ok */
+}
+.sc__pill-s {
+  margin-top: 6rpx;                         /* ds-ok */
+  font-size: var(--cy-type-label);
+  color: rgba(255, 255, 255, .72);          /* ds-ok 比标题低一档 */
+}
+/* 显形出来的东西装进固定高度的框:原来是 top:150rpx + widthFix,图越高越往下长,
+   高图会直接压在底部那句话上。框 60–320rpx,话从底往上占到约 366rpx,中间留得开。 */
+.sc__over {
+  position: absolute;
+  left: 50%;
+  top: 44%;                                 /* ds-ok 浮在准星的位置:扫哪儿,东西就从哪儿出来 */
+  height: 440rpx;                           /* ds-ok 固定框高,配 aspectFit,多高的图都压不到底部那句话 */
+  z-index: 3;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.92);
+  transition: opacity 360ms ease-out, transform 360ms cubic-bezier(.2, .8, .2, 1);  /* ds-ok 显形:从镜头里浮出来 */
+}
+.sc__over-bub {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 48rpx);   /* ds-ok 接替底部说明条的位置 */
+  z-index: 3;
+  opacity: 0;
+  transform: translateX(-50%) translateY(16rpx);
+  transition: opacity 360ms ease-out 120ms, transform 360ms cubic-bezier(.2, .8, .2, 1) 120ms;  /* ds-ok 话晚一拍:先看见东西,再看见话 */
+}
+/* 相机起不来:整块换旁路。两枚键都要够大、有名字 —— 这是玩家唯一的出路。 */
+.sc__camoff {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;                               /* ds-ok */
+  padding: 40rpx 32rpx;                     /* ds-ok */
+  border-radius: 40rpx;                     /* ds-ok */
+  background: #0C0C10;                      /* ds-ok */
+  border: 2rpx solid rgba(255, 255, 255, .07);  /* ds-ok 同取景框描边 */
+}
+/* 旁路块的标题:显形档顶上不放标题,标题落在这里 */
+.sc__camoff-h {
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--ink);
+  text-align: center;
+}
+.sc__camoff-t {
+  font-size: var(--cy-type-label);
+  color: var(--sub);                        /* 走皮肤变量,原先写死的 #8E8E98 与 qadark 的 --sub(#8a8a92)是近似重复 */
+  text-align: center;
+  line-height: 1.6;
+}
+.sc__act {
+  min-width: 320rpx;
+  height: 88rpx;                            /* a11y 命中区下限 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40rpx;                         /* ds-ok */
+  border-radius: 44rpx;                     /* ds-ok */
+  background: #FFFFFF;                      /* ds-ok */
+  color: #101014;                           /* ds-ok */
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+}
+.sc__act--ghost {
+  background: transparent;
+  color: #FFFFFF;                           /* ds-ok */
+  border: 2rpx solid rgba(255, 255, 255, .35);  /* ds-ok */
+}
+
+/* 显形到位 —— 叠加图与那句话共用这一档 */
+.sc__over.sc__over--in { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.sc__over-bub.sc__over--in { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* 减弱动态效果:不走过程,直接是终态(类挂在元素自身,组件作用域内生效) */
+.sc__over.sc__over--reduced { transition: none; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.sc__over-bub.sc__over--reduced { transition: none; opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== 真 AR(xr-frame)接管时 ===== */
+/* 3D 画面铺满;层级低于台面的「退出」键(12) */
+.sc__ar { position: fixed; left: 0; top: 0; z-index: 1; }
+/* 盖在 3D 画面上的说明与气泡。★ pointer-events:none —— 点屏幕放东西的那一下要落到 3D 画面上 */
+.sc__arui {
+  position: fixed;
+  left: 0; top: 0;
+  width: 100%; height: 100%;                /* 全屏透明文字层,不是底栏,本来就不该有背景 */
+  z-index: 2;
+  pointer-events: none;
+}
+/* 识别图模式:说明条里放那张要找的图(SAP Fiori AR Scanner:扫描时一直让人看得见要找什么) */
+.sc__pill-mk {
+  display: block;
+  width: 96rpx; height: 96rpx;              /* ds-ok */
+  margin: 0 auto 12rpx;                     /* ds-ok */
+  border-radius: 12rpx;                     /* ds-ok */
+}
+/* 「看不到？」:文字层整体 pointer-events:none(不吃放置那一下),这一颗单独放开;命中区够 44px */
+.sc__ar-giveup {
+  pointer-events: auto;
+  min-height: var(--cy-btn-h);
+  margin-top: 8rpx;                         /* ds-ok */
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-type-label);
+  color: rgba(255, 255, 255, .72);          /* ds-ok 与说明条副文案同一档 */
+  text-decoration: underline;
+}
+.sc__ar-bub {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 48rpx);  /* ds-ok 接替说明条的位置 */
+  transform: translateX(-50%);
+}

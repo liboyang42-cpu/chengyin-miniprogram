@@ -1,0 +1,186 @@
+/* cy-post-drafts · 草稿弹层(Figma 379:923)。
+ *
+ * ① 面板外观(玻璃底 + 遮罩 + 顶部 24 圆角)全部由 cy-sheet 出。
+ *    别在这里补 background / backdrop-filter / 遮罩 —— 两处定义必然漂移,
+ *    而且纯实底压在暗页上等于看不见边界(用户 2026-09-01 指出过)。
+ *
+ * ② .sh__panel 自带 32rpx 横向内边距,而稿上分割线是通栏、草稿行自带 12pt 内边距。
+ *    所以 .pd 用负外边距把那 32rpx 抵掉,再由 header(16pt)/ row(12pt)各补各的。
+ *    ⚠️ 这一条要跟 cy-sheet 的 --cy-page-x 联动,别把 -32rpx 写成裸值。
+ *
+ * ③ 骨架色刻意用 --cy-color-skeleton-on-sheet 而不是 --cy-color-skeleton-base:
+ *    页面档(暗端 #191919)坐在玻璃面板上比面板本身还暗,读出来是「挖了个洞」
+ *    而不是「正在加载」(2026-09-01 用户指出)。这个 token 此前全仓零消费者,这里是第一个。
+ *    ⚠️ 后来的人别顺手改回 -base「统一一下」,那正是要修的那个 bug。
+ *    也别加横向流光:on-sheet 没有配对的 highlight 档,拿 -highlight(比 on-sheet 暗)
+ *    去做渐变会往暗里扫。这里用整条透明度呼吸,不需要第二个色 token。
+ *
+ * ④ 骨架与真行共用同一条左边线(12+40+12pt = 128rpx),所以骨架直接复用 .pd-row 的几何,
+ *    加载完成时不横向跳。
+ *
+ * ⑤ 字号:稿上「取消」与昵称都是 15pt,全仓没有 30rpx 字号档。
+ *    统一上取到 32rpx(--cy-type-button / --cy-type-card-title)——
+ *    下取 28rpx 会让昵称和 14pt 摘要同号,行内层级就没了。15↔16 的差靠字重区分。
+ *
+ * 单位:稿上 pt × 2 = rpx。
+ */
+:host { display: block; }
+
+/* 稿 379:922 量出来:画板 620 高、面板 y=190 h=430 = 69.4% ≈ cy-sheet 的 70vh 默认档。
+   要修的从来不是「档位太矮」,而是「面板按内容撑高」—— 只有一条草稿时连 1/4 屏都不到。
+   cy-sheet 的 bottom 档只给面板 max-height、不给 height,所以面板高度由内容定 ——
+   要撑满就得内容自己有确定高度。这里给 min-height 而不是 height:
+     · 草稿少 → .pd 正好撑到上限,面板满屏、不出滚动条
+     · 草稿多 → .pd 继续长高,溢出后由面板的 overflow-y:auto 接管滚动
+   写死 height 会把第 4 条之后的草稿裁掉且滚不到(实测过的形状,别改回去)。
+   上限表达式与 .sh__panel 的 max-height 逐字相同(var(--cy-comp-sheet-max-h, 70vh)),
+   这样调用方若哪天真要改档,两边同步、不会一个变一个不变。
+   减去的两截 = 面板自己的 padding-bottom + .sh__body 的上下 padding;
+   少减任何一截都会恒定溢出、单条草稿也能滚一小段(2026-09-03 审查抓到过漏 .sh__body 那截)。
+   ⚠️ 这是跨组件复制的公式,由 post-drafts-fullscreen-contract 钉住 cy-sheet 那侧,漂了即红。 */
+.pd {
+  margin: 0 calc(var(--cy-page-x) * -1);
+  min-height: calc(var(--cy-comp-sheet-max-h, 70vh)
+                   - env(safe-area-inset-bottom) - 24rpx   /* .sh__panel 的 padding-bottom */
+                   - 16rpx);                               /* .sh__body 的 padding: 8rpx 0,上下各一份 */
+}
+
+/* —— Header:左右 16pt=32rpx、上 12pt=24rpx、下 10pt=20rpx —— */
+/* 顶栏照真源 25:6869/25:6870/25:6871:标题 30px 左对齐大字,✕ 右上角。
+   ⚠️ 别改回「取消文字 + 居中标题」—— 那是 T1 的长相,草稿是 T4 全屏叠。 */
+.pd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cy-space-3) var(--cy-page-x) var(--cy-space-2-5);
+}
+.pd-head__title {
+  min-width: 0;
+  /* 稿 25:6870 是 30px=60rpx。走 --cy-type-page-title(58rpx,L1 标题档)——
+     语义正好是「这一层的主标题」,差 1px,且随 --cy-type-scale 一起缩放;
+     写死 60rpx 既脱离字号体系、也过不了 ds-hardcode-gate。 */
+  font-size: var(--cy-type-page-title);
+  font-weight: 500;                       /* 稿:Medium */
+  line-height: 1.25;
+  color: var(--cy-color-text-primary);
+}
+/* ✕:稿上字形 18px,但热区是圆形 40pt —— 40pt = 80rpx 已过 88rpx 下限?没有,
+   80 < 88,所以这里按仓库触控下限取 88rpx,视觉圆形仍是 80rpx。
+   两者只差 4rpx 一圈,不会和相邻元素抢点。 */
+.pd-close {
+  flex: none;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-text-primary);
+  position: relative;
+}
+.pd-close::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+
+.pd-hr { height: 2rpx; background: var(--cy-color-border-subtle); }
+
+/* —— 草稿行:左右 12pt=24rpx、上下 16pt=32rpx、列间距 12pt=24rpx、顶对齐 —— */
+.pd-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-4) var(--cy-space-3);
+}
+/* 内容列从 24+80+24 = 128rpx 起(稿上 64pt),与新建页/首页发文入口同一条左边线。 */
+/* cy-avatar 的 host 是 inline-block,直接当 flex item 会被挤;包一层把 80rpx 钉死。
+   组件 wxss 门禁禁 tag 选择器,所以不能写 .pd-row > cy-avatar。 */
+.pd-avatar { flex: none; width: 80rpx; height: 80rpx; }
+.pd-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1);                 /* 稿:竖间距 4pt = 8rpx */
+}
+.pd-name-row { display: flex; align-items: baseline; gap: var(--cy-space-2); }
+.pd-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-type-card-title);   /* 稿:15pt,见文件头 ⑤ */
+  font-weight: 500;                       /* 稿:Medium */
+  color: var(--cy-color-text-primary);
+}
+.pd-date {
+  flex: none;
+  font-size: var(--cy-type-label);        /* 稿:12pt = 24rpx */
+  color: var(--cy-color-text-tertiary);
+}
+.pd-sum {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: var(--cy-type-body);         /* 稿:14pt = 28rpx */
+  line-height: 1.571;                     /* 同 cy-post-card:写比例不写死 rpx,微信放大字号时不切行 */
+  color: var(--cy-color-text-secondary);
+}
+
+/* 删除:稿上 20pt=40rpx,同样用透明 ::after 抬到 88rpx 热区。 */
+.pd-del {
+  position: relative;
+  flex: none;
+  color: var(--cy-color-text-tertiary);
+}
+.pd-del::after {
+  content: '';
+  position: absolute;
+  left: calc((40rpx - 88rpx) / 2);
+  right: calc((40rpx - 88rpx) / 2);
+  top: calc((40rpx - 88rpx) / 2);
+  bottom: calc((40rpx - 88rpx) / 2);
+}
+
+.pd-count {
+  padding: var(--cy-space-3) var(--cy-page-x) var(--cy-space-1);
+  text-align: center;
+  font-size: var(--cy-type-label);        /* 稿:12pt = 24rpx */
+  font-weight: 400;
+  color: var(--cy-color-text-tertiary);
+}
+
+/* —— Loading —— */
+/* ⚠️ 本段当前【不可达】:唯一接入方 cy-post-compose 读的是同步 storage,
+   永远不传 loading=true。保留是为草稿改走后端那天(见该页 onOpenDrafts 的注释)。
+   别把「写了」读成「验证过」—— 这段没有被渲染过一次。
+
+   骨架条:静态,不做呼吸/扫光。
+   ⚠️ 两条约束把动画这条路堵死了:
+   ① motion-property-ratchet 是「只减不增」(上限 130),为一个加载态自增一组不划算;
+   ② 本组件 styleIsolation:isolated,cy-skeleton 的 .sk-bar/@keyframes cy-sk 进不来,
+      复用不了。想复用得改成 apply-shared,那是为省一组动画去放宽样式边界,不值。
+   骨架真正承重的是「几何与真行同构 ⇒ 加载完不横向跳」,扫光只是锦上添花。
+   ③ 色用 on-sheet 不是 -base:页面档 #191919 坐在玻璃面板上比面板还暗,
+      会读成「挖了个洞」而不是「正在加载」(2026-09-01 用户指出)。 */
+.pd-skeleton-bar {
+  background: var(--cy-color-skeleton-on-sheet);
+  border-radius: var(--cy-radius-pill);
+}
+.pd-skeleton-avatar { width: 80rpx; height: 80rpx; flex: none; }
+.pd-skeleton-line { height: var(--cy-space-3); }
+/* 宽度照稿 379:838 的三条骨架:105 / 299 / 233,容器 299 → 35% / 100% / 78%。
+   条数必须和 Filled 行对得上(昵称 1 行 + 摘要 2 行),少一条加载完就纵向跳。 */
+.pd-skeleton-line--name { width: 35%; }
+.pd-skeleton-line--sum1 { width: 100%; }
+.pd-skeleton-line--sum2 { width: 78%; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,按仓库既有组件的做法本地补一份(只减淡不位移)。 */
+.cy-pressed { opacity: .88; }

@@ -1,0 +1,10 @@
+<view class="coupon-qr-body">
+  <cy-empty wx:if="{{state === 'missing'}}" fill size="lg" title="这个核销码打不开" sub="链接缺少券信息，请回券夹重新进入" cta="返回" bind:cta="close" />
+  <cy-empty wx:elif="{{useStatus === 0 && notStarted}}" fill size="lg" title="还没到可用时间" sub="{{errorText || (startText ? startText + ' 起可使用' : '该券尚未到可使用时间')}}" cta="重新获取" bind:cta="retryNow" />
+  <block wx:elif="{{useStatus === 0}}">
+    <cy-qr-voucher embedded="{{true}}" show="{{true}}" state="{{qrState}}" qr="{{qr}}" title="{{couponName}}" desc="出示给商家扫码核销" countdown="{{qrState === 'ready' ? '二维码 ' + countdown + 's 后自动刷新' : ''}}" error-text="{{errorText || '二维码未加载'}}" secondary-text="{{qrState === 'ready' ? '刷新二维码' : ''}}" mask-closable="{{false}}" bind:close="close" bind:retry="retryNow" bind:secondary="retryNow" />
+    <cy-inline-error wx:if="{{qrState === 'ready' && pollError}}" kind="network" title="核销状态暂未同步" sub="{{pollError}}" />
+  </block>
+  <view wx:elif="{{useStatus === 1 || useStatus === 2 || useStatus === 3}}" class="coupon-result"><view class="coupon-result__card"><text class="coupon-result__name">{{couponName}}</text><text wx:if="{{description}}" class="coupon-result__desc">{{description}}</text><text wx:if="{{useStatus === 2 && endTime}}" class="coupon-result__meta">有效期至 {{endTime}}</text></view><view class="coupon-result__status {{useStatus === 1 ? 'coupon-result__status--done' : ''}}">{{resultText}}</view><text wx:if="{{useTime}}" class="coupon-result__time">{{useTime}}</text></view>
+  <cy-qr-voucher wx:else embedded="{{true}}" show="{{true}}" state="error" qr="" title="{{couponName || '优惠券'}}" desc="券状态确认后才会显示核销码" error-text="{{errorText || '券状态暂时无法确认，请稍后重试'}}" mask-closable="{{false}}" bind:close="close" bind:retry="retry" />
+</view>

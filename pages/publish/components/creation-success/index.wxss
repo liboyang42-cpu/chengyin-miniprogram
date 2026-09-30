@@ -1,0 +1,40 @@
+:host { display:block; }
+.cs { position:fixed; inset:0; z-index:var(--cy-z-modal); overflow:hidden; box-sizing:border-box; padding:calc(env(safe-area-inset-top) + 154rpx) 48rpx calc(env(safe-area-inset-bottom) + 48rpx); color:var(--cy-color-text-primary); background:var(--cy-color-bg-page); text-align:center; }
+/* top/right 由 JS 按胶囊实测下发(见 index.js 的 chrome),这里只留兜底 */
+.cs__close { position:absolute; top:calc(env(safe-area-inset-top) + 16rpx); right:20rpx; z-index:3; width:var(--cy-btn-h); height:var(--cy-btn-h); display:flex; align-items:center; justify-content:center; color:var(--cy-color-text-primary); font-size:var(--cy-comp-success-close-icon-size); line-height:1; }
+.cs__close-glyph { width:64rpx; height:64rpx; display:flex; align-items:center; justify-content:center; box-sizing:border-box; } /* ✕纯字形无圆底无描边环(2026-09-18 终裁) */
+.cs__halo { position:absolute; top:116rpx; left:50%; width:232rpx; height:232rpx; margin-left:-116rpx; border:6rpx solid var(--cy-color-status-success); border-radius:50%; animation:cs-ring var(--cy-motion-celebrate) linear both; }
+/* 徽章底改成十二齿花边圆(result-sheet 同一识别符号),走 cy-icon 的 CSS-mask 通道 ——
+   位图不随主题走,所以不用 PNG。glyph 色由 .cs__mark 的 color 继承。 */
+.cs__mark { position:relative; z-index:2; width:112rpx; height:112rpx; margin:0 auto; color:var(--cy-comp-success-mark-fg); display:flex; align-items:center; justify-content:center; font-size:var(--cy-comp-success-mark-icon-size); font-weight:700; line-height:1; animation:cs-mark var(--cy-motion-celebrate) var(--cy-ease-out) both; }
+.cs__mark-scallop { position:absolute; left:0; top:0; color:var(--cy-color-status-success); }
+.cs__mark-glyph { position:relative; z-index:1; }
+.cs__confetti { position:absolute; top:116rpx; left:50%; width:232rpx; height:232rpx; margin-left:-116rpx; animation:cs-confetti-in var(--cy-motion-celebrate) linear both; }
+.cs__confetti .cs__confetti-dot { position:absolute; width:var(--cy-legacy-10); height:var(--cy-legacy-10); border-radius:50%; background:var(--cy-color-status-success); animation:cs-confetti-float var(--cy-motion-celebrate) var(--cy-ease-out) both; }
+.cs__confetti .cs__confetti-dot:nth-child(1){ top:8rpx; left:108rpx; }.cs__confetti .cs__confetti-dot:nth-child(2){ top:38rpx; right:30rpx; background:var(--cy-color-text-tertiary); }.cs__confetti .cs__confetti-dot:nth-child(3){ top:106rpx; right:var(--cy-legacy-6); }.cs__confetti .cs__confetti-dot:nth-child(4){ bottom:34rpx; right:38rpx; background:var(--cy-color-text-tertiary); }.cs__confetti .cs__confetti-dot:nth-child(5){ bottom:var(--cy-legacy-4); left:108rpx; }.cs__confetti .cs__confetti-dot:nth-child(6){ bottom:var(--cy-legacy-36); left:32rpx; background:var(--cy-color-text-tertiary); }.cs__confetti .cs__confetti-dot:nth-child(7){ top:108rpx; left:var(--cy-legacy-4); }.cs__confetti .cs__confetti-dot:nth-child(8){ top:38rpx; left:34rpx; background:var(--cy-color-text-tertiary); }
+.cs__copy { position:relative; z-index:2; margin-top:var(--cy-legacy-72); animation:cs-copy var(--cy-motion-celebrate) var(--cy-ease-out) both; }
+.cs__eyebrow { color:var(--cy-color-text-tertiary); font-size:var(--cy-type-label); letter-spacing:4rpx; }
+.cs__title { margin-top:var(--cy-legacy-18); color:var(--cy-color-text-primary); font-size:var(--cy-type-page-title); font-weight:700; line-height:1.18; }
+.cs__detail { margin:24rpx auto 0; max-width:560rpx; color:var(--cy-color-text-secondary); font-size:var(--cy-type-body); line-height:1.6; }
+.cs__facts { position:relative; z-index:2; box-sizing:border-box; margin:42rpx auto 0; max-width:560rpx; overflow:hidden; border:2rpx solid var(--cy-color-border-strong); border-radius:var(--cy-radius-md); color:var(--cy-color-text-secondary); background:var(--cy-color-bg-elevated); font-size:var(--cy-type-label); line-height:1.65; animation:cs-facts var(--cy-motion-celebrate) var(--cy-ease-out) both; }
+.cs__facts .cs__fact { padding:16rpx 24rpx; }.cs__facts .cs__fact + .cs__fact { border-top:1rpx solid var(--cy-color-border-subtle); }
+/* 2026-09-05(E2 按钮位置统一):两颗按钮从竖排改成并排各占一半。竖排把次要动作压在
+   主动作正下方,读起来像"第二步";并排才是"二选一"。只有一颗时它自己撑满,不用另写规则。 */
+.cs__actions { position:absolute; right:48rpx; bottom:calc(env(safe-area-inset-bottom) + 48rpx); left:48rpx; z-index:2; display:flex; gap:var(--cy-space-2); animation:cs-actions var(--cy-motion-celebrate) var(--cy-ease-out) both; }
+.cs__primary,.cs__secondary { flex:1; min-height:var(--cy-btn-h); display:flex; align-items:center; justify-content:center; border-radius:var(--cy-radius-pill); font-size:var(--cy-type-button); font-weight:700; }
+.cs__primary { color:var(--cy-color-action-primary-fg); background:var(--cy-color-action-primary-bg); }
+.cs__secondary { color:var(--cy-color-text-primary); border:2rpx solid var(--cy-color-border-strong); }
+.cs--reduced-motion,.cs--reduced-motion .cs__halo,.cs--reduced-motion .cs__mark,.cs--reduced-motion .cs__confetti,.cs--reduced-motion .cs__confetti-dot,.cs--reduced-motion .cs__copy,.cs--reduced-motion .cs__facts,.cs--reduced-motion .cs__actions { animation:none !important; }
+.cs--reduced-motion .cs__halo,.cs--reduced-motion .cs__confetti { display:none; }
+@keyframes cs-mark { 0% { opacity:0; transform:scale(.24); } 28% { opacity:1; transform:scale(1.12); } 40%,100% { opacity:1; transform:scale(1); } }
+@keyframes cs-ring { 0%,18% { opacity:0; transform:scale(.4); } 32% { opacity:.62; transform:scale(1); } 52%,100% { opacity:0; transform:scale(1.22); } }
+@keyframes cs-confetti-in { 0%,22% { opacity:0; } 32%,46% { opacity:1; } 64%,100% { opacity:0; } }
+@keyframes cs-confetti-float { 0%,22% { transform:scale(.4); opacity:0; } 36% { transform:scale(1.18); opacity:1; } 64%,100% { transform:scale(1.32); opacity:0; } }
+@keyframes cs-copy { 0%,28% { opacity:0; transform:translateY(20rpx); } 46%,100% { opacity:1; transform:translateY(0); } }
+@keyframes cs-facts { 0%,46% { opacity:0; transform:translateY(18rpx); } 64%,100% { opacity:1; transform:translateY(0); } }
+@keyframes cs-actions { 0%,62% { opacity:0; transform:translateY(28rpx); } 82%,100% { opacity:1; transform:translateY(0); } }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

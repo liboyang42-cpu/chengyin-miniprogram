@@ -1,0 +1,176 @@
+/* 骨架屏→内容淡切:isolated 组件收不到全局 components.wxss,@import 同一份定义 */
+@import '../../../style/fade-in.wxss';
+.src {
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 24rpx 28rpx calc(40rpx + var(--cy-footer-safe-bottom, 0rpx));
+  color: var(--cy-color-text-primary);
+}
+
+/* .src--player 不刷底色:面板底由 .ss__panel 出,再刷一层半透会叠成近实色(见 scene-roam-history)。 */
+.src--merchant { background: var(--cy-comp-sheet-bg); color: var(--cy-color-text-primary); }
+
+.src-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.src-metric,
+.src-detail,
+.src-list__item,
+.src-form__group {
+  background: var(--cy-color-bg-elevated);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  box-sizing: border-box;
+}
+
+.src--merchant .src-metric,
+.src--merchant .src-detail,
+.src--merchant .src-list__item,
+.src--merchant .src-form__group {
+  background: var(--cy-comp-sheet-bg);
+  border-color: var(--cy-color-border-subtle);
+}
+
+.src-metric { padding: 22rpx; }
+.src-metric__label, .src-form__label { display: block; color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+.src--merchant .src-metric__label, .src--merchant .src-form__label { color: var(--cy-color-text-tertiary); }
+.src-metric__value { display: block; margin-top: 12rpx; font-size: var(--cy-type-section-title); font-weight: 700; }
+
+.src-actions { display: flex; gap: 12rpx; margin-bottom: 20rpx; }
+.src-action { flex: 1; padding: 20rpx; border-radius: var(--cy-radius-sm); background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); }
+.src-action__arrow { float: right; font-size: var(--cy-comp-sheet-route-arrow-size); line-height: 24rpx; }
+
+.src-detail { padding: 26rpx; margin-bottom: 20rpx; }
+.src-detail__title { display: block; font-size: var(--cy-type-section-title); font-weight: 700; }
+.src-detail__sub { display: block; margin-top: 12rpx; color: var(--cy-color-text-secondary); font-size: var(--cy-type-body); line-height: 1.55; }
+.src--merchant .src-detail__sub { color: var(--cy-color-text-tertiary); }
+.src-detail__row { display: flex; justify-content: space-between; gap: 20rpx; padding-top: 18rpx; margin-top: 18rpx; border-top: 1rpx solid var(--cy-color-border-subtle); font-size: var(--cy-type-body); }
+
+.src-list { display: flex; flex-direction: column; gap: 14rpx; }
+.src-favorites { display: flex; flex-direction: column; gap: var(--cy-space-3); }
+.src-favorite-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-elevated);
+}
+.src-favorite-card__cover { display: block; width: 100%; height: 100%; }
+.src-favorite-card__placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.src-favorite-card__actions {
+  position: absolute;
+  right: var(--cy-space-2);
+  bottom: var(--cy-space-2);
+  display: flex;
+  gap: var(--cy-space-2);
+}
+.src-favorite-card__action {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.src-favorite-card__action::after { border: none; }
+.src-favorite-card__action-visual {
+  width: var(--cy-btn-h-sm);
+  height: var(--cy-btn-h-sm);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.src-favorite-card__action-icon { width: var(--cy-space-4); height: var(--cy-space-4); }
+.src-favorite-card__action-heart { color: var(--cy-color-text-primary); }
+.src-list__item { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; padding: 22rpx; }
+.src-list__main { min-width: 0; flex: 1; }
+.src-list__title, .src-list__sub, .src-list__status, .src-list__date { display: block; }
+.src-list__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--cy-type-body); font-weight: 600; }
+.src-list__sub, .src-list__date { margin-top: 8rpx; color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.src-list__side { flex: none; text-align: right; }
+.src-list__amount { display: block; font-size: var(--cy-type-body); font-weight: 700; }
+.src-list__status { margin-top: 6rpx; color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.src--merchant .src-list__sub, .src--merchant .src-list__date, .src--merchant .src-list__status { color: var(--cy-color-text-tertiary); }
+
+.src-form { margin-top: 20rpx; }
+.src-form__group { padding: 24rpx; }
+.src-form__field-label { display: block; margin-top: 18rpx; color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+.src-form__input, .src-form__textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 8rpx; padding: 20rpx; border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle); color: inherit; font-size: var(--cy-type-body); }
+.src--merchant .src-form__input, .src--merchant .src-form__textarea { background: var(--cy-color-bg-surface-subtle); }
+.src-form__textarea { min-height: 180rpx; }
+.src-form__hint { display: block; margin-top: 12rpx; color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.src-secondary { border: 0; border-radius: var(--cy-radius-sm); font-size: var(--cy-type-body); }
+.src-secondary { flex: 1; background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-primary); }
+.src-form__success { margin-bottom: 16rpx; padding: 18rpx; border-radius: var(--cy-radius-sm); background: var(--cy-color-status-success-soft); color: var(--cy-color-status-success); font-size: var(--cy-type-label); }
+.src-form__submitting { min-height: 88rpx; margin-bottom: var(--cy-space-2); display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+
+.src-inline-actions { display: flex; gap: 14rpx; margin-top: 22rpx; }
+
+/* 玩家记录卡直接消费 scene-roam-history 的同一组变量；fallback 保住独立兼容页。 */
+.src--player .src-metric,
+.src--player .src-detail,
+.src--player .src-list__item,
+.src--player .src-form__group {
+  background: var(--cy-scene-card-bg, var(--cy-color-bg-elevated));
+  border-color: var(--cy-scene-card-border, var(--cy-color-border-subtle));
+  border-radius: var(--cy-scene-card-radius, var(--cy-radius-md));
+  padding: var(--cy-scene-card-pad-y, var(--cy-space-3-5)) var(--cy-scene-card-pad-x, var(--cy-space-4));
+}
+.src--player .src-list { gap: var(--cy-scene-card-gap, var(--cy-space-2-5)); }
+.src--player .src-detail { margin-bottom: var(--cy-scene-card-gap, var(--cy-space-2-5)); }
+.src--player .src-favorites { gap: var(--cy-scene-card-gap, var(--cy-space-2-5)); }
+.src--player .src-favorite-card {
+  background: var(--cy-scene-card-bg, var(--cy-color-bg-elevated));
+  border-radius: var(--cy-scene-card-radius, var(--cy-radius-lg));
+}
+
+/* Airbnb 白弹窗：白底平行，行间只用发丝线，不叠灰卡。 */
+.src--merchant .src-metric,
+.src--merchant .src-detail,
+.src--merchant .src-form__group {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.src--merchant .src-metric,
+.src--merchant .src-detail {
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.src--merchant .src-form__group {
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.src--merchant .src-list { gap: 0; }
+.src--merchant .src-actions { margin-bottom: 0; }
+.src--merchant .src-action {
+  min-height: var(--cy-comp-sheet-merchant-row-h);
+  padding: var(--cy-space-2) var(--cy-space-3);
+  background: transparent;
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: 0;
+  box-sizing: border-box;
+}
+.src--merchant .src-list__item {
+  min-height: var(--cy-comp-sheet-merchant-row-h);
+  padding: var(--cy-space-2) var(--cy-space-3);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.src--merchant .src-list__item + .src-list__item {
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

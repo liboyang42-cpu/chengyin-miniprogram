@@ -1,0 +1,116 @@
+<view class="reward-selector">
+  <view class="reward-selector__meta">
+    <text class="reward-selector__label">{{label}}</text>
+    <text class="reward-selector__occasion">{{occasionLabel}}</text>
+  </view>
+  <view class="reward-selector__field" bindtap="openSelector" aria-role="button" aria-label="{{label}}，{{selectedLabel || placeholder}}" hover-class="cy-pressed" hover-stay-time="80">
+    <text class="reward-selector__value {{selectedLabel ? '' : 'is-placeholder'}}">{{selectedLabel || placeholder}}</text>
+    <cy-icon class="reward-selector__arrow" name="arrow-right" size="34" />
+  </view>
+</view>
+
+<cy-sheet show="{{open}}" title="选择奖励" handle="{{true}}" footer="{{allowCreate}}" bind:close="closeSelector">
+  <view class="reward-sheet">
+    <view class="reward-sheet__none" bindtap="clearCoupon" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="reward-sheet__copy">
+        <text class="reward-sheet__name">不发奖励</text>
+        <text class="reward-sheet__sub">{{placeholder}}</text>
+      </view>
+      <text class="reward-sheet__check" wx:if="{{!value}}">已选</text>
+    </view>
+
+    <!-- 优惠券 / 体验卡 两档筛选(2026-09-08)。两者同在券这条链路上,只是 couponType 不同,
+         混在一张列表里选不出来 —— 一个是"减多少钱",一个是"给一次体验"。 -->
+    <view class="reward-sheet__kinds">
+      <view class="reward-sheet__kind {{rewardKind === item.key ? 'is-on' : ''}}"
+            wx:for="{{rewardKinds}}" wx:key="key" wx:for-item="item"
+            data-kind="{{item.key}}" bindtap="onRewardKindChange"
+            aria-role="button" aria-label="{{item.label}}" hover-class="cy-pressed" hover-stay-time="80">{{item.label}}</view>
+    </view>
+
+    <view class="reward-sheet__loading" wx:if="{{loading}}">正在加载</view>
+    <cy-empty wx:elif="{{!visibleCoupons.length}}" size="sm" title="{{rewardKind === 'PASS' ? '还没有体验卡' : '暂无可选优惠券'}}" />
+    <view class="reward-sheet__item" wx:for="{{visibleCoupons}}" wx:key="id" data-item="{{item}}" bindtap="chooseCoupon" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="reward-sheet__copy">
+        <text class="reward-sheet__name">{{item.name}}</text>
+        <text class="reward-sheet__sub">{{item.description || (rewardKind === 'PASS' ? '到店体验权益' : '商家优惠券')}}</text>
+      </view>
+      <text class="reward-sheet__check" wx:if="{{value == item.id}}">已选</text>
+    </view>
+  </view>
+
+  <!-- CTA 走 footer slot(2026-09-19 用户返工:对齐其他弹窗结构,不埋在滚动正文里) -->
+  <view wx:if="{{allowCreate}}" slot="footer" class="reward-sheet__footer">
+    <cy-btn variant="primary" style="flex:1" bindtap="createCoupon">新建{{rewardKind === 'PASS' ? '体验卡' : '优惠券'}}</cy-btn>
+  </view>
+</cy-sheet>
+
+<!-- 创建优惠券:半屏 sheet,不离开发布流程。dirty 时遮罩/✕ 不会静默关闭丢数据。 -->
+<cy-sheet show="{{creating}}" title="创建{{rewardKind === 'PASS' ? '体验卡' : '优惠券'}}" handle="{{true}}" footer="{{true}}" dirty="{{createDirty}}"
+  style="--cy-sheet-heading-size: var(--cy-font-sheet-title);"
+  bind:close="onCreateClose" bind:requestclose="onCreateRequestClose">
+  <view class="create-form">
+    <view class="create-field">
+      <view class="create-field__label">优惠券名称<text class="create-field__req">*</text></view>
+      <input class="create-field__input" type="text" placeholder="请输入优惠券名称" placeholder-class="create-field__placeholder" value="{{createForm.name}}" bindinput="onCreateName" />
+    </view>
+
+    <view class="create-row">
+      <view class="create-field">
+        <view class="create-field__label">优惠券日期<text class="create-field__req">*</text></view>
+        <view class="create-date" bindtap="showCreateStartTimePicker" aria-role="button" aria-label="选择优惠券日期" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="create-date__range">
+            <text class="{{createForm.startTime ? '' : 'create-date__ph'}}">{{displayStartTime}}</text>
+            <text class="create-date__sep">-</text>
+            <text class="{{createForm.endTime ? '' : 'create-date__ph'}}">{{displayEndTime}}</text>
+          </view>
+          <cy-icon class="create-field__icon" name="calendar" size="24" />
+        </view>
+      </view>
+      <view class="create-field">
+        <view class="create-field__label">投放数<text class="create-field__req">*</text></view>
+        <view class="create-field__number">
+          <input class="create-field__input" type="number" placeholder="请输入投放数量" placeholder-class="create-field__placeholder" value="{{createForm.publishCount}}" bindinput="onCreatePublishCount" />
+          <cy-icon class="create-field__icon" name="coupon" size="24" />
+        </view>
+      </view>
+    </view>
+
+    <view class="create-field" wx:if="{{rewardKind !== 'PASS'}}">
+      <view class="create-field__label">优惠券类型<text class="create-field__req">*</text></view>
+      <cy-dropdown bind:change="onCreateTypeChange" value="{{couponTypeIndex}}" range="{{couponTypeLabels}}">
+        <view class="create-picker">
+          <text class="{{couponTypeIndex ? '' : 'create-picker__placeholder'}}">{{couponTypeLabels[couponTypeIndex]}}</text>
+          <cy-icon class="create-picker__arrow" name="arrow-right" size="32" />
+        </view>
+      </cy-dropdown>
+    </view>
+    <view class="create-field" wx:else>
+      <view class="create-field__label">优惠券类型<text class="create-field__req">*</text></view>
+      <view class="create-picker create-picker--fixed">
+        <text>体验卡</text>
+      </view>
+    </view>
+
+    <view class="create-field">
+      <view class="create-field__label">优惠券说明</view>
+      <textarea class="create-field__textarea" value="{{createForm.description}}" placeholder="请输入优惠券说明" placeholder-class="create-field__placeholder" bindinput="onCreateDescription" />
+    </view>
+  </view>
+
+  <view slot="footer" class="create-footer">
+    <cy-btn variant="primary" loading="{{isSubmitting}}" disabled="{{!canCreateCoupon}}" style="flex:1" bindtap="onCreateSubmit">发布{{rewardKind === 'PASS' ? '体验卡' : '优惠券'}}</cy-btn>
+  </view>
+</cy-sheet>
+
+<!-- 有效期选择:起止一屏内切换 + 当场显示跨度 + 当场判定。
+     原来是「选择开始时间」「选择结束时间」两个先后弹出的面板(与 subpackageMember/couponInfo
+     那一份一字不差),选结束时看不到开始选了什么;日期与时刻还被拆成两个 picker-view、
+     中间塞一个连接词(读成「9 月 1 日 的 14:30」)。 -->
+<cy-datetime-range
+  show="{{rangePickerShow}}"
+  title="选择{{rewardKind === 'PASS' ? '体验卡' : '优惠券'}}有效期"
+  value="{{rangeValue}}"
+  bind:cancel="onRangeCancel"
+  bind:confirm="onRangeConfirm"
+/>

@@ -1,0 +1,47 @@
+.ir-scene {
+  min-height: 100%;
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-5) + var(--cy-safe-bottom));
+  box-sizing: border-box;
+  color: var(--cy-color-text-primary);
+}
+
+.ir-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--cy-space-4);
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-scene-card-radius, var(--cy-radius-lg));
+  background: var(--cy-scene-card-bg, var(--cy-color-bg-surface-subtle));
+}
+.ir-summary-label { display: block; color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.ir-summary-value { display: flex; align-items: baseline; gap: var(--cy-space-1); margin-top: var(--cy-space-1); font-size: var(--cy-type-data-xl); font-weight: 750; line-height: 1; font-variant-numeric: tabular-nums; }
+.ir-summary-unit { color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); font-weight: 500; }
+.ir-summary-side { display: flex; flex-direction: column; align-items: flex-end; gap: var(--cy-space-1); }
+.ir-summary-reward { color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ir-sync-note { margin-top: var(--cy-space-2); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+
+.ir-group { margin-top: var(--cy-space-5); }
+.ir-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--cy-space-3); margin-bottom: var(--cy-space-2); }
+.ir-group-title { color: var(--cy-color-text-primary); font-size: var(--cy-type-section-title); font-weight: 700; }
+.ir-group-total { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-label); font-variant-numeric: tabular-nums; }
+.ir-card { overflow: hidden; border-radius: var(--cy-scene-card-radius, var(--cy-radius-lg)); background: var(--cy-scene-card-bg, var(--cy-color-bg-surface-subtle)); }
+.ir-row { display: flex; align-items: center; gap: var(--cy-space-3); min-height: calc(var(--cy-space-7) + var(--cy-space-4)); padding: var(--cy-space-3); box-sizing: border-box; }
+.ir-row + .ir-row { margin-top: var(--cy-space-1); }
+.ir-avatar { flex: none; }
+.ir-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: var(--cy-space-1); }
+.ir-name { color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 650; }
+.ir-time { color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); font-variant-numeric: tabular-nums; }
+.ir-status { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.ir-reward { flex: none; color: var(--cy-color-text-tertiary); font-size: var(--cy-type-label); font-weight: 650; font-variant-numeric: tabular-nums; }
+
+.ir-more,
+.ir-more-error { display: flex; align-items: center; justify-content: center; min-height: var(--cy-btn-h); margin-top: var(--cy-space-3); color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); }
+.ir-more-error { gap: var(--cy-space-2); }
+.ir-more-action { display: flex; align-items: center; justify-content: center; min-height: var(--cy-btn-h-sm); padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-pill); background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-primary); }
+.ir-more--loading { color: var(--cy-color-text-tertiary); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

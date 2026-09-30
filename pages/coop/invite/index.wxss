@@ -1,0 +1,105 @@
+@import '../../../style/merchant-light.wxss';
+
+page { background: var(--cy-bg-page); }
+.page { min-height: 100vh; padding-bottom: var(--cy-space-5); }
+.page.has-cta { padding-bottom: calc(var(--cy-btn-h) + var(--cy-space-8) + env(safe-area-inset-bottom)); }
+.ep1 { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.placeholder { color: var(--cy-text-placeholder); }
+
+.send-receipt,
+.inline-state {
+  min-height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  margin: 0 var(--cy-page-x) var(--cy-space-2);
+  padding: 0 var(--cy-space-2-5);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card);
+  color: var(--cy-success);
+  font-size: var(--cy-font-label);
+}
+.card .inline-state { margin-left: 0; margin-right: 0; }
+.inline-state { color: var(--cy-text-secondary); }
+.inline-state--error { color: var(--cy-danger); }
+.inline-retry { margin-left: auto; min-height: var(--cy-btn-h); display: flex; align-items: center; color: var(--cy-text-title); font-weight: 600; }
+
+
+/* 类型/条款切换统一使用 chip tab。 */
+.invite-type-tabs { margin: 0 var(--cy-page-x); }
+.terms-tabs { margin-bottom: var(--cy-space-1); --cy-tabs-fade-bg: var(--cy-bg-card); }
+
+/* 卡片 */
+.card { background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); margin: 24rpx var(--cy-page-x); padding: var(--cy-space-3-5); }
+.card--targets { padding-left: 0; padding-right: 0; background: transparent; }
+.card--targets .card-tit { padding: 0 var(--cy-space-1); }
+.target-list { display: flex; flex-direction: column; }
+cy-page-title + .card { margin-top: 0; }
+.card-tit { font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); margin-bottom: var(--cy-legacy-18); }
+.card-tit-n { margin-left: var(--cy-space-1-5); color: var(--cy-text-secondary); font-size: var(--cy-font-label); font-weight: 400; }
+.card-subtit { margin-top: var(--cy-space-3); padding-top: var(--cy-space-3); color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+.card-hint { margin-top: var(--cy-legacy-14); font-size: var(--cy-font-label); color: var(--cy-text-placeholder); line-height: 34rpx; }
+.card-hint--warn { color: var(--cy-color-status-warning); }
+
+.topic-fixed { padding: var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-bg-card-2); font-size: var(--cy-font-body); color: var(--cy-text-title); }
+.picker-row { display: flex; align-items: center; justify-content: space-between; min-height: 88rpx; padding: 0 var(--cy-space-2); border-radius: var(--cy-radius-md); font-size: var(--cy-font-body); color: var(--cy-text-title); }
+.picker-arrow { flex-shrink: 0; color: var(--cy-text-placeholder); }
+/* 目标行 */
+.target { display: flex; align-items: center; min-height: 112rpx; margin: 0; padding: var(--cy-space-2) 0; border-radius: 0; border-bottom: 1rpx solid var(--cy-border-card); }
+.target:last-child { margin-bottom: 0; }
+.target-logo { width: 80rpx; height: 80rpx; border-radius: 50%; background: var(--cy-bg-subtle); flex-shrink: 0; }
+.target-main { flex: 1; min-width: 0; padding: 0 var(--cy-space-2-5); }
+.target-name { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.target-meta { margin-top: 8rpx; font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.target-status { margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-placeholder); }
+.target-action { flex-shrink: 0; min-width: 112rpx; min-height: 60rpx; padding: 0 var(--cy-space-2); box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2rpx solid var(--cy-border-card); border-radius: var(--cy-radius-pill); color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+.target-action--selected { background: var(--cy-bg-card-2); border-color: var(--cy-border-card); color: var(--cy-text-secondary); }
+.target-action--locked { background: var(--cy-bg-card-2); color: var(--cy-text-secondary); font-weight: 500; }
+.target--locked { margin: 0 calc(var(--cy-space-1) * -1); padding-left: var(--cy-space-1); padding-right: var(--cy-space-1); border-radius: var(--cy-radius-md); }
+
+
+/* 合作报酬条款 */
+.terms-options { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.terms-option { display: flex; align-items: center; justify-content: space-between; min-height: 88rpx; padding: 0 var(--cy-space-2-5); border-radius: var(--cy-radius-md); background: var(--cy-bg-card-2); color: var(--cy-text-body); font-size: var(--cy-font-label); }
+.terms-option.on { color: var(--cy-text-title); box-shadow: inset 0 0 0 2rpx var(--cy-btn-solid-bg); }
+.terms-option-mark { width: var(--cy-btn-h-sm); height: var(--cy-btn-h-sm); display: flex; align-items: center; justify-content: center; color: var(--cy-btn-solid-bg); }
+.rate-row, .fee-row { display: flex; align-items: center; justify-content: space-between; margin-top: var(--cy-legacy-22); }
+.rate-label { font-size: var(--cy-font-label); color: var(--cy-text-body); }
+.rate-val { font-size: var(--cy-font-display); font-weight: 800; color: var(--cy-brand); }
+.fee-input-wrap { display: flex; align-items: center; gap: var(--cy-legacy-4); }
+.fee-yen { font-size: var(--cy-font-body); color: var(--cy-text-secondary); }
+.fee-input { width: 120rpx; text-align: center; font-size: var(--cy-font-display); font-weight: 800; color: var(--cy-price); background: var(--cy-bg-card-2); border-radius: var(--cy-radius-sm); height: 88rpx; }
+.rate-chips { display: flex; gap: var(--cy-space-1); margin-top: var(--cy-space-2); }
+.rate-chip { display: inline-flex; align-items: center; justify-content: center; min-height: var(--cy-btn-h-sm); padding: 0 var(--cy-space-2-5); border-radius: var(--cy-radius-pill); background: var(--cy-bg-card-2); color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.rate-chip.on { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }
+.nearby-row { display: flex; align-items: center; justify-content: space-between; min-height: var(--cy-btn-h); margin-top: var(--cy-space-1); padding: 0 var(--cy-space-2); border-radius: var(--cy-radius-md); color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.cta-bar { position: fixed; z-index: var(--cy-z-sticky); left: 0; right: 0; bottom: 0; padding: var(--cy-space-2) var(--cy-page-x) calc(var(--cy-space-2) + env(safe-area-inset-bottom)); background: var(--cy-bg-card); }
+.cta-btn { display: flex; align-items: center; justify-content: center; min-height: var(--cy-btn-h); border-radius: var(--cy-radius-pill); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); font-weight: 600; }
+.cta-hint { margin-bottom: var(--cy-space-2); text-align: center; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cta-btn.disabled { opacity: .5; }
+
+/* 邀约语弹窗内容：遮罩、圆角、安全区与动画统一由 cy-sheet 提供。 */
+.iv-content { padding-bottom: var(--cy-space-2); }
+.iv-locked-label { margin-bottom: var(--cy-space-2); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.iv-locked-row { display: flex; align-items: center; min-height: 96rpx; }
+.iv-locked-logo { width: 80rpx; height: 80rpx; flex-shrink: 0; border-radius: 50%; background: var(--cy-bg-card-2); }
+.iv-locked-main { flex: 1; min-width: 0; padding: 0 var(--cy-space-2); }
+.iv-locked-meta { display: block; margin-top: var(--cy-space-1); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.iv-terms { display: flex; align-items: center; justify-content: space-between; margin-top: var(--cy-space-3); padding: var(--cy-space-2-5); border-radius: var(--cy-radius-md); background: var(--cy-bg-card-2); color: var(--cy-text-title); }
+.iv-terms-label { display: block; color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.iv-terms-value { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-font-body); font-weight: 600; }
+.iv-hero { padding: var(--cy-space-2) 0 var(--cy-space-3); text-align: center; }
+.iv-target { display: block; font-size: var(--cy-font-body); line-height: var(--cy-leading-tight); font-weight: 700; color: var(--cy-text-title); }
+.iv-type { display: block; margin-top: var(--cy-space-3); font-size: var(--cy-font-page-title); color: var(--cy-text-title); }
+.iv-topic { display: block; margin-top: var(--cy-space-2); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.iv-copy { margin: 0 0 var(--cy-space-4); text-align: center; font-size: var(--cy-font-body); line-height: var(--cy-leading-normal); color: var(--cy-text-title); }
+.iv-message { padding-bottom: var(--cy-space-4); }
+.iv-message-title { display: block; margin-bottom: var(--cy-space-3); text-align: center; font-size: var(--cy-font-page-title); line-height: var(--cy-leading-tight); font-weight: 700; color: var(--cy-text-title); }
+.iv-message-input { width: 100%; min-height: calc(var(--cy-space-8) + var(--cy-space-8) + var(--cy-space-8)); box-sizing: border-box; padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg); background: var(--cy-bg-card-2); font-size: var(--cy-font-body); line-height: var(--cy-leading-normal); color: var(--cy-text-title); }
+.iv-message-placeholder { color: var(--cy-text-placeholder); }
+.iv-result { margin-bottom: var(--cy-space-2); padding: var(--cy-space-2); border-radius: var(--cy-radius-md); color: var(--cy-text-body); font-size: var(--cy-font-label); line-height: var(--cy-leading-normal); }
+.iv-edit-exit { min-height: 88rpx; display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); margin-bottom: var(--cy-space-2); padding: 0 var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-color-action-secondary-bg); color: var(--cy-text-title); font-size: var(--cy-font-label); }
+.iv-send { min-height: 88rpx; display: flex; align-items: center; justify-content: center; text-align: center; font-size: var(--cy-font-body); font-weight: 600; padding: 0;
+  border-radius: var(--cy-radius-pill); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); transition: opacity var(--cy-dur); }
+.iv-send.disabled { opacity: .5; }

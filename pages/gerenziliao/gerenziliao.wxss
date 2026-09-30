@@ -1,0 +1,148 @@
+page { background: var(--cy-bg-page); }
+.profile-nav-spacer { flex: none; }
+.profile-load-shell { padding: var(--cy-space-3) var(--cy-page-x) var(--cy-space-8); }
+.profile-refresh-state,
+.profile-save-state { margin: 0 var(--cy-page-x) var(--cy-space-4); }
+.profile-refreshing {
+  min-height: 72rpx;
+  display: flex;
+  align-items: center;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+.shzlskip image{ width: 48rpx; height: 48rpx; vertical-align: top;}
+/* 8pt 网格对齐(WT1 已处理过被导航盖住的旧标题,这里只补剩下的游离间距):
+   页边距统一 --cy-page-x,30/40/50rpx 落回 32/48 档 */
+.shzltop{ overflow: hidden; margin: 0 var(--cy-page-x);}
+.shzltop_tu{width: 170rpx; height: 170rpx; margin: 0 auto; position: relative;}
+.shzltop_tu image{width: 170rpx; height: 170rpx; vertical-align: top; border-radius: 50%; overflow: hidden;}
+.shzltop_tu image.dbj{width: 40rpx; height: 40rpx; vertical-align:top; position: absolute;right: 0; bottom: 0; border: 2rpx solid var(--cy-border-card);border-radius: 50%;}
+.shzltop_txt{overflow: hidden; text-align: center; font-size: var(--cy-font-label); font-weight: 700;color: var(--cy-text-secondary); margin-top: var(--cy-space-4);}
+.shzltop_tip{overflow: hidden; text-align: center; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); margin-top: 8rpx;}
+/* 用户原话「直接写到背景上」:去掉卡面与圆角,资料行直接落在页面底色上(margin 保留)。 */
+.shzlbox{ overflow: hidden; margin: var(--cy-space-5) var(--cy-page-x);}
+.shzlbox_li{ overflow: hidden; min-height: var(--cy-btn-h); margin: var(--cy-space-4) var(--cy-space-4) 0 var(--cy-space-4); padding-bottom: var(--cy-space-4); border-bottom: 2rpx solid var(--cy-border-line); display: flex; justify-content: space-between; align-items: center;}
+.shzlbox_li:last-of-type{border-bottom:0;}
+/* 定宽 560rpx 在窄机上会把右侧编辑钮挤出去;行已是 flex,改自适应 */
+.shzlbox_li_left{ flex: 1; min-width: 0; overflow: hidden;}
+.shzlbox_li_left_name{ font-size: var(--cy-font-body); font-weight: bold; margin-bottom: var(--cy-legacy-6);}
+.shzlbox_li_left_txt{ font-size: var(--cy-font-label); overflow: hidden; line-height: var(--cy-leading-normal);}
+.shzlbox_li_left_txt.is-empty{ color: var(--cy-text-secondary);}
+.shzlbox_bind{
+  flex: none;
+  margin: 0;
+  padding: 0 24rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: var(--cy-font-label);
+  color: var(--cy-btn-solid-fg);
+  background: var(--cy-btn-solid-bg);
+  border: 0;
+  border-radius: var(--cy-radius-pill);
+}
+.shzlbox_bind::after{ border: 0; }
+.shzlbox_li_left_txt image{ width: var(--cy-space-3-5); height: var(--cy-space-3-5); vertical-align: top; margin-right:var(--cy-legacy-4);}
+.lan{ color: var(--cy-accent);}
+.shzlbox_li_left_ntu{ overflow: hidden; margin-top: 0;}
+.shzlbox_li_left_ntu_li{ width: 100rpx; height: 100rpx; margin-right: var(--cy-space-2-5); overflow: hidden; border-radius: var(--cy-radius-sm); float: left;}
+.shzlbox_li_left_ntu_li image{ width:100%; height: 100%; vertical-align: top;}
+.shzlbox_li_left_txt_li{ height: 50rpx; line-height: 50rpx; overflow: hidden; background: var(--cy-bg-subtle); border: 1rpx solid var(--cy-border-line); border-radius: 25rpx; padding: 0 var(--cy-legacy-10) 0 16rpx; float: left; font-size: var(--cy-font-caption); margin: var(--cy-legacy-10) var(--cy-legacy-18) 0 0;} /* ds-ok */
+.shzlbox_li_left_txt_li image{ width: 24rpx; height: 24rpx; vertical-align: top; margin: var(--cy-space-1-5) var(--cy-legacy-6) 0 0;}
+.shzlbox_li_left_txt_li image.del{width: 24rpx; height: 24rpx; display: block;}
+/* 触控热区:删除图标视觉 24rpx(12px),是全站最小的可点元素。
+   ★ 这一处到不了 88rpx,原因是几何而不是没做:
+     宿主 .shzlbox_li_left_txt_li 高 50rpx 且 overflow:hidden,纵向热区封顶 50rpx。
+     去掉 overflow:hidden 也不行 —— chip 之间纵向只隔 10rpx(margin-top),
+     热区一越界就跨行盖住上下一行 chip 的删除钮,变成互相偷点击,比目标小更糟。
+   所以扩到 chip 允许的最大值:48rpx 宽 × 50rpx 满高 = 24×25px,
+   满足 WCAG 2.5.8 AA 的 24px 下限,离 44px 的差额已在 wxml 的 ds-ok 里写明。
+   真要到 88rpx,得把 chip 本身加高 —— 那是视觉改动,留给设计走查。 */
+.shzlbox_li_left_txt_li .del-hit{
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  width: 24rpx;
+  height: 24rpx;
+  margin: var(--cy-legacy-14) 0 0 var(--cy-space-1-5);
+}
+.shzlbox_li_left_txt_li .del-hit::after{
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48rpx;
+  height: 50rpx;
+  transform: translate(-50%, -50%);
+}
+/* 命中区 40 → 88rpx(DS §3.8 / WCAG 2.2 SC 2.5.8),图标视觉仍 40rpx */
+.shzlbox_li_right{ width: var(--cy-btn-h); height: var(--cy-btn-h); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.shzlbox_li_right image{ width: 40rpx; height: 40rpx; vertical-align: top;}
+
+/* 底栏避让占位:保存栏已收编 cy-footer-bar,故直接用它的官方高度 token。
+   R5 变更缘由:原来是自造的 .bmbottom(position:fixed 但**无 z-index**),
+   C03-R4 复拍 S1_scroll_bottom 里它滚到底后整条消失,而同队列走 cy-footer-bar 的
+   address / addressinfo 两页不消失 —— 差别就是那个层级。连带把「手算自造栏三档高度」
+   这一类占位不同源的坑一起消掉(R3/R4 的 40rpx 短缺就出自那里)。 */
+.gz-footer-hold{ height: var(--cy-comp-footer-h); }
+button.fbox_but{ width: 686rpx; height: var(--cy-btn-h); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); font-weight: bold; border-radius: var(--cy-radius-lg); margin: 0 auto;}
+
+.david::before {background: var(--cy-bg-page);box-shadow: 0 0 12rpx 12rpx rgba(0, 0, 0, 0.1);}
+.david .tit{ color: var(--cy-text-title);}
+.david_tk{ overflow: hidden; height: 89vh; overflow-y: auto;}
+.david_tk_box{  overflow: hidden; background: var(--cy-bg-card); margin-top: var(--cy-space-2-5); border-radius: 12rpx; padding: var(--cy-space-2-5);} /* ds-ok */
+.david_tk_box textarea{ width: 100%; height:360rpx; color: var(--cy-text-title); font-size: var(--cy-font-label);}
+.david_tk_tit text{ border-bottom: 1rpx solid var(--cy-accent);}
+
+.david_tk_con{ margin-top: var(--cy-space-2-5); width: 700rpx;}
+.david_tk_con_sc{ width:318rpx; height:318rpx; overflow:hidden; float:left; margin:0 24rpx var(--cy-space-4) var(--cy-legacy-6); position: relative;
+  border-radius: 30rpx;box-shadow: 0px 4rpx 10rpx 0px rgba(0, 0, 0, 0.2);}
+.david_tk_con_sc image{ width: 100%; height: 100%; vertical-align: top;}
+.david_tk_con_sc image.david_del{ width: 40rpx; height: 40rpx; }
+/* 触控热区:删除徽标视觉 40rpx,低于 88rpx 最小可点(DS §3.2)。
+   <image> 是替换元素,挂 ::after 不保险 —— 按 DS 的「透明 wrapper 扩大点击区」范式
+   (searchmap 那套分层)包一层 .david_del-hit,tap 移到 wrapper 上,图片只负责视觉。
+   ⚠️ 宿主 .david_tk_con_sc 是 318rpx 且 overflow:hidden,热区越界就会被裁,
+   所以不居中而是锚在右上角向内(左下)展开:88rpx 完整落在 318rpx 瓦片内。
+   瓦片里的缩略图与相邻瓦片都没有 tap,扩出来的热区不从谁那儿偷点击;
+   末尾那个「上传」按钮在所有瓦片之后,88rpx 也够不到。 */
+.david_tk_con_sc .david_del-hit{
+  position: absolute;
+  right: var(--cy-space-1-5);
+  top: var(--cy-space-1-5);
+  width: 40rpx;
+  height: 40rpx;
+}
+.david_tk_con_sc .david_del-hit::after{
+  content: '';
+  position: absolute;
+  right: calc(-1 * var(--cy-space-1-5));
+  top: calc(-1 * var(--cy-space-1-5));
+  width: 88rpx;
+  height: 88rpx;
+}
+button.david_tk_con_tgb{border: 2rpx dashed var(--cy-border-line); width:316rpx; height:316rpx; overflow:hidden; float:left; margin:0 24rpx var(--cy-space-4) var(--cy-legacy-6);
+  border-radius: 30rpx; background: rgba(255, 255, 255, 0.8);box-shadow: 0px 4rpx 10rpx 0px rgba(0, 0, 0, 0.2); display: block;}
+.david_tk_con_tgb_tu{ width: 60rpx; height: 60rpx; margin: var(--cy-space-8) auto var(--cy-space-1-5) auto;}
+.david_tk_con_tgb_tu image{ width: 60rpx; height: 60rpx; vertical-align: top;}
+/* QA 复核去紫色化:"上传路线照片"/"上传联系二维码"这两处上传按钮文案原是品牌紫,收回中性字色 */
+.david_tk_con_tgb_txt{ width: 100%; color: var(--cy-text-title);display:block; text-align: center; font-size: var(--cy-font-label); font-weight: 500;}
+.david_tk_con_tgb_txt text{color: var(--cy-text-title);}
+
+/* cy-sheet 收编 popDavid1-4:保留 .pop-model 内层类(全局 .pop-model button/.pop-top button width:auto 复位继续生效),
+ * 页级把它自身 chrome 降级为透明直通 + 隐 ::before + 压平 .david_tk 89vh 防双滚 */
+.pop-model {
+  position: static;
+  left: auto;
+  bottom: auto;
+  width: auto;
+  z-index: auto;
+  border-radius: 0;
+  padding: 0;
+  display: block;
+}
+.pop-model::before { display: none; }
+.david_tk { height: auto; overflow: visible; }
+.profile-edit-sheet { --cy-comp-sheet-bg: var(--cy-color-bg-glass); }
+/* 普通取消不是危险操作；sheet 头部使用次级/主动作 token，避免继承旧全局红色。 */
+.pop-model .pop-top button { color: var(--cy-color-action-secondary-fg-on-dark); }
+.pop-model .pop-top button.david_aok { color: var(--cy-color-action-primary-fg-on-dark); }

@@ -1,0 +1,27 @@
+<view wx:if="{{model}}" class="play-pause {{reducedMotion ? 'play-pause--reduced-motion' : ''}}">
+  <view class="play-pause__eyebrow">{{modeLabel}}</view>
+  <view class="play-pause__title">已暂停</view>
+
+  <view class="play-pause__metrics">
+    <view class="play-pause__metric">
+      <text class="play-pause__label">{{model.left.label}}</text>
+      <view class="play-pause__reading">
+        <text class="play-pause__value">{{model.left.value}}</text>
+        <text class="play-pause__unit">{{model.left.unit}}</text>
+      </view>
+    </view>
+    <view class="play-pause__divider"></view>
+    <view class="play-pause__metric play-pause__metric--right">
+      <text class="play-pause__label">{{model.right.label}}</text>
+      <view class="play-pause__reading">
+        <text class="play-pause__value">{{model.right.value}}</text>
+        <text class="play-pause__unit">{{model.right.unit}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="play-pause__resume" bindtap="onResume" hover-class="play-pause__resume--pressed" aria-role="button" aria-label="继续游玩">
+    <cy-icon name="arrow-right" size="48" />
+  </view>
+  <view class="play-pause__hint">轻触继续</view>
+</view>

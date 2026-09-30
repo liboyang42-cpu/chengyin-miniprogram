@@ -1,0 +1,15 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "编辑俱乐部资料",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-scene-club-edit": "/components/cy/scene-club-edit/index",
+    "cy-modal": "/components/cy/modal/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-access-gate": "/components/cy/access-gate/index"
+  }
+}

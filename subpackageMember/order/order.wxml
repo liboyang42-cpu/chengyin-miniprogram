@@ -1,0 +1,26 @@
+<!-- 我的订单 = 二级大功能,正常页面(不做弹窗)。
+     从这里点开的「订单详情」才是三级,走场景弹窗,不再压新页面栈。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="order-page">
+<cy-nav-bar custom-back bind:back="goBack" />
+<cy-page-title title="我的订单" />
+<view class="order-shell">
+  <cy-scene-member-order-history id="orderHistory" bind:open="openScene" />
+</view>
+
+<view class="order-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'member-order-detail'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" dirty="{{sceneCurrent.dirty}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeScene" bind:back="closeScene">
+    <cy-scene-member-order-detail order-id="{{sceneCurrent.params.id}}" theme="{{sceneCurrent.theme}}" bind:open="openScene" bind:back="closeScene" bind:close="closeScene" bind:orderchanged="onOrderChanged" />
+  </cy-scene-sheet>
+</view>
+
+<view class="order-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'play-activity-detail'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{true}}" dirty="{{sceneCurrent.dirty}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="backScene" bind:back="backScene">
+    <cy-scene-play-activity-detail activity-id="{{sceneCurrent.params.id}}" bind:open="openScene" bind:close="backScene" />
+  </cy-scene-sheet>
+</view>
+</view>
+</view>

@@ -1,0 +1,477 @@
+/* ============================================================
+ * 商家版 · 浅色工作台(B2B)—— 各商家页 wxss 首行 @import;C 端仍走 tokens.wxss 默认暗色。
+ *
+ * 2026-07-14 T1 单真源收敛:
+ *   ① 日间键值 = tokens.wxss `.theme-light` 块的逐字镜像(WXSS 无 mixin,
+ *     page{} 机制逃不掉镜像)——改日值只改 tokens.wxss,再同步此处;
+ *     一致性由 scripts/ds-theme-sync-check.sh 门禁锁定,勿单独手改本文件。
+ *   ② 商家过渡段(黑 CTA)是本文件唯一的自有语义:旧商家页以 --cy-brand/--cy-accent
+ *     当主按钮色,DS v2 里日间 brand=品牌紫(仅图形),直接跟随会把 33 页黑按钮变紫。
+ *     Batch 3 商家闭环逐页迁移(改读 action-primary)后删除该段,并删本文件 @import。
+ * ============================================================ */
+page {
+  /* 2026-09-06 cy-toast/cy-loading-mask 面板色:引本文件但没挂 .theme-merchant 根的页也要拿到浅色面板 */
+  --cy-comp-modal-panel: var(--cy-color-bg-surface);
+  /* —— ① 日间语义真值:镜像 tokens.wxss .theme-light(勿手改,改真源) —— */
+  --cy-color-bg-page:           #F3F4F4;
+  --cy-color-bg-surface:        #FFFFFF;
+  --cy-color-bg-surface-subtle: #EEEEEE;
+  --cy-color-bg-elevated:       #FFFFFF;
+  --cy-color-bg-surface-strong: #E4E4E4;   /* 日间控件填充底(步进键/已填输入)。此前本块未重声明,浅色页继承玩家档 #3B3B3D,黑加减号压上去 1.88:1 几乎不可见(2026-09-02) */
+  --cy-color-bg-raised:         #E6E6E6;   /* 2026-09-01 日间对应档:比 surface-subtle 再深一级 */
+  --cy-color-bg-interactive:    #FFFFFF;   /* 日间控件底=白卡,与手册 Merchant/Topic editor 模式一致 */
+  --cy-color-bg-glass:          rgba(255,255,255,.88);
+
+  --cy-color-text-primary:      #000000;   /* 2026-08-07 用户拍板:商家版黑=纯黑 */
+  --cy-color-text-secondary:    #404040;              /* 2026-07-31 去墨蓝(镜像真源):原 #334155 */
+  --cy-color-text-tertiary:     #6B6B6B;              /* 2026-07-31 去墨蓝(镜像真源):原 #5D6C85 */
+  --cy-color-text-placeholder:  #6F6F6F;              /* 镜像真源(2026-08-25):#737373 在商家页底 #F3F4F4 上只有 4.30:1;改 #6F6F6F(页底 4.56 / 卡底 5.02)。原注:2026-07-31 去墨蓝:原 #64748B */
+  --cy-color-text-disabled:     #737373;              /* 镜像真源:手册 Merchant text/disabled */
+  --cy-color-text-inverse:      #FFFFFF;
+
+  /* 2026-09-03 用户当面定:没填写是白色、填写之后是灰色(原为反向) */
+  --cy-color-input-idle-bg:     #FFFFFF;
+  --cy-color-input-filled-bg:   #EFEFEF;
+  --cy-color-input-text:        var(--cy-color-text-primary);
+  --cy-color-input-filled-fg:   var(--cy-color-text-primary);
+  --cy-color-input-placeholder: var(--cy-color-text-placeholder);
+  --cy-comp-search-idle-bg:     var(--cy-color-input-idle-bg);
+  --cy-comp-search-filled-bg:   var(--cy-color-input-filled-bg);
+  --cy-comp-search-filled-fg:   var(--cy-color-input-filled-fg);
+  --cy-comp-search-placeholder: var(--cy-color-input-placeholder);
+
+  --cy-color-border-subtle:     #E8E8E8;              /* 镜像真源:卡内分组线对白卡 ≥1.2:1 */
+
+  /* 导航钩子:镜像 tokens.wxss .theme-light(2026-07-29 导航统一) */
+  --cy-comp-nav-bg:             var(--cy-color-bg-page);
+  --cy-comp-nav-border:         transparent;
+  /* 表面规范(ADA):镜像 tokens.wxss .theme-light —— 浅端卡走投影,不要顶缘高光,
+     且描边与投影二选一(投影已在,描边同步关掉;详见真源块注释) */
+  --cy-comp-card-highlight:     transparent;
+  --cy-comp-card-shadow-day:    0 2rpx 8rpx rgba(15,23,43,.48);
+  --cy-comp-card-border:        transparent;
+  --cy-comp-cell-fill-bg:       #EAEAEA;
+  /* ★ 底部面板钩子 —— 漏了它，浅色页上的弹窗会「一半变一半没变」：
+     --cy-comp-sheet-bg 定义在 tokens.wxss 的 page{} 里，那层已经把
+     var(--cy-color-bg-surface) **就地求值成深色快照**再按值继承下去；
+     .theme-merchant 只重声明了 --cy-color-bg-surface，管不到已经求值完的
+     --cy-comp-sheet-bg。而文字色是变量继承、能穿透 isolated 组件边界 ⇒
+     文字跟着变深、底色还是黑的，实拍 shezhi 商家视角就是「黑底深灰字」，
+     「选择要申请的身份 / 商家 / 取消」几乎看不见。
+     同一条坑 shezhi.wxss:9-16 有原文记载（那次是 page{} 背景）。 */
+  --cy-comp-sheet-bg:           var(--cy-color-bg-surface);
+
+  /* 弹窗角色档切白(2026-08-07 用户拍板:商家页弹窗=不透明纯白)——镜像 tokens .theme-merchant */
+  --cy-comp-sheet-role-glass: var(--cy-comp-sheet-merchant-glass);
+  --cy-comp-sheet-role-page: var(--cy-comp-sheet-merchant-page);
+  --cy-comp-sheet-role-surface: var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-card: var(--cy-comp-sheet-merchant-surface-subtle);
+  --cy-comp-sheet-role-elevated: var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-text: var(--cy-comp-sheet-merchant-title);
+  --cy-comp-sheet-role-text-secondary: var(--cy-comp-sheet-merchant-text-secondary);
+  --cy-comp-sheet-role-muted: var(--cy-comp-sheet-merchant-text-tertiary);
+  --cy-comp-sheet-role-action-secondary: var(--cy-comp-sheet-merchant-close-bg);
+  --cy-comp-sheet-role-divider: var(--cy-comp-sheet-merchant-border-subtle);
+  --cy-comp-sheet-role-border-strong: var(--cy-comp-sheet-merchant-border-strong);
+  --cy-comp-sheet-role-btn-bg: var(--cy-comp-sheet-merchant-title);
+  --cy-comp-sheet-role-btn-fg: var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-card-shadow: 0 2rpx 8rpx rgba(15,23,43,.06);
+  --cy-text-title:              var(--cy-color-text-primary);
+  --cy-text-secondary:          var(--cy-color-text-tertiary);
+  --cy-color-border-strong:     #DBDBDB;              /* 2026-07-31 去墨蓝(镜像真源):原 #D6DCE5 */
+  --cy-color-sheet-handle: #DBDBDB;
+  --cy-color-result-fail-badge: #F94D5C;
+
+  --cy-color-state-pressed: rgba(15,23,43,.06);
+  --cy-color-overlay:       rgba(0,0,0,.56);
+
+  --cy-color-action-primary-bg:   #000000;   /* 2026-08-07 用户拍板:主 CTA 纯黑 */
+  --cy-color-action-primary-fg:   #FFFFFF;
+  --cy-color-action-secondary-bg: #EEEEEE;
+  --cy-color-action-danger-bg:    var(--cy-ref-red-700);
+  --cy-color-action-danger-fg:    #FFFFFF;
+
+  --cy-color-selection:     var(--cy-ref-gray-900);
+  --cy-color-brand:         var(--cy-ref-gray-900);
+  --cy-color-brand-strong:  var(--cy-ref-gray-900);
+  --cy-color-brand-soft:    #EAEBEE;
+
+  --cy-color-status-success:     var(--cy-ref-green-700);
+  --cy-color-status-warning:     var(--cy-ref-amber-700);
+  --cy-color-status-danger:      var(--cy-ref-red-700);
+  --cy-color-status-info:        var(--cy-ref-blue-600);
+  --cy-color-status-danger-soft: rgba(208,50,59,.18);
+  --cy-color-status-success-soft: rgba(11,122,87,.18);
+  --cy-color-status-warning-soft: rgba(150,97,10,.20);
+  --cy-color-status-info-soft:    rgba(37,99,235,.18);
+
+  --cy-color-skeleton-base:      #ECEFF3;
+  --cy-color-skeleton-highlight: #F6F8FA;
+  /* 2026-09-02 帖文 UI 整改 A1:Figma 有、代码一直没有的 6 档。medal-* 是名次不是状态,
+     别拿 status/warning 或 rare 顶替;skeleton-on-sheet 专给玻璃面板上的骨架(比页面亮)。 */
+  --cy-color-status-danger-on-interactive:          var(--cy-ref-red-700);
+  --cy-color-medal-gold:                            #D27D08;
+  --cy-color-medal-silver:                          #717171;
+  --cy-color-medal-bronze:                          #D6600B;
+  --cy-color-skeleton-on-sheet:                     #ECEFF3;
+
+  /* 模板页紫面 —— 浅端(商家域)取极淡紫,保持同一套 wxss 可用 */
+  --cy-color-panel-accent-top:   #EFE7FB;
+  --cy-color-panel-accent-mid:   #F6F2FC;
+  --cy-color-panel-accent-deep:  #FBFAFE;
+  --cy-color-panel-accent-base:  #FFFFFF;
+  --cy-color-glow-sweep:         #7C3AED;
+  --cy-color-glow-sweep-soft:    #A97CF0;
+
+  /* —— ① 续:保留字面旧 token 的日值(同镜像) —— */
+  --cy-bg-subtle:   #f8fafc;
+  --cy-white-4:     rgba(0,0,0,0.03);
+  --cy-white-64:    rgba(0,0,0,0.62);
+  --cy-price:       var(--cy-color-text-primary);   /* 2026-07-31(镜像真源):同批8 已做的去重复字面量,
+                                   单真源;--cy-ref-ink-900 本轮去墨蓝后这里自动跟随变灰 */
+  --cy-shadow-card: 0 4rpx 16rpx rgba(0,0,0,0.04);
+
+  /* —— ② 商家过渡:黑 CTA(旧页拿 brand/accent 当主按钮色;Batch 3 迁移后删) —— */
+  --cy-brand:          var(--cy-color-selection);
+  --cy-brand-soft:     rgba(15,23,43,0.08);
+  --cy-accent:         var(--cy-color-selection);
+  --cy-accent-strong:  #1a1a1a;
+  --cy-accent-soft:    rgba(15,23,43,0.08);
+  --cy-bg-accent-weak: rgba(15,23,43,0.06);
+
+  /* —— ③ cy-btn isolated 组件 fallback(历史保险,保留) —— */
+  --cy-btn-h: 88rpx;
+  --cy-btn-pad-x: 40rpx;
+  --cy-font-body: 28rpx;
+  --cy-radius-md: 24rpx;
+
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+
+/* ============================================================
+ * 商家页 · 对比度修复(暗色→浅色迁移)
+ * 规则：白底用黑字；深色按钮/条/hero 叠层用白字；图标去 invert。
+ * ============================================================ */
+
+/* 根容器强制可读文字色(防 dark 遗留继承) */
+.rv-merchant,
+.pr-page,
+.coop-page,
+.ledger,
+.shzl,
+.page,
+.talent,
+.topic,
+.fabu {
+  color: var(--cy-text-title);
+}
+
+/* 返回/导航图标(白箭头 PNG 在白底不可见)。组件 WXSS 禁止 tag/后代选择器,
+   调用方需要此兼容色时显式挂同一个 class hook。 */
+.merchant-nav-icon,
+.nav-back {
+  filter: brightness(0);
+  opacity: 0.72;
+}
+
+/* 商家首页快捷操作图标(SVG 浅色时在白底加深) */
+.rv-hero-bell-ico,
+.rv-action-ico,
+.rv-more-ico {
+  filter: brightness(0);
+  opacity: 0.78;
+}
+
+/* —— 深色底/黑按钮：白字(勿用 --cy-text-title) —— */
+.act-mode-tag,
+.status-badge,
+.btn-cancel,
+.btn-service,
+.btn-signup,
+.btn-notice,
+.coop-save,
+.seg-i.on,
+.perk-save,
+button.pr-cta,
+.topic .bm-btn button,
+.topic .bm-btn2 button,
+.pop-topic .dd.check,
+.pop-topic .bm-btn1 button,
+.bm-btndavid button,
+.rv-recruit-btn,
+.list .li .item .btns button.btn1 {
+  color: #ffffff !important;
+}
+
+/* —— Hero / 图片叠层：保留白字 —— */
+.topic .slide1 .slide-txt,
+.topic .det1 .cont .row2,
+.template-title,
+.david_dang,
+.david_tgb_box_li_con_top_xf_name,
+.david_tgb_box_li_con_top_xf_pf {
+  color: #ffffff;
+}
+
+/* Hero 上分类标签：暗底白字(原白半透明在白底看不见) */
+.topic .det1 .cont .row1 text {
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+}
+
+/* 深色统计条 */
+.topic .det1 .cont .row3,
+.row3 {
+  color: #ffffff;
+  background: rgba(24, 24, 24, 0.75);
+}
+
+/* 详情 tab 正文 */
+.topic .det3 .cont1 .txt1,
+.topic .det3 .cont1 .txt2 {
+  color: var(--cy-text-body);
+}
+
+/* 商家成功页(apply3) */
+.ma3-card {
+  margin: 48rpx 32rpx;
+  background: var(--cy-bg-card);
+  border-radius: 24rpx;
+  padding: 56rpx 40rpx;
+  text-align: center;
+  box-shadow: var(--cy-shadow-card);
+}
+.ma3-icon {
+  width: 120rpx;
+  height: 120rpx;
+  line-height: 120rpx;
+  margin: 0 auto var(--cy-space-3-5);
+  border-radius: 50%;
+  background: rgba(18, 184, 134, 0.12);
+  color: var(--cy-success);
+  font-size: 64rpx;
+}
+.ma3-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.ma3-desc {
+  font-size: 26rpx;
+  color: var(--cy-text-body);
+  line-height: 1.7;
+  margin-top: var(--cy-space-2-5);
+}
+.ma3-highlight { color: var(--cy-info); }
+.ma3-actions { margin: 0 32rpx; }
+.ma3-btn-primary {
+  height: var(--cy-btn-h);
+  line-height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+  color: #ffffff;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.ma3-btn-secondary {
+  height: var(--cy-btn-h);
+  line-height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-pill);
+  border: 1rpx solid var(--cy-border-line);
+  color: var(--cy-text-body);
+  text-align: center;
+  font-size: 30rpx;
+  margin-top: 24rpx;
+}
+
+/* ============================================================
+ * 商家域视觉统一(2026-07-26 用户拍板 D-1~D-5)
+ * 只新增 class,不改本文件既有选择器 —— 本文件被 topic/** member/** 等 30 页 @import,
+ * 改既有选择器会跨域漏出去。下面每条都要页面显式挂 class 才生效。
+ *
+ *  .m-flush-nav  挂页面根节点:把 cy-nav-bar 的底色/描边改成与页面同底(D-1/D-2)。
+ *                走 CSS 变量继承 —— styleIsolation:isolated 挡类选择器但不挡变量,
+ *                所以能穿进组件,又只影响挂了本类的页。
+ *  .mnav/.mnav-* 没接 cy-nav-bar 的页(tab 页 / 自绘顶栏)用的统一顶栏(D-2/D-4):
+ *                `‹ 标题(居中)`,底色 = 页面底色,无分隔线。
+ * ============================================================ */
+
+/* D-1/D-2:cy-nav-bar 与内容同底、无分隔线、不做毛玻璃(毛玻璃在纯色灰上只会糊出色差)
+ * 读 ① 语义真值 --cy-color-bg-page,不读 ② 别名 --cy-bg-page:别名在 tokens.wxss 的
+ * page{} 上就已就地求值,本规则是【类作用域】—— 挂在类作用域主题(.theme-merchant 等)
+ * 里面时,别名拿到的是 page 上那份(暗值),真值层则会随最近的主题块重新求值。
+ * 当前 @import 用法下两者同值,改这一处是为了它挪进类作用域时不会静默变暗。 */
+.m-flush-nav {
+  --cy-comp-nav-bg: var(--cy-color-bg-page);
+  --cy-comp-nav-border: transparent;
+  --cy-comp-nav-blur: 0rpx;
+}
+
+/* D-2:自绘顶栏与内容同底 */
+.mnav { background: var(--cy-bg-page); }
+
+/* D-4:‹ 标题(居中) —— 与 cy-nav-bar(coop/finance 参考样式)同度量:88rpx 热区 / 22rpx 箭头 / 36rpx 700 标题 */
+.mnav-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+}
+.mnav-back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-title);
+}
+.mnav-back:active { opacity: 0.5; }
+.mnav-chevron {
+  width: var(--cy-legacy-22);
+  height: var(--cy-legacy-22);
+  border-left: 4rpx solid currentColor;
+  border-bottom: 4rpx solid currentColor;
+  border-radius: 2rpx;
+  transform: rotate(45deg);
+}
+.mnav-title {
+  max-width: 60%;
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ============================================================
+ * 系统深色模式镜像(2026-08-22)—— 与 tokens.wxss 的深色块同源。
+ * 本文件是 page{} 机制的镜像(WXSS 无 mixin,逃不掉),所以深色也得镜像一份;
+ * 键集与值由 scripts/ds-theme-sync-check.sh 锁一致,勿单独手改。
+ * ============================================================ */
+@media (prefers-color-scheme: dark) {
+  page {
+    --cy-color-bg-page: #000000;
+    --cy-color-bg-surface: #0A0A0B;
+    --cy-comp-modal-panel: var(--cy-color-bg-surface);   /* 镜像 page{} 新增键(cy-toast/cy-loading-mask 面板) */
+    --cy-color-bg-surface-subtle: #141416;
+    --cy-color-bg-elevated: #1C1C1E;
+    --cy-color-bg-surface-strong: #3B3B3D;
+    --cy-color-bg-raised: #2A2A2C;
+    --cy-color-bg-glass: rgba(28,28,30,.82);
+    --cy-color-text-primary: #F8F8F8;
+    --cy-color-text-secondary: #B7B7B7;
+    --cy-color-text-tertiary: #919191;
+    --cy-color-text-placeholder: #868686;
+    --cy-color-text-disabled: rgba(255,255,255,.40);
+    --cy-color-text-inverse: #0A0A0A;
+    /* 2026-09-03:系统深色下同 page{} —— 空亮填暗 */
+    --cy-color-input-idle-bg: #3B3B3D;
+    --cy-color-input-filled-bg: #1C1C1E;
+  --cy-color-input-text: #F2F2F4;
+    --cy-color-input-filled-fg: #F2F2F4;
+    --cy-color-input-placeholder: #A3A3A5;
+    --cy-comp-search-idle-bg: var(--cy-color-input-idle-bg);
+    --cy-comp-search-filled-bg: var(--cy-color-input-filled-bg);
+    --cy-comp-search-filled-fg: var(--cy-color-input-filled-fg);
+    --cy-comp-search-placeholder: var(--cy-color-input-placeholder);
+    --cy-color-border-subtle: rgba(255,255,255,.08);
+    --cy-comp-nav-bg: var(--cy-color-bg-page);
+    --cy-comp-nav-border: transparent;
+    --cy-comp-card-highlight: rgba(255,255,255,.08);
+    --cy-comp-card-shadow-day: 0 0 0 0 transparent;
+    --cy-comp-card-border: transparent;
+    --cy-comp-cell-fill-bg: var(--cy-color-bg-surface-subtle);
+    --cy-comp-sheet-bg: var(--cy-color-bg-glass);
+    --cy-comp-sheet-role-glass: var(--cy-comp-sheet-player-glass);
+    --cy-comp-sheet-role-page: var(--cy-comp-sheet-player-page);
+    --cy-comp-sheet-role-surface: var(--cy-comp-sheet-player-surface);
+    --cy-comp-sheet-role-card: var(--cy-comp-sheet-player-card);
+    --cy-comp-sheet-role-elevated: var(--cy-comp-sheet-player-elevated);
+    --cy-comp-sheet-role-text: var(--cy-comp-sheet-player-text);
+    --cy-comp-sheet-role-text-secondary: var(--cy-comp-sheet-player-text-secondary);
+    --cy-comp-sheet-role-muted: var(--cy-comp-sheet-player-muted);
+    --cy-comp-sheet-role-action-secondary: var(--cy-comp-sheet-player-action-secondary);
+    --cy-comp-sheet-role-divider: var(--cy-comp-sheet-player-divider);
+    --cy-comp-sheet-role-border-strong: var(--cy-comp-sheet-player-border-strong);
+    --cy-comp-sheet-role-btn-bg: var(--cy-comp-sheet-player-text);
+    --cy-comp-sheet-role-btn-fg: var(--cy-comp-sheet-player-page);
+    --cy-comp-sheet-role-card-shadow: 0 0 0 0 transparent;
+    --cy-text-title: var(--cy-color-text-primary);
+    --cy-text-secondary: var(--cy-color-text-tertiary);
+    --cy-color-border-strong: rgba(255,255,255,.16);
+    --cy-color-sheet-handle: #5A5A5A;
+    --cy-color-result-fail-badge: #F94D5C;
+    --cy-color-state-pressed: rgba(255,255,255,.10);
+    --cy-color-overlay: rgba(0,0,0,.56);
+    --cy-color-action-primary-bg: #F8F8F8;
+    --cy-color-action-primary-fg: #0A0A0A;
+    --cy-color-action-secondary-bg: rgba(255,255,255,.08);
+    --cy-color-action-danger-bg: var(--cy-ref-red-700);
+    --cy-color-action-danger-fg: #FFFFFF;
+    --cy-color-selection: var(--cy-color-text-primary);
+    --cy-color-brand: var(--cy-color-text-primary);
+    --cy-color-brand-strong: var(--cy-color-text-secondary);
+    --cy-color-brand-soft: rgba(248,248,248,.12);
+    --cy-color-status-success: #12B886;
+    --cy-color-status-warning: #D58300;
+    --cy-color-status-danger: #E5484D;
+    --cy-color-status-info: var(--cy-ref-blue-400);
+    --cy-color-status-danger-soft: rgba(229,72,77,.14);
+    --cy-color-status-success-soft: rgba(18,184,134,.14);
+    --cy-color-status-warning-soft: rgba(213,131,0,.18);
+    --cy-color-status-info-soft: rgba(76,134,255,.14);
+    --cy-color-skeleton-base: #191919;
+    --cy-color-skeleton-highlight: #242424;
+    --cy-color-bg-interactive:                        #4D4D4D;
+    --cy-color-status-danger-on-interactive:          #FF3B4F;
+    --cy-color-medal-gold:                            #FFCB3C;
+    --cy-color-medal-silver:                          #D6D6D6;
+    --cy-color-medal-bronze:                          #F58C41;
+    --cy-color-skeleton-on-sheet:                     #303038;
+    /* 模板页紫面 —— 系统深色下回到真源(tokens.wxss page{})的玩家夜值,
+       与上面浅色块那 6 档配对;缺了会「一半变深一半还浅」。 */
+    --cy-color-panel-accent-top: #5B2A9D;
+    --cy-color-panel-accent-mid: #341A55;
+    --cy-color-panel-accent-deep: #180E24;
+    --cy-color-panel-accent-base: #0B0810;
+    --cy-color-glow-sweep: #FFFFFF;
+    --cy-color-glow-sweep-soft: #EFEDFA;
+    --cy-bg-subtle: rgba(255,255,255,0.04);
+    --cy-white-4: rgba(255,255,255,0.04);
+    --cy-white-64: rgba(255,255,255,0.64);
+    --cy-price: #FFFFFF;
+    --cy-shadow-card: none;
+    --cy-brand: var(--cy-color-brand);
+    --cy-brand-soft: var(--cy-color-brand-soft);
+    --cy-accent: var(--cy-color-brand);
+    --cy-accent-strong: var(--cy-color-brand-strong);
+    --cy-accent-soft: var(--cy-color-brand-soft);
+    --cy-bg-accent-weak: var(--cy-color-brand-soft);
+    --cy-btn-h: 88rpx;
+    --cy-btn-pad-x: 40rpx;
+    --cy-font-body: var(--cy-type-body);
+    --cy-radius-md: 24rpx;
+  }
+
+  /* 日间用 brightness(0) 把浅色资源压黑；暗态导航恢复原白，快捷图标则统一转白。 */
+  .merchant-nav-icon,
+  .nav-back {
+    filter: none;
+    opacity: 0.84;
+  }
+
+  .rv-hero-bell-ico,
+  .rv-action-ico,
+  .rv-more-ico {
+    filter: brightness(0) invert(1);
+    opacity: 0.88;
+  }
+}

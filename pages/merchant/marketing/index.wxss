@@ -1,0 +1,358 @@
+@import '../../../style/merchant-light.wxss';
+
+/* 2026-08-25 改版(参考 X Money 首页的做法):
+   ① 灰字只给「次级标签」。入口名、区标题、数值一律纯黑 —— 原来满页灰字。
+   ② 磁贴圆角走 --cy-radius-xl(20px),不是 lg(16px)。
+   ③ 全页只有券卡一块深色。它是唯一的强对比,别再往别处加深色块稀释它。
+   ⑤ 色/字一律读 ① 语义层 --cy-color-* / --cy-type-*,不读 ② 旧名 alias
+      (tokens.wxss:16 的约定;② 层注明「一版后删」)。
+      ⚠ --cy-text-secondary 映射的是 text-tertiary 不是 text-secondary,迁移时别顺手写错。
+   ④ 底色跟商家版其它 11 个页面一致(--cy-bg-page),不单开白底 ——
+      中间试过「白底 + 浅灰磁贴」(照抄参考的表面关系),但那会让营销 tab 跟
+      工作台/关系/资料等页明显不是一套,一致性优先。磁贴回到白卡。 */
+.page {
+  min-height: 100vh;
+  background: var(--cy-color-bg-page);
+}
+
+/* D-2:顶栏底色 = 页面底色(.mnav),去掉分隔线 —— tab 条与内容之间不留任何边界 */
+.nav {
+  padding: var(--cy-space-2) var(--cy-page-x) var(--cy-space-1);
+}
+
+/* D-5:一级标题度量走共享 .m-h1(左对齐/L1/黑/700),这里只留位置 */
+.nav-title {
+  padding-top: var(--cy-space-2);
+  /* 2026-07-31:用户点名"营销"标题需要更大,页面内单独放大,不动共享 .m-h1 */
+  font-size: var(--cy-type-display);
+}
+
+.body {
+  padding: 0 var(--cy-page-x) var(--cy-tabbar-h);
+}
+
+/* 入口/身份失败的内联错误(替代原整屏闸);下面 hero 自带 padding,这里只要底距 */
+.m-inline-error {
+  display: block;
+  margin-top: var(--cy-space-3);
+}
+
+/* ===== Hero:全页唯一的主角数字 ===== */
+.hero {
+  padding: var(--cy-space-2) 0 var(--cy-space-5);
+}
+
+.hero-label {
+  display: block;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-tertiary);
+}
+
+.hero-value {
+  display: block;
+  margin-top: var(--cy-space-1);
+  /* 与 nav 标题(--cy-type-display 56rpx)必须拉开:两个大字只差几 px 会互相打架 */
+  font-size: var(--cy-type-data-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -2rpx;
+  color: var(--cy-color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-sub {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* ===== 工具入口 4-up ===== */
+.tiles {
+  display: flex;
+  gap: var(--cy-space-2);
+}
+
+.tile {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 156rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1-5);
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-xl);
+}
+.tile--tap { opacity: 0.88; }
+
+.tile-ico { color: var(--cy-color-text-primary); }
+
+.tile-label {
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+}
+
+/* ===== 区标题 ===== */
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: var(--cy-space-5) 0 var(--cy-space-2-5);
+}
+
+.sec-title {
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+
+.sec-more {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* 区标题右侧的可点入口:文字 + 真图标箭头,不用字符 › 冒充 */
+.sec-link {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+}
+.sec-link--tap { opacity: 0.6; }
+
+.sec-link-txt {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+
+.sec-link-ico { color: var(--cy-color-text-tertiary); }
+
+/* ===== 我的内容:3-up 数字磁贴 =====
+   数量是这块唯一的信息,让数字自己当图形;零内容时数字位换成「+」,
+   点进去本来就是直达创建页(goMyContent 现码行为)。 */
+.mine {
+  display: flex;
+  gap: var(--cy-space-2);
+}
+
+.mine-tile {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 200rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--cy-space-3) var(--cy-space-2-5) var(--cy-space-3) var(--cy-space-3);
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-xl);
+}
+.mine-tap { opacity: 0.7; }
+
+.mine-num {
+  font-size: var(--cy-type-display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -1rpx;
+  color: var(--cy-color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.mine-label {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* ===== 优惠券卡堆 ===== */
+.deck { position: relative; }
+.deck--g1 { padding-top: 22rpx; }
+.deck--g2 { padding-top: 44rpx; }
+.deck-tap { opacity: 0.9; }
+
+/* 影卡 = 同一块黑降透明度。用一个 token 表达「同一叠卡,后面的更远」,
+   比借用两个语义不对的灰色 token 干净。 */
+.deck-ghost {
+  position: absolute;
+  top: 0;
+  height: 200rpx;
+  border-radius: var(--cy-radius-xl);
+  background: var(--cy-color-action-primary-bg);
+}
+.deck-ghost--1 { left: 26rpx; right: 26rpx; opacity: 0.55; }
+.deck-ghost--2 { left: 52rpx; right: 52rpx; opacity: 0.28; }
+.deck--g2 .deck-ghost--1 { top: 22rpx; }
+
+.deck-card {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  min-height: 200rpx;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--cy-space-1-5);
+  padding: var(--cy-space-3-5) var(--cy-space-4);
+  border-radius: var(--cy-radius-xl);
+  background: var(--cy-color-action-primary-bg);
+}
+
+/* 卡面斜纹肌理:参考里那张卡的质感来自几根极细的斜向亮线,不是靠颜色堆的。
+   ::before 先于其它子节点绘制,文字照样压在它上面。 */
+.deck-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(115deg, rgba(255,255,255,0) 0, rgba(255,255,255,0) 104rpx, rgba(255,255,255,0.055) 104rpx, rgba(255,255,255,0.055) 105rpx); /* ds-ok 装饰肌理,深色卡面无对应页面层 token */
+}
+
+/* 描边胶囊而不是实心白块 —— 实心压在卡上太重 */
+.deck-chip {
+  align-self: flex-start;
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border: 1rpx solid rgba(255,255,255,0.42); /* ds-ok 深色卡面上的描边,无对应页面层 token */
+  border-radius: var(--cy-radius-pill);
+}
+
+.deck-chip-txt {
+  font-size: var(--cy-type-caption);
+  font-weight: 500;
+  color: var(--cy-color-text-inverse);
+}
+
+.deck-title {
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--cy-color-text-inverse);
+}
+
+.deck-sub {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-inverse);
+  opacity: 0.62;
+}
+
+/* ===== 合作机会:整块图 ===== */
+.coop {
+  position: relative;
+  height: 344rpx;
+  overflow: hidden;
+  border-radius: var(--cy-radius-xl);
+}
+.coop--tap { opacity: 0.92; }
+
+.coop-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 只压下半张:上半留亮,人和店铺环境要看得见,整块压暗等于白拍。 */
+.coop-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.06) 34%, rgba(0,0,0,0.40) 66%, rgba(0,0,0,0.80) 100%); /* ds-ok 压图蒙版,scrim 只有组件层 token,页面禁读 */
+}
+
+.coop-chip {
+  position: absolute;
+  left: var(--cy-space-4);
+  top: var(--cy-space-4);
+  padding: var(--cy-space-1) var(--cy-space-2-5);
+  border: 1rpx solid rgba(255,255,255,0.55); /* ds-ok 压图描边,无对应页面层 token */
+  border-radius: var(--cy-radius-pill);
+}
+
+.coop-chip-txt {
+  font-size: var(--cy-type-caption);
+  font-weight: 500;
+  color: var(--cy-color-text-inverse);
+}
+
+.coop-copy {
+  position: absolute;
+  left: var(--cy-space-4);
+  bottom: var(--cy-space-4);
+  right: 140rpx;
+}
+
+.coop-title {
+  display: block;
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--cy-color-text-inverse);
+}
+
+.coop-sub {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-inverse);
+  opacity: 0.85;
+}
+
+/* 这一颗才让整块图读成「入口」而不是海报 */
+.coop-btn {
+  position: absolute;
+  right: var(--cy-space-4);
+  bottom: var(--cy-space-4);
+  width: 76rpx;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface);
+  color: var(--cy-color-text-primary);
+}
+
+/* ===== 同步/降级条 ===== */
+.marketing-sync {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-2-5);
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+}
+
+.marketing-sync-rail {
+  flex-shrink: 0;
+  width: 32rpx;
+  height: 6rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-text-primary);
+  opacity: 0.72;
+}
+
+.marketing-sync-text {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+
+.stats--hint {
+  --cy-comp-card-pad: var(--cy-space-3-5) var(--cy-space-3);
+  min-height: 144rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.stats-hint-title {
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+.stats-hint-sub {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}

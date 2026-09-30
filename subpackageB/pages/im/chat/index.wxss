@@ -1,0 +1,255 @@
+/* 底色跟 cy-nav-bar 同一枚 token(--cy-comp-nav-bg → --cy-color-bg-page),
+   否则顶栏与正文(旧 bg-card 别名比 bg-page 浅一档)在顶栏下缘接出一条色带。 */
+page { background: var(--cy-bg-page); }
+.im-chat { min-height: 100vh; background: var(--cy-bg-page); }
+
+/* min-width 保住触达区≥88rpx,但不强撑成正方形——「详情」两个汉字+左右 padding 比 88rpx 宽,
+   固定 width:88rpx 会把文字挤到换行(automator 截图实测踩到,故显式 min-width + auto 宽) */
+.hd-info-hit { min-width: 88rpx; height: 88rpx; display: flex; align-items: center; justify-content: center; }
+/* 「详情」药丸(对齐 Airbnb Details 按钮):浅底胶囊,onMore() 弹「举报/拉黑/清空聊天」菜单 */
+.hd-details {
+  height: 56rpx;
+  padding: 0 24rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-label);
+  font-weight: 700;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 顶栏下方 hero 区:居中头像 + 名字 + (群聊)人数副标题,取代原群聊专属 grp-bar(信息并入同一处) */
+.chat-hero {
+  position: fixed;
+  left: 0; right: 0;
+  z-index: 19;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx var(--cy-page-x) var(--cy-space-2-5);
+  box-sizing: border-box;
+  background: var(--cy-color-bg-surface);
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.hero-name {
+  max-width: 500rpx;
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 消息流 */
+.msgs { position: fixed; left: 0; right: 0; }
+.load-more { min-height: 88rpx; display: flex; align-items: center; justify-content: center; padding: 0; color: var(--cy-color-status-info); font-size: var(--cy-font-label); }
+.load-more-error { display: block; margin: var(--cy-space-2) var(--cy-page-x); }
+.time-div { text-align: center; color: var(--cy-text-secondary); font-size: var(--cy-font-label); margin: 24rpx 0 var(--cy-space-1-5); }
+.chat-empty { padding: 260rpx var(--cy-legacy-72) 0; } /* ds-ok: 空态整屏居中前的顶部留白，把空态往屏幕中段压 */
+
+.row { display: flex; align-items: flex-start; padding: 8rpx var(--cy-page-x); }
+.row.left { justify-content: flex-start; }
+.row.right { justify-content: flex-end; }
+.row-avatar { width: 64rpx; height: 64rpx; border-radius: 50%; flex-shrink: 0; background: var(--cy-bg-page); }
+.row.left .row-avatar { margin-right: 16rpx; }
+
+.bubble { max-width: 480rpx; padding: var(--cy-space-2-5) 24rpx; font-size: var(--cy-font-body); line-height: var(--cy-leading-normal); word-break: break-all; }
+/* P0 修复:原 #ECECEE(ds-ok:仅注释历史值,非实际取值) 硬编码浅灰底 + 深色主题近白字 = 1.10:1,对方消息基本不可见。
+   改 bg-elevated → 16.81:1。DS §10.4:新样式只用 --cy-color-* 语义 token。 */
+.bubble.other { background: var(--cy-color-bg-elevated); color: var(--cy-color-text-primary); border-radius: 8rpx 28rpx 28rpx 28rpx; } /* ds-ok: 气泡尾角既有值未改动,DS 无对应 radius token */
+.bubble-wrap { display: flex; flex-direction: column; align-items: flex-start; }
+.bubble-wrap--self { align-items: flex-end; }
+.sender-name { font-size: var(--cy-font-caption); color: var(--cy-color-text-secondary); margin: 0 0 var(--cy-legacy-6) 8rpx; }
+/* 自己一侧的行内时间(对齐 Airbnb:贴气泡正上方、右对齐),复用 sender-name 同款 caption 字阶 */
+.msg-time { font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); margin: 0 8rpx var(--cy-legacy-6); }
+/* DS §2.1:主 CTA/主体 = 黑/白反色中性,不是紫;紫只给选中 tab / 进度条 / 稀有徽章。
+   原大面积紫气泡违反「紫不做大面积」。改 action-primary → 18.64:1。 */
+.bubble.me { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); border-radius: 28rpx 8rpx 28rpx 28rpx; } /* ds-ok: 气泡尾角既有值未改动,DS 无对应 radius token */
+.bubble.me.failed { opacity: 0.7; }
+.b-img { width: 320rpx; border-radius: 16rpx; display: block; }
+
+.sending { width: var(--cy-space-3-5); height: var(--cy-space-3-5); border-radius: 50%; border: 3rpx solid var(--cy-border-line); border-top-color: var(--cy-text-secondary); align-self: center; margin: 0 var(--cy-space-1-5); }
+/* 重发唯一入口,触达区补到 88rpx(=44pt)。 */
+.fail-hit { width: 88rpx; height: 88rpx; display: flex; align-items: center; justify-content: center; align-self: center; }
+.fail-icon { color: var(--cy-danger); }
+
+/* 系统卡片。DS §3:暗底阴影 none,圆角 md 24rpx;对齐 .rcard 的新卡片系统 token */
+.card { margin: var(--cy-space-1-5) var(--cy-page-x); max-width: 480rpx; overflow: hidden; --cy-comp-card-pad: 0; --cy-comp-card-radius: var(--cy-radius-md); }
+.card-hd { display: flex; align-items: center; padding: var(--cy-space-3); }
+.card-icon { width: var(--cy-space-7); height: var(--cy-space-7); border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-status-info); flex-shrink: 0; margin-right: var(--cy-space-2-5); display: flex; align-items: center; justify-content: center; }
+.card-title { font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title); }
+.card-sub { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-6); }
+.card-meta { padding: 0 var(--cy-space-3) var(--cy-space-2-5); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.card-btns { display: flex; border-top: 1rpx solid var(--cy-border-line); }
+.card-btn { flex: 1; text-align: center; padding: var(--cy-space-3) 0; font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-color-status-info); }
+.card-btn.reject { color: var(--cy-danger); border-right: 1rpx solid var(--cy-border-line); }
+
+/* 禁用态 */
+.disabled-tip { position: fixed; left: 0; right: 0; text-align: center; padding: var(--cy-space-1-5); font-size: var(--cy-font-label); color: var(--cy-text-secondary); background: var(--cy-bg-page); }
+
+/* 输入栏 */
+.input-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; align-items: center; gap: 16rpx; padding: 16rpx var(--cy-page-x); background: var(--cy-bg-card); border-top: 1rpx solid var(--cy-border-line); }
+.plus { width: 88rpx; height: 88rpx; border-radius: 50%; background: var(--cy-bg-page); color: var(--cy-text-secondary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* 输入框:大圆角矩形(对齐 Airbnb,原为全 pill 999rpx),发送键收进框内右侧 */
+.inp-wrap { position: relative; flex: 1; height: 88rpx; }
+.inp { width: 100%; height: 88rpx; box-sizing: border-box; background: var(--cy-bg-page); border-radius: var(--cy-radius-lg); padding: 0 96rpx 0 var(--cy-space-3-5); font-size: var(--cy-font-body); color: var(--cy-text-title); }
+/* 发送键热区(≥88rpx)覆在输入框内右侧;视觉圆 72rpx 居中于热区内 */
+.send-hit { position: absolute; right: 0; top: 0; width: 88rpx; height: 88rpx; display: flex; align-items: center; justify-content: center; }
+.send-circle { width: var(--cy-legacy-72); height: var(--cy-legacy-72); border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-tertiary); display: flex; align-items: center; justify-content: center; }
+.send-circle.active { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+.send-circle.busy { opacity: 0.6; }
+/* 可见禁用态:非 ready(缺参/失败/加载中)时输入栏不能看起来像能发消息。
+   行为层已由 input disabled + _canSend() 闸死,这里只负责"看起来就点不动"。 */
+.input-bar--off { opacity: 0.45; }
+.input-bar--off .send-circle { background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-tertiary); }
+/* CU-C-120:只读会话(系统通知)不给输入控件,同一位置只放一句说明。
+   栏高仍取 88rpx:滚动区的让位量按 inputH 算,换成更矮的条会让消息流压住这行。 */
+.input-notice { flex: 1; height: 88rpx; display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+/* 富消息卡(location / route)。DS §3:圆角 md 24rpx、暗底阴影 none;
+   §10.4:新样式只用 --cy-color-* 语义 token。
+   width(非只 max-width):卡片进 .row > .bubble-wrap 前是普通 block,天然「填满容器、上限 max-width」;
+   进了 .bubble-wrap(column flex,align-items:flex-start)后变成 shrink-to-fit 的 flex item,
+   宽度改由子元素内容(如标题文字)反算,实测会整卡收缩到远小于 480rpx(如仅 ~220rpx),
+   .rcard-img 16:9 也因此失真。显式给 width 把「填满至上限」的原语义找回来,不是新增行为。 */
+.rcard {
+  margin: var(--cy-space-1-5) 0;
+  width: 480rpx;
+  max-width: 480rpx;
+  overflow: hidden;
+  --cy-comp-card-pad: 0;
+  --cy-comp-card-radius: var(--cy-radius-md);
+}
+.rcard-row { display: flex; align-items: center; padding: var(--cy-space-3); }
+.rcard-tt { flex: 1; min-width: 0; padding: var(--cy-space-2-5) var(--cy-space-3); }
+.rcard-row .rcard-tt { padding: 0; }
+.rcard-title {
+  font-size: var(--cy-font-card-title, var(--cy-font-subtitle));
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rcard-sub {
+  font-size: var(--cy-font-label);
+  color: var(--cy-color-text-tertiary);
+  margin-top: var(--cy-legacy-6);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rcard-foot {
+  padding: 0 var(--cy-space-3);
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+  font-size: var(--cy-font-label);
+  font-weight: 700;
+  color: var(--cy-color-status-info);   /* DS §2.1:蓝 = 链接/信息 */
+}
+/* 报名卡的「报名成功」标记条(DS §2.1:绿 = 成功语义) */
+.rcard-flag {
+  padding: var(--cy-space-1-5) var(--cy-space-3);
+  font-size: var(--cy-font-label);
+  font-weight: 700;
+  color: var(--cy-color-status-success);
+  background: var(--cy-color-status-success-soft);
+}
+
+/* 路线卡主题图 16:9。卡片进 .row 后让出头像宽度,固定 240rpx 高在变窄的卡宽下已不是 16:9。
+   本应改 aspect-ratio 让图随卡宽自适应,但实测(automator 量得 .rcard-img 在 249px 宽时仍渲染
+   高 240px,而非 16:9 应有的 ~140px)此小程序基础库环境下 aspect-ratio 不可靠,故退回固定高、
+   按实测卡宽(约 480rpx,恰好顶到 max-width)重算 16:9 比例值(480 * 9/16 = 270rpx)。
+   --ph/--loading 均与本类同挂在同一元素上,随基类一起变,占位/骨架/真图三态高度天然一致。 */
+.rcard-img {
+  display: block;
+  width: 100%;
+  height: 270rpx;
+  background: var(--cy-color-bg-surface-subtle);
+}
+/* 降级态占位(主题已下架) */
+.rcard-img--ph { background: var(--cy-color-bg-surface-subtle); }
+
+/* CU-C-121:主题存在但没封面图 —— 与"已下架"不同,这里要说得出缺的是什么。 */
+.rcard-img--nocover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1);
+  box-sizing: border-box;
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+}
+.rcard-nocover-icon { width: 96rpx; height: 72rpx; flex: 0 0 auto; }
+.rcard-nocover-txt { font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal); }
+
+/* 加载态骨架(DS §5:禁裸文字「加载中」;shimmer 用既有 skeleton token,不与降级态共用样式)。
+   cy-skeleton 组件的 card/list type 自带 padding 且按 count 复数渲染,套不进单张卡片的 16:9 图+两行文,
+   故沿用 cy-skeleton 同款 shimmer 手法(渐变横移)在本页内联实现。 */
+.rcard-img--loading {
+  background: linear-gradient(90deg, var(--cy-color-skeleton-base) 25%, var(--cy-color-skeleton-highlight) 37%, var(--cy-color-skeleton-base) 63%);
+  background-size: 400% 100%;
+  animation: rcard-shimmer 1.4s var(--cy-ease) infinite;
+}
+.rcard-sk-line {
+  height: 24rpx;
+  border-radius: var(--cy-radius-sm);
+  background: linear-gradient(90deg, var(--cy-color-skeleton-base) 25%, var(--cy-color-skeleton-highlight) 37%, var(--cy-color-skeleton-base) 63%);
+  background-size: 400% 100%;
+  animation: rcard-shimmer 1.4s var(--cy-ease) infinite;
+}
+.rcard-sk-line--title { width: 60%; height: 51rpx; }
+.rcard-sk-line--sub { width: 35%; height: 38rpx; margin-top: var(--cy-legacy-6); }
+@keyframes rcard-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* 位置卡使用统一图标库。 */
+.location-icon {
+  flex-shrink: 0;
+  width: 48rpx; height: 48rpx;
+  margin-right: var(--cy-space-2-5);
+  color: var(--cy-color-status-info);
+}
+
+/* 路线选择器 */
+.route-picker { max-height: 640rpx; }
+.route-item {
+  display: flex;
+  align-items: center;
+  padding: var(--cy-space-2-5) 0;
+  border-bottom: 1rpx solid var(--cy-color-border-subtle);
+}
+.route-item-img {
+  width: 120rpx; height: 90rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-subtle);
+  flex-shrink: 0;
+  margin-right: var(--cy-space-2-5);
+}
+.route-item-tt { flex: 1; min-width: 0; }
+.route-item-name {
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.route-item-sub {
+  font-size: var(--cy-font-label);
+  color: var(--cy-color-text-tertiary);
+  margin-top: var(--cy-legacy-4);
+}
+
+.review-result {
+  padding: var(--cy-space-3);
+  font-size: var(--cy-font-body);
+  color: var(--cy-color-text-primary);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.review-result view + view { margin-top: var(--cy-space-3); }

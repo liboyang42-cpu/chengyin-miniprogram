@@ -1,0 +1,226 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-compass · 罗盘指向(原型真源:模板编辑页 v2 · playkit compass) */
+.cp {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40rpx;                                                       /* ds-ok 原型 20px */
+  padding: 112rpx 56rpx 68rpx;                                      /* ds-ok 原型 56px 28px 34px */
+  text-align: center;
+}
+
+/* 盘面:整圈代表「手机现在对着的方向」。底色比皮肤略亮一档,让针有参照 */
+.cp__dial {
+  position: relative;
+  width: 560rpx;                                                    /* ds-ok 原型 280px */
+  height: 560rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(240, 236, 229, .22);                      /* ds-ok 盘面描边 */
+  margin: 24rpx 0;                                                  /* ds-ok 给盘外的对准线与保持环让位 */
+  background: radial-gradient(circle, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 68%); /* ds-ok */
+}
+/* 持续量走 transition 不走 keyframes(契约 §6.1 关键帧只减不增):
+   罗盘事件约十帧一秒,0.16s 线性刚好接住两帧之间的空档 */
+.cp__arrow {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  transition: transform .16s linear;
+}
+/* 减动效不滑针:针直接跳到该在的位置,方向信息本身不能跟着被减掉 */
+.cp--rm .cp__arrow { transition: none; }
+
+.cp__head {
+  position: absolute;
+  top: 84rpx;                                                       /* ds-ok 让出外圈刻度与度数 */
+  left: 50%;
+  margin-left: -26rpx;                                              /* ds-ok 半宽 */
+  width: 0;
+  height: 0;
+  border-left: 26rpx solid transparent;
+  border-right: 26rpx solid transparent;
+  border-bottom: 72rpx solid #ff6b6b;                               /* ds-ok 目标针:红=要转去的方向 */
+  transition: border-bottom-color var(--cy-dur-fast) linear;
+}
+.cp__spoke {
+  position: absolute;
+  top: 156rpx;                                                      /* ds-ok 针头之下 */
+  left: 50%;
+  width: 6rpx;
+  height: 112rpx;                                                   /* ds-ok 接到轴心 */
+  margin-left: -3rpx;
+  background: rgba(255, 107, 107, .5);                              /* ds-ok */
+  transition: background var(--cy-dur-fast) linear;
+}
+/* 对准容差区:针整根转绿 —— 人只需要知道「进区了没有」,颜色够说清 */
+.cp--on .cp__head { border-bottom-color: #3ecf8e; }                 /* ds-ok 对准绿 */
+.cp--on .cp__spoke { background: rgba(62, 207, 142, .5); }          /* ds-ok */
+.cp__hub {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 24rpx; height: 24rpx;                                      /* ds-ok 轴心 12px */
+  margin: -12rpx 0 0 -12rpx;
+  border-radius: 50%;
+  background: #f0ece5;                                              /* ds-ok */
+}
+
+.cp__n {
+  font-size: var(--cy-play-display-2xl);
+  line-height: 1;
+  letter-spacing: -4rpx;                                            /* ds-ok 原型 -2px */
+  color: #f0ece5;                                                   /* ds-ok */
+  transition: color var(--cy-dur-fast) linear;
+}
+.cp--on .cp__n { color: #3ecf8e; }                                  /* ds-ok 对准绿 */
+
+.cp__hold {
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+  color: #3ecf8e;                                                   /* ds-ok */
+}
+.cp__s { max-width: 24em; }
+
+.cp__b {
+  width: 100%;
+  height: 104rpx;                                                   /* ds-ok 原型 52px */
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 52rpx;                                             /* ds-ok 原型 26px */
+  background: #FFF;                                                 /* ds-ok 玩法屏主按钮统一白,同 .g-btn */
+  color: #111114;                                                   /* ds-ok 同上 */
+  box-shadow: inset 0 0 0 2rpx rgba(0, 0, 0, .10), 0 16rpx 40rpx rgba(0, 0, 0, .14); /* ds-ok 同 .g-btn */
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+}
+.cp__b--press { opacity: .88; }
+
+.cp__safe {
+  font-size: var(--cy-type-label);
+  color: #f0ece5;                                                   /* ds-ok */
+  opacity: .55;
+}
+
+/* 刻度尺:整盘跟着朝向反转,顶上永远是手机正对的方向。每 5° 一格,30° 长刻度 + 度数 */
+.cp__rose {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  transition: transform .16s linear;                                /* ds-ok 同针,接住两帧间隔 */
+}
+.cp--rm .cp__rose { transition: none; }
+.cp__tick {
+  position: absolute;
+  left: 50%;
+  top: 6rpx;                                                        /* ds-ok 贴盘面内沿 */
+  width: 2rpx;
+  height: 12rpx;                                                    /* ds-ok 短刻度 */
+  margin-left: -1rpx;
+  transform-origin: 1rpx 274rpx;                                    /* ds-ok 盘心(半径 280 - top 6) */
+  background: rgba(240, 236, 229, .28);                             /* ds-ok */
+}
+.cp__tick--major {
+  width: 4rpx;
+  height: 22rpx;                                                    /* ds-ok 长刻度 */
+  margin-left: -2rpx;
+  transform-origin: 2rpx 274rpx;                                    /* ds-ok */
+  background: rgba(240, 236, 229, .6);                              /* ds-ok */
+}
+.cp__lbl {
+  position: absolute;
+  left: 50%;
+  top: 34rpx;                                                       /* ds-ok 长刻度之内 */
+  width: 72rpx;
+  height: 246rpx;                                                   /* ds-ok 到盘心 */
+  margin-left: -36rpx;
+  transform-origin: 36rpx 246rpx;                                   /* ds-ok */
+  text-align: center;
+}
+.cp__lbl-t {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-caption);
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(240, 236, 229, .5);                                   /* ds-ok */
+}
+.cp__lbl-t--card { font-size: var(--cy-type-body); font-weight: 800; color: rgba(240, 236, 229, .85); } /* ds-ok */
+.cp__lbl-t--n { color: #ff6b6b; }                                   /* ds-ok 北=针红,同一套读法 */
+
+/* 对准线:钉在屏幕正上方不转。红针转到这根线下就是对准 */
+.cp__lubber {
+  position: absolute;
+  left: 50%;
+  top: -20rpx;                                                      /* ds-ok 探出盘外 */
+  width: 6rpx;
+  height: 44rpx;                                                    /* ds-ok */
+  margin-left: -3rpx;
+  border-radius: var(--cy-radius-pill);
+  z-index: 2;
+  background: #f0ece5;                                              /* ds-ok */
+}
+/* 容差区:对准线两侧 ±tolerance,一根根短棒排在盘外沿,固定不转 */
+.cp__zone {
+  position: absolute;
+  left: 50%;
+  top: -18rpx;                                                      /* ds-ok 盘外沿 */
+  width: 6rpx;
+  height: 12rpx;                                                    /* ds-ok */
+  margin-left: -3rpx;
+  border-radius: var(--cy-radius-pill);
+  transform-origin: 3rpx 298rpx;                                    /* ds-ok 盘心(280 + 18) */
+  background: #3ecf8e;                                              /* ds-ok 对准绿 */
+}
+/* 保持进度环:套在盘外,640 见方 */
+.cp__ring {
+  position: absolute;
+  left: -40rpx;                                                     /* ds-ok (640 - 560) / 2 */
+  top: -40rpx;
+}
+
+.cp__how {
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  line-height: 1.6;
+  color: #f0ece5;                                                   /* ds-ok */
+  opacity: .85;
+}
+.cp__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 16rpx;
+  max-width: 100%;
+  padding: 16rpx 28rpx;
+  border-radius: var(--cy-radius-md);
+  font-size: var(--cy-type-label);
+  line-height: 1.5;
+  color: #cfc9bf;                                                   /* ds-ok */
+  background: rgba(255, 255, 255, .07);                             /* ds-ok */
+  text-align: left;
+}
+.cp__hint-k {
+  flex: none;
+  font-size: var(--cy-type-caption);
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: #8a857d;                                                   /* ds-ok */
+}
+.cp__acc {
+  max-width: 24em;
+  font-size: var(--cy-type-label);
+  line-height: 1.6;
+  color: #f5b95f;                                                   /* ds-ok 提醒黄:不是错,是读数不可信 */
+}
+
+/* 已对准:完成态标签,不是按钮 —— 灰胶囊读起来像「按不动」 */
+.cp__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 16rpx;
+  height: 104rpx;                                                   /* ds-ok 与开始按钮同高 */
+  padding: 0 44rpx;
+  border-radius: var(--cy-radius-pill);
+  box-shadow: inset 0 0 0 3rpx rgba(62, 207, 142, .6);              /* ds-ok */
+  color: #3ecf8e;                                                   /* ds-ok 对准绿 */
+  font-size: var(--cy-type-button);
+  font-weight: 800;
+}

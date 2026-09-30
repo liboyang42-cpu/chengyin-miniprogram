@@ -1,0 +1,24 @@
+.frag-mask { position: fixed; inset: 0; background: rgba(6,4,12,.72); z-index: var(--cy-z-celebrate); /* T9 庆祝层;深紫黑遮罩为庆祝特调 ds-ok */
+  display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .2s; }
+.frag-mask--on { opacity: 1; }
+.frag-card { width: 560rpx; padding: 56rpx 44rpx; border-radius: 20rpx;
+  background: linear-gradient(160deg,#efe6d6,#e2d5bf); color: #3a2f26;
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,.5); transform: rotateY(90deg); transition: transform .18s ease-out; }
+.frag-card--flip { transform: rotateY(0deg); }
+/* M10 碎片飞入手记:飞向左下 journalfab(left 28rpx/bottom 356rpx),缩小淡出 */
+.frag-mask--fly { background: transparent; }
+.frag-card--fly { animation: fragFly .52s cubic-bezier(.5,0,.8,.4) both; }
+.frag-mask--reduced-motion,
+.frag-mask--reduced-motion .frag-card { transition: none; animation: none; }
+@keyframes fragFly {
+  0% { transform: rotateY(0) translate(0,0) scale(1); opacity: 1; }
+  100% { transform: rotateY(0) translate(-300rpx, 360rpx) scale(.12); opacity: .1; }
+}
+.frag-step { font-size: var(--cy-font-label); letter-spacing: 2rpx; color: #8a7355; margin-bottom: var(--cy-space-2-5); } /* ds-ok */
+.frag-text { font-size: var(--cy-font-subtitle); line-height: 1.8; font-family: Georgia, serif; }
+.frag-tip { margin-top: 32rpx; font-size: var(--cy-font-caption); color: #a08c6a; text-align: center; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

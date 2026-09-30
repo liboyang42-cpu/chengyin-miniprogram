@@ -1,0 +1,380 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/template/index",
+    "pages/talent/list/index",
+    "pages/member/index/index",
+    "pages/roam/index",
+    "pages/privacy/index",
+    "pages/agreement/index",
+    "pages/deregister/index",
+    "pages/team/detail/index",
+    "pages/team/join/index"
+  ],
+  "subPackages": [
+    {
+      "root": "pages/play",
+      "name": "subpackagePlay",
+      "pages": [
+        "index",
+        "merchant/index",
+        "circle/index"
+      ]
+    },
+    {
+      "root": "subpackagePrefab",
+      "name": "subpackagePrefab",
+      "pages": [
+        "index"
+      ]
+    },
+    {
+      "root": "pages/activity",
+      "name": "subpackageActivity",
+      "pages": [
+        "detail/index",
+        "baoming/baoming",
+        "list/index",
+        "official-detail/index",
+        "official-inbox/index",
+        "official-mine/index"
+      ]
+    },
+    {
+      "root": "subpackageA",
+      "pages": [
+        "pages/myproject/index",
+        "pages/infomation/infomation",
+        "pages/infomationdetail/infomationdetail",
+        "pages/assetcenter/income-detail/income-detail",
+        "pages/assetcenter/earnings/index"
+      ]
+    },
+    {
+      "root": "subpackageP3",
+      "pages": [
+        "pages/growthcenter/index/index",
+        "pages/growthcenter/leaderboard/index",
+        "pages/stamp-camera/index/index",
+        "pages/stamp-album/index/index",
+        "pages/badge-wall/index/index",
+        "pages/badge-3d/index",
+        "pages/object-cards/index/index"
+      ]
+    },
+    {
+      "root": "subpackageB",
+      "pages": [
+        "pages/im/list/index",
+        "pages/im/chat/index"
+      ]
+    },
+    {
+      "root": "pages/publish",
+      "name": "subpackagePublish",
+      "pages": [
+        "fabu/index",
+        "simple/index",
+        "temp/index",
+        "activity/index",
+        "topicadd/topicadd",
+        "templateadd/templateadd",
+        "template-intro/index"
+      ]
+    },
+    {
+      "root": "pages/club",
+      "name": "subpackageClub",
+      "pages": [
+        "apply/index",
+        "create/index",
+        "customer-detail/index",
+        "customers/index",
+        "detail/index",
+        "edit/index",
+        "enroll/index",
+        "checkin-detail/index",
+        "event-ops/index",
+        "governance/index",
+        "group-code/index",
+        "join-requests/index",
+        "notify/index",
+        "roles/index",
+        "settlement/index",
+        "topic-detail/index",
+        "topic-story/index",
+        "workbench/index"
+      ]
+    },
+    {
+      "root": "pages/topic",
+      "name": "subpackageTopic",
+      "pages": [
+        "index/index",
+        "merchantinfo/merchantinfo",
+        "merchantapply/index",
+        "pricing/index",
+        "pricing/partner/index"
+      ]
+    },
+    {
+      "root": "pages/merchant",
+      "name": "subpackageMerchant",
+      "pages": [
+        "index/index",
+        "apply/index",
+        "ledger/index",
+        "ledger/order-detail/index",
+        "ledger/batch-detail/index",
+        "aftercare/index",
+        "predict/index",
+        "aftercare/detail/index",
+        "profile/index",
+        "marketing/index",
+        "reviews/index",
+        "marketing/ai-insight/index",
+        "relation/index",
+        "citynode/index",
+        "citynode/create/index",
+        "decor/index",
+        "decor/ai-npc/index",
+        "decor/coop-setting/index",
+        "decor/gallery/index",
+        "decor/perks/index",
+        "coop-center/index",
+        "customer/index",
+        "game-node/index",
+        "customer/detail/index",
+        "team/index"
+      ]
+    },
+    {
+      "root": "pages/coop",
+      "name": "subpackageCoop",
+      "pages": [
+        "list/index",
+        "invite-detail/index",
+        "invite/index",
+        "nearby/index",
+        "finance/index",
+        "settlement-detail/index",
+        "withdraw/index",
+        "withdraw/records/index"
+      ]
+    },
+    {
+      "root": "pages/square",
+      "name": "subpackageSquare",
+      "pages": [
+        "list/index",
+        "detail/index"
+      ]
+    },
+    {
+      "root": "pages/search2",
+      "name": "subpackageSearch2",
+      "pages": [
+        "index",
+        "result/index"
+      ]
+    },
+    {
+      "root": "pages/searchmap",
+      "name": "subpackageSearchMap",
+      "pages": [
+        "index"
+      ]
+    },
+    {
+      "root": "pages/templatedetail",
+      "name": "subpackageTemplateDetail",
+      "pages": [
+        "templatedetail"
+      ]
+    },
+    {
+      "root": "pages/address",
+      "name": "subpackageAddress",
+      "pages": [
+        "address"
+      ]
+    },
+    {
+      "root": "pages/addressinfo",
+      "name": "subpackageAddressInfo",
+      "pages": [
+        "addressinfo"
+      ]
+    },
+    {
+      "root": "pages/shezhi",
+      "name": "subpackageSetting",
+      "pages": [
+        "shezhi",
+        "about/index"
+      ]
+    },
+    {
+      "root": "pages/gerenziliao",
+      "name": "subpackageProfile",
+      "pages": [
+        "gerenziliao"
+      ]
+    },
+    {
+      "root": "pages/userinfo",
+      "name": "subpackageUserInfo",
+      "pages": [
+        "userinfo"
+      ]
+    },
+    {
+      "root": "pages/mylike",
+      "name": "subpackageMyLike",
+      "pages": [
+        "mylike"
+      ]
+    },
+    {
+      "root": "pages/crop",
+      "name": "subpackageCrop",
+      "pages": [
+        "index"
+      ]
+    },
+    {
+      "root": "subpackageMember",
+      "name": "subpackageMember",
+      "pages": [
+        "complaint/index",
+        "coupon-wallet/index",
+        "coupon-qr/index",
+        "coupon/coupon",
+        "couponInfo/couponInfo",
+        "mycanyu/mycanyu",
+        "mycanyuinfo/mycanyuinfo",
+        "myinvite/myinvite",
+        "mytemplate/mytemplate",
+        "order/order",
+        "orderinfo/orderinfo",
+        "signup/index",
+        "tixian/tixian",
+        "tixianjilu/tixianjilu"
+      ]
+    },
+    {
+      "root": "subpackageRoam",
+      "name": "subpackageRoam",
+      "pages": [
+        "citynode-code/index",
+        "history/index",
+        "poi-detail/index",
+        "session/index",
+        "nearby/index",
+        "citystamp/index"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/member/index/index": {
+      "network": "all",
+      "packages": [
+        "subpackageA"
+      ]
+    },
+    "pages/index/index": {
+      "network": "wifi",
+      "packages": [
+        "subpackageA",
+        "subpackagePublish",
+        "subpackageClub",
+        "subpackageActivity"
+      ]
+    },
+    "pages/square/list/index": {
+      "network": "wifi",
+      "packages": [
+        "subpackageTopic"
+      ]
+    },
+    "subpackageMember/signup/index": {
+      "network": "all",
+      "packages": [
+        "subpackagePlay",
+        "subpackageActivity"
+      ]
+    }
+  },
+  "__usePrivacyCheck__": true,
+  "requiredPrivateInfos": [
+    "chooseLocation",
+    "choosePoi",
+    "getLocation",
+    "onLocationChange",
+    "startLocationUpdate",
+    "startLocationUpdateBackground"
+  ],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于附近活动推荐、到点打卡判定与漫游足迹记录"
+    },
+    "scope.userFuzzyLocation": {
+      "desc": "用于按城市推荐附近活动"
+    }
+  },
+  "darkmode": true,
+  "window": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "城瘾",
+    "navigationBarBackgroundColor": "#000000",
+    "backgroundColor": "#000000",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#A6A8B0",
+    "selectedColor": "#7A5CFF",
+    "borderStyle": "black",
+    "backgroundColor": "#0A0A0B",
+    "position": "bottom",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/icon_f1.png",
+        "selectedIconPath": "images/icon_f01d.png"
+      },
+      {
+        "pagePath": "pages/roam/index",
+        "text": "漫游",
+        "iconPath": "images/icon_roam.png",
+        "selectedIconPath": "images/icon_roam_d.png"
+      },
+      {
+        "pagePath": "pages/template/index",
+        "text": "发布",
+        "iconPath": "images/icon_f3.png",
+        "selectedIconPath": "images/icon_f03d.png"
+      },
+      {
+        "pagePath": "pages/talent/list/index",
+        "text": "俱乐部",
+        "iconPath": "images/icon_f4.png",
+        "selectedIconPath": "images/icon_f04d.png"
+      },
+      {
+        "pagePath": "pages/member/index/index",
+        "text": "我的",
+        "iconPath": "images/icon_f5.png",
+        "selectedIconPath": "images/icon_f05d.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
+  "requiredBackgroundModes": [
+    "location"
+  ]
+}

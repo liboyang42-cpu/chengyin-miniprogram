@@ -1,0 +1,41 @@
+:host{ display:block; }
+/* 三态照 Figma 3965:17359 源码:
+ *   default  蓝 #147CE1,白字
+ *   release  拖过阈值:轨道转浅灰 #E3EAF9,字 #1162B1(「Alrighty」态)
+ *   done     绿 #12A533,白字 + 星星/桃心爆点
+ * 几何:轨 300×56 r64 → 108rpx/r123;圆钮 40 → 77rpx;内边距 8 → 15rpx。 */
+.sc{ position:relative; width:100%; box-sizing:border-box; height:108rpx; border-radius:123rpx; /* ds-ok Figma 轨道几何 */
+  display:flex; align-items:center; justify-content:center; padding:15rpx;
+  background:#147CE1; box-shadow:inset 6rpx 12rpx 19rpx rgba(1,1,20,.15); /* ds-ok Figma 默认态配色与内阴影 */
+  transition:background .18s linear; } /* ds-ok Figma 源码 */
+.sc--release{ background:#E3EAF9; box-shadow:inset 6rpx 12rpx 15rpx rgba(1,1,20,.02); } /* ds-ok Figma 源码 */
+.sc--done{ background:#12A533; } /* ds-ok Figma 源码 */
+.sc.is-disabled{ opacity:.5; }
+.sc__label{ position:relative; margin-left:92rpx; font-size:35rpx; font-weight:500; color:#FEFDFD; } /* ds-ok Figma 源码 18pt */
+.sc--release .sc__label{ color:#1162B1; } /* ds-ok Figma 源码 */
+.sc__knob{ position:absolute; left:15rpx; width:77rpx; height:77rpx; border-radius:999rpx; /* ds-ok Figma 圆钮几何 */
+  background:#FEFDFD; display:flex; align-items:center; justify-content:center; color:#147CE1; /* ds-ok Figma 圆钮配色 */
+  box-shadow:0 15rpx 29rpx rgba(1,1,20,.3); transition:transform .18s ease; } /* ds-ok Figma 源码 */
+.sc--release .sc__knob{ box-shadow:0 0 10rpx rgba(1,1,20,.08); color:#1162B1; } /* ds-ok Figma 释放态 */
+.sc--done .sc__knob{ color:#12A533; } /* ds-ok Figma 完成态 */
+/* 爆点:从钮沿 --tx/--ty 飞出,放大→消失,只放一次 */
+.scp{ position:absolute; left:50%; top:50%; width:44rpx; height:42rpx; pointer-events:none;
+  background-size:contain; background-repeat:no-repeat; background-position:center;
+  animation:scp-burst .7s cubic-bezier(.17,.67,.35,1) both; }
+/* 减少动态效果:确认成功的爆花是纯装饰的位移+缩放,直接不播;
+   确认态本身仍由 .sc--done 的配色表达,反馈不归零。 */
+.sc--reduced .scp{ animation: none; opacity: 0; }
+.scp--sm{ width:26rpx; height:25rpx; }
+.scp--heart{ background-image:url("data:image/svg+xml,%3Csvg%20preserveAspectRatio%3D%22none%22%20overflow%3D%22visible%22%20style%3D%22display%3A%20block%3B%22%20width%3D%220.0108992%22%20height%3D%220.01%22%20viewBox%3D%220%200%200.0108992%200.01%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20id%3D%22Vector%22%20opacity%3D%220.2%22%20d%3D%22M0.00544959%200.01L0.0046594%200.00928065C0.00185286%200.00673569%200%200.00505177%200%200.00299728C0%200.00131335%200.0013188%200%200.00299728%200C0.0039455%200%200.00485559%200.000441417%200.00544959%200.00113351C0.0060436%200.000441417%200.00695368%200%200.00790191%200C0.00958038%200%200.0108992%200.00131335%200.0108992%200.00299728C0.0108992%200.00505177%200.00904632%200.00673569%200.00623978%200.00928065L0.00544959%200.01Z%22%20fill%3D%22%23FF7AD5%22%2F%3E%0A%3C%2Fsvg%3E%0A"); }
+.scp--star{ background-image:url("data:image/svg+xml,%3Csvg%20preserveAspectRatio%3D%22none%22%20overflow%3D%22visible%22%20style%3D%22display%3A%20block%3B%22%20width%3D%220.0104635%22%20height%3D%220.01%22%20viewBox%3D%220%200%200.0104635%200.01%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20id%3D%22Vector%22%20d%3D%22M0.00523175%200.0083747L0.00776908%200.00990932C0.00823374%200.0101906%200.00880235%200.00977481%200.00868007%200.009249L0.00800752%200.00636318L0.0102514%200.00441892C0.010661%200.0040643%200.0104409%200.00339176%200.00990287%200.00334896L0.0069498%200.00309829L0.00579424%200.000371428C0.00558637%20-0.000123809%200.00487714%20-0.000123809%200.00466926%200.000371428L0.00351371%200.00309217L0.000560631%200.00334285C2.25959e-05%200.00338565%20-0.000197509%200.00405819%200.000212131%200.0044128L0.00245598%200.00635707L0.00178344%200.00924289C0.00166116%200.0097687%200.00222976%200.0101845%200.00269443%200.00990321L0.00523175%200.0083747Z%22%20fill%3D%22%23FFC362%22%2F%3E%0A%3C%2Fsvg%3E%0A"); }
+.scp--spark{ width:10rpx; height:34rpx; background-image:url("data:image/svg+xml,%3Csvg%20preserveAspectRatio%3D%22none%22%20overflow%3D%22visible%22%20style%3D%22display%3A%20block%3B%22%20width%3D%220.00428061%22%20height%3D%220.01%22%20viewBox%3D%220%200%200.00428061%200.01%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20id%3D%22Vector%22%20d%3D%22M0%200.0025V0.0075C0%200.00816304%200.000225496%200.00879893%200.000626882%200.00926777C0.00102827%200.00973661%200.00157266%200.01%200.00214031%200.01C0.00270795%200.01%200.00325235%200.00973661%200.00365373%200.00926777C0.00405512%200.00879893%200.00428061%200.00816304%200.00428061%200.0075V0.0025C0.00428061%200.00183696%200.00405512%200.00120107%200.00365373%200.000732233C0.00325235%200.000263392%200.00270795%200%200.00214031%200C0.00157266%200%200.00102827%200.000263392%200.000626882%200.000732233C0.000225496%200.00120107%200%200.00183696%200%200.0025Z%22%20fill%3D%22%238AB9FF%22%2F%3E%0A%3C%2Fsvg%3E%0A"); }
+@keyframes scp-burst{
+  0%{ opacity:0; transform:translate(-50%,-50%) scale(.2); }
+  35%{ opacity:1; }
+  100%{ opacity:0; transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(1.15) rotate(24deg); }
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

@@ -1,0 +1,43 @@
+<!-- 触发器:一枚 ⓘ。视觉尺寸由 size 决定,触控热区由 wxss 固定撑到 88rpx(DS §3.2) -->
+<view
+  class="ip__trigger"
+  aria-role="button"
+  aria-label="{{_a11y}}"
+  hover-class="ip__trigger--press"
+  hover-stay-time="80"
+  catchtap="onOpen"
+>
+  <cy-icon name="info" size="{{size}}" />
+</view>
+
+<!-- 两个分支都用「默认 slot」:调用方不该因为换了 variant 就得改 slot 名。
+     两处 slot 在 wx:if / wx:else 里互斥,同一时刻只存在一个。 -->
+
+<!-- 短说明:居中弹窗。只读说明没有「取消 / 确定」的两难,单键收起即可(show-cancel=false) -->
+<cy-modal
+  wx:if="{{variant !== 'sheet'}}"
+  show="{{_open}}"
+  title="{{title}}"
+  content="{{content}}"
+  confirm-text="知道了"
+  show-cancel="{{false}}"
+  mask-closable="{{true}}"
+  bind:confirm="onClose"
+  bind:cancel="onClose"
+>
+  <!-- content 为空时 cy-modal 才渲染它的 slot,富内容(链接 / 分条)从这里进来 -->
+  <slot></slot>
+</cy-modal>
+
+<!-- 长说明:半屏 sheet,内容可滚 -->
+<cy-sheet
+  wx:else
+  show="{{_open}}"
+  title="{{_sheetTitle}}"
+  bind:close="onClose"
+>
+  <view class="ip__body">
+    <text wx:if="{{content}}" class="ip__text">{{content}}</text>
+    <slot wx:else></slot>
+  </view>
+</cy-sheet>

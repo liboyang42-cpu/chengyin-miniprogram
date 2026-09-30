@@ -1,0 +1,14 @@
+:host { display: block; }
+/* 整屏盖住页面内容(内容仍在下面渲染,后端本来就拦;这里只是不让用户对着一屏 toast 干瞪眼)。
+ * z 用 modal 档:压过页面 sticky/nav,但低于 toast。 */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cy-z-modal);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-left: var(--cy-page-x);
+  padding-right: var(--cy-page-x);
+  background: var(--cy-color-bg-page);
+}

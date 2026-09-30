@@ -1,0 +1,18 @@
+/* cy-icon 基类:mask 取形(alpha),background-color: currentColor 取色(随主题/父级) */
+@import "./icons.wxss";
+:host {
+  display: inline-flex;
+  line-height: 0;
+  vertical-align: middle;
+}
+.cyi {
+  display: block;
+  flex: none;
+  /* 光学校正只在组件内的 .cyi--<name> 写变量,页面不再补 magic number。 */
+  transform: translate(var(--cy-icon-optical-x, 0rpx), var(--cy-icon-optical-y, 0rpx));
+  background-color: currentColor;
+  -webkit-mask-image: var(--cyi-m); mask-image: var(--cyi-m);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center;  mask-position: center;
+  -webkit-mask-size: contain;     mask-size: contain;
+}

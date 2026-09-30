@@ -1,0 +1,37 @@
+/* 排版与 pages/agreement 路由页同档,换个 BEM 前缀避免和页面样式撞车 */
+:host { display: block; }
+
+.agr-sheet {
+  padding: var(--cy-space-4) 0 var(--cy-space-7);
+  color: var(--cy-text-title);
+}
+
+.agr-sheet__intro {
+  display: block;
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-loose);
+}
+
+.agr-sheet__section { margin-top: var(--cy-space-5); }
+
+.agr-sheet__h {
+  display: block;
+  font-size: var(--cy-font-subtitle);
+  font-weight: 600;
+}
+
+.agr-sheet__p {
+  display: block;
+  margin-top: var(--cy-space-2);
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-loose);
+}
+
+.agr-sheet__meta {
+  display: block;
+  margin-top: var(--cy-space-6);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}

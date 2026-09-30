@@ -1,0 +1,46 @@
+@charset "UTF-8";
+/* 2026-07-31:根链改 flex column + min-height:100vh,让空态/错误态 fill 变体能在
+   "标题下方到屏幕底部"这段剩余空间里居中(不是整屏居中,也不是 min-height:60vh 拍脑袋值)。 */
+page { display: flex; flex-direction: column; min-height: 100vh; }
+.search2-result { display: flex; flex-direction: column; flex: 1; }
+.result-nav-spacer { flex: none; }
+.result-search { display: block; margin: 0 var(--cy-page-x); }
+.search2-result .main { padding: 0 var(--cy-page-x); display: flex; flex-direction: column; flex: 1; }
+.search2-result .wp { display: flex; flex-direction: column; flex: 1; }
+/* cy-empty/cy-error 是 styleIsolation:isolated 组件,宿主标签默认 display:block,
+   组件内部的 flex:1 要宿主自己也是 flex 容器才生效,从页面外部补一层。 */
+.fill-slot{ display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+
+.result-tabs { width: 100%; margin-top: var(--cy-space-3); }
+.result-list { display: flex; flex-direction: column; gap: var(--cy-space-3); margin-top: var(--cy-space-3); padding-bottom: var(--cy-space-8); }
+.result-card {
+  min-height: 152rpx;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  border: 1rpx solid var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface);
+  box-sizing: border-box;
+}
+.result-card__cover { flex: none; width: 120rpx; height: 120rpx; border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle); }
+.result-card__cover--fallback { display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-tertiary); }
+.result-card__body { flex: 1; min-width: 0; }
+.result-card__type { color: var(--cy-color-text-secondary); font-size: var(--cy-type-micro); line-height: 1.2; }
+.result-card__title { margin-top: var(--cy-legacy-4); color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 600; }
+.result-card__detail { margin-top: var(--cy-legacy-6); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.result-card__tags { display: flex; gap: var(--cy-space-1); margin-top: var(--cy-space-2); overflow: hidden; }
+.result-card__tag { flex: none; max-width: 150rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2rpx var(--cy-space-2); /* ds-ok: 2rpx 是像素级微调,让 micro 字号在药丸标签里视觉居中,不是布局间距 */ border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-secondary); font-size: var(--cy-type-micro); }
+.result-card__arrow { flex: none; color: var(--cy-color-text-tertiary); }
+
+/* 主题沿用主题流的海报信息层级；字段仍只取搜索接口已有的封面、标题、地点与分类。 */
+.topic-result-card { overflow: hidden; border: 1rpx solid var(--cy-color-border-strong); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface); }
+.topic-result-card__media { position: relative; height: 360rpx; overflow: hidden; background: var(--cy-color-bg-surface-subtle); }
+.topic-result-card__cover { width: 100%; height: 100%; }
+.topic-result-card__fallback { display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-tertiary); }
+.topic-result-card__shade { position: absolute; inset: 0; background: var(--cy-comp-cover-scrim); }
+.topic-result-card__kind { position: absolute; left: var(--cy-space-3); bottom: var(--cy-space-3); min-height: 48rpx; display: flex; align-items: center; padding: 0 var(--cy-space-2); border-radius: var(--cy-radius-pill); background: var(--cy-color-overlay); color: var(--cy-color-text-inverse); font-size: var(--cy-type-micro); }
+.topic-result-card__body { padding: var(--cy-space-3); }
+.topic-result-card__title { color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); line-height: var(--cy-leading-tight); font-weight: 700; }
+.topic-result-card__detail { margin-top: var(--cy-space-1); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }

@@ -1,0 +1,22 @@
+<!-- 黑白态 = monochrome(默认 true,覆盖没传过该属性的玩家页)或 mode==='merchant'(商家恒黑白,
+     即便有调用方显式传 false 也拉不回紫)。批3 与批7 两条同向修复合并,不是二选一。 -->
+<view class="tabbar {{raised ? '' : 'is-down'}} {{dark ? 'dark' : ''}} {{(monochrome || mode === 'merchant') ? 'monochrome' : ''}} {{mode === 'merchant' ? 'merchant' : ''}} {{immersive ? 'tabbar--immersive' : ''}} {{reducedMotion ? 'tabbar--reduced-motion' : ''}}">
+<view class="kg"></view>
+  <view class="list flex-cb">
+    <view class="ul flex-cb">
+      <view class="li {{index === active ? 'active' : ''}}" wx:for="{{list}}" wx:key="pagePath" data-index="{{index}}" bindtap="onChange" aria-role="button" aria-label="{{index === active ? '当前' + item.text : '前往' + item.text}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="icon flex-cc">
+          <!-- 黑白态一律用未选中资源,选中差异交给 wxss 的 filter 换色(2026-09-18 UI-03:
+               选中统一品牌紫,不再取 selectedIconPath 的紫色 PNG —— 滤镜对 PNG/SVG 一视同仁);
+               selectedIconPath 只有彩色态(monochrome=false)才取 -->
+          <image class="tabbar__icon" src="{{(monochrome || mode === 'merchant') || index !== active ? item.iconPath : item.selectedIconPath}}" mode="widthFix" />
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- C 端全局发布悬浮菜单:商家 mode 不出这枚,仍走 pages/template 的页面级 fab(带岗位闸)。
+     闸口谓词在 index.js 的 applyMode 派生成 showPublish,不在这里判 mode。 -->
+<view wx:if="{{showPublish}}" class="tabbar__publish {{publishSheetShow ? 'tabbar__publish--open' : ''}} {{reducedMotion ? 'tabbar__publish--reduced' : ''}}" bindtap="openPublishSheet" aria-role="button" aria-label="发布" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="plus" size="48" /></view>
+<cy-publish-sheet wx:if="{{showPublish}}" show="{{publishSheetShow}}" pub="{{publishSnapshot}}" bind:close="closePublishSheet" />

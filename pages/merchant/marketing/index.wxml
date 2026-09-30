@@ -1,0 +1,149 @@
+<view class="page theme-merchant m-flush-nav" style="padding-top:{{statusBarHeight + navBarHeight}}px">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- D-2:顶栏与内容同底(无白条/无分隔线);tab 页无返回箭头,标题居中。
+       ★用 cy-nav-bar 而不是自绘左对齐大字:商家其余页与「我的」都是这个形态,
+         nav-page-title-spacing-contract 锁着它 —— 这一页单独走自绘会成孤例。 -->
+  <cy-nav-bar title="营销" back="{{false}}" />
+
+  <view class="body">
+    <!-- 未登录不再整屏拦:静默登录(见 index.js 的 enterMarketing),登录/身份确认失败
+         只在页内挂一条内联错误 + 重试。岗位没有营销权限也从整屏态改成页内说明。 -->
+    <cy-inline-error class="m-inline-error" wx:if="{{entryError}}" kind="data"
+                     title="商家营销没有加载出来"
+                     sub="{{entryError}}"
+                     action="重新加载" bind:action="retryAll" />
+    <!-- 岗位没有营销数据权限(店主永远有):只留这句说明 —— 不渲染 hero/券卡/我的内容
+         的「—/数据待同步」占位(2026-09-17 拍板 #25)。「重新确认」保留:岗位刚被开通时
+         不用退出重进。 -->
+    <cy-inline-error class="m-inline-error" wx:elif="{{accessState === 'denied'}}" kind="data"
+                     title="你的岗位还没有营销数据权限"
+                     sub="{{accessError || '请联系店主开通'}}"
+                     action="重新确认" bind:action="retryAll" />
+
+    <block wx:if="{{accessState !== 'denied'}}">
+
+    <view class="marketing-sync" wx:if="{{(funnelLoading && marketingLoaded) || (merchantLoading && marketingLoaded)}}"
+          aria-role="status" aria-live="polite" aria-label="正在核对商家身份与最新营销数据">
+      <view class="marketing-sync-rail" aria-hidden="true"></view>
+      <text class="marketing-sync-text">正在核对商家身份与最新数据…</text>
+    </view>
+
+    <!-- Hero:全页唯一的主角数字 = 近 N 天报名(4-10:数字来自窗口 stages,写「累计」就是假口径)。
+         刻意不用「收入」—— 那是工作台的 hero,两个 tab 不抢同一个数。 -->
+    <cy-skeleton wx:if="{{funnelLoading && !marketingLoaded}}" type="merchant-metric" count="{{1}}"
+                 loading-label="正在读取营销数据" />
+    <!-- 取数失败时大数字落 0,真话由副行的错误文案 + 「点击重试」来说。
+         2026-09-19 用户裁决:本页数字位不出现横杠。 -->
+    <view class="hero" wx:elif="{{funnelError && !marketingLoaded}}"
+          bindtap="loadMarketingHome" hover-class="cy-pressed" hover-stay-time="80"
+          aria-role="button" aria-label="{{funnelError}}，重新加载营销数据">
+      <text class="hero-label">{{hero.label}}</text>
+      <text class="hero-value">0</text>
+      <cy-inline-error class="hero-sub" kind="data"
+        title="营销数据暂未加载" sub="{{funnelError}}" action="点击重试" />
+    </view>
+    <view class="hero" wx:else aria-role="text" aria-label="{{hero.ariaLabel}}">
+      <text class="hero-label">{{hero.label}}</text>
+      <text class="hero-value">{{hero.value}}</text>
+      <text class="hero-sub">{{hero.sub}}</text>
+    </view>
+
+    <!-- 工具入口。前两个是真工具,后两个是发布快捷方式 —— 都是现有路由,不新开页。 -->
+    <view class="tiles">
+      <view class="tile" wx:for="{{entries}}" wx:key="action" bindtap="go" data-action="{{item.action}}"
+            hover-class="tile--tap" hover-stay-time="80"
+            aria-role="button" aria-label="{{item.title}}">
+        <cy-icon class="tile-ico" name="{{item.icon}}" size="44" />
+        <text class="tile-label">{{item.title}}</text>
+      </view>
+    </view>
+
+    <!-- 我的内容:3-up 数字磁贴。数量本来就是这块唯一的信息,让数字自己当图形。
+         旧版是「图标+标题+说明+数量+箭头」的设置列表,三行一模一样占 220px。 -->
+    <view class="sec-head">
+      <text class="sec-title">我的内容</text>
+      <!-- 箭头走 cy-icon 真图标(字符 › 撞 global-real-icon 契约);
+           可点元素必须带按压反馈(press-feedback-coverage 契约)。 -->
+      <view class="sec-link" wx:if="{{marketingLoaded}}" bindtap="goManage"
+            hover-class="sec-link--tap" hover-stay-time="80"
+            aria-role="button" aria-label="管理我发布的内容">
+        <text class="sec-link-txt">管理</text>
+        <cy-icon class="sec-link-ico" name="arrow-right" size="24" />
+      </view>
+    </view>
+    <!-- 服务端明确回全零才给首发引导。CTA 只对有发布权限的岗位可见 ——
+         没权限的人看到「发布第一个主题」点进去必被拒,那是个假入口。
+         ⚠️ 未确认(unknown)绝不能落到这里:那会把「还没读到」画成「你什么都没有」。 -->
+    <cy-empty wx:if="{{marketingLoaded && marketingDataState === 'empty'}}" kind="empty"
+              title="还没有营销数据" sub="有浏览、报名、支付、核销或退款申请后，这里会显示营销数据"
+              cta="{{merchantAccess.canManageProjects ? '发布第一个主题' : ''}}"
+              bind:cta="startFirstContent" />
+    <cy-skeleton wx:elif="{{funnelLoading && !marketingLoaded}}" type="list" count="{{3}}"
+                 loading-label="正在读取我的内容" />
+    <view class="mine" wx:else>
+      <view class="mine-tile" wx:for="{{myContent}}" wx:key="key"
+            bindtap="goMyContent" data-key="{{item.key}}" data-count="{{item.count}}"
+            hover-class="mine-tap" hover-stay-time="80"
+            aria-role="button" aria-label="{{item.ariaLabel}}">
+        <text class="mine-num">{{item.countText}}</text>
+        <text class="mine-label">{{item.title}}</text>
+      </view>
+    </view>
+
+    <!-- 优惠券卡堆。后端 marketing-home 只回聚合数(couponCount/received/verified),
+         没有单张券的列表 ⇒ 这张卡代表的是「这叠券」,不是某一张具体的券。
+         后面两张影卡的出现与否直接跟 couponCount 挂钩,不是装饰。
+         ⚠ couponCard 只有在服务端明确回「零张」时才是 null(落到虚线空态)。
+         取数失败时它是 COUPON_UNKNOWN:数字位写「0 张在投放」,副行写「数据待同步」——
+         数字位不放横杠(2026-09-19 用户裁决),但「没读到」这件事仍由副行说实话。 -->
+    <view class="sec-head">
+      <text class="sec-title">优惠券</text>
+      <text class="sec-more">{{couponRate}}</text>
+    </view>
+    <cy-skeleton wx:if="{{funnelLoading && !marketingLoaded}}" type="merchant-metric" count="{{1}}"
+                 loading-label="正在读取优惠券数据" />
+    <!-- 卡堆与空态是同一个入口的两种样子 ⇒ bindtap 只挂一层。
+         拆成两个各自绑定 go 的可点元素会撞 ui-placeholder-cleanup 的
+         「优惠券入口只能有一处」(它按 wxml 里的裸字符串计数,注释也算)。 -->
+    <view class="deck-slot" wx:else bindtap="go" data-action="coupon"
+          hover-class="deck-tap" hover-stay-time="80"
+          aria-role="button" aria-label="{{couponCard ? couponCard.ariaLabel : '还没有优惠券，去发一张'}}">
+      <view class="deck deck--g{{deckGhosts}}" wx:if="{{couponCard}}">
+        <view class="deck-ghost deck-ghost--2" wx:if="{{deckGhosts > 1}}" aria-hidden="true"></view>
+        <view class="deck-ghost deck-ghost--1" wx:if="{{deckGhosts > 0}}" aria-hidden="true"></view>
+        <view class="deck-card">
+          <view class="deck-chip"><text class="deck-chip-txt">优惠券</text></view>
+          <text class="deck-title">{{couponCard.title}}</text>
+          <text class="deck-sub">{{couponCard.sub}}</text>
+        </view>
+      </view>
+      <cy-empty wx:else title="还没有优惠券" sub="发一张到店券，把看过的人带进门" />
+    </view>
+
+    <!-- 商家合作的唯一入口:商机与定向邀约都在合作中心处理。
+         左上角的开放商机数取自 marketing-home 的 recruiting.count —— 这个字段一直在回，
+         以前只被拿去判空态。 -->
+    <view class="sec-head">
+      <text class="sec-title">合作机会</text>
+    </view>
+    <view class="coop" bindtap="goCoopCenter" hover-class="coop--tap" hover-stay-time="80"
+          aria-role="button" aria-label="进入合作中心">
+      <image class="coop-img" src="/pages/merchant/images/merchant_coop_banner.jpg" mode="aspectFill" />
+      <view class="coop-scrim" aria-hidden="true"></view>
+      <view class="coop-chip" wx:if="{{recruitCount > 0}}">
+        <text class="coop-chip-txt">{{recruitCount || 0}} 个开放商机</text>
+      </view>
+      <view class="coop-copy">
+        <text class="coop-title">进入合作中心</text>
+        <text class="coop-sub">查看开放商机与发给我的邀约</text>
+      </view>
+      <view class="coop-btn" aria-hidden="true"><cy-icon name="arrow-right" size="32" /></view>
+    </view>
+
+    </block>
+  </view>
+
+  <tabBar mode="merchant" activeKey="marketing" />
+</view>

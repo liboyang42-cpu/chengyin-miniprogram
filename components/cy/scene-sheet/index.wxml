@@ -1,0 +1,14 @@
+<view wx:if="{{show}}" class="ss ss--{{variant}} ss--{{theme}} {{reducedMotion ? 'ss--reduced-motion' : ''}}" style="z-index:{{zIndex}};">
+  <view class="ss__mask" bindtap="onMask" aria-role="button" aria-label="关闭当前面板" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="ss__stack">
+  <view class="ss__panel" style="{{(variant === 'full' || variant === 'peek') && panelTopPx ? 'max-height:calc(100vh - ' + panelTopPx + 'px);' : ''}}" catchtap="noop">
+    <view class="ss__head">
+      <view class="ss__back" wx:if="{{canBack}}" bindtap="onBack" data-testid="scene-sheet-back" aria-role="button" aria-label="返回上一步" hover-class="cy-pressed" hover-stay-time="80"><view class="ss__control"><cy-icon name="back" size="32" /></view></view>
+      <view class="ss__title">{{title}}</view>
+      <view class="ss__close" wx:if="{{closable}}" bindtap="onClose" data-testid="scene-sheet-close" aria-role="button" aria-label="{{closeLabel}}" hover-class="cy-pressed" hover-stay-time="80"><view class="ss__control"><cy-icon name="close-sm" size="44" /></view></view>
+    </view>
+    <view class="ss__body"><slot></slot></view>
+    <view class="ss__footer" wx:if="{{footer}}"><slot name="footer"></slot></view>
+  </view>
+  </view>
+</view>

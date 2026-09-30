@@ -1,0 +1,19 @@
+<view class="theme-topic-editor {{reducedMotion ? 'ta--reduced-motion' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- 主题创建域(theme-topic-editor):白底黑字,和上一步 publish/temp 同一条创建流程保持
+       视觉一致——此前漏挂主题 class,页面落回默认深色底,和流程里前后页突兀断层。 -->
+  <cy-nav-bar custom-back bind:back="onNavBack" />
+  <cy-page-title title="创建节点玩法" subtitle="完善以下内容，为路线打造可落地的现场互动方案" />
+  <view class="fbox_sr">
+    <input type="text" placeholder="给节点玩法起一个名字" placeholder-class="templateadd-placeholder" aria-label="节点玩法名称" bindinput="onInputChange" value="{{templateName}}" />
+  </view>
+  <view class="templateadd-feedback">
+    <cy-inline-error wx:if="{{validationError}}" title="还不能继续" sub="{{validationError}}" />
+    <cy-inline-error wx:if="{{navigationError}}" title="页面没有打开" sub="{{navigationError}}" action="重试" bind:action="onCreateTemplate" />
+  </view>
+  <view class="templateadd-footer">
+    <cy-btn class="ta-cta" variant="primary" loading="{{navigating}}" disabled="{{!canSubmit}}" aria-disabled="{{!canSubmit || navigating}}" bindtap="onCreateTemplate" bind:disabledtap="onCreateTemplate">确认</cy-btn>
+  </view>
+</view>

@@ -1,0 +1,5 @@
+<view class="pt pt--{{align}} {{safeTop ? 'pt--safe' : ''}} {{flush ? 'pt--flush' : ''}}" style="{{safeTop ? 'padding-top:' + safeTopPx + 'px;' : ''}}">
+  <view class="pt__title">{{title}}</view>
+  <view class="pt__sub" wx:if="{{subtitle}}">{{subtitle}}</view>
+  <slot></slot>
+</view>

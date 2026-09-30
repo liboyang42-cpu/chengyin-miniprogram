@@ -1,0 +1,71 @@
+<cy-scene-sheet
+  wx:if="{{show}}"
+  show="{{true}}"
+  variant="half"
+  title="主题设置"
+  mask-closable="{{true}}"
+  bind:close="onClose"
+>
+  <view class="cts">
+    <cy-skeleton wx:if="{{loadState === 'loading'}}" type="form-section" count="4" loading-label="正在读取主题设置" />
+    <cy-error wx:elif="{{loadState === 'error'}}" title="主题设置没能打开" sub="{{loadErrorText}}" retry="重试" bind:retry="onRetry" />
+
+    <block wx:elif="{{loadState === 'ready'}}">
+      <view class="cts__card">
+        <view class="cts__row">
+          <text class="cts__title">{{topicName}}</text>
+          <text class="cts__value cts__value--success">{{saleStatusLabel}}</text>
+        </view>
+        <view class="cts__hairline"></view>
+        <view class="cts__row cts__row--action" bindtap="onEditContent" aria-role="button" aria-label="编辑主题内容" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="cts__row-main">
+            <text class="cts__title">编辑主题内容</text>
+            <text class="cts__chevron">&#8250;</text>
+          </view>
+          <text class="cts__hint">名称、封面、剧情、日期、票价都在编辑主题页改。</text>
+        </view>
+      </view>
+
+      <text class="cts__section">开放商家对接</text>
+      <view class="cts__card">
+        <view class="cts__row">
+          <view class="cts__row-main">
+            <text class="cts__title">开放商家承接</text>
+            <cy-switch checked="{{openForMerchant}}" disabled="{{savingField === 'openForMerchant'}}" bindchange="onOpenForMerchantChange" accessibility-label="开放商家承接" />
+          </view>
+          <text class="cts__hint">关掉后本主题不再出现在商家的可承接列表里。</text>
+        </view>
+        <block wx:for="{{chapters}}" wx:key="name">
+          <view class="cts__hairline"></view>
+          <view class="cts__row">
+            <view class="cts__row-main">
+              <text class="cts__title">{{item.name}}</text>
+              <text class="cts__value">{{item.meta}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <text class="cts__section">在俱乐部页的展示</text>
+      <view class="cts__card">
+        <view class="cts__row">
+          <view class="cts__row-main">
+            <text class="cts__title">置顶在俱乐部主页</text>
+            <cy-switch checked="{{pinned}}" disabled="{{savingField === 'pinned'}}" bindchange="onPinnedChange" accessibility-label="置顶在俱乐部主页" />
+          </view>
+          <text class="cts__hint">俱乐部页「活动」tab 里排在最前。</text>
+        </view>
+        <view class="cts__hairline"></view>
+        <view class="cts__row">
+          <view class="cts__row-main">
+            <text class="cts__title">只对成员可见</text>
+            <cy-switch checked="{{membersOnly}}" disabled="{{savingField === 'membersOnly'}}" bindchange="onMembersOnlyChange" accessibility-label="只对成员可见" />
+          </view>
+          <text class="cts__hint">开启后非成员看不到这条主题。</text>
+        </view>
+      </view>
+
+      <text class="cts__footnote">结束主题、退款与下架都在编辑主题页操作 —— 那些会动到已售出的票，不放在俱乐部这一层。</text>
+    </block>
+  </view>
+</cy-scene-sheet>

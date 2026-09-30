@@ -1,0 +1,23 @@
+@import "/pages/play/style/playkit.wxss";
+
+/* cy-playkit-blindtaste · 盲品挑战(Figma v5.1,node 46:259)
+ * 稿里蒙眼猫压在标题右上角 —— 它是"闭眼"这条规则的唯一图示,不能省。 */
+.bt { padding-top: var(--cy-space-2); }
+.bt__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+}
+.bt__copy { flex: 1; min-width: 0; }
+
+/* 茶汤绿:选中态与 XP 都走玩法主题色,不再借 status-info(那是"信息"语义) */
+.bt .pk-option--on {
+  border-color: var(--cy-color-playkit-taste);
+  background: rgba(51, 199, 115, .14);   /* ds-ok 主题色软底,与 --cy-color-playkit-taste 同源 */
+}
+.bt .pk-option--on .pk-option__key {
+  border-color: var(--cy-color-playkit-taste);
+  color: var(--cy-color-playkit-taste);
+}
+.bt .pk-foot__xp { color: var(--cy-color-playkit-taste); }

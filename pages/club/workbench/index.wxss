@@ -1,0 +1,23 @@
+@import "../../../style/tokens.wxss";
+
+.cw-shell {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: var(--cy-bg-page);
+  color: var(--cy-text-title);
+}
+
+.cw-shell-back {
+  width: fit-content;
+  min-height: 88rpx;
+  margin: var(--cy-space-3) auto 0;
+  padding: 0 var(--cy-space-4);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-body);
+}

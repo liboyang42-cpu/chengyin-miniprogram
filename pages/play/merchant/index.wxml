@@ -1,0 +1,128 @@
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+<view class="mp">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <view class="mp-empty" wx:if="{{notFound}}" style="padding-top:{{statusBarHeight + 120}}px" aria-role="alert" aria-live="polite">
+    <text class="mp-empty__t">这家的信息没拿到</text>
+    <text class="mp-empty__s">回上一页重新进一次</text>
+    <view class="mp-empty__b" bindtap="goBack" aria-role="button" aria-label="返回上一页" hover-class="cy-pressed" hover-stay-time="80">返回</view>
+  </view>
+
+  <block wx:else>
+    <view class="mp-hero">
+      <image class="mp-hero__im" wx:if="{{heroImg}}" src="{{img.first(heroImg)}}" mode="aspectFill" />
+      <view class="mp-hero__ph" wx:else><cy-icon name="pin" size="88" /></view>
+      <view class="mp-hero__vig"></view>
+    </view>
+    <view class="mp-back" style="top:{{statusBarHeight + 8}}px" bindtap="goBack" aria-role="button" aria-label="返回上一页" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="34" /></view>
+
+    <view class="mp-head">
+      <view class="mp-tag">{{node.done ? '已核销' : node.selfReported ? '照片已记录' : node.arrived ? '已到店' : '待到店'}}</view>
+      <view class="mp-name">{{node.name || '未命名商家'}}</view>
+      <view class="mp-meta">
+        <view class="mp-mc" wx:if="{{node.openText}}"><text class="mp-mc__k">营业</text><text class="mp-mc__v">{{node.openText}}</text></view>
+        <view class="mp-mc"><text class="mp-mc__k">现场</text><text class="mp-mc__v">{{node.crowded === true ? '排队中，建议先去别家' : node.crowded === false ? '可前往' : '状态待同步'}}</text></view>
+      </view>
+    </view>
+
+    <view class="mp-sec">
+      <view class="mp-sec__h">现场记录</view>
+      <view class="mp-proof">
+        <view class="mp-proof__row {{node.arrived ? 'is-done' : ''}}"><text>1</text><view><text class="mp-proof__t">扫描门店码</text><text class="mp-proof__s">记录到店时间，不代表已核销</text></view></view>
+        <view class="mp-proof__row {{node.selfReported ? 'is-done' : ''}}"><text>2</text><view><text class="mp-proof__t">拍摄现场凭证</text><text class="mp-proof__s">{{node.arrived ? (node.photoDesc || '拍一张能证明已到店的照片') : '到店后显示拍摄要求'}}</text></view></view>
+        <view class="mp-proof__row {{node.done ? 'is-done' : ''}}"><text>3</text><view><text class="mp-proof__t">商家核销</text><text class="mp-proof__s">商家核销的时刻才算服务开始</text></view></view>
+      </view>
+      <view class="mp-note" wx:if="{{node.arrived && node.rule}}">{{node.rule}}</view>
+    </view>
+
+    <view class="mp-sec">
+      <view class="mp-sec__h">现场参考</view>
+      <view class="mp-stat">
+        <view><text class="mp-stat__n">{{node.inStoreLoad || 0}}</text><text class="mp-stat__k">已到店待核销</text></view>
+        <view><text class="mp-stat__n">{{node.serviceCapacity ? node.serviceCapacity.perHour : 0}}</text><text class="mp-stat__k">每小时接待</text></view>
+        <view><text class="mp-stat__n">{{node.expectedWaitMinutes || 0}}</text><text class="mp-stat__k">预计等待(分)</text></view>
+      </view>
+    </view>
+
+    <view class="mp-feedback" wx:if="{{feedback}}" aria-role="status" aria-live="polite">{{feedback}}</view>
+
+    <view class="mp-sec" wx:if="{{merchantConsent === 'AGREE'}}">
+      <view class="mp-sec__h">当前门店授权</view>
+      <view class="mp-consent"><text>仅 {{node.name || '当前门店'}} 可按现场事实查看必要信息</text><view bindtap="revokeMerchantConsent" aria-role="button" aria-label="撤回当前门店授权" aria-disabled="{{consentBusy}}" hover-class="{{consentBusy ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{consentBusy ? '撤回中…' : '撤回授权'}}</view></view>
+    </view>
+
+    <view class="mp-sec" wx:if="{{node.address}}">
+      <view class="mp-sec__h">商家信息</view>
+      <view class="mp-addr" bindtap="openMap" aria-role="button" aria-label="导航去{{node.name}}" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="pin" size="32" /><view class="mp-addr__c"><text class="mp-addr__t">{{node.address}}</text><text class="mp-addr__s" wx:if="{{node.openText}}">{{node.openText}}</text></view><text class="mp-addr__go">导航</text>
+      </view>
+    </view>
+
+    <!-- B5 收窄(2026-08-15 裁决):扫码进店后的体验层。配了答题模板 → 游戏卡;没配 → 任务卡。
+         通关判据不在这里 —— 仍是商家扫核销码(三步条第 3 步)。 -->
+    <view class="mp-mask" wx:if="{{game.show || task.show}}" bindtap="closeSheets" aria-role="button" aria-label="关闭面板" hover-class="cy-pressed" hover-stay-time="80"></view>
+    <view class="mp-sheet" wx:if="{{game.show}}" style="--cy-comp-sheet-max-h: calc(100vh - {{chrome.sheetTop}}px)" aria-role="dialog" aria-modal="true" aria-label="本站任务">
+      <view class="mp-sheet__k">{{node.gameTitle || '本站任务'}}</view>
+      <view class="mp-sheet__q">{{node.question}}</view>
+      <block wx:if="{{!game.done}}">
+        <view class="mp-opt" wx:if="{{node.options}}">
+          <view class="mp-opt__i {{game.choice === index ? 'is-on' : ''}}" wx:for="{{node.options}}" wx:key="index"
+                data-k="{{index}}" bindtap="onGamePick" aria-role="button" aria-label="选项{{index}}" aria-pressed="{{game.choice === index}}" hover-class="cy-pressed" hover-stay-time="80">
+            <text class="mp-opt__k">{{index}}</text><text class="mp-opt__v">{{item}}</text>
+          </view>
+        </view>
+        <input wx:else class="mp-sheet__input" placeholder="写下你的答案" value="{{game.answer}}" bindinput="onGameInput" aria-label="填写任务答案" />
+        <!-- game.receipt=unknown 时这条是「再核对一次」入口:只重读 /nodes 的 gameDone,不重发答案 -->
+        <view class="mp-sheet__err mp-sheet__err--{{game.receipt}}" wx:if="{{game.errText}}"
+          bindtap="retryGameReadback"
+          aria-role="{{game.receipt === 'unknown' ? 'button' : 'alert'}}" aria-live="polite"
+          aria-label="{{game.errText}}" hover-class="cy-pressed" hover-stay-time="80">{{game.errText}}<text class="mp-sheet__act" wx:if="{{game.receipt === 'unknown'}}"> · 再核对一次</text></view>
+        <view class="mp-sheet__btn {{game.submitting || game.receipt === 'unknown' ? 'is-disabled' : ''}}" bindtap="submitGame" aria-role="button" aria-label="{{game.receipt === 'unknown' ? '结果待确认' : (game.submitting ? '正在提交答案' : '提交答案')}}" aria-disabled="{{game.submitting || game.receipt === 'unknown'}}" hover-class="cy-pressed" hover-stay-time="80">{{game.receipt === 'unknown' ? '结果待确认' : (game.submitting ? '提交中…' : '提交答案')}}</view>
+      </block>
+      <block wx:else>
+        <view class="mp-sheet__ok" aria-role="status" aria-live="polite">{{game.resultText}}</view>
+        <view class="mp-sheet__btn" bindtap="closeGame" aria-role="button" aria-label="{{node.selfReported ? '完成任务' : '下一步拍现场凭证'}}" hover-class="cy-pressed" hover-stay-time="80">{{node.selfReported ? '完成' : '下一步 · 拍现场凭证'}}</view>
+      </block>
+    </view>
+    <view class="mp-sheet" wx:if="{{task.show}}" style="--cy-comp-sheet-max-h: calc(100vh - {{chrome.sheetTop}}px)" aria-role="dialog" aria-modal="true" aria-label="到店任务">
+      <view class="mp-sheet__k">到店任务</view>
+      <!-- ★rule/photoDesc 是这两个字段在客户端的唯一名字，两条来路都已按它下发：
+           列表来路 = pages/play/index.js normNode（ruleInstructions→rule、photoRequireDesc→photoDesc）；
+           进店来路 = /api/play/checkin 的 shopDayProofData 直接发 rule/photoDesc。
+           后者曾发原始名，而 _submitProof 是裸 Object.assign 不做映射 ⇒ 归一化键停在进店前的空串，
+           拍摄要求恒退回兜底文案、规则块永不渲染，而没配游戏的店整张任务卡就只有这两样。 -->
+      <view class="mp-sheet__q">{{node.photoDesc || '拍一张能证明已到店的照片'}}</view>
+      <view class="mp-sheet__rv" wx:if="{{node.rule}}">{{node.rule}}</view>
+      <view class="mp-sheet__btn {{busy ? 'is-disabled' : ''}}" bindtap="taskGoPhoto" aria-role="button" aria-label="去拍现场凭证" aria-disabled="{{busy}}" hover-class="{{busy ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{busy ? '处理中…' : '去拍照'}}</view>
+      <view class="mp-sheet__minor" bindtap="closeTaskCard" aria-role="button" aria-label="稍后再拍" hover-class="cy-pressed" hover-stay-time="80">稍后再拍</view>
+    </view>
+
+    <view class="mp-pad"></view>
+    <!-- 状态条紧贴它管辖的控件:原来它落在页面中段、折叠线以下,
+         用户看到的只有一个按钮,读不到「为什么现在不能提交」。
+         状态色只落在圆点上——整条染色会把一句「还没确认」喊成警报。 -->
+    <view class="mp-cta-wrap">
+      <view class="mp-status mp-status--{{receipt}}" wx:if="{{degradedMessage}}"
+        bindtap="retryProofReadback"
+        aria-role="{{receipt === 'unknown' ? 'button' : 'alert'}}" aria-live="assertive"
+        aria-label="{{degradedMessage}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="mp-status__dot"></view>
+        <text class="mp-status__text">{{degradedMessage}}</text>
+      </view>
+      <view class="mp-cta">
+      <view class="mp-cta__ghost" bindtap="openMap" aria-role="button" aria-label="导航去这里" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="pin" size="34" /><text>地址</text></view>
+      <!-- unknown 期间主按钮必须自己说清状态:它就在首屏,而降级提示条在折叠线以下。
+           沿用 busy 的「记录中…/上传中…」会一直对用户说「还在传」——请求早就断了,
+           回读若一直核对不上,那句话会永远停在那儿。(2026-08-25 截图实证) -->
+      <view wx:if="{{receipt === 'unknown'}}" class="mp-cta__main" bindtap="retryProofReadback"
+        aria-role="button" aria-label="结果待确认，点这里再核对一次" hover-class="cy-pressed" hover-stay-time="80">结果待确认 · 点这里核对</view>
+      <view wx:elif="{{!node.arrived}}" class="mp-cta__main {{busy ? 'is-disabled' : ''}}" bindtap="scanArrival" aria-role="button" aria-label="扫描门店码" aria-disabled="{{busy}}" hover-class="cy-pressed" hover-stay-time="80">{{busy ? '记录中…' : '扫描门店码'}}</view>
+      <view wx:elif="{{!node.selfReported}}" class="mp-cta__main {{busy ? 'is-disabled' : ''}}" bindtap="uploadProof" aria-role="button" aria-label="拍摄到店凭证" aria-disabled="{{busy}}" hover-class="cy-pressed" hover-stay-time="80">{{busy ? '上传中…' : '拍摄到店凭证'}}</view>
+      <view wx:elif="{{!node.done}}" class="mp-cta__main {{consentBusy ? 'is-disabled' : ''}}" bindtap="openVerifyCode" aria-role="button" aria-label="出示核销码" aria-disabled="{{consentBusy}}" hover-class="cy-pressed" hover-stay-time="80">{{consentBusy ? '确认授权中…' : '出示核销码'}}</view>
+      <view wx:else class="mp-cta__main is-dead" aria-role="status">已核销</view>
+      </view>
+    </view>
+  </block>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

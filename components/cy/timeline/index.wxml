@@ -1,0 +1,37 @@
+<view class="cyt cyt--{{_mode}}">
+  <!-- 折叠头:抄参考图 208「Approvals · Approved ⌃」,默认只留这一行 + 展开箭头。 -->
+  <view wx:if="{{collapsible}}" class="cyt__head" bindtap="onToggle"
+        aria-role="button" aria-expanded="{{_open}}"
+        aria-label="{{(summary || '状态时间线') + (_open ? '，收起' : '，展开')}}"
+        hover-class="cy-pressed" hover-stay-time="80">
+    <text class="cyt__summary">{{summary || '状态时间线'}}</text>
+    <cy-icon class="cyt__chevron {{_open ? 'cyt__chevron--up' : ''}}" name="arrow-right" size="28" />
+  </view>
+  <view wx:elif="{{summary}}" class="cyt__head cyt__head--static">
+    <text class="cyt__summary">{{summary}}</text>
+  </view>
+
+  <view wx:if="{{!collapsible || _open}}" class="cyt__body">
+    <view class="cyt__node cyt__node--{{item.status}}" wx:for="{{_nodes}}" wx:key="key">
+      <view class="cyt__rail" aria-hidden="true">
+        <view class="cyt__dot cyt__dot--{{item.status}}"></view>
+        <view wx:if="{{!item.isLast}}" class="cyt__line cyt__line--{{item.lineStatus}}"></view>
+      </view>
+      <view class="cyt__copy">
+        <view class="cyt__title">{{item.title}}</view>
+        <view wx:if="{{item.time || item.desc}}" class="cyt__meta">
+          <text wx:if="{{item.time}}" class="cyt__time">{{item.time}}</text>
+          <text wx:if="{{item.time && item.desc}}" class="cyt__sep"> · </text>
+          <text wx:if="{{item.desc}}">{{item.desc}}</text>
+        </view>
+        <!-- 尾部备注:拒绝理由带引号回写(参考图 212)。 -->
+        <view wx:if="{{item.note}}" class="cyt__note">“{{item.note}}”</view>
+        <cy-btn wx:if="{{item.action}}" class="cyt__action" variant="primary" size="sm"
+                data-index="{{index}}" bind:tap="onAction">{{item.action}}</cy-btn>
+      </view>
+      <!-- 操作人头像挂在节点右侧、不进正文列:塞进标题行会把标题和时间行撑开一道空档。
+           横向步骤条一行放不下,只在竖版出现。 -->
+      <cy-avatar wx:if="{{_mode === 'vertical' && item.avatar}}" class="cyt__avatar" size="64" src="{{item.avatar}}" />
+    </view>
+  </view>
+</view>

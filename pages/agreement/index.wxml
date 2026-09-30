@@ -1,0 +1,26 @@
+<!-- 真实 caller 全是 navigateTo(shezhi.js:125 / deregister/index.js:49)⇒ 真·二级页。
+     cy-nav-bar 的箭头无条件渲染,但组件内 onBack 在页面栈只有 1 页时什么都不做
+     ⇒ 深链直达时是死箭头。按 shezhi 既有范式接管:箭头照常可见,返回一定有出口。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-nav-bar custom-back bind:back="onBack" />
+<!-- 标题绑 doc.title:本页按 ?type= 同时承载《用户服务协议》与《账号注销须知》,
+     写死「服务协议」会让注销须知顶着错标题(删掉卡内那个重复标题后这一点更要紧)。
+     ⚠️ 必须写成 doc ? doc.title : '' —— data.doc 初值是 null,直接取 doc.title 会给组件传 null,
+     首帧空标题 + cy-page-title 属性类型告警(2026-07-30 真实复拍控制台采到) -->
+<cy-page-title title="{{doc ? doc.title : ''}}" />
+<view class="agr-page" wx:if="{{doc}}">
+  <!-- 卡内原有 {{doc.title}} 与页标题同义(服务协议 / 用户服务协议)= 同页双标题,DS §3.1 禁止条 ⇒ 删,只留更新日期 -->
+  <!-- 用户原话"删除框线":cy-card 自带 flat 变体(透明/无边框),协议纯文档页直接用它,不必新写覆盖样式 -->
+  <cy-card class="agr-card" flat="{{true}}">
+    <text class="agr-intro">{{doc.intro}}</text>
+    <view class="agr-section" wx:for="{{doc.sections}}" wx:key="h">
+      <text class="agr-h">{{item.h}}</text>
+      <text class="agr-p">{{item.p}}</text>
+    </view>
+    <text class="agr-meta agr-meta--footer">生效日期：{{doc.updatedAt}}</text>
+  </cy-card>
+</view>
+</view>

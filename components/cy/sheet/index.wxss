@@ -1,0 +1,393 @@
+/* cy-sheet · 底部弹起面板(action-sheet / 选择器 / 菜单容器)
+ * 遮罩 + 底部圆角卡 + 上滑动画 + 安全区;内容走 slot。色随主题。 */
+:host { display: block; }
+.sh {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cy-z-sheet);        /* T9:底部面板档 */
+  display: flex;
+  align-items: flex-end;
+}
+.sh__mask {
+  position: absolute;
+  inset: 0;
+  background: var(--cy-color-overlay);
+  animation: sh-fade-in var(--cy-motion-sheet-in) var(--cy-ease-standard); /* 遮罩淡入,和面板上滑同步插值(曲线随面板一起走慢快慢) */
+}
+.sh__panel {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  /* 2026-08-07 用户拍板(修订):弹窗双规范——玩家页=深玻璃,商家页=白。
+   * 面板读 role 档,role 档由宿主主题块整组切换(就地求值快照语义)。 */
+  --cy-comp-sheet-bg: var(--cy-comp-sheet-role-glass);
+  --cy-color-bg-page: var(--cy-comp-sheet-role-page);
+  --cy-color-bg-surface: var(--cy-comp-sheet-role-surface);
+  --cy-color-bg-surface-subtle: var(--cy-comp-sheet-role-card);
+  --cy-color-bg-elevated: var(--cy-comp-sheet-role-elevated);
+  --cy-color-text-primary: var(--cy-comp-sheet-role-text);
+  --cy-color-input-text: var(--cy-comp-sheet-role-text);
+  --cy-color-text-secondary: var(--cy-comp-sheet-role-text-secondary);
+  --cy-color-text-tertiary: var(--cy-comp-sheet-role-muted);
+  --cy-color-action-primary-bg: var(--cy-comp-sheet-role-btn-bg);
+  --cy-color-action-primary-fg: var(--cy-comp-sheet-role-btn-fg);
+  --cy-color-action-secondary-bg: var(--cy-comp-sheet-role-action-secondary);
+  --cy-color-border-subtle: var(--cy-comp-sheet-role-divider);
+  --cy-color-border-strong: var(--cy-comp-sheet-role-border-strong);
+  --cy-btn-solid-bg: var(--cy-comp-sheet-role-btn-bg);
+  --cy-btn-solid-fg: var(--cy-comp-sheet-role-btn-fg);
+  --cy-bg-page: var(--cy-comp-sheet-role-page);
+  --cy-bg-card: var(--cy-comp-sheet-role-surface);
+  /* comp 卡片层也要重估:comp-card-bg 在 page 根作用域已就地求值成宿主主题快照,
+   * 白页里拉起的弹窗会出现白卡+白字(2026-08-07 实证:商家报名弹窗) */
+  --cy-comp-card-bg: var(--cy-comp-sheet-role-surface);
+  --cy-comp-card-shadow-day: var(--cy-comp-sheet-role-card-shadow);
+  --cy-bg-card-2: var(--cy-comp-sheet-role-card);
+  --cy-border-card: var(--cy-comp-sheet-role-divider);
+  --cy-text-title: var(--cy-comp-sheet-role-text);
+  --cy-text-body: var(--cy-comp-sheet-role-text-secondary);
+  --cy-text-secondary: var(--cy-comp-sheet-role-muted);
+  background: var(--cy-comp-sheet-bg);
+  /* 玻璃模糊;安卓部分 webview 不支持 backdrop-filter 时自动忽略,
+   * 面板退回上面的半透明深底,不会变成透明白板。 */
+  backdrop-filter: blur(var(--cy-comp-sheet-blur, 24rpx));
+  -webkit-backdrop-filter: blur(var(--cy-comp-sheet-blur, 24rpx));
+  color: var(--cy-text-title);
+  border-radius: var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0;
+  padding: 0 var(--cy-page-x) calc(env(safe-area-inset-bottom) + 24rpx);
+  /* 用户定(2026-08-05):微信胶囊那条占屏幕顶部约 11%，弹窗顶还要再往下留约 20%
+     —— 合计留白 ~31%，所以最高只到 70vh。原来 86vh 几乎贴着胶囊按钮。 */
+  /* 用户 2026-08-10 定:弹窗顶统一贴到「胶囊底下 5px」。调用方拿不到胶囊坐标的场合
+     仍退回 70vh(2026-08-05 拍板值),所以这里是带兜底的变量而不是改死值 ——
+     全站 63 处调用一个都不受影响,只有显式传 --cy-comp-sheet-max-h 的才变。 */
+  max-height: var(--cy-comp-sheet-max-h, 70vh);
+  overflow-y: auto;
+  /* 2026-09-06 用户裁决:升起与落下都要「慢快慢」,改读 --cy-ease-standard。
+     此前是稿 40:3 裁的 decelerate(0,0,.2,1)= 一上来最快再减速;用户看过实机后改了口径。
+     时长仍是稿裁的 sheet-in(300)/sheet-out(250),只换曲线不换档。
+     ⚠️ morph 变体(下面 .sh--morph 那组 transition)同步换,否则同一个手势两条曲线。 */
+  animation: sh-up var(--cy-motion-sheet-in) var(--cy-ease-standard);
+}
+.sh--reduced-motion .sh__panel { animation: none; }
+.sh--reduced-motion .sh__mask { animation: none; }
+/* 退场:show 置 false 后 JS 挂 .sh--closing 播完再卸载(见 index.js show observer) */
+/* 退场比进场快一档:DS 文档3 §B.1「进场慢、退场快(exit 比 enter 快 ~20%)」+ 上限 300ms。
+   2026-09-02 起改读稿裁决的成对档:进场 sheet-in(300),退场 sheet-out(250)
+   —— 稿 41:117 逐字写着「关闭走 250ms ease-in,比打开短」。
+   时长在 index.js 的 exitMotion(250) 有镜像,两处漂移由退场契约判红。 */
+.sh--closing { pointer-events: none; }
+.sh--closing .sh__panel { animation: sh-down var(--cy-motion-sheet-out) var(--cy-ease-standard) forwards; }
+.sh--closing .sh__mask { animation: sh-fade-out var(--cy-motion-sheet-out) var(--cy-ease-standard) forwards; }
+.sh__handle {
+  /* 同上:抓手尺寸/色/上下距留钩子,回退值即原值(356-5220 失败面板:38×5 / interactive / 上 12 下 45px) */
+  width: var(--cy-comp-sheet-handle-w, 64rpx);
+  height: var(--cy-comp-sheet-handle-h, 8rpx);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-comp-sheet-handle-bg, var(--cy-border-line));
+  margin: var(--cy-comp-sheet-handle-mt, 16rpx) auto var(--cy-comp-sheet-handle-mb, 8rpx);
+}
+/* 2026-09-01:抓手热区。横条本身只有 8rpx 高,直接当热区拖不住。
+   用 ::after 反向撑开而不是给 grip 加 padding —— 加 padding 会把整个面板顶部
+   往下推,横条到标题的距离是 Figma 给过的稿。撑到约 56rpx,仍低于 88rpx 触控档,
+   但它是「顺手往下甩」的辅助手势,不是唯一出口(× 和遮罩都还在)。 */
+.sh__grip { position: relative; display: block; flex: none; }
+.sh__grip::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: -12rpx; bottom: -20rpx;
+}
+/* 位移由根节点的 --sh-drag-y 继承下来,不写进 .sh__panel 的行内 style ——
+   那个 style 表达式被 sheet-morph-contract 逐字锁着(morph 起点变换靠它)。
+   transform 在「跟随」和「吸附」两态都要在场,否则松手瞬间声明消失 = 直接跳回,吸附不会播。 */
+.sh.sh--dragging .sh__panel,
+.sh.sh--snap .sh__panel { transform: translate3d(0, var(--sh-drag-y, 0px), 0); }
+/* 跟随:同时顶掉 animation 与 transition,否则面板落在手指后面。
+   写 .sh.sh--dragging 是为了压过 .sh--closing / .sh--morph 那两条同级规则。 */
+.sh.sh--dragging .sh__panel { animation: none; transition: none; }
+/* 吸附:松手没过阈值时 --sh-drag-y 被清空,变量回落到 0px,这条过渡把它送回去。 */
+.sh.sh--snap .sh__panel { transition: transform var(--cy-motion-standard) var(--cy-ease-out); }
+/* 减动效:吸附直出终帧(跟随本身是直接操作、不是动画,照常保留)。 */
+.sh.sh--reduced-motion.sh--snap .sh__panel { transition: none; }
+.sh__head {
+  position: relative;
+  display: flex;
+  flex: none;
+  /* 用户定:叉号要跟标题对齐。flex-start + 标题块与叉号同高 ⇒ 两者第一行对齐；
+     center 在有副标题时会让叉号飘到标题和副标题中间。 */
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24rpx 0 8rpx;
+}
+.sh__head--closable {
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+}
+.sh__title {
+  font-size: var(--cy-sheet-heading-size, var(--cy-font-subtitle));
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.sh__title--closable {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  /* padding-right 保留：契约 cy-sheet-close-accessibility 要求标题右侧完整预留
+     关闭热区，避免长标题压到 X 底下。叉号仍是 absolute 定位（见 .sh__close）。 */
+  padding-right: var(--cy-btn-h);
+  /* 与 .sh__close 同高，保证单行标题时两者垂直居中对齐 */
+  min-height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+}
+.sh__close {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-secondary);
+  padding-right: 0;
+  border-radius: var(--cy-radius-pill);
+  /* 2026-09-02(vault §3.21 已定 · 用户当面点名「叉号下面没有圆底」):去圆底,只留字形。
+     去掉的是底色,不是可点范围 —— 热区仍是整块 --cy-btn-h(≥88rpx)。
+     圆底的问题:它在深玻璃面板上自成一个浅灰色块,比 ✕ 本身还抢眼,
+     而右上角关闭是全站最不需要强调的控件。 */
+  background: transparent;
+  line-height: 1;
+}
+.sh__body { padding: 8rpx 0; }
+@keyframes sh-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes sh-down {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+@keyframes sh-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sh-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ============================================================
+ * variant="full" —— 全屏变体(弹窗规范类型 B:依附发起页的连续多步任务)
+ * 仍是浮层语义(关闭回发起页、不进页面栈),但接近全屏、有步骤/返回/固定 CTA。
+ * bottom 变体的规则一条都没改,既有 20 处调用零影响。
+ * ============================================================ */
+.sh--full .sh__panel {
+  /* 2026-09-02:原为 96vh —— 每台机器都压住微信右上角胶囊。
+     本文件上面那条 70vh 的注释已经记过一次同样的教训(「原来 86vh 几乎贴着胶囊按钮」),
+     后来加 full 变体时又踩了回去,而且更狠。写死 vh 与安全区无关,注定会复发,
+     所以这次不是换一个更小的 vh,是改成从安全区反算的 token。
+     2026-09-25 CU-M-163:token 的 --cy-safe-top 走 env(safe-area-inset-top),在模拟器和无刘海
+     真机上解析为 0 ⇒ 顶边照样落进胶囊行。组件现在按胶囊实测下发 --cy-comp-sheet-max-h
+     (见 index.js 的 attached)。两条并存是取更保守的那个:实测值更高时由 max-height 收住,
+     拿不到实测值时 token 独扛 —— 哪种都不会越进胶囊行。 */
+  height: var(--cy-comp-sheet-max-h, var(--cy-comp-sheet-max-height));
+  max-height: var(--cy-comp-sheet-max-height);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;              /* footer 自己处理安全区 */
+  overflow: hidden;               /* 只允许 body 一个滚动容器,禁止嵌套滚动 */
+}
+
+
+/* 顶栏:返回 / 标题 / 关闭 —— 返回和关闭是两个不同语义,视觉上也要分得开 */
+.sh--full .sh__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--cy-btn-h);
+  /* 顶边不再由 JS 下发 padding 让位:面板整体落在胶囊底下(CU-M-163),
+     这里只留一点呼吸,✕ 才能贴到弹层右缘和 bottom 档的 ✕ 同一个位置。 */
+  padding: var(--cy-space-2) 0 var(--cy-space-1);
+  flex: none;
+}
+.sh--full .sh__nav-left {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+}
+.sh--full .sh__nav-btn {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-type-section-title);
+  color: var(--cy-text-title);
+  line-height: 1;
+  flex: none;
+  border-radius: var(--cy-radius-pill);
+  /* 2026-09-02 同 §3.21:全屏档的返回/✕ 一并去圆底 —— 两个档位不能一个有底一个没底。 */
+  background: transparent;
+}
+.sh--full .sh__nav-btn--close { margin-left: var(--cy-space-1); }
+.sh--full .sh__nav-title {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 步骤进度:分段细条,已完成/当前为实色 */
+.sh--full .sh__progress {
+  display: flex;
+  gap: var(--cy-space-1);
+  padding-bottom: var(--cy-space-2);
+  flex: none;
+}
+.sh--full .sh__progress-seg {
+  flex: 1;
+  height: 6rpx;                   /* ds-ok: 进度细条,比 space-1(8) 更细才不喧宾夺主 */
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-border-card);
+  transition: background var(--cy-motion-fast) var(--cy-ease-out);
+}
+.sh--full .sh__progress-seg--on { background: var(--cy-color-action-primary-bg); }
+
+/* 内容区:唯一滚动容器 */
+.sh--full .sh__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8rpx 0 var(--cy-space-3);
+}
+
+/* 底部固定 CTA:贴底、让出安全区,键盘顶起时不被遮 */
+.sh--full .sh__footer {
+  flex: none;
+  padding: var(--cy-space-2) 0 calc(env(safe-area-inset-bottom) + var(--cy-space-2));
+  background: var(--cy-comp-sheet-bg);
+  border-top: 2rpx solid var(--cy-border-card);
+}
+/* bottom 变体也允许有 footer(短表单的提交按钮),但不吃满高、不加分隔线 */
+.sh--bottom .sh__footer { padding-top: var(--cy-space-2); }
+/* bottom+footer:面板固定标题与 CTA,只让正文滚动。
+ * sticky 会相对整块 overflow 面板吸附,实际会盖在长表单中段；flex 才能把
+ * 正文的可滚区域限定在标题与 footer 之间。head/grip 的 flex:none 已并入原规则,
+ * 不新增同名规则,继续满足关闭热区契约。 */
+.sh--bottom.sh--has-footer .sh__panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sh--bottom.sh--has-footer .sh__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sh--bottom.sh--has-footer .sh__footer {
+  flex: none;
+  background: var(--cy-comp-sheet-bg);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }
+
+/* ═══════════════════════════════════════════════════════════════════
+ * morph 进场(2026-08-26)· 传了 anchor-selector 才生效
+ * 面板从触发元素的位置「长」出来,而不是整条从屏幕外上滑。
+ * 参考稿:x.com/anshpng/status/2092095630554394709(顶栏版,这里是底部镜像)。
+ *
+ * ⚠️ 返工记录:第一版起点写死 scale(.92, .12),x 只缩到 92% ——
+ *   起点是一条几乎占满屏宽的扁条,看着像「从屏幕某个高度展开」而不是「从按钮长出来」。
+ *   现在起点由 JS 按 触发元素尺寸 ÷ 面板尺寸 算出真实比例(见 index.js 的 _flipStyle),
+ *   走行内 style;本文件只负责三件事:未量完时藏住、末态的过渡、内容错峰。
+ *
+ * ⚠️ 为什么用 transition 不用 keyframes:
+ *   motion-property-ratchet 的 keyframes 上限是**精确相等**的棘轮(只减不增),
+ *   加两组就判红;而且它自己那条注释就说「会被快速重触发的元素用 keyframes 就是抖」——
+ *   弹窗正是会被连点的元素,transition 能中途改向,keyframes 会从 0 重启。
+ *
+ * ⚠️ 为什么选择器要写成 .sh.sh--morph:
+ *   要顶掉上面退场规则里的 sh-down(特异性 0,2,1),这里必须更高。
+ *   而退场态的规则里**一律不能出现 animation 声明** —— sheet-modal-exit-motion-contract
+ *   会把退场态的每条规则都要求带 forwards + 读 --cy-motion-* 档,写 animation:none 就判红。
+ *   所以「顶掉 sh-down」只能由下面这条不带退场态的基础规则一次性负责。
+ *   (同理:这段注释里也不能把退场类名和 animation 写在一起 —— 那条契约不剥注释,
+ *    会把注释文本当成规则体扫进去,实测踩过。)
+ * ═══════════════════════════════════════════════════════════════════ */
+.sh.sh--morph .sh__panel--morph {
+  animation: none;                   /* 顶掉进场 sh-up 与退场 sh-down,变换全交给 transition */
+  transform-origin: center center;   /* FLIP 的位移按两个**中心点**之差算,原点必须在中心 */
+  opacity: 0;                        /* ① 还没量完:先藏住,否则会按原尺寸露一帧 */
+  /* ② 起点态必须**瞬间**到位:带上过渡的话,设起点这一帧会先播一段反向动画
+   *    (外壳/面板还会从基础规则继承到 transition,所以必须显式关掉)。 */
+  transition: none;
+  /* 提前提合成层。不写的话,层是在动画**开始那一刻**才建的,第一帧必卡 ——
+   * vaul(emilkowalski/vaul,src/style.css)对 drawer 也是常驻 will-change: transform。 */
+  will-change: transform;
+}
+/* ③ 末态:行内 style 被清空 ⇒ 从起点变换过渡回原位。
+ * transition 写在这里而不是基础规则上 —— 起点态必须瞬间到位,带上过渡会先播一段反向动画。 */
+.sh.sh--morph.sh--morph-open .sh__panel--morph {
+  opacity: 1;
+  transition: transform var(--cy-motion-sheet-in) var(--cy-ease-standard),
+              border-radius var(--cy-motion-sheet-in) var(--cy-ease-standard),
+              opacity var(--cy-motion-crossfade) var(--cy-ease-standard);
+}
+/* 内容比壳晚一步现身。这里不只是「好看」——把整块面板压到一个按钮大小,
+ * 里面的文字必然横向挤成一团,缩放阶段必须藏住内容,只让壳可见(同 Material container transform)。
+ * 收起时不延迟 —— 与 sh-down 同规矩:进场慢、退场快。
+ * ⚠️ 只能用 class 选择器:组件 wxss 禁 tag/id/attribute 选择器,
+ *   `> view` 会被 component-wxss-selector-lint 判红(实测踩过)。 */
+.sh.sh--morph .sh__panel--morph .sh__body,
+.sh.sh--morph .sh__panel--morph .sh__footer {
+  opacity: 0;
+  transition: opacity var(--cy-motion-fast) var(--cy-ease-out);
+}
+.sh.sh--morph.sh--morph-open .sh__panel--morph .sh__body,
+.sh.sh--morph.sh--morph-open .sh__panel--morph .sh__footer {
+  opacity: 1;
+  transition-delay: var(--cy-comp-sheet-morph-delay);
+}
+
+/* 退场:原路缩回触发元素。行内 style 被重新挂上(见 wxml 的 _morphOpen ? '' : _morphStyle),
+ * 时长与基础退场同档(sheet-out 250ms)—— 同一个弹窗不该因为传没传 anchor 就有两种速度。 */
+.sh.sh--morph.sh--closing .sh__panel--morph {
+  opacity: 0;
+  transition: transform var(--cy-motion-sheet-out) var(--cy-ease-standard),
+              border-radius var(--cy-motion-sheet-out) var(--cy-ease-standard),
+              opacity var(--cy-motion-sheet-out) var(--cy-ease-standard);
+}
+.sh.sh--morph.sh--closing .sh__panel--morph .sh__body,
+.sh.sh--morph.sh--closing .sh__panel--morph .sh__footer {
+  opacity: 0;
+  transition-delay: 0s;
+}
+
+/* 减动效:直接到位,不播生长 */
+.sh.sh--morph.sh--reduced-motion .sh__panel--morph,
+.sh.sh--morph.sh--reduced-motion .sh__panel--morph .sh__body,
+.sh.sh--morph.sh--reduced-motion .sh__panel--morph .sh__footer {
+  transition: none;
+  opacity: 1;
+}
+
+/* 提示型面板：安全区放在卡片外，避免内外重复留白。 */
+.sh--bottom.sh--inset .sh__panel {
+  width: calc(100% - var(--cy-page-x) * 2);
+  margin: 0 var(--cy-page-x) calc(env(safe-area-inset-bottom) + var(--cy-space-2));
+  padding-bottom: 24rpx;
+  border-radius: var(--cy-comp-sheet-radius);
+}

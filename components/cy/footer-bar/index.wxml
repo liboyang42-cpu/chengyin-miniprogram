@@ -1,0 +1,17 @@
+<view class="cy-footer-bar {{highlight ? 'cy-footer-bar--highlight' : ''}}">
+  <view wx:if="{{primary}}" class="cy-footer-bar__actions">
+    <view wx:if="{{secondary}}" class="cy-footer-bar__slot cy-footer-bar__slot--secondary">
+      <cy-btn variant="secondary" bindtap="onSecondary">{{secondary}}</cy-btn>
+    </view>
+    <view class="cy-footer-bar__slot cy-footer-bar__slot--primary">
+      <cy-btn
+        variant="{{primaryVariant}}"
+        disabled="{{primaryDisabled}}"
+        loading="{{primaryLoading}}"
+        bindtap="onPrimary"
+        binddisabledtap="onPrimaryDisabled"
+      >{{primary}}</cy-btn>
+    </view>
+  </view>
+  <slot wx:else></slot>
+</view>

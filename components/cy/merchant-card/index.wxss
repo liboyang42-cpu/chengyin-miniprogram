@@ -1,0 +1,143 @@
+:host { display: block; }
+
+.mc {
+  background: var(--cy-color-bg-surface);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-lg);
+  box-shadow: var(--cy-shadow-card);
+  overflow: hidden;
+}
+.mc--press { background: var(--cy-color-bg-surface-subtle); }
+.mc--disabled { opacity: .5; }
+/* venue coopOpen=0:整卡降饱和 */
+.mc--coop-off { opacity: .55; }
+
+/* ===== 封面 ===== */
+.mc__cover { position: relative; height: 280rpx; background: var(--cy-color-bg-surface-subtle); }
+.mc--venue .mc__cover { height: 240rpx; }
+.mc__cover-img { width: 100%; height: 100%; display: block; }
+.mc--closed .mc__cover-img { filter: grayscale(1); }
+.mc__cover-ph {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-tertiary); opacity: .6;
+}
+.mc__cover-dim { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: var(--cy-comp-scrim); }
+
+/* 状态芯片(2026-09-18 用户走查 UI-07):原为深色 scrim 实底,「营业中」看着是深灰块;
+   现在走状态胶囊软底 —— 浅色半透明 + 文字保持语义色,压在封面上仍能透出底图。 */
+.mc__pill {
+  position: absolute; top: 20rpx; left: 20rpx;
+  display: inline-flex; align-items: center; gap: var(--cy-legacy-6);
+  height: 40rpx; padding: 0 var(--cy-legacy-14);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-label); font-weight: 600;
+  background: var(--cy-color-status-neutral-soft);
+}
+.mc__pill--success { color: var(--cy-color-status-success); background: var(--cy-color-status-success-soft); }
+.mc__pill--warning { color: var(--cy-color-status-warning); background: var(--cy-color-status-warning-soft); }
+.mc__pill--info { color: var(--cy-color-status-info); background: var(--cy-color-status-info-soft); }
+.mc__pill--muted { color: var(--cy-color-text-secondary); background: var(--cy-color-status-neutral-soft); }
+.mc__partner {
+  position: absolute; top: 20rpx; right: 20rpx;
+  height: 40rpx; padding: 0 var(--cy-legacy-14);
+  display: inline-flex; align-items: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-rare); color: var(--cy-color-text-inverse);
+  font-size: var(--cy-type-label); font-weight: 600;
+}
+
+/* logo 压角,禁止拿它当封面拉伸 */
+.mc__logo {
+  position: absolute; left: 24rpx; bottom: -48rpx;
+  width: 96rpx; height: 96rpx; border-radius: var(--cy-radius-md); overflow: hidden;
+  background: var(--cy-color-bg-surface-subtle);
+  border: 4rpx solid var(--cy-color-bg-surface);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-secondary);
+}
+.mc__logo-img { width: 100%; height: 100%; }
+
+/* ===== 主体 ===== */
+.mc__body { padding: 60rpx 24rpx 24rpx; display: flex; flex-direction: column; gap: var(--cy-space-1-5); }
+.mc__name { font-size: var(--cy-type-card-title); font-weight: 600; color: var(--cy-color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc__role { display: flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-color-rare); font-size: var(--cy-type-label); font-weight: 500; }
+.mc__desc { font-size: var(--cy-type-caption); color: var(--cy-color-text-secondary); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc__meta { display: flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.mc__meta-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.mc__tags { display: flex; align-items: center; gap: var(--cy-space-1); flex-wrap: wrap; }
+.mc__tag {
+  height: 40rpx; padding: 0 var(--cy-legacy-14); display: inline-flex; align-items: center;
+  border-radius: var(--cy-radius-pill);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  font-size: var(--cy-type-label); color: var(--cy-color-text-secondary);
+}
+
+/* 底行(稿 7:2):服务行占左,按钮贴右;无服务时撑条把按钮推到右侧 */
+.mc__bottom { display: flex; align-items: center; gap: var(--cy-space-1-5); }
+.mc__bottom-fill { flex: 1; min-width: 0; }
+
+/* 服务行:卡上唯一转化位 */
+.mc__service {
+  flex: 1; min-width: 0;
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+  display: flex; align-items: center; gap: var(--cy-space-2);
+  padding: 16rpx 20rpx;
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-sm);
+  color: var(--cy-color-text-tertiary);
+}
+.mc__service-tag {
+  flex: none; height: 40rpx; padding: 0 var(--cy-legacy-14);
+  display: inline-flex; align-items: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-comp-rare-soft); color: var(--cy-color-rare);
+  font-size: var(--cy-type-label); font-weight: 600;
+}
+.mc__service-text { flex: 1; min-width: 0; font-size: var(--cy-type-label); color: var(--cy-color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 承接档案(venue) */
+.mc__profile {
+  display: flex; flex-direction: column; gap: var(--cy-space-1);
+  padding: 20rpx;
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-sm);
+}
+.mc__profile-row { display: flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-color-text-secondary); }
+.mc__profile-main { flex: 1; min-width: 0; font-size: var(--cy-type-label); font-weight: 600; color: var(--cy-color-text-primary); }
+.mc__profile-sub { font-size: var(--cy-type-caption); color: var(--cy-color-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc__charge {
+  flex: none; height: 40rpx; padding: 0 var(--cy-legacy-14);
+  display: inline-flex; align-items: center;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-label); font-weight: 600;
+  color: var(--cy-color-status-success); background: var(--cy-color-status-success-soft);
+}
+.mc__charge--paid { color: var(--cy-color-status-warning); background: var(--cy-color-status-warning-soft); }
+
+/* 2026-08-20 用户拍板:「去看看」走主 CTA 实心(暗色=白底黑字),与申请加入/发起合作同一体系 */
+.mc__action {
+  flex: none;
+  height: var(--cy-btn-h); padding: 0 var(--cy-space-3-5);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-comp-btn-radius);
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-size: var(--cy-type-body); font-weight: 600;
+}
+
+/* ===== 骨架 ===== */
+.sk { background: var(--cy-color-skeleton-base); border-radius: var(--cy-radius-sm); }
+.mc__sk .mc__cover { border-radius: 0; }
+.mc__sk .sk-l { height: 30rpx; width: 55%; }
+.mc__sk .sk-l.short { width: 35%; }
+.mc__sk-chips { display: flex; gap: var(--cy-space-1); }
+.mc__sk .sk-chip { width: 110rpx; height: 40rpx; border-radius: var(--cy-radius-pill); }
+.mc__sk .sk-block { height: 72rpx; width: 100%; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

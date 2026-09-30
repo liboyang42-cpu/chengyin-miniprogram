@@ -1,0 +1,32 @@
+@import '../../../style/merchant-light.wxss';
+
+/* flex 列是 fill 链的第一环:没有它,子节点的 flex:1 无处可依,整屏告知态会退化成
+   贴在金额卡下方的一小块,而不是占住剩余空间居中。 */
+.page { min-height: 100vh; display: flex; flex-direction: column; background: var(--cy-bg-page); padding: 0 24rpx 220rpx; box-sizing: border-box; } /* ds-ok: 220rpx 是刻意值,给底部 fixed .foot 提现CTA条(含安全区)让出滚动空间,不是随手写的间距 */
+
+/* fill 链末环:挂在 cy-empty 这类 :host{display:block} 的自定义组件标签上。
+   四件套缺一不可 —— flex:1 抢剩余高度,min-height:0 允许它在 flex 列里真的收缩,
+   display:flex + column 让组件内部的 justify-content:center 有可居中的高度。 */
+.fill-slot { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+
+
+
+
+/* 底部 CTA */
+.foot {
+  position: fixed; left: 0; right: 0; bottom: 0; padding: var(--cy-space-3) 24rpx calc(var(--cy-space-3) + env(safe-area-inset-bottom));
+  background: var(--cy-bg-page);
+}
+.submit {
+  padding: var(--cy-legacy-26) 0; text-align: center; border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+  font-size: var(--cy-font-body); font-weight: 600;
+}
+.submit.disabled { background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-disabled); }
+/* 原生 button[disabled] 默认近白，显式沿用次级动作表面与正文级前景。 */
+button.submit.submit-disabled[disabled] {
+  width: 100%; box-sizing: border-box; background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-secondary);
+  border: 1rpx solid var(--cy-color-border-strong); opacity: 1;
+}
+button.submit.submit-disabled[disabled]::after { border: none; }

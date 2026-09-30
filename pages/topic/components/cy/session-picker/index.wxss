@@ -1,0 +1,108 @@
+/* isolated 组件内全局 .cy-pressed 进不来,本地定义一份。 */
+.cy-pressed { opacity: .88; }
+
+/* 选场次 / 选票种 —— 按稿 240:401 / 240:446 逐处对齐(2026-09-06 照 Figma 重做)。
+   玩家域深色:选中态一律「白底黑字」,那是这一域的主按钮色。 */
+.sp { padding-bottom: var(--cy-space-2); }
+.sp-single {
+  display: block;
+  margin-bottom: var(--cy-space-3);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-body);
+}
+.sp-h {
+  margin: var(--cy-space-4) 0 var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.sp-h:first-child { margin-top: 0; }
+.sp-scroll { width: 100%; white-space: nowrap; }
+
+/* 日期卡:稿上是矮扁块,周几小字在上、日期大字在下;选中整块反白 */
+.sp-day {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: 140rpx;
+  margin-right: var(--cy-space-2);
+  padding: var(--cy-space-3) var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  white-space: nowrap;
+}
+.sp-day:last-child { margin-right: 0; }
+.sp-day.is-on { background: var(--cy-text-title); }
+.sp-day-w {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.sp-day.is-on .sp-day-w { color: var(--cy-bg-page); }
+.sp-day-d {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-title);
+}
+.sp-day.is-on .sp-day-d { color: var(--cy-bg-page); }
+
+/* 票种:稿上每张是独立卡、卡之间留白,不是一张大卡里拉分隔线 */
+.sp-ticket {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-3);
+  box-sizing: border-box;
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  border: 2rpx solid transparent;
+  background: var(--cy-bg-card);
+}
+.sp-ticket + .sp-ticket { margin-top: var(--cy-space-3); }
+.sp-ticket.is-on { border-color: var(--cy-text-title); }
+/* 售罄整行压暗且不可点 —— 选中再到结算页被拦是白走一趟(稿上没画这一态) */
+.sp-ticket.is-off { opacity: .42; }
+.sp-ticket-main { flex: 1; min-width: 0; }
+.sp-ticket-n {
+  display: block;
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-title);
+}
+.sp-ticket-r {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.sp-ticket-side { flex: none; }
+.sp-ticket-p {
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-title);
+}
+.sp-ticket-left {
+  display: block;
+  margin-top: var(--cy-space-1);
+  text-align: right;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* 底栏:稿上是左边「共 N 张 / 总价(大字)」两行,右边一颗胶囊按钮 —— 不是总价一行、按钮一行 */
+.sp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-4);
+  width: 100%;
+}
+.sp-total { flex: none; }
+.sp-total-n {
+  display: block;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.sp-total-v {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-title);
+  color: var(--cy-text-title);
+}
+.sp-cta { flex: 1; min-width: 0; }

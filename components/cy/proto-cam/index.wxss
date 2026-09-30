@@ -1,0 +1,31 @@
+/* 原型 camPanel 的取景卡。整段从 subpackageRoam/citystamp/index.wxss 抽出来,一行未改;
+   抽的原因是 2026-09-11 用户裁决:漫游与集邮册也要用这一件,拟物 Canon 那页退场。
+   position:absolute ⇒ 宿主自己要是定位上下文(.roam/.cs 都是 position:relative 的整屏)。 */
+/* 宿主可以把这一层铺满整屏并设 pointer-events:none(漫游就是这么挂的),
+   所以卡本体要把点击收回来。 */
+.cam{ pointer-events:auto; position:absolute; left:27rpx; right:27rpx; height:677rpx; border-radius:42rpx; overflow:hidden; /* ds-ok 照抄原型 */
+  z-index:26; background:#000; /* ds-ok 取景框本体 */
+  box-shadow:0 35rpx 85rpx rgba(0,0,0,.7); } /* ds-ok 原型 0 18px 44px rgba(0,0,0,.7) */
+.cam.is-full{ left:0; right:0; height:100vh; border-radius:0; }
+.cam__live{ width:100%; height:100%; display:block; }
+.cam__live--off{ display:flex; align-items:center; justify-content:center; background:#15181C; } /* ds-ok 取景框内兜底 */
+.cam__offtxt{ font-size:25rpx; color:#8A93A0; } /* ds-ok 暗面次要文字 */
+/* 原型:✕ 在左上 12/12,32×32;全屏放大在左下 16/24,34×34;翻转在右下 16/26,30×30 */
+.cam__x{ position:absolute; left:23rpx; top:23rpx; width:62rpx; height:62rpx; border-radius:var(--cy-radius-pill);
+  background:rgba(0,0,0,.5); color:#FFFFFF; display:flex; align-items:center; justify-content:center; } /* ds-ok 照抄原型 */
+.cam.is-full .cam__x{ top:108rpx; }
+.cam__full{ position:absolute; left:31rpx; bottom:46rpx; width:65rpx; height:65rpx; border-radius:var(--cy-radius-pill);
+  background:rgba(0,0,0,.5); color:#FFFFFF; display:flex; align-items:center; justify-content:center; } /* ds-ok 照抄原型 */
+.cam__flip{ position:absolute; right:31rpx; bottom:50rpx; width:58rpx; height:58rpx; color:#FFFFFF; /* ds-ok 照抄原型 */
+  display:flex; align-items:center; justify-content:center; opacity:.9; } /* ds-ok 照抄原型 */
+/* 原型:快门 62×62,4px 半透白描边,居中下 18px */
+.cam__shutter{ position:absolute; left:50%; bottom:35rpx; width:119rpx; height:119rpx; margin-left:-60rpx;
+  border-radius:var(--cy-radius-pill); background:#FFFFFF; border:8rpx solid rgba(255,255,255,.45); /* ds-ok 照抄原型 */
+  box-shadow:0 12rpx 35rpx rgba(0,0,0,.5); } /* ds-ok 原型 0 6px 18px rgba(0,0,0,.5) */
+/* 这三枚都是可点的:视觉尺寸照抄原型,热区用透明 ::after 撑到 88rpx(X12) */
+.cam__x::after,.cam__full::after,.cam__flip::after{ content:''; position:absolute;
+  left:50%; top:50%; width:88rpx; height:88rpx; transform:translate(-50%,-50%); }
+
+/* ⚠️ 本组件 styleIsolation: isolated —— 全局 style/components.wxss 的 .cy-pressed 进不来,
+   四枚控件都挂了 hover-class,必须在这儿本地定义一份,否则按下去毫无反应。 */
+.cy-pressed { opacity: .72; transform: scale(.96); }

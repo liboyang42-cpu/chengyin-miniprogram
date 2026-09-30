@@ -1,0 +1,64 @@
+<view class="mc mc--{{variant}} mc--{{status}} {{variant === 'venue' && coopOpen === 0 ? 'mc--coop-off' : ''}}" hover-class="{{status === 'disabled' || status === 'loading' ? '' : 'mc--press'}}" hover-stay-time="80"
+      aria-role="{{interactive ? 'button' : ''}}"
+      aria-label="{{interactive ? (name ? '查看商家：' + name : '查看商家') : ''}}"
+      aria-disabled="{{status === 'disabled' || status === 'loading'}}" catchtap="onTap">
+  <!-- 骨架:与实卡同构(封面块+行),防列表跳动 -->
+  <view wx:if="{{status === 'loading'}}" class="mc__sk">
+    <view class="mc__cover sk"></view>
+    <view class="mc__body">
+      <view class="sk sk-l"></view>
+      <view class="sk sk-l short"></view>
+      <view class="mc__sk-chips"><view class="sk sk-chip"></view><view class="sk sk-chip"></view><view class="sk sk-chip"></view></view>
+      <view class="sk sk-block"></view>
+    </view>
+  </view>
+
+  <block wx:else>
+    <!-- 封面:coverImage → 纯色底+品类图标(不拉伸 logo);已打烊整层压暗 -->
+    <view class="mc__cover">
+      <image wx:if="{{cover}}" class="mc__cover-img" src="{{cover}}" mode="aspectFill" />
+      <view wx:else class="mc__cover-ph"><cy-icon name="{{_catIcon}}" size="88" /></view>
+      <view wx:if="{{status === 'closed'}}" class="mc__cover-dim"></view>
+      <view wx:if="{{_pl}}" class="mc__pill mc__pill--{{_ptone}}"><cy-icon wx:if="{{_pi}}" name="{{_pi}}" size="22" /><text>{{_pl}}</text></view>
+      <view wx:if="{{_partner}}" class="mc__partner">合作商家</view>
+      <view class="mc__logo">
+        <image wx:if="{{logo}}" class="mc__logo-img" src="{{logo}}" mode="aspectFill" />
+        <cy-icon wx:else name="{{_catIcon}}" size="40" />
+      </view>
+    </view>
+
+    <view class="mc__body">
+      <text class="mc__name">{{name}}</text>
+      <view wx:if="{{cityRole}}" class="mc__role"><cy-icon name="star" size="24" /><text>{{cityRole}}</text></view>
+      <text wx:if="{{desc}}" class="mc__desc">{{desc}}</text>
+      <view wx:if="{{_meta}}" class="mc__meta"><cy-icon name="gps" size="22" /><text class="mc__meta-text">{{_meta}}</text></view>
+      <view wx:if="{{_tags.length}}" class="mc__tags">
+        <text wx:for="{{_tags}}" wx:key="index" class="mc__tag">{{item}}</text>
+      </view>
+
+      <!-- 底行(2026-08-20 用户在稿 7:2 亲手定位):服务行在左、「去看看」贴右同排;
+           无服务时按钮独自贴右;venue 变体没有按钮(稿 8:24 删除,动作=整卡点进主页) -->
+      <view wx:if="{{variant !== 'venue' && (serviceText || (actionText && status !== 'disabled'))}}" class="mc__bottom">
+        <view wx:if="{{serviceText}}" class="mc__service" catchtap="onService" aria-role="button" aria-label="{{serviceText || '查看服务'}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+          <text wx:if="{{serviceTag}}" class="mc__service-tag">{{serviceTag}}</text>
+          <text class="mc__service-text">{{serviceText}}</text>
+          <cy-icon name="arrow-right" size="24" />
+        </view>
+        <view wx:else class="mc__bottom-fill"></view>
+        <view wx:if="{{actionText && status !== 'disabled'}}" class="mc__action" catchtap="onAction" aria-role="button" aria-label="{{actionText}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">{{actionText}}</view>
+      </view>
+
+      <!-- 承接档案(venue):capacity / availableTime / chargeType / suitActivityTypes ≤2 -->
+      <view wx:if="{{variant === 'venue'}}" class="mc__profile">
+        <view class="mc__profile-row">
+          <cy-icon name="tab-club" size="24" />
+          <text class="mc__profile-main">{{capacity ? '可承接 ' + capacity + ' 人' : '可承接活动'}}</text>
+          <text class="mc__charge {{chargeType == 1 ? 'mc__charge--paid' : ''}}">{{chargeType == 1 ? '场地收费' : '场地免费'}}</text>
+        </view>
+        <view wx:if="{{availableTime}}" class="mc__profile-row"><cy-icon name="clock" size="24" /><text class="mc__profile-sub">{{availableTime}}</text></view>
+        <view wx:if="{{_suit}}" class="mc__profile-row"><cy-icon name="flag" size="24" /><text class="mc__profile-sub">适合：{{_suit}}</text></view>
+      </view>
+
+    </view>
+  </block>
+</view>

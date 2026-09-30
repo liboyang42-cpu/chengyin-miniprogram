@@ -1,0 +1,45 @@
+/* cy-info-pop · 说明文案收纳(商家侧七页规范 §〇.6)
+ * styleIsolation:isolated,--cy-* token 从页面继承。
+ * 黑白系:ⓘ 取次级文字色,不引入蓝/紫等装饰色(弹层本体的配色归 cy-modal / cy-sheet)。 */
+
+/* host 内联:ⓘ 是跟在标题后面的,不能撑成整行把标题挤走 */
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.ip__trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-tertiary);
+  transition: opacity var(--cy-motion-fast) var(--cy-ease);
+}
+.ip__trigger--press { opacity: 0.5; }
+
+/* 触控热区:ⓘ 视觉只有 32rpx 上下,远低于 88rpx 最小可点(DS §3.2)。
+   用透明 ::after 把热区撑到 88rpx,视觉尺寸不变 —— 与 cy-btn 的 .btn--sm::after 同一手法。
+   ⚠️ 祖先若有 overflow:hidden 会把热区裁掉,调用方把 ⓘ 放进裁剪容器时要留意。 */
+.ip__trigger::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+
+/* sheet 变体的正文容器。modal 变体的排版归 cy-modal,不在这里管 */
+.ip__body {
+  padding: 0 var(--cy-page-x) var(--cy-space-4);
+}
+
+.ip__text {
+  display: block;
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--cy-color-text-secondary);
+  white-space: pre-wrap;   /* 说明文案常带换行,保住调用方写的分段 */
+}

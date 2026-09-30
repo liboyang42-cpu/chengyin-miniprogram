@@ -1,0 +1,33 @@
+/* 纯 CSS 固定星空(非原生组件 → position:fixed 真正生效,不随页面滚动;静止=沉静)
+   暗底由 CSS 提供,杜绝白;星点用 box-shadow 随机散布,无网格 */
+:host { display: block; }
+.sf-root {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 100vw; height: 100vh; min-height: 100vh;
+  z-index: 0; pointer-events: none;
+  background: var(--cy-bg-page);
+  overflow: hidden;
+}
+/* 星云只用灰阶层次，保持暗底上的空间感而不借色相表达状态。 */
+.sf-neb {
+  position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(52% 40% at 74% 22%, rgba(196,196,196,0.08), rgba(2,2,2,0) 70%), /* ds-ok 灰阶星云渐变停止点 */
+    radial-gradient(48% 40% at 26% 72%, rgba(160,160,160,0.07), rgba(2,2,2,0) 72%), /* ds-ok 灰阶星云渐变停止点 */
+    radial-gradient(40% 30% at 60% 88%, rgba(112,112,112,0.04), rgba(2,2,2,0) 74%); /* ds-ok 灰阶星云渐变停止点 */
+}
+.sf-stars { position: absolute; left: 0; top: 0; width: 2rpx; height: 2rpx; border-radius: 50%; will-change: transform; }
+/* 明显的缓慢漂移(两层不同速=纵深)+ 亮星闪烁,星辰漂浮 */
+.sf-dim { animation: sfFloatA 16s ease-in-out infinite alternate; }
+.sf-bright { animation: sfFloatB 13s ease-in-out infinite alternate, sfTwinkle 2.6s ease-in-out infinite; }
+.sf-root--static .sf-stars { animation: none; }
+@keyframes sfFloatA { from { transform: translate3d(0,0,0); } to { transform: translate3d(24rpx,-70rpx,0); } }
+@keyframes sfFloatB { from { transform: translate3d(0,0,0); } to { transform: translate3d(-30rpx,-96rpx,0); } }
+@keyframes sfTwinkle { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+.sf-dim {
+  box-shadow: /* ds-ok 灰阶星点按位置保留独立亮度 */ 59rpx 1332rpx 0 0 rgba(240,240,240,0.47), 447rpx 1017rpx 0 0 rgba(240,240,240,0.26), 521rpx 793rpx 0 0 rgba(240,240,240,0.53), 593rpx 1357rpx 0 0 rgba(240,240,240,0.25), 226rpx 52rpx 0 0 rgba(240,240,240,0.37), 482rpx 935rpx 0 0 rgba(240,240,240,0.28), 174rpx 1348rpx 0 0 rgba(240,240,240,0.52), 364rpx 311rpx 0 0 rgba(240,240,240,0.48), 615rpx 203rpx 0 0 rgba(240,240,240,0.31), 489rpx 44rpx 0 0 rgba(240,240,240,0.19), 299rpx 535rpx 0 0 rgba(240,240,240,0.28), 358rpx 695rpx 0 0 rgba(240,240,240,0.34), 227rpx 1225rpx 0 0 rgba(240,240,240,0.55), 219rpx 1144rpx 0 0 rgba(240,240,240,0.26), 647rpx 1152rpx 0 0 rgba(240,240,240,0.46), 323rpx 270rpx 0 0 rgba(240,240,240,0.50), 310rpx 878rpx 0 0 rgba(240,240,240,0.54), 170rpx 315rpx 0 0 rgba(240,240,240,0.37), 217rpx 961rpx 0 0 rgba(240,240,240,0.54), 11rpx 157rpx 0 0 rgba(240,240,240,0.42), 616rpx 282rpx 0 0 rgba(240,240,240,0.57), 94rpx 357rpx 0 0 rgba(240,240,240,0.37), 258rpx 1081rpx 0 0 rgba(240,240,240,0.38), 671rpx 1474rpx 0 0 rgba(240,240,240,0.37), 144rpx 558rpx 0 0 rgba(240,240,240,0.50), 490rpx 710rpx 0 0 rgba(240,240,240,0.54), 523rpx 952rpx 0 0 rgba(240,240,240,0.25), 553rpx 303rpx 0 0 rgba(240,240,240,0.21), 144rpx 1144rpx 0 0 rgba(240,240,240,0.18), 359rpx 814rpx 0 0 rgba(240,240,240,0.33), 9rpx 14rpx 0 0 rgba(240,240,240,0.42), 158rpx 1123rpx 0 0 rgba(240,240,240,0.22), 367rpx 1482rpx 0 0 rgba(240,240,240,0.30), 199rpx 110rpx 0 0 rgba(240,240,240,0.42), 718rpx 1067rpx 0 0 rgba(240,240,240,0.35), 734rpx 14rpx 0 0 rgba(240,240,240,0.26), 562rpx 1010rpx 0 0 rgba(240,240,240,0.31), 512rpx 1396rpx 0 0 rgba(240,240,240,0.27), 148rpx 191rpx 0 0 rgba(240,240,240,0.31), 533rpx 1456rpx 0 0 rgba(240,240,240,0.19), 478rpx 850rpx 0 0 rgba(240,240,240,0.49), 297rpx 754rpx 0 0 rgba(240,240,240,0.56), 301rpx 187rpx 0 0 rgba(240,240,240,0.57), 54rpx 1529rpx 0 0 rgba(240,240,240,0.29), 618rpx 441rpx 0 0 rgba(240,240,240,0.29), 54rpx 983rpx 0 0 rgba(240,240,240,0.33), 177rpx 493rpx 0 0 rgba(240,240,240,0.19), 547rpx 1354rpx 0 0 rgba(240,240,240,0.42), 729rpx 903rpx 0 0 rgba(240,240,240,0.39), 284rpx 1523rpx 0 0 rgba(240,240,240,0.28), 274rpx 551rpx 0 0 rgba(240,240,240,0.24), 263rpx 369rpx 0 0 rgba(240,240,240,0.44), 563rpx 1677rpx 0 0 rgba(240,240,240,0.26), 735rpx 133rpx 0 0 rgba(240,240,240,0.25), 344rpx 1480rpx 0 0 rgba(240,240,240,0.18), 451rpx 1376rpx 0 0 rgba(240,240,240,0.23), 618rpx 521rpx 0 0 rgba(240,240,240,0.55), 409rpx 1296rpx 0 0 rgba(240,240,240,0.52), 136rpx 1040rpx 0 0 rgba(240,240,240,0.29), 111rpx 453rpx 0 0 rgba(240,240,240,0.45), 646rpx 236rpx 0 0 rgba(240,240,240,0.34), 555rpx 1089rpx 0 0 rgba(240,240,240,0.55), 150rpx 351rpx 0 0 rgba(240,240,240,0.43), 493rpx 402rpx 0 0 rgba(240,240,240,0.56);
+}
+.sf-bright {
+  width: 3rpx; height: 3rpx;
+  box-shadow: /* ds-ok 灰阶亮星按位置保留独立亮度 */ 397rpx 263rpx 0 0 rgba(240,240,240,0.70), 174rpx 633rpx 0 0 rgba(240,240,240,0.62), 136rpx 533rpx 0 0 rgba(240,240,240,0.85), 597rpx 662rpx 0 0 rgba(240,240,240,0.82), 369rpx 40rpx 0 0 rgba(240,240,240,0.69), 514rpx 1048rpx 0 0 rgba(240,240,240,0.94), 595rpx 1026rpx 0 0 rgba(240,240,240,0.67), 174rpx 673rpx 0 0 rgba(240,240,240,0.74), 314rpx 689rpx 0 0 rgba(240,240,240,0.93), 577rpx 95rpx 0 0 rgba(240,240,240,0.69);
+}

@@ -1,0 +1,271 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="活动运营" safe-top="{{false}}" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="4" />
+  <!-- 2026-08-26:权限拒绝原来和加载失败共用一个 error 态,渲染成「暂时不可用 + 重新加载」——
+       给了一个永远点不成功的重试按钮,用户不会知道是权限问题。现在拆成三条。 -->
+  <cy-error wx:elif="{{state === 'no-permission'}}" fill size="lg" retry=""
+            title="你没有活动运营的权限" sub="{{errorText || '场次编排、签到与出勤更正需要「活动运营」或「本场核销」权限。'}}" auto-back />
+  <cy-error wx:elif="{{state === 'network-error'}}" title="网络连接失败" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+  <cy-error wx:elif="{{state === 'error'}}" title="活动运营暂时不可用" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+
+  <block wx:elif="{{state === 'ready'}}">
+    <!-- CU-C-146:「现场名册与核销」这个入口带着 activityId 进来,承诺的是**本场**,
+         落地首屏却是全俱乐部的日期清单,名册要滚过日期/时间编辑和「保存未来场次」才出现。
+         本场名册与本场管理本来就只在带 activityId 时渲染,从「更多→场次管理」(只有 topicId)
+         进来时这两段整段不出现,全量清单照旧是第一屏 —— 把本场提到最前不影响另一条路径。 -->
+    <!-- 本场管理(Figma E1) -->
+    <view class="section" wx:if="{{canManage && activityId}}">
+      <text class="section-title">本场管理</text>
+      <view class="card">
+        <!-- CU-C-146:这张卡原来无条件挂一行「本场名册 · N 人」,正下方又是一整个同名 section,
+             同一屏两个「本场名册」标题、计数那行还点不动。人数并入名册标题,
+             这里只留**名册真不在这页时**的那句说明(无核销权限 ⇒ 名册整段不渲染)。 -->
+        <block wx:if="{{!canCheckin}}">
+          <view class="row">
+            <view class="row-text"><text class="row-title">本场名册</text></view>
+            <text class="row-value">仅核销权限可见</text>
+          </view>
+          <view class="divider"></view>
+        </block>
+
+        <view class="row" wx:if="{{cancellationState === 'loading' || cancellationState === 'submitting'}}">
+          <view class="row-text">
+            <text class="row-title">取消本场</text>
+            <text class="row-meta">{{cancellationState === 'submitting' ? '正在提交取消…' : '正在回读本场状态…'}}</text>
+          </view>
+        </view>
+        <view class="row" wx:elif="{{cancellationState === 'cancelled'}}">
+          <view class="row-text">
+            <text class="row-title">本场已取消</text>
+            <text class="row-meta" wx:if="{{cancellationReason}}">原因：{{cancellationReason}}</text>
+            <text class="row-meta" wx:if="{{cancellationSummary}}">{{cancellationSummary}}</text>
+          </view>
+          <text class="row-value row-value--danger">本场已取消</text>
+        </view>
+        <view class="row row--column" wx:elif="{{cancellationState === 'error' || cancellationState === 'readback-error'}}">
+          <cy-inline-error kind="data" title="本场取消未完成" sub="{{cancellationError}}" />
+          <view class="readback-btn" wx:if="{{cancellationState === 'readback-error'}}"
+            bindtap="retryCancellationReadback" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">重新回读</view>
+          <button class="danger-btn" wx:else loading="{{cancellationSubmitting}}" disabled="{{cancellationSubmitting}}"
+            bindtap="cancelCurrentOccurrence">重试取消本场</button>
+        </view>
+        <view class="row" wx:else bindtap="cancelCurrentOccurrence" aria-role="button"
+          hover-class="{{cancellationSubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          <view class="row-text">
+            <text class="row-title">取消本场</text>
+            <text class="row-meta">会下架本场、处理退款并终止候补</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section roster-section" wx:if="{{canCheckin}}">
+      <!-- CU-C-62:名册总数 = 三个到场桶之和(registered + arrived + noShow)。原来只数
+           registered,活动一过点后端就把人挪进 arrived/noShow,标题必然归零。
+           候补是另一份名单,不算在内(下面分桶各自有数)。 -->
+      <text class="section-title">本场名册{{rosterState === 'ready' ? ' · ' + rosterTotal + ' 人' : ''}}</text>
+      <text class="section-note">不展示手机号或财务信息</text>
+      <!-- CU-C-73:本场还没开始(或已超结束 +48h)时,名册里就地写出可操作时段;
+           两个更正按钮同时置灰,不让人填完原因才吃服务端 409。 -->
+      <text class="section-note section-note--warning" wx:if="{{correctionWindowText}}">{{correctionWindowText}}</text>
+      <cy-tabs class="roster-filter" variant="chip" tabs="{{rosterTabs}}"
+        active="{{rosterTab}}" bind:change="chooseRosterTab" />
+      <view class="roster-summary" wx:if="{{rosterState === 'ready'}}">
+        <text>已报名 {{registered.length || 0}}</text>
+        <text>候补 {{waitlist.length || 0}}</text>
+        <text>已到场 {{arrived.length || 0}}</text>
+        <text>未到场 {{noShow.length || 0}}</text>
+      </view>
+      <cy-skeleton wx:if="{{rosterState === 'loading'}}" type="list" count="3" />
+      <cy-error wx:elif="{{rosterState === 'error'}}" title="名册加载失败" sub="{{rosterError}}" retry="重试" bind:retry="loadRoster" />
+      <block wx:elif="{{rosterState === 'ready'}}">
+        <cy-empty wx:if="{{activeRoster.length === 0}}" size="sm" title="这一段暂时没有成员" />
+        <view class="member-card" wx:for="{{activeRoster}}" wx:key="memberId">
+          <view class="member-mark">{{item.nickname[0]}}</view>
+          <view class="member-main">
+            <text class="member-name">{{item.nickname}}</text>
+            <text class="member-meta" wx:if="{{rosterTab === 'waitlist'}}">{{item.state}}</text>
+          </view>
+          <view wx:if="{{rosterTab !== 'waitlist'}}" class="correct-btn {{actingMemberId || !correctionOperable ? 'disabled' : ''}}"
+            data-member-id="{{item.memberId}}" data-version="{{item.correctionVersion}}"
+            data-arrived="{{rosterTab !== 'arrived'}}" bindtap="correctAttendance" hover-class="{{actingMemberId || !correctionOperable ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+            {{rosterTab === 'arrived' ? '更正未到' : '标记到场'}}
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 日期清单(Figma E1):现有「已创建系列」列表,按系列而非逐日期展示 —— 后端
+         /series/list 只回 futureDates 这一份日期字符串数组,没有逐日期报名数/锁定原因/
+         取消状态字段,做不出稿上「12 人已报名 · 不可编辑」那种逐行状态,PR 里说明。 -->
+    <view class="section" wx:if="{{canManage}}">
+      <text class="section-title">日期清单</text>
+      <text class="section-note">编辑只影响未来且无报名、无结算事实的场次</text>
+      <view class="card">
+        <cy-skeleton wx:if="{{seriesState === 'loading'}}" type="list" count="2" />
+        <cy-error wx:elif="{{seriesState === 'error'}}" title="系列列表加载失败" sub="{{seriesError}}" retry="重试" bind:retry="loadSeries" />
+        <cy-empty wx:elif="{{seriesState === 'empty'}}" title="还没有系列场次" sub="从下方创建第一组场次" />
+        <block wx:else>
+          <block wx:for="{{seriesRows}}" wx:key="id">
+            <view class="row {{editingSeriesId === item.id ? 'row--active' : ''}}"
+              data-series-id="{{item.id}}" bindtap="beginEditSeries" aria-role="button"
+              hover-class="{{submitting || seriesDetailLoading ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+              <view class="row-text">
+                <text class="row-title">{{item.titleText}} · {{item.recurrenceLabel}}</text>
+                <!-- CU-C-04:series/list 的 futureDates 恒为空(只有 series/detail 才填),这里写「N 个可编辑日期」恒为 0,
+                     与展开后看到的可编辑场次自相矛盾 ⇒ 列表行不报这个数,点「编辑未来场次」后按 detail 回填。 -->
+                <text class="row-meta">候补{{item.waitlistEnabled ? '开启' : '关闭'}}</text>
+              </view>
+              <text class="row-value">{{editingSeriesId === item.id ? '编辑中' : '编辑未来场次'}}</text>
+            </view>
+            <view class="row row--sub" data-series-id="{{item.id}}" catchtap="toggleSeriesDates"
+              aria-role="button" aria-label="{{expandedSeriesId === item.id ? '收起日期清单' : '展开日期清单'}}"
+              hover-class="cy-pressed" hover-stay-time="80">
+              <view class="row-text"><text class="row-meta">日期清单（含已过去与已取消的场次）</text></view>
+              <cy-icon class="row-value-icon" name="{{expandedSeriesId === item.id ? 'collapse' : 'expand'}}" size="24" />
+            </view>
+            <!-- Figma E1「日期清单」。series/detail 只回未来 ACTIVE 场次的日期,画不出
+                 「已锁定 / 本场已取消」——「本场已取消」本身就是要看见的状态。 -->
+            <view class="occurrence-list" wx:if="{{expandedSeriesId === item.id}}">
+              <cy-skeleton wx:if="{{occurrenceState === 'loading'}}" type="list" count="2" />
+              <text wx:elif="{{occurrenceState === 'error'}}" class="occurrence-note">日期清单没加载出来，稍后再试一次。</text>
+              <text wx:elif="{{occurrenceState === 'empty'}}" class="occurrence-note">这个系列还没有物化出场次。</text>
+              <block wx:else>
+                <view class="occurrence-row" wx:for="{{occurrenceRows}}" wx:for-item="occ" wx:key="occurrenceId">
+                  <view class="row-text">
+                    <text class="row-title">{{occ.dateText}}</text>
+                    <text class="row-meta">{{occ.meta}}</text>
+                  </view>
+                  <text class="occurrence-badge occurrence-badge--{{occ.badgeKind}}">{{occ.badge}}</text>
+                </view>
+              </block>
+            </view>
+            <view class="divider"></view>
+          </block>
+        </block>
+        <view class="row" bindtap="resetSeriesForm" aria-role="button"
+          hover-class="{{submitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          <view class="row-text">
+            <text class="row-title">添加日期</text>
+            <text class="row-meta">按重复方式批量生成</text>
+          </view>
+          <cy-icon class="row-value-icon" name="plus" size="24" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 重复方式(Figma E1):Figma 只给了「查看态」截图,没有编辑态 —— 这里保留原有的
+         创建/编辑表单控件(下拉、日期选择器),因为它们同时也是这个页面创建/编辑系列的唯一入口。 -->
+    <view class="section" wx:if="{{canManage}}">
+      <text class="section-title">{{editingSeriesId ? '编辑未来场次' : '重复方式'}}</text>
+      <text class="section-note" wx:if="{{editingSeriesId}}">编辑已有场次；冲突会自动刷新</text>
+      <text class="section-note" wx:else>时区固定为上海，最多物化未来 90 天 / 64 期</text>
+
+      <view class="editing-rail" wx:if="{{editingSeriesId}}">
+        <text>已锁定主题与负责人策略；退出编辑可换系列</text>
+        <text class="editing-exit" bindtap="cancelSeriesEdit" aria-role="button" hover-class="{{submitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">退出编辑</text>
+      </view>
+
+      <cy-empty wx:if="{{topics.length === 0}}" title="暂无可开场的主题" sub="先发布一个俱乐部主题，或完成商家合作后再开场。" />
+
+      <block wx:else>
+        <text class="field-label">主题</text>
+        <view wx:if="{{editingSeriesId}}" class="field-picker field-picker--locked">主题 #{{editingTopicId}}<text>已锁定</text></view>
+        <!-- CU-C-34(用户裁决 B):同名主题(实测两条「E2E 探店日一期」)光看名字分不出选的是哪一条 ——
+             候选项与收起态都显示「名称 · 起止日期 · 自有/合作」。 -->
+        <cy-dropdown wx:else range="{{topics}}" range-key="dropdownLabel" value="{{topicIndex}}" bind:change="onTopicChange">
+          <view class="field-picker">{{topics[topicIndex].dropdownLabel}}<cy-icon class="field-chevron" name="back" size="24" /></view>
+        </cy-dropdown>
+
+        <text class="field-label">重复方式</text>
+        <view class="option-row">
+          <view wx:for="{{recurrences}}" wx:key="value"
+            class="option {{recurrenceType === item.value ? 'option--active' : ''}}"
+            data-type="{{item.value}}" bindtap="chooseRecurrence" aria-role="button" aria-pressed="{{recurrenceType === item.value}}" hover-class="{{submitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+            {{item.label}}
+          </view>
+        </view>
+
+        <block wx:if="{{recurrenceType !== 'CUSTOM_DATES'}}">
+          <text class="field-label">首次日期</text>
+          <cy-date-field mode="date" value="{{startDate}}" start="{{minDate}}" bind:change="onStartDateChange">
+            <view class="field-picker">{{startDate}}<cy-icon class="field-chevron" name="back" size="24" /></view>
+          </cy-date-field>
+        </block>
+        <view wx:if="{{recurrenceType === 'WEEKLY'}}">
+          <text class="field-label">场次数</text>
+          <input class="field-input" type="number" value="{{occurrenceCount}}" bindinput="onCountInput" placeholder="1–64" />
+        </view>
+        <view wx:if="{{recurrenceType === 'CUSTOM_DATES'}}">
+          <text class="field-label">日期清单</text>
+          <view class="date-row" wx:for="{{customDates}}" wx:key="index">
+            <cy-date-field class="date-picker" mode="date" value="{{item}}" start="{{minDate}}" data-index="{{index}}" bind:change="onCustomDateChange">
+              <view class="field-picker">{{item}}<cy-icon class="field-chevron" name="back" size="24" /></view>
+            </cy-date-field>
+            <view class="remove-date {{customDates.length <= 1 ? 'disabled' : ''}}" data-index="{{index}}" bindtap="removeCustomDate" hover-class="{{submitting || customDates.length <= 1 ? 'none' : 'cy-pressed'}}" hover-stay-time="80">移除</view>
+          </view>
+          <view class="add-date" bindtap="addCustomDate" aria-role="button" hover-class="{{submitting || customDates.length >= 64 ? 'none' : 'cy-pressed'}}" hover-stay-time="80"><cy-icon name="plus" size="24" /><text>添加日期</text></view>
+        </view>
+
+        <!-- 5.9:集合时刻是场次退款钟(集合前 24h)的锚点,必填;缺省后端拒绝开场。
+             编辑态只影响本次新增日期(已物化场次的时刻不回溯改写)。 -->
+        <text class="field-label">集合时刻</text>
+        <cy-date-field mode="time" value="{{startTime}}" bind:change="onStartTimeChange">
+          <view class="field-picker">{{startTime}}<cy-icon class="field-chevron" name="back" size="24" /></view>
+        </cy-date-field>
+        <text class="field-help">退款窗口按「集合时刻前 24 小时」计算。</text>
+
+        <view wx:if="{{!editingSeriesId}}">
+          <text class="field-label">默认负责人</text>
+          <cy-dropdown range="{{leadOptions}}" range-key="nickname" value="{{leadIndex}}" bind:change="onLeadChange">
+            <view class="field-picker">{{leadOptions[leadIndex].nickname}}<cy-icon class="field-chevron" name="back" size="24" /></view>
+          </cy-dropdown>
+          <text class="field-help field-help--warning" wx:if="{{leadLoadWarning}}">{{leadLoadWarning}}</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 容量与候补(Figma E1) -->
+    <view class="section" wx:if="{{canManage && !editingSeriesId && topics.length > 0}}">
+      <text class="section-title">容量与候补</text>
+      <text class="section-note">容量可选；满员后按活动 + 票种先进先出</text>
+
+      <text class="field-label">容量（可选）</text>
+      <input class="field-input" type="number" value="{{capacity}}" bindinput="onCapacityInput" placeholder="沿用票种" />
+      <text class="field-help">自定义容量只适用于恰有一个票种的合作主题；多票种继续沿用原票种容量。</text>
+
+      <view class="switch-row">
+        <view><text class="switch-title">满员后开启候补</text><text class="switch-note">按活动 + 票种先进先出</text></view>
+        <cy-switch checked="{{waitlistEnabled}}" bind:change="onWaitlistChange" />
+      </view>
+      <view wx:if="{{waitlistEnabled}}">
+        <text class="field-label">候补认领时长</text>
+        <input class="field-input" type="number" value="{{offerMinutes}}" bindinput="onOfferInput" placeholder="5 分钟 – 1 天" />
+        <text class="field-hint" wx:if="{{offerWindowText}}">当前为 {{offerWindowText}}。</text>
+        <text class="field-hint">名额空出来后为队首保留这么久，逾期顺延给下一位。窗口再长也不会超过这张票的报名截止时间。</text>
+      </view>
+
+      <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitSeries">
+        {{submitting ? '正在创建…' : '创建系列场次'}}
+      </button>
+    </view>
+    <view class="section" wx:if="{{canManage && editingSeriesId}}">
+      <button class="primary-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitSeries">
+        {{submitting ? '正在更新…' : '保存未来场次'}}
+      </button>
+    </view>
+  </block>
+
+  <!-- E2 · 取消本场 · T2 居中确认:没有顶栏、没有 ✕,只能点按钮,遮罩点不掉(maskClosable 默认 false)。 -->
+  <cy-modal compact show="{{cancelConfirmShow}}" title="确认取消本场？"
+    content="会下架本场、处理退款并终止候补。已核销的部分不退。"
+    confirm-text="取消本场" cancel-text="再想想" danger
+    bind:confirm="confirmCancelOccurrence" bind:cancel="dismissCancelConfirm" />
+</view>
+</view>

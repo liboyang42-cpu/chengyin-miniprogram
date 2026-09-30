@@ -1,0 +1,81 @@
+<wxs src="../../../../utils/wxs/money.wxs" module="money" />
+<view class="pr-page theme-merchant {{reducedMotion ? 'cy-motion-reduced' : ''}}" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar title="{{pageTitle}}" custom-back bind:back="goBack" />
+
+  <cy-empty wx:if="{{invalidLink}}" fill kind="missing-param" title="合作链接已失效" sub="{{loadError}}"
+            cta="返回上一页" bind:cta="goBack" />
+  <cy-error wx:elif="{{loadError}}" fill title="合作信息加载失败" sub="{{loadError}}"
+            retry="重试" bind:retry="retryProfile" />
+  <scroll-view wx:else scroll-y class="pr-scroll" enhanced show-scrollbar="{{false}}">
+
+    <view class="pr-footnote pr-footnote--top">阵容已锁定，以下为该合作方在本主题中的结算条款。</view>
+
+    <!-- 名称 + 查看 + 申请档案 -->
+    <view class="pr-sec cy-rise-in">
+      <view class="pr-group">
+        <!-- 加载态用骨架,不把「加载中」写进「合作方名称」这个语义位:
+             ① 状态文案不占内容位(Polaris:不要拿 spinner/文案当占位符)
+             ② 加载与空态不同屏(微信设计指南:一页不超过一个加载动画) -->
+        <cy-skeleton wx:if="{{!loaded}}" type="list" count="{{1}}" loading-label="合作信息加载中" />
+        <cy-empty class="cy-fade-in" wx:elif="{{!name && !detailItems.length}}" kind="missing-param" title="缺少合作方信息"
+                  sub="当前链接没有携带合作方参数，暂时无法展示档案。"
+                  cta="返回上一页" bind:cta="goBack" />
+        <block wx:else>
+        <view class="pr-name-row" wx:if="{{name}}">
+          <text class="pr-name">{{name}}</text>
+          <view class="pr-view-link" bindtap="goFullProfile" wx:if="{{name}}"
+                aria-role="button" aria-label="查看{{name}}完整主页" hover-class="pr-view-link--pressed" hover-stay-time="80">
+            <text class="pr-view-link-t">查看</text>
+            <cy-icon class="pr-view-chevron" name="arrow-right" size="28" />
+          </view>
+        </view>
+        <view class="pr-detail-block" wx:if="{{detailItems.length}}">
+          <block wx:for="{{detailItems}}" wx:key="index">
+            <view class="pr-detail-desc" wx:if="{{item.block}}">{{item.v}}</view>
+            <view class="pr-detail-kv {{item.link ? 'is-action' : ''}}" wx:else bindtap="onDetailTap" data-idx="{{index}}"
+                  aria-role="{{item.link ? 'button' : ''}}" aria-label="{{item.link ? '在地图中查看' + item.k + '：' + item.v : item.k + '：' + item.v}}"
+                  hover-class="{{item.link ? 'pr-detail-kv--pressed' : 'none'}}" hover-stay-time="80">
+              <text class="pr-detail-k">{{item.k}}</text>
+              <view class="pr-detail-v-wrap">
+                <text class="pr-detail-v {{item.link ? 'pr-detail-v--link' : ''}}">{{item.v}}</text>
+                <cy-icon wx:if="{{item.link}}" class="pr-detail-link-icon" name="arrow-right" size="24" />
+              </view>
+            </view>
+          </block>
+        </view>
+        <view class="pr-detail-block" wx:else>
+          <view class="pr-detail-desc pr-detail-desc--muted">暂无公开档案信息</view>
+        </view>
+        </block>
+      </view>
+    </view>
+
+    <view class="pr-sec cy-rise-in">
+      <view class="pr-sec-title">合作条款</view>
+      <view class="pr-group">
+        <view class="pr-row">
+          <text class="pr-row-label">结算方式</text>
+          <text class="pr-row-value">{{shareMode===1 ? '分成型' : (shareMode===2 ? '固定型' : '引流型')}}</text>
+        </view>
+        <view class="pr-row" wx:if="{{shareMode===1}}">
+          <text class="pr-row-label">分成比例</text>
+          <text class="pr-row-value">{{shareRate !== '' ? shareRate + '%' : '—'}}</text>
+        </view>
+        <view class="pr-row" wx:if="{{shareMode===2}}">
+          <text class="pr-row-label">固定合作费</text>
+          <text class="pr-row-value">{{fixedFee !== '' ? money.amount(fixedFee) + '/人' : '—'}}</text>
+        </view>
+        <view class="pr-row">
+          <text class="pr-row-label">冻结时间</text>
+          <text class="pr-row-value">开售即冻结</text>
+        </view>
+      </view>
+      <view class="pr-footnote">{{termsFootnote}}</view>
+    </view>
+
+    <view class="pr-scroll-pad"></view>
+  </scroll-view>
+</view>

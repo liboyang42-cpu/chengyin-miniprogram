@@ -1,0 +1,19 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationBarTitleText": "剧情与玩法",
+  "navigationBarBackgroundColor": "#000000",
+  "navigationBarTextStyle": "white"
+}

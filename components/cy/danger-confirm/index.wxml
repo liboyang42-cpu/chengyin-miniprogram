@@ -1,0 +1,40 @@
+<!-- 第一段:确认(后果清单 + 更轻替代独占上方一行 + 取消左/危险键右,2026-09-18 起横排);第二段的 loading 也在这一屏内完成。
+     ⚠️ action 的初值 / 收起后都是 null,而 WXML 对 null 取成员会把 null **原样**传给子组件属性
+     (不是 undefined 走默认值)—— 开发者工具会对 cy-modal 报一整串 type-uncompatible。
+     四根可空的绑定必须带三元兜底:字符串给 '',数组给 [](2026-09-15 控制台实拍;
+     同类现场与写法先例见 pages/agreement/index.wxml:11)。 -->
+<cy-modal
+  show="{{stage === 'confirm'}}"
+  title="{{action ? action.title : ''}}"
+  content="{{action ? action.content : ''}}"
+  consequences="{{action ? action.consequences : []}}"
+  confirm-text="{{action ? action.confirmText : ''}}"
+  cancel-text="{{cancelText}}"
+  alt-text="{{action.alt ? action.alt.text : ''}}"
+  alt-hint="{{action.alt ? action.alt.hint : ''}}"
+  loading="{{busy}}"
+  danger
+  bind:confirm="onConfirm"
+  bind:alt="onAlt"
+  bind:cancel="onCancel" />
+
+<!-- 第三段:结果回执。做完之后明确回执,不是一个一闪而过的 toast。
+     2026-09-18 UI-21:稿 txQoyVyK 356:4992 是底部结果面板(抓手 + 绿徽章 + 标题 + 一句),
+     不是居中卡 + 「知道了」⇒ 走全站共用的 cy-result-sheet(success,无按钮,自愈收起)。
+     面板收起(自愈 / 点遮罩 / 下拉)都回到 onCloseDone,对外仍只抛 done 事件。 -->
+<cy-result-sheet
+  show="{{stage === 'done'}}"
+  kind="success"
+  title="{{doneTitle}}"
+  sub="{{doneText}}"
+  bind:close="onCloseDone" />
+
+<!-- 执行失败:留在原地给重试,不要把用户踢回列表让他猜有没有删掉 -->
+<cy-modal
+  show="{{stage === 'error'}}"
+  title="没能完成"
+  content="{{errorText}}"
+  confirm-text="重试"
+  cancel-text="先不弄了"
+  bind:confirm="onRetry"
+  bind:cancel="onCloseDone" />

@@ -1,0 +1,115 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="群发通知" safe-top="{{false}}" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="4" />
+  <!-- 2026-08-26:权限拒绝原来和加载失败共用一个 error 态,渲染成「暂时不可用 + 重新加载」——
+       给了一个永远点不成功的重试按钮,用户不会知道是权限问题。现在拆成三条。 -->
+  <cy-error wx:elif="{{state === 'no-permission'}}" fill size="lg" retry=""
+            title="你没有发通知的权限" sub="{{errorText || '发俱乐部通知需要「通知成员」权限,可以请主理人给你委派。'}}" auto-back />
+  <cy-error wx:elif="{{state === 'network-error'}}" title="网络连接失败" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+  <cy-error wx:elif="{{state === 'error'}}" title="通知工具暂时不可用" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" auto-back />
+
+  <block wx:elif="{{state === 'ready'}}">
+
+    <!-- Figma 290:526「选择受众」——列表卡替换原先的两列 chip 网格；
+         真实候选比稿子多两项(管理员/近90天未活跃)，全部保留，事件态提示按行内联。 -->
+    <view class="section">
+      <text class="section-title">选择受众</text>
+      <view class="ds-card">
+        <view wx:for="{{audiences}}" wx:key="value"
+          class="row audience {{audienceType === item.value ? 'audience--active' : ''}} {{item.disabled ? 'row--disabled' : ''}}"
+          data-value="{{item.value}}" bindtap="chooseAudience" aria-role="button" aria-pressed="{{audienceType === item.value}}"
+          aria-disabled="{{item.disabled}}" hover-class="{{sending || retrying || item.disabled ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          <view class="row-text">
+            <text class="row-title">{{item.label}}</text>
+            <text class="row-desc" wx:if="{{item.hint}}">{{item.hint}}</text>
+          </view>
+          <text class="row-count" wx:if="{{item.countText}}">{{item.countText}}</text>
+          <text class="row-value">{{audienceType === item.value ? '已选' : '选择'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">内容</text>
+      <view class="ds-card ds-card--form">
+        <text class="field-label">标题</text>
+        <input class="field-input" maxlength="80" value="{{title}}" bindinput="onTitleInput" placeholder="例如：周六集合提醒" />
+        <text class="field-label">内容</text>
+        <textarea class="field-textarea" maxlength="1000" value="{{content}}" bindinput="onContentInput"
+          placeholder="写清集合时间、地点与需要准备的物品" />
+      </view>
+
+      <!-- 发送前必须先拿到受众预览:Figma 静态稿没画这一步，但它是防止群发空任务/误发的
+           既有业务闸门，对齐视觉时保留，不因稿子省了这步就删掉。 -->
+      <view class="preview-btn {{previewState === 'loading' ? 'disabled' : ''}}" bindtap="preview" aria-role="button"
+        hover-class="{{previewState === 'loading' || sending ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        {{previewState === 'loading' ? '正在预览…' : '预览受众'}}
+      </view>
+
+      <view class="preview-card preview-card--error" wx:if="{{previewState === 'error'}}">
+        <cy-inline-error kind="data" title="受众预览失败" sub="{{previewError}}" /><text class="inline-retry" bindtap="preview"
+          hover-class="{{previewState === 'loading' || sending ? 'none' : 'cy-pressed'}}" hover-stay-time="80">重试</text>
+      </view>
+      <view class="preview-card" wx:elif="{{previewState === 'empty'}}">
+        <text class="preview-count">0 人</text><text class="preview-note">这个分群暂时没有可发送的成员，换一个分群看看。</text>
+      </view>
+      <view class="preview-card" wx:elif="{{previewState === 'ready'}}">
+        <text class="preview-count">{{recipientCount || 0}} 人</text>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{campaign}}">
+      <!-- CU-C-135:投递是后台做的,send 回来常常还是 PROCESSING。原来这页只存那一次响应,
+           既没有「待投递」也没有再读的入口 ⇒ 数字永远停在 4/0/0,用户看不出是卡在哪儿。 -->
+      <view class="section-head">
+        <text class="section-title">投递状态</text>
+        <text class="inline-retry" bindtap="refreshCampaign"
+          hover-class="{{refreshing ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{refreshing ? '刷新中…' : '刷新'}}</text>
+      </view>
+      <view class="ds-card">
+        <view class="row">
+          <view class="row-text"><text class="row-title">状态</text></view>
+          <text class="row-value">{{campaign.statusText}}</text>
+        </view>
+        <!-- row-text 撑开左侧,数字才贴右边缘(Figma 290:526);裸 row-title 不带 flex:1,
+             数字会紧跟标题,和下面用了 row-text 的「失败」行对不齐(2026-09-02 截图实证)。 -->
+        <view class="row">
+          <view class="row-text"><text class="row-title">总人数</text></view>
+          <text class="row-value row-value--primary">{{campaign.totalCount || 0}}</text>
+        </view>
+        <view class="row">
+          <view class="row-text"><text class="row-title">已送达站内</text></view>
+          <text class="row-value row-value--success">{{campaign.successCount || 0}}</text>
+        </view>
+        <view class="row">
+          <view class="row-text">
+            <text class="row-title">待投递</text>
+            <text class="row-desc" wx:if="{{campaign.processing}}">后台还在投递</text>
+          </view>
+          <text class="row-value">{{campaign.pendingCount || 0}}</text>
+        </view>
+        <view class="row">
+          <view class="row-text">
+            <text class="row-title">失败</text>
+            <text class="row-desc" wx:if="{{campaign.failedCount > 0}}">重试</text>
+          </view>
+          <text class="row-value row-value--danger">{{campaign.failedCount || 0}}</text>
+        </view>
+      </view>
+      <button class="retry-btn" wx:if="{{campaign.failedCount > 0}}" loading="{{retrying}}" disabled="{{retrying}}" bindtap="retryFailed">
+        {{retrying ? '正在重试…' : '只重试失败项'}}
+      </button>
+    </view>
+
+    <button class="send-btn" loading="{{sending}}" disabled="{{sending || previewState !== 'ready'}}" bindtap="send">
+      {{sending ? '正在投递…' : '发送站内通知'}}
+    </button>
+  </block>
+</view>
+</view>

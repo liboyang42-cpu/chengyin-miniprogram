@@ -1,0 +1,21 @@
+<view class="feed-play-card" catchtap="onDetail" aria-role="button" aria-label="{{title}}，看详情" hover-class="cy-pressed" hover-stay-time="80">
+  <image class="feed-play-card__cover" src="{{cover}}" mode="aspectFill" lazy-load="true" />
+  <view class="feed-play-card__scrim"></view>
+  <view class="feed-play-card__badge" wx:if="{{remixable}}">可直接开局的模板</view>
+  <view class="feed-play-card__trophy" wx:if="{{completed}}">
+    <cy-icon class="feed-play-card__trophy-icon" name="star" size="24" />
+    <text class="feed-play-card__trophy-count">{{nodeTotal}}</text>
+  </view>
+  <view class="feed-play-card__body">
+    <text class="feed-play-card__title">{{title}}</text>
+    <text class="feed-play-card__subtitle" wx:if="{{subtitle}}">{{subtitle}}</text>
+    <view class="feed-play-card__actions">
+      <view class="feed-play-card__btn feed-play-card__btn--ghost" wx:if="{{remixable}}" catchtap="onRemix"
+            aria-role="button" aria-label="看看模板，改编这个模板" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">看看模板</view>
+      <view class="feed-play-card__btn feed-play-card__btn--ghost" wx:else catchtap="onDetail"
+            aria-role="button" aria-label="看看模板，查看主题详情" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">看看模板</view>
+      <view class="feed-play-card__btn feed-play-card__btn--solid" catchtap="onPlay"
+            aria-role="button" aria-label="试玩，开始漫游这个主题" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">试玩</view>
+    </view>
+  </view>
+</view>

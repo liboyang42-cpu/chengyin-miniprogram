@@ -1,0 +1,56 @@
+@import "/pages/play/style/playkit.wxss";
+
+/* cy-playkit-silentorder · 沉默点单 · 店员见证制(Figma v5.1,node 46:295) */
+.so { padding-top: var(--cy-space-2); }
+.so__qr {
+  width: 300rpx;
+  height: 300rpx;
+  margin: var(--cy-space-4) auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 二维码底必须是纯白且不跟主题走:扫码识别率不跟着深色模式走 */
+  background: var(--cy-comp-sheet-invite-qr-bg);
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+}
+.so__qr-img { width: 264rpx; height: 264rpx; }
+.so__qr-empty {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-action-primary-fg);
+}
+.so__qr-cap {
+  margin-top: var(--cy-space-2);
+  text-align: center;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-secondary);
+}
+.so__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-3);
+  padding-bottom: var(--cy-space-1);
+}
+.so__timer {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-body);
+  font-style: italic;
+  font-weight: 900;
+  color: var(--cy-color-status-danger);
+}
+.so__giveup {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-status-info);
+}
+
+/* 表演橙:计时不是"危险",是"还在演" —— 借 status-danger 语义不对 */
+.so__timer { color: var(--cy-color-playkit-silent); }
+.so__giveup { color: var(--cy-color-playkit-silent); }

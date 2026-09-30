@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-scene-qr-group-code": "/components/cy/scene-qr-group-code/index"
+  }
+}

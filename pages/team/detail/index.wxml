@@ -1,0 +1,73 @@
+<view class="team-page theme-dark" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar back />
+  <cy-page-title title="队伍详情" safe-top="{{false}}" flush="{{true}}" />
+  <cy-skeleton wx:if="{{loading && !team}}" type="detail" count="{{1}}" loading-label="正在加载队伍详情" />
+  <cy-state-shell wx:elif="{{error && !team}}" kind="{{errorKind}}"
+                  title="{{error}}" sub="{{errorSub}}" primary="{{errorAction}}"
+                  fill size="lg" bind:primary="onErrorAction" auto-back />
+  <block wx:else>
+    <view class="team-refresh-state">
+      <text wx:if="{{refreshing && team}}" class="team-sync" aria-role="status">正在核对队伍状态…</text>
+    </view>
+  <block wx:if="{{team}}">
+    <view class="team-head">
+      <view class="team-status {{team.status < 2 ? 'live' : ''}}">{{statusText}}</view>
+      <view class="team-title">{{team.title || '一起出发的玩家队伍'}}</view>
+      <view class="team-sub">{{team.joinMode == 2 ? '公开招募 · 陌生人可在附近队伍里申请' : '仅邀请 · 只能通过邀请链接加入'}} · 组队与否不影响活动举行</view>
+      <view class="team-meta">
+        <view class="team-meta-item"><text class="team-meta-value">{{team.joinedCount}} / {{team.maxMembers}}</text><text class="team-meta-key">当前成员</text></view>
+        <view class="team-meta-item"><text class="team-meta-value">{{expireText || '待定'}}</text><text class="team-meta-key">场次开始</text></view>
+      </view>
+    </view>
+
+    <view class="team-actions" wx:if="{{team.status == 0}}">
+      <button class="team-action primary" open-type="share">邀请队友</button>
+      <view wx:if="{{!joined}}" class="team-action secondary" bindtap="goJoin"
+            aria-role="button" aria-label="加入队伍" hover-class="team-action--pressed">加入队伍</view>
+    </view>
+
+    <!-- C-02b:队长在招募中可把「公开招募」改回「仅邀请」(或反向)。后端 join-mode 只认队长,
+         UI 只在 status=0 给入口 —— 满员/进行中/已结束的队伍已不在「附近的队伍」里,切了也无处生效。 -->
+    <view class="team-card" wx:if="{{leader && team.status == 0}}">
+      <view class="team-member">
+        <view class="team-member-main">
+          <view class="team-member-name">公开招募</view>
+          <view class="team-member-role">{{joinModePublic ? '陌生人可在附近队伍里申请加入' : '只有拿到邀请链接的人能加入'}}</view>
+        </view>
+        <cy-switch checked="{{joinModePublic}}" disabled="{{joinModeSaving}}"
+                   bindchange="onJoinModeChange" accessibility-label="公开招募" />
+      </view>
+    </view>
+
+    <view class="team-section-title">队伍成员</view>
+    <view class="team-card">
+      <cy-empty wx:if="{{!members.length}}" kind="empty" title="还没有队员" sub="把邀请发给同行的朋友，他们加入后会出现在这里" />
+      <view class="team-member" wx:for="{{members}}" wx:key="memberId">
+        <image class="team-avatar" src="{{item.memberAvatar || '/images/d_profile.png'}}" mode="aspectFill" />
+        <view class="team-member-main">
+          <view class="team-member-name">{{item.memberName || '城瘾玩家'}}</view>
+          <view class="team-member-role">{{item.role == 1 ? '队长' : '队员'}}</view>
+        </view>
+        <view wx:if="{{leader && item.role != 1}}" class="team-member-op" bindtap="kick" data-id="{{item.memberId}}" data-name="{{item.memberName || '这名队员'}}"
+              aria-role="button" aria-label="移出队员 {{item.memberName || '城瘾玩家'}}" hover-class="cy-pressed" hover-stay-time="80">移出</view>
+      </view>
+    </view>
+
+    <view class="team-actions" wx:if="{{joined && team.status < 2}}">
+      <view class="team-action secondary" bindtap="quit" aria-role="button"
+            aria-label="{{leader ? '退出并移交队长' : '退出队伍'}}" hover-class="team-action--pressed">{{leader ? '退出并移交队长' : '退出队伍'}}</view>
+      <view wx:if="{{leader}}" class="team-action danger" bindtap="disband"
+            aria-role="button" aria-label="解散队伍" hover-class="team-action--pressed">解散队伍</view>
+    </view>
+    <view class="team-note" wx:if="{{joined}}">退队不会退款；如需退票，请在订单中单独处理。</view>
+  </block>
+  </block>
+</view>
+
+<!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key -->
+<cy-danger-confirm id="dcQuit" bind:confirm="onConfirmQuit" />
+<cy-danger-confirm id="dcKick" bind:confirm="onConfirmKick" />
+<cy-danger-confirm id="dcDisband" bind:confirm="onConfirmDisband" bind:alt="onDisbandAlt" />

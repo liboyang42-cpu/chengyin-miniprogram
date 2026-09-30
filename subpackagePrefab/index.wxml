@@ -1,0 +1,271 @@
+<view class="game theme-dark cosmos cosmos--{{cosmosClass}} {{reducedMotion ? 'game--reduced-motion' : ''}}">
+  <cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />
+  <view class="game__stars"></view>
+  <view class="nav" style="padding-top:{{chrome.actionTop}}px" wx:if="{{!isDream && scene != 'boot'}}">
+    <view class="back" bindtap="back" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="返回">‹</view>
+    <view class="sound {{soundOn ? '' : 'is-off'}}" bindtap="toggleSound" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="{{soundOn ? '关闭声音' : '打开声音'}}"><view class="sound__speaker"></view><view class="sound__wave"></view></view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}"><view class="loader"></view><text>正在进入这一段人生</text></view>
+  <cy-state-shell wx:elif="{{error}}" kind="error" title="这一段人生没有加载出来" sub="{{error}}" primary="重新加载" fill="{{true}}" size="lg" theme="player" bind:primary="retry" />
+
+  <block wx:else>
+    <view class="story {{isDream ? 'story--dream' : ''}} {{scene == 'boot' ? 'story--boot' : ''}}" wx:if="{{view == 'story'}}">
+      <view class="head" style="top:{{chrome.contentTop}}px">
+        <view class="radar" bindtap="toggleMap" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="小地图，点开看全屏地图">
+          <view class="radar__road radar__road--a"></view><view class="radar__road radar__road--b"></view>
+          <view class="radar__route"></view><view class="radar__arrow"></view><view class="radar__blip"></view>
+          <text class="radar__north">N</text><text class="radar__distance">{{walkLeft}} m</text>
+        </view>
+        <view class="identity">
+          <view><text class="identity__name">预制人生</text><text class="identity__player" wx:if="{{profile.name}}"> · {{profile.name}}</text></view>
+          <text class="identity__station">第 1 站 · 上海城市规划展示馆</text>
+        </view>
+        <view class="head__spacer"></view>
+        <view class="hud" wx:if="{{scene != 'prologue' && scene != 'register'}}">
+          <text class="hud__energy">⚡ 精力 <text class="hud__value">{{hp}}</text></text>
+          <text class="hud__luck">✦ 幸运 <text class="hud__value">{{luck}}</text></text>
+          <text>梦 <text class="hud__value">{{dreams}}</text>/8</text>
+          <text>念头 <text class="hud__value">{{thoughts.length}}</text></text>
+        </view>
+      </view>
+      <text class="cosmos-tag" style="top:{{chrome.contentTop + 92}}px">宇宙 · {{cosmos}}</text>
+
+      <view class="boot-screen {{bootError ? 'is-error' : ''}} {{bootDone ? 'is-done' : ''}}" wx:if="{{scene == 'boot'}}">
+        <view class="boot-screen__body">
+          <text class="boot-log">PRESET-LIFE BIOS v1.0\n内存检测 ............ ok\n感官接口 ............ ok\n语言模块 ............ {{bootDone ? 'ok' : '等待输入'}}</text>
+          <text class="boot-prompt">＞ 请输入：hello world</text>
+          <view class="boot-input">
+            <block wx:for="{{bootChars}}" wx:key="index"><text class="boot-char">{{item == ' ' ? '·' : item}}</text></block>
+            <text class="boot-cursor" wx:if="{{!bootDone}}"></text>
+            <text class="boot-ghost">{{bootGhost}}</text>
+          </view>
+          <view class="boot-timer"><view style="transform:scaleX({{bootTimerWidth / 100}})"></view></view>
+          <text class="boot-message">{{bootMessage}}</text>
+        </view>
+        <view class="keyboard">
+          <view class="keyboard__row" wx:for="{{bootRows}}" wx:for-item="row" wx:key="index">
+            <button class="key {{item == bootNext ? 'is-next' : ''}}" wx:for="{{row}}" wx:key="*this" data-key="{{item}}" bindtap="bootKey">{{item}}</button>
+            <button class="key key--fn" wx:if="{{index == 2}}" data-key="back" bindtap="bootKey">⌫</button>
+          </view>
+          <view class="keyboard__row"><button class="key key--space {{bootNext == ' ' ? 'is-next' : ''}}" data-key=" " bindtap="bootKey">space</button></view>
+        </view>
+      </view>
+
+      <scroll-view class="scroll" scroll-y enhanced show-scrollbar="{{false}}" scroll-with-animation>
+        <view class="scroll__pad" style="height:{{chrome.contentTop + 178}}px"></view>
+
+        <view class="chapter">
+          <text class="chapter__kicker">{{kicker}}</text>
+          <text class="chapter__title">{{title}}</text>
+        </view>
+
+        <block wx:if="{{scene == 'prologue'}}">
+          <view class="quote"><text>是你选择的命运？\n还是命运选择了你？</text></view>
+          <view class="paragraph">我第一次有意识的时候，没有光，也没有声音。只有一种非常确定的感觉——一切都已经准备好了。</view>
+          <view class="paragraph">温度刚好，湿度刚好，连空气里的味道都没有多余的部分。</view>
+        </block>
+
+        <block wx:elif="{{scene == 'register'}}">
+          <view class="npc"><text class="npc__name">护士</text><text class="npc__meta">在很亮的地方</text><text class="npc__line">“新生儿登记。我问，你答。”</text></view>
+          <view class="form">
+            <text class="register-mark">新 生 儿 登 记</text>
+            <view class="register-row"><text>姓名</text><text>{{profile.name}}</text></view>
+            <view class="register-row"><text>出生地</text><text>{{profile.place}}</text></view>
+            <view class="register-row"><text>性别</text><text>{{profile.gender}}</text></view>
+            <view class="register-row"><text>长大想做</text><text>{{profile.dream}}</text></view>
+            <block wx:if="{{registerStep == 0}}">
+              <text class="register-question">你叫什么名字？</text>
+              <input class="field" data-key="name" value="{{profile.name}}" bindinput="profileInput" maxlength="8" placeholder="写下你的名字" placeholder-class="field__placeholder"/>
+              <button class="inline-btn" data-key="name" bindtap="registerTextNext">写好了</button>
+            </block>
+            <block wx:elif="{{registerStep == 1}}">
+              <text class="register-question">你出生在哪？</text>
+              <input class="field" data-key="place" value="{{profile.place}}" bindinput="profileInput" maxlength="14" placeholder="一座城市，一个镇子，或者想不起来" placeholder-class="field__placeholder"/>
+              <view class="chips chips--wrap"><view class="chip" data-key="place" data-value="上海" bindtap="registerChip" hover-class="cy-pressed" hover-stay-time="80">上海</view><view class="chip" data-key="place" data-value="一座很小的县城" bindtap="registerChip" hover-class="cy-pressed" hover-stay-time="80">一座很小的县城</view><view class="chip" data-key="place" data-value="想不起来" bindtap="registerChip" hover-class="cy-pressed" hover-stay-time="80">想不起来</view></view>
+              <button class="inline-btn" data-key="place" bindtap="registerTextNext">写好了</button>
+            </block>
+            <block wx:elif="{{registerStep == 2}}">
+              <text class="register-question">男孩还是女孩？</text>
+              <view class="chips"><view class="chip" data-key="gender" data-value="男孩" bindtap="registerChip" hover-class="cy-pressed" hover-stay-time="80">男孩</view><view class="chip" data-key="gender" data-value="女孩" bindtap="registerChip" hover-class="cy-pressed" hover-stay-time="80">女孩</view><view class="chip" data-key="gender" data-value="不想说" bindtap="registerChip" hover-class="cy-pressed" hover-stay-time="80">不想说</view></view>
+            </block>
+            <block wx:elif="{{registerStep == 3}}">
+              <text class="register-question">你长大想做什么？</text>
+              <input class="field" data-key="dream" value="{{profile.dream}}" bindinput="profileInput" maxlength="16" placeholder="比如：宇航员、画家、去很远的地方" placeholder-class="field__placeholder"/>
+              <view class="chips chips--wrap"><view class="chip" wx:for="{{['宇航员','画家','医生','去很远的地方','不知道']}}" wx:key="*this" data-key="dream" data-value="{{item}}" bindtap="registerChip" hover-class="cy-pressed" hover-stay-time="80">{{item}}</view></view>
+              <button class="inline-btn" data-key="dream" bindtap="registerTextNext">写好了</button>
+            </block>
+            <block wx:elif="{{registerStep == 4}}">
+              <text class="register-question">最后，贴一张你自己的照片</text>
+              <view class="avatar" bindtap="chooseAvatar" hover-class="cy-pressed" hover-stay-time="80" style="background-image:url('{{profile.avatar}}')"><text wx:if="{{!profile.avatar}}">{{avatarInitial}}</text></view>
+              <text class="form__hint">会出现在登记表、你留给别人的话和最后一个梦里。只存在这台手机上。</text>
+              <button class="inline-btn" bindtap="chooseAvatar">上传我的照片</button>
+              <button class="inline-btn inline-btn--quiet" bindtap="skipAvatar">不贴，用名字的第一个字</button>
+            </block>
+            <block wx:else>
+              <text class="register-seal">各项指标在范围内</text>
+              <view class="npc"><text class="npc__name">护士</text><text class="npc__meta">合上登记表</text><text class="npc__line">“{{profile.name}}，各项指标都在范围内。挺好的。”</text></view>
+              <view class="voice"><text class="voice__name">规矩</text><text>你也跟着松了一口气。</text></view>
+              <view class="paragraph">我不知道“我”是什么。但我知道，我不需要做决定。有一个声音在很远的地方说：“开始吧。”</view>
+              <button class="inline-btn" bindtap="submitProfile">回应那个声音</button>
+            </block>
+          </view>
+        </block>
+
+        <block wx:elif="{{scene == 'walk'}}">
+          <view class="paragraph">今天要去人民广场一带的四个地方。走过去，看看那里的人，然后把这一生过完。</view>
+          <view class="route-card"><text class="route-card__k">● 路线 · 前往第 1 站</text><text class="route-card__t">上海城市规划展示馆 · 约 420 米</text><view class="progress"><view style="transform:scaleX({{walkProgress / 100}})"></view></view><view class="route-card__foot"><text>左上角的小地图跟着你走</text><text>{{walkLeft}} m</text></view></view>
+          <view class="voice" wx:if="{{walkProgress >= 50}}"><text class="voice__name">窗外</text><text>这条路没人推荐。路边的梧桐比别处老。</text></view>
+        </block>
+
+        <block wx:elif="{{scene == 'hall'}}">
+          <view class="real-card" bindtap="hallPhoto" hover-class="cy-pressed" hover-stay-time="80"><image src="/subpackagePrefab/assets/square.webp" mode="aspectFill"/><view class="real-card__shade"></view><view class="real-card__text"><text class="real-card__k">在现场 · 现实任务</text><text class="real-card__t">拍下展示馆的招牌</text><text>走进范围，打开相机。照片会盖上今天的日期。</text></view></view>
+          <view class="paragraph">展示馆门口的城市模型，像一个已经安装完成、只等你进入的世界。</view>
+        </block>
+
+        <block wx:elif="{{scene == 'birth'}}">
+          <image class="story-photo" src="/subpackagePrefab/assets/hospital.webp" mode="aspectFill"/>
+          <view class="paragraph">我出生在{{profile.place || '一个想不起来的地方'}}。那天，没人问我愿不愿意。但所有人都说，我很幸运。</view>
+          <view class="npc"><text class="npc__name">护士</text><text class="npc__meta">低头看了一眼</text><text class="npc__line">“{{profile.name || '你'}}，各项指标都在范围内。挺好的。”</text></view>
+          <view class="paragraph">空气里有晒过被子的味道，暖烘烘的。电风扇在头顶慢悠悠地转着。窗外的蝉鸣声很远，像是隔着一层水膜。</view>
+          <view class="memory-pair"><image src="/subpackagePrefab/assets/street.webp" mode="aspectFill"/><image src="/subpackagePrefab/assets/dog.webp" mode="aspectFill"/></view>
+          <block wx:if="{{sceneStep == 0}}">
+            <text class="choice-title">第一次，我想——</text>
+            <view class="choice" data-value="0" bindtap="firstPick" hover-class="cy-pressed" hover-stay-time="80"><text>开心地呜呜丫丫叫起来</text><text class="choice__pct">38%</text></view>
+            <view class="choice" data-value="1" bindtap="firstPick" hover-class="cy-pressed" hover-stay-time="80"><text>安静地看着窗外</text><text class="choice__pct">44%</text></view>
+            <view class="choice" data-value="2" bindtap="firstPick" hover-class="cy-pressed" hover-stay-time="80"><text>像他们期待的那样哭</text><text class="choice__pct">18%</text></view>
+          </block>
+          <block wx:elif="{{sceneStep == 1}}">
+            <view class="npc"><text class="npc__name">妈妈</text><text class="npc__meta">总是说</text><text class="npc__line">“坐要有坐相，站要有站相。见到人要问好。别人的东西不能乱动。”</text></view>
+            <view class="hold {{holding ? 'is-holding' : ''}}" bindtouchstart="standStart" bindtouchend="standEnd" bindtouchcancel="standEnd" aria-role="button" aria-label="按住三秒站好">
+              <view class="hold__ring" style="--hold:{{holdProgress || 0}}%"><text>按住
+站好</text></view>
+              <text>保持 3 秒。你看，我现在站得直直的。</text>
+            </view>
+          </block>
+          <block wx:elif="{{sceneStep == 2}}">
+            <view class="real-card" bindtap="windowPhoto" hover-class="cy-pressed" hover-stay-time="80"><image src="{{photos.window || '/subpackagePrefab/assets/win.webp'}}" mode="aspectFill"/><view class="real-card__shade"></view><view class="real-card__text"><text class="real-card__k">在现场 · 拍一张</text><text class="real-card__t">现在，安静地看着窗外</text><text>画面里要看得见窗框，和窗外的光。这张照片会回到梦里。</text></view></view>
+          </block>
+          <block wx:else>
+            <view class="paragraph">那扇窗外，你看到了什么？这句话会留给之后来这里的人——也会留给你自己。</view>
+            <view class="chips chips--wrap"><view class="chip" wx:for="{{['有人在遛狗','有人在拍照','一片云','车流','什么也没有']}}" wx:key="*this" data-value="{{item}}" bindtap="pickNote" hover-class="cy-pressed" hover-stay-time="80">{{item}}</view></view>
+            <input class="field note-field" value="{{noteText}}" bindinput="onNoteInput" maxlength="40" placeholder="写下你看见的" placeholder-class="field__placeholder"/>
+            <button class="inline-btn note-submit" bindtap="submitNote">留在这里</button>
+            <view class="replies"><view><b>晴</b><text>一个老人在等公交，等了很久。</text><small>♡ 23 · 3 天前</small></view><view><b>K</b><text>玻璃门上映着我自己。</text><small>♡ 41 · 昨天</small></view><view><b>阿木</b><text>什么也没有。好安静。</text><small>♡ 9 · 2 小时前</small></view></view>
+          </block>
+        </block>
+
+        <block wx:elif="{{scene == 'dream1' || scene == 'dream2' || scene == 'dream3'}}">
+          <view class="dream-stage" bindtouchstart="wakeStart" bindtouchend="wakeEnd" bindtouchcancel="wakeEnd">
+          <view class="dream">
+            <block wx:for="{{dreamCards}}" wx:key="src"><view class="dream__card {{dreamReady ? 'is-final' : ''}}" wx:if="{{index == dreamIndex}}"><image src="{{item.src}}" mode="aspectFill"/><view class="dream__veil"></view><text>{{item.text}}</text></view></block>
+          </view>
+          <view class="dream__count">{{dreamIndex + 1}} / {{dreamCards.length}} · 一张张从眼前穿过去</view>
+          <view class="dream-wake" aria-role="button" aria-label="按住屏幕会醒来"><text>按住屏幕会醒来</text><view><i style="width:{{wakeProgress || 0}}%"></i></view></view>
+          </view>
+        </block>
+
+        <block wx:elif="{{scene == 'learning'}}">
+          <block wx:if="{{sceneStep == 0}}">
+            <image class="story-photo story-photo--portrait" src="/subpackagePrefab/assets/model.webp" mode="aspectFill"/>
+            <view class="npc"><text class="npc__name">陈老师</text><text class="npc__meta">展示馆讲解员</text><text class="npc__line">“先找到自己熟悉的地方，再找一块你从没去过的。”</text></view>
+            <text class="choice-title">讲解员的问题 · {{quizIndex + 1}} / 3</text>
+            <block wx:if="{{quizIndex == 0}}"><view class="choice" data-value="0" data-answer="1" bindtap="quizPick" hover-class="cy-pressed" hover-stay-time="80">模型比例是 1:100</view><view class="choice" data-value="1" data-answer="1" bindtap="quizPick" hover-class="cy-pressed" hover-stay-time="80">模型比例是 1:500</view></block>
+            <block wx:elif="{{quizIndex == 1}}"><view class="choice" data-value="0" data-answer="0" bindtap="quizPick" hover-class="cy-pressed" hover-stay-time="80">人民广场</view><view class="choice" data-value="1" data-answer="0" bindtap="quizPick" hover-class="cy-pressed" hover-stay-time="80">陆家嘴</view></block>
+            <block wx:else><view class="choice" data-value="0" data-answer="1" bindtap="quizPick" hover-class="cy-pressed" hover-stay-time="80">一条已经走过的路</view><view class="choice" data-value="1" data-answer="1" bindtap="quizPick" hover-class="cy-pressed" hover-stay-time="80">一块你从没去过的地方</view></block>
+          </block>
+          <block wx:elif="{{sceneStep == 1}}">
+            <view class="real-card real-card--plain"><view class="real-card__text"><text class="real-card__k">在现场</text><text class="real-card__t">数一数，模型前有几个人在低头看手机？</text></view></view>
+            <input class="count" type="number" value="{{countText}}" bindinput="onCountInput" placeholder="0"/>
+            <button class="inline-btn" bindtap="submitCount">记下来</button>
+          </block>
+          <block wx:elif="{{sceneStep == 2}}">
+            <image class="story-photo" src="/subpackagePrefab/assets/classroom.webp" mode="aspectFill"/>
+            <view class="paragraph">很多年以后，我第一次被要求坐好，是在一张很小的桌子前。凳子比我想象中硬。我的脚够不到地，只能悬在半空里晃。</view>
+            <view class="paragraph">我发现问题本身没那么重要，但我需要答对那个“标准答案”。后来，我慢慢坐到了班级的后排。老师的声音很远，让我感到安全。</view>
+            <view class="voice"><text class="voice__name">精密</text><text>翅膀每秒振动两百次。腿上有绒毛。它很精密，像一道优美的数学题。</text></view>
+            <view class="npc"><text class="npc__name">老师</text><text class="npc__meta">站在你旁边</text><text class="npc__line">“{{profile.name || '你'}}，来，站起来，你来回答一下？”</text></view>
+            <view class="choice-title choice-title--timed"><text>限时 · 你决定——</text><text class="choice-timer">{{teacherSeconds || 0}} 秒</text></view>
+            <view class="choice" data-value="0" bindtap="teacherPick" hover-class="cy-pressed" hover-stay-time="80">背出课本上的标准答案</view>
+            <view class="choice" data-value="1" bindtap="teacherPick" hover-class="cy-pressed" hover-stay-time="80">“我在看窗外。”</view>
+            <view class="choice choice--red" data-value="2" bindtap="teacherPick" hover-class="cy-pressed" hover-stay-time="80">“这个问题，有标准答案吗？”</view>
+            <view class="choice" data-value="3" bindtap="teacherPick" hover-class="cy-pressed" hover-stay-time="80">什么也不说，站得直直的</view>
+          </block>
+          <block wx:else>
+            <image class="story-photo" src="{{photos.window || '/subpackagePrefab/assets/win.webp'}}" mode="aspectFill"/>
+            <view class="npc"><text class="npc__name">老师</text><text class="npc__meta">挑了挑眉</text><text class="npc__line">“窗外有什么？”</text></view>
+            <view class="choice" data-value="0" bindtap="teacherWindowPick" hover-class="cy-pressed" hover-stay-time="80">“{{noteText || '什么也没有'}}。”</view>
+            <view class="choice choice--red" data-value="1" bindtap="teacherWindowPick" hover-class="cy-pressed" hover-stay-time="80">“一只苍蝇。它很精密。”</view>
+          </block>
+        </block>
+
+        <block wx:elif="{{scene == 'career'}}">
+          <block wx:if="{{sceneStep == 0}}">
+            <view class="real-card real-card--plain"><view class="real-card__text"><text class="real-card__k">在现场</text><text class="real-card__t">找一块你从没去过的地方</text><text>在地图上贴上“未加载地图”。后来的人会看见它。</text></view></view>
+            <button class="inline-btn map-open" bindtap="openStickerMap">打开地图 · 贴贴纸</button>
+          </block>
+          <block wx:else>
+            <view class="paragraph">那个有蝉鸣的下午，就突然不见了。你说过，你长大想当{{profile.dream || '什么'}}。</view>
+            <view class="jobs"><view class="job" wx:for="{{jobs}}" wx:key="name" data-value="{{item.name}}" bindtap="careerPick" hover-class="cy-pressed" hover-stay-time="80"><text class="job__name">{{item.name}}</text><text>{{item.sub}}</text></view></view>
+          </block>
+        </block>
+
+        <block wx:elif="{{scene == 'work'}}">
+          <image class="story-photo" src="/subpackagePrefab/assets/{{jobImage}}.webp" mode="aspectFill"/>
+          <view class="paragraph">有人把我带到其中一张桌子前，说：“{{profile.name || '你'}}，这是你的工位。”他说得很自然，像是在把一件物品放回它该在的位置。</view>
+          <view class="paragraph">桌子上摆放了我需要的所有东西：{{jobMeta.desk}}。我的任务会被拆解，目标会被量化，时间被切成一块一块。</view>
+          <view class="voice"><text class="voice__name">规矩</text><text>“{{jobMeta.task}}”</text></view>
+          <block wx:if="{{sceneStep == 0}}">
+            <view class="npc"><text class="npc__name">老板</text><text class="npc__meta">在会议室里</text><text class="npc__line">“这个……先放一放。”</text></view>
+            <text class="choice-title">故事里 · 你说——</text>
+            <view class="choice" data-value="0" bindtap="bossPick" hover-class="cy-pressed" hover-stay-time="80">“收到。”</view><view class="choice" data-value="1" bindtap="bossPick" hover-class="cy-pressed" hover-stay-time="80">“从结果来看，这版更好。”</view><view class="choice choice--red" data-value="2" bindtap="bossPick" hover-class="cy-pressed" hover-stay-time="80">“我想试试这个。”</view><view class="choice" data-value="3" bindtap="bossPick" hover-class="cy-pressed" hover-stay-time="80">站起来，离开会议室</view>
+          </block>
+          <block wx:else>
+            <view class="paragraph">有一次，{{jobMeta.ignored}}老板路过你的工位，只说：“先按原来的来。”</view>
+            <image class="story-photo" wx:if="{{photos.window}}" src="{{photos.window}}" mode="aspectFill"/>
+            <view class="paragraph">那天晚上，我坐在工位上很久。屏幕已经暗了。办公室里只剩下空调的声音。下楼的时候，路口的灯是红的。你想起白天数过的那 {{picks.count || 0}} 个人。</view>
+            <view class="real-card" bindtap="phonePhoto" hover-class="cy-pressed" hover-stay-time="80"><image src="/subpackagePrefab/assets/phone.webp" mode="aspectFill"/><view class="real-card__shade"></view><view class="real-card__text"><text class="real-card__k">在现场 · 现实任务</text><text class="real-card__t">拍一个低头看手机的人</text><text>不拍脸。背影、手，或者只有那块亮着的屏幕。</text></view></view>
+          </block>
+        </block>
+
+        <block wx:elif="{{scene == 'flow'}}">
+          <view class="flow-title"><view class="flow-avatar" style="background-image:url('{{profile.avatar}}')">{{avatarInitial}}</view><text>{{profile.name || '我'}} 的第一段人生</text></view>
+          <view class="flow-node"><text>路上 · 偏离推荐路线</text><view class="flow-option {{picks.route == 0 ? 'is-mine' : ''}}">重新规划 · 57%</view><view class="flow-option {{picks.route == 1 ? 'is-mine' : ''}}">继续这条路 · 43%</view></view>
+          <view class="flow-node"><text>第一次，我想——</text><view class="flow-option {{picks.first == 0 ? 'is-mine' : ''}}">开心地叫起来 · 38%</view><view class="flow-option {{picks.first == 1 ? 'is-mine' : ''}}">安静地看窗外 · 44%</view><view class="flow-option {{picks.first == 2 ? 'is-mine' : ''}}">像他们期待的那样哭 · 18%</view></view>
+          <view class="flow-node"><text>讲解员的三个问题</text><view class="flow-option is-mine">答对 {{picks.quiz}} 题{{picks.quiz >= 2 ? ' · 幸运 +1' : ''}}</view></view>
+          <view class="flow-node"><text>老师让你站起来</text><view class="flow-option is-mine">{{picks.teacher == 0 ? '背出标准答案' : picks.teacher == 1 ? '“我在看窗外”' : picks.teacher == 2 ? '“这个问题，有标准答案吗？”' : '什么也不说，站得直直的'}}</view></view>
+          <view class="flow-node"><text>老板说“这个……先放一放”</text><view class="flow-option is-mine">{{picks.boss == 0 ? '“收到。”' : picks.boss == 1 ? '“从结果来看，这版更好。”' : picks.boss == 2 ? '“我想试试这个。”' : '站起来，离开会议室'}}</view></view>
+          <view class="flow-node"><text>长大了，你希望做什么</text><view class="flow-option is-mine">{{job}}</view></view>
+          <view class="summary"><view><text class="summary__number">{{photoCount}}</text><text>拍下的照片</text></view><view><text class="summary__number">{{dreams}}</text><text>梦</text></view><view><text class="summary__number">{{thoughts.length}}</text><text>念头</text></view></view>
+          <view class="shot-strip" wx:if="{{photos.hall || photos.phone}}"><image wx:if="{{photos.hall}}" src="{{photos.hall}}" mode="aspectFill"/><image wx:if="{{photos.phone}}" src="{{photos.phone}}" mode="aspectFill"/></view>
+          <cy-state-shell wx:if="{{syncError}}" kind="error" title="现场记录暂未同步" sub="{{syncError}}" primary="再试一次" size="sm" theme="player" bind:primary="_syncCompletion" />
+        </block>
+        <view class="scroll__end"></view>
+      </scroll-view>
+
+      <view class="cta" wx:if="{{scene == 'prologue' || scene == 'walk' || scene == 'flow'}}">
+        <button class="cta__primary" bindtap="primary" disabled="{{syncing}}">{{scene == 'prologue' ? '开始（建议戴耳机）' : scene == 'walk' ? (walkProgress ? '正在前往第 1 站' : '开始步行') : (syncing ? '正在保存这一站' : '全剧结局')}}</button>
+        <button class="cta__secondary" wx:if="{{scene == 'walk'}}" bindtap="toggleMap">看地图</button>
+      </view>
+    </view>
+
+    <view class="map" wx:else>
+      <view class="map__grid"></view><view class="map__river"></view><view class="map__road map__road--one"></view><view class="map__road map__road--two"></view>
+      <view class="head map__head" style="top:{{chrome.contentTop}}px"><view class="story-ring" bindtap="toggleMap" hover-class="cy-pressed" hover-stay-time="80"><view></view><view></view><view></view><text>故事</text></view><view class="identity"><text class="identity__name">预制人生</text><text class="identity__station">剧情地图 · 2 段故事留言</text></view><view class="head__spacer"></view></view>
+      <view class="map__me"><view></view></view>
+      <view class="pin pin--one"><view>1</view><text>城市规划展示馆</text></view><view class="pin pin--two"><view>2</view><text>人民广场站</text></view><view class="pin pin--three"><view>3</view><text>第一百货</text></view>
+      <view class="map-note map-note--a" data-index="0" bindtap="openMapNote" hover-class="cy-pressed" hover-stay-time="80"><text>晴</text></view><view class="map-note map-note--b" data-index="1" bindtap="openMapNote" hover-class="cy-pressed" hover-stay-time="80"><text>K</text></view>
+      <view class="map-sticker" wx:if="{{sticker}}">{{profile.name || '我'}} · {{sticker.label}}</view>
+      <view class="map-task" wx:if="{{!stickerMode}}"><text class="map-task__k">当前任务 · 第 1 站</text><text class="map-task__t">{{stationName}}</text><text class="map-task__s">{{stationAddress}}</text><button bindtap="toggleMap">回到故事</button></view>
+      <view class="sticker-picker" wx:if="{{stickerMode}}"><text>贴一张在这里</text><view><button data-value="未加载地图" bindtap="placeSticker">未加载地图</button><button data-value="这里有风" bindtap="placeSticker">这里有风</button><button data-value="以后再来" bindtap="placeSticker">以后再来</button></view></view>
+      <view class="map-bubble" wx:if="{{mapBubble.show}}"><view class="map-bubble__head"><text>{{mapBubble.who}} · 剧情角色</text><button bindtap="closeMapNote">×</button></view><text class="map-bubble__text">{{mapBubble.text}}</text><text class="map-bubble__like">剧情留言</text></view>
+    </view>
+  </block>
+
+  <view class="route-prompt" wx:if="{{routeChoice}}"><text class="route-prompt__k">地图 · 现在</text><text class="route-prompt__t">你已偏离推荐路线，是否重新规划？</text><view><button data-value="0" bindtap="routePick">重新规划</button><button data-value="1" bindtap="routePick">继续这条路</button></view></view>
+  <view class="route-prompt" wx:if="{{signChoice}}"><text class="route-prompt__k">路上 · 可选</text><text class="route-prompt__t">路边有一块带“新”字的招牌吗？</text><view><button data-value="0" bindtap="signPick">没看到，继续走</button><button data-value="1" bindtap="signPick">拍下来打卡</button></view></view>
+
+  <view class="check" wx:if="{{check.show}}"><view class="check__card"><text class="check__k">{{check.label}}</text><view class="dicebox"><view class="die">{{check.dice[0]}}</view><view class="die">{{check.dice[1]}}</view></view><text class="check__math">两颗骰子 {{check.roll}} + 能力 = {{check.score}} · 难度 {{check.dc}}</text><text class="check__result {{check.ok ? 'is-ok' : 'is-no'}}">{{check.ok ? '成功' : '失败'}}</text><button class="inline-btn" bindtap="closeCheck">继续</button></view></view>
+
+  <view class="endings" wx:if="{{showEndings}}"><view class="endings__panel"><text class="endings__title">全剧结局</text><text class="endings__sub">一共 6 个。{{profile.name || '你'}}在这一站做的事，会一路影响到终章。</text><scroll-view scroll-y class="endings__list"><view class="ending" wx:for="{{endings}}" wx:key="index"><text class="ending__name">{{item[0]}}</text><text class="ending__quote">{{item[1]}}</text><text class="ending__hint">{{item[2]}}</text><text class="ending__pct">{{item[3]}} 的人</text></view></scroll-view><button class="inline-btn" bindtap="closeEndings">回到故事</button><button class="reset" bindtap="confirmReplay">重看剧情</button></view></view>
+</view>

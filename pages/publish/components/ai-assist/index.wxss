@@ -1,0 +1,135 @@
+/* cy-ai-assist · 内嵌 AI 助写(DS §5.10)
+ * 附属表单字段的交互壳,主题跟随;品牌紫承担 AI 的"创作/强调时刻"。全 token 无硬编码。 */
+:host { display: block; }
+
+.ai { display: block; margin: var(--cy-space-2) 0; }
+
+/* —— 折叠态触发 —— */
+.ai__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  min-height: 56rpx;
+  padding: 0 var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-brand-soft);
+}
+.ai__trigger:active { opacity: .82; }
+.ai__trigger-mark {
+  padding: 2rpx var(--cy-legacy-10);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-brand);
+  color: var(--cy-color-text-inverse);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+}
+.ai__trigger-txt { color: var(--cy-color-brand); font-size: var(--cy-type-label); }
+
+/* —— 展开态面板 —— */
+.ai__panel {
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+  border: 2rpx solid var(--cy-color-border-subtle);
+}
+.ai__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--cy-space-2);
+}
+.ai__title { color: var(--cy-color-text-primary); font-size: var(--cy-type-label); font-weight: 600; }
+.ai__collapse { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+
+/* —— 提示 chips —— */
+.ai__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+  margin-bottom: var(--cy-space-3);
+}
+.ai__chip {
+  min-height: 64rpx;
+  padding: 0 var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface);
+  border: 2rpx solid var(--cy-color-border-strong);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+}
+.ai__chip:active { opacity: .82; }
+
+/* —— 想法输入 —— */
+.ai__input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: var(--cy-space-7);
+  padding: 0 var(--cy-space-3);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface);
+  border: 2rpx solid var(--cy-color-border-strong);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+}
+.ai__input-ph { color: var(--cy-color-text-placeholder); }
+
+/* —— 动作区 —— */
+.ai__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-3);
+}
+.ai__gen {
+  min-height: var(--cy-btn-h-sm);
+  padding: 0 var(--cy-space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-brand);
+  color: var(--cy-color-text-inverse);
+  font-size: var(--cy-type-button);
+  font-weight: 600;
+}
+.ai__gen:active { opacity: .88; }
+.ai__gen--busy { background: var(--cy-color-brand-soft); color: var(--cy-color-brand); }
+.ai__ghost {
+  min-height: var(--cy-btn-h-sm);
+  padding: 0 var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  border-radius: var(--cy-radius-pill);
+  border: 2rpx solid var(--cy-color-border-strong);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+}
+.ai__ghost:active { opacity: .82; }
+.ai__status { flex: 1; color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+.ai__status--err { color: var(--cy-color-status-danger); }
+
+/* —— 来源标注(合规) —— */
+.ai__source {
+  margin-top: var(--cy-space-2);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+  line-height: var(--cy-leading-normal);
+}
+
+/* spinner */
+.ai__spin {
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  border: 4rpx solid var(--cy-color-brand-soft);
+  border-top-color: var(--cy-color-brand);
+  border-radius: var(--cy-radius-pill);
+  animation: ai-spin .8s linear infinite;
+}
+@keyframes ai-spin { to { transform: rotate(360deg); } }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

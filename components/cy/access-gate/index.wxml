@@ -1,0 +1,4 @@
+<!-- deny:整屏底色盖住页面(fail-closed 不变),上面弹零按钮 fail 半屏讲原因,2s 后自动 onExit(稿 356-5220) -->
+<view wx:if="{{state === 'deny'}}" class="gate" style="padding-top: {{top}}px;" aria-role="alert" aria-live="assertive">
+  <cy-result-sheet show="{{_sheet}}" kind="fail" title="暂时不能查看" why="{{reason || '当前账号没有查看权限'}}" bind:close="onExit" />
+</view>

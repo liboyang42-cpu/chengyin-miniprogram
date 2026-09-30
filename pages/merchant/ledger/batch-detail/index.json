@@ -1,0 +1,19 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F4F4",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-progress-status": "/components/cy/progress-status/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-badge": "/components/cy/badge/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-access-gate": "/components/cy/access-gate/index"
+  }
+}

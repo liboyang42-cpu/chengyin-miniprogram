@@ -1,0 +1,5 @@
+<!-- 限时开跑前的 3-2-1。整屏压一层、只剩一个数字 —— 这一下的用处是「把注意力清空」,
+     所以屏上不能再有别的东西可看。 -->
+<view class="ci {{going ? 'ci--go' : ''}}" wx:if="{{show}}" aria-role="alert" aria-label="{{n}} 秒后开始">
+  <view class="ci__n {{popClass}}">{{n}}</view>
+</view>

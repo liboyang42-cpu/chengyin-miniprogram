@@ -1,0 +1,14 @@
+<view class="rm-wrap" wx:if="{{routeReady}}" style="height:{{height}};">
+  <map
+    id="rmMap"
+    class="rm-map"
+    latitude="{{mapLatitude}}"
+    longitude="{{mapLongitude}}"
+    markers="{{routeMarkers}}"
+    polyline="{{routePolyline}}"
+    include-points="{{routeIncludePoints}}"
+    enable-rotate="{{false}}"
+    bindmarkertap="onNodeTap">
+  </map>
+  <view class="rm-tip" wx:if="{{!routeIsRoad}}">直连预览 · 道路路线待生成</view>
+</view>

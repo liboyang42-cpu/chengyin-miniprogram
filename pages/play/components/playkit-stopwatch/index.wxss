@@ -1,0 +1,264 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-stopwatch · 精准停表
+ * 真源:原型 playkit.html 的 #kit2(试玩台里「549 · 精准停表」那一组),
+ * 不是主手机那张皮肤表 —— 那一套是深色/彩色玩法屏,这一屏是浅色玻璃。
+ * ⚠️ 整段是玩法皮肤色,ds-ok:要改先改原型。原型 375px 画布,1px = 2rpx。
+ */
+.sw {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 108rpx) 40rpx
+           calc(env(safe-area-inset-bottom) + 60rpx);           /* ds-ok 原型 .screen 54px 20px 30px */
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #F2F4F6;                                          /* ds-ok 原型 #kit2 .phone */
+  color: #111111;                                               /* ds-ok 原型 --ink */
+}
+
+/* 背景景深:玻璃要有东西可透,不然「毛玻璃」只是一块灰。
+   四团色斑本身就是软的,blur 不生效的机型上退化后也几乎看不出差别。 */
+.sw__amb {
+  position: absolute;
+  left: -25%; right: -25%; top: -25%; bottom: -25%;
+  z-index: 0;
+  filter: blur(92rpx);                                          /* ds-ok 原型 blur(46px) */
+  background:
+    radial-gradient(38% 26% at 24% 16%, #C9D6E0 0%, rgba(201, 214, 224, 0) 72%),  /* ds-ok 表盘的柔光,逐值照原型 */
+    radial-gradient(34% 24% at 82% 26%, #E7D9CC 0%, rgba(231, 217, 204, 0) 72%),  /* ds-ok 表盘的柔光,逐值照原型 */
+    radial-gradient(46% 32% at 52% 62%, #DCE3E6 0%, rgba(220, 227, 230, 0) 74%),  /* ds-ok 表盘的柔光,逐值照原型 */
+    radial-gradient(30% 22% at 18% 84%, #CBD3D6 0%, rgba(203, 211, 214, 0) 72%),  /* ds-ok 表盘的柔光,逐值照原型 */
+    linear-gradient(#FAFCFC, #EEF1F3);                          /* ds-ok 原型 .phone::before */
+}
+
+.sw__mid {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26rpx;                                                   /* ds-ok 原型 .mid gap 13px */
+}
+/* 准备屏靠左:两个数是读出来的,不是摆着看的 */
+.sw__mid--intro { align-items: flex-start; gap: 0; text-align: left; }
+.sw__mid--dim { opacity: .4; }
+/* 整屏就是「停」的按钮。原型是鼠标指针形状在说这件事,手机上没有指针 ——
+   按下去要有一点回应,不然人不确定自己点到了没有 */
+.sw__mid--press { opacity: .96; }
+
+.sw__eyebrow {
+  padding: 8rpx 24rpx;                                          /* ds-ok 浅玻璃小标签 */
+  border-radius: 28rpx;                                         /* ds-ok */
+  font-size: var(--cy-type-label);
+  font-weight: 700;
+  letter-spacing: 5.28rpx;                                      /* ds-ok 原型 .22em */
+  line-height: 1.5;
+  color: #333333;                                               /* ds-ok 标签上要读得清 */
+  background: rgba(255, 255, 255, .72);                         /* ds-ok 同 .sw__chip 的玻璃 */
+}
+.sw__lbl {
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  line-height: 1.5;
+  color: #787878;                                               /* ds-ok */
+}
+.sw__lbl--target { margin-top: 52rpx; }                         /* ds-ok 原型 26px */
+.sw__lbl--tol { margin-top: 44rpx; }                            /* ds-ok 原型 22px */
+.sw__target {
+  font-size: var(--cy-play-display-2xl);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -3.84rpx;                                     /* ds-ok 原型 -.03em */
+}
+.sw__unit {
+  margin-left: 12rpx;                                           /* ds-ok 原型 6px */
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 700;
+}
+.sw__tol {
+  font-size: var(--cy-type-data-xl);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -1.36rpx;                                     /* ds-ok 原型 -.02em */
+}
+.sw__unit2 {
+  margin-left: 10rpx;                                           /* ds-ok 原型 5px */
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+}
+.sw__tip {
+  margin-top: 52rpx;                                            /* ds-ok 原型 26px */
+  font-size: var(--cy-type-label);
+  line-height: 1.7;
+  color: #787878;                                               /* ds-ok */
+}
+
+/* 底部只有一颗按钮,不套托条。这一屏的按钮是黑的 ——
+   浅色玻璃底上白胶囊会糊进背景,原型 #kit2 用的就是 .btn--primary。 */
+.sw__foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;                                                   /* ds-ok 原型 10px */
+}
+.sw__btn {
+  width: 100%;
+  max-width: 640rpx;                                            /* ds-ok 原型 320px */
+  padding: 32rpx;                                               /* ds-ok 原型 16px */
+  box-sizing: border-box;
+  border-radius: 60rpx;                                         /* ds-ok 原型 30px */
+  font-size: var(--cy-type-button);
+  font-weight: 700;
+  text-align: center;
+  background: #111111;                                          /* ds-ok 原型 .btn--primary */
+  color: #FFFFFF;                                               /* ds-ok */
+  box-shadow: 0 20rpx 56rpx rgba(17, 17, 17, .26);  /* ds-ok 表盘的柔光,逐值照原型 */
+}
+.sw__btn--press { transform: scale(.985); }
+
+/* ── 计时中 ── */
+.sw__chip {
+  padding: 12rpx 32rpx;                                         /* ds-ok 原型 6px 16px */
+  border-radius: 30rpx;                                         /* ds-ok 原型 15px */
+  font-size: var(--cy-type-body);
+  font-weight: 500;
+  color: #787878;                                               /* ds-ok */
+  background: rgba(255, 255, 255, .52);                         /* ds-ok 原型 --glass-thin */
+  backdrop-filter: blur(44rpx) saturate(180%);
+  -webkit-backdrop-filter: blur(44rpx) saturate(180%);
+}
+.sw__giant {
+  font-size: var(--cy-play-display-4xl);
+  font-weight: 900;
+  line-height: .9;
+  letter-spacing: -13.86rpx;                                    /* ds-ok 原型 -.055em */
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 12rpx 60rpx rgba(255, 255, 255, .7);  /* ds-ok 表盘的柔光,逐值照原型 */
+}
+/* 藏起来的不是「没有数字」,是「有,但你看不见」—— 两道破折号占住那个位置 */
+.sw__dash {
+  font-size: var(--cy-type-data-2xl);
+  font-weight: 900;
+  letter-spacing: 11.2rpx;                                      /* ds-ok 原型 .14em */
+}
+.sw__pill {
+  margin-top: 12rpx;                                            /* ds-ok 原型 6px */
+  padding: 16rpx 40rpx;                                         /* ds-ok 原型 8px 20px */
+  border-radius: 32rpx;                                         /* ds-ok 原型 16px */
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  background: rgba(255, 255, 255, .92);                         /* ds-ok 原型 --glass-strong */
+  backdrop-filter: blur(44rpx) saturate(180%);
+  -webkit-backdrop-filter: blur(44rpx) saturate(180%);
+  box-shadow: 0 8rpx 36rpx rgba(31, 41, 51, .10);  /* ds-ok 表盘的柔光,逐值照原型 */
+}
+.sw__cap {
+  margin-top: 36rpx;                                            /* ds-ok 原型 18px */
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: center;
+  color: #787878;                                               /* ds-ok */
+}
+
+.sw__hat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 20rpx 44rpx;                                         /* ds-ok 玻璃卡片 */
+  border-radius: 36rpx;                                         /* ds-ok */
+  text-align: center;
+  background: rgba(255, 255, 255, .92);                         /* ds-ok 原型 --glass-strong */
+  box-shadow: 0 8rpx 36rpx rgba(31, 41, 51, .10);  /* ds-ok 表盘的柔光,逐值照原型 */
+}
+/* 读数那一列:暂停时整列变淡,暂停卡片本身不淡 */
+.sw__read {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26rpx;                                                   /* ds-ok 同 .sw__mid */
+}
+/* 没停准:给结论,不只亮一个数 */
+.sw__miss {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+  color: #c2412d;                                               /* ds-ok 没中=红,浅玻璃上够对比 */
+}
+.sw__miss-i {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-type-caption);
+  color: #FFFFFF;                                               /* ds-ok */
+  background: #c2412d;                                          /* ds-ok */
+}
+.sw__dev {
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sw__hat-t { font-size: var(--cy-type-card-title); font-weight: 700; }              /* ds-ok 原型 17px */
+.sw__hat-s { font-size: var(--cy-type-label); color: #787878; }                /* ds-ok 原型 12px */
+
+.sw__bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;                                                   /* ds-ok 原型 10px */
+  padding-bottom: 12rpx;                                        /* ds-ok 原型 6px */
+}
+.sw__time {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;                                                   /* ds-ok 原型 8px */
+  height: 88rpx;                                                /* ds-ok 原型 44px */
+  padding: 0 32rpx;                                             /* ds-ok 原型 16px */
+  border-radius: 44rpx;                                         /* ds-ok 原型 22px */
+  font-size: var(--cy-type-body);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, .92);                         /* ds-ok 原型 --glass-strong */
+  backdrop-filter: blur(44rpx) saturate(180%);
+  -webkit-backdrop-filter: blur(44rpx) saturate(180%);
+  box-shadow: 0 8rpx 36rpx rgba(31, 41, 51, .10);  /* ds-ok 表盘的柔光,逐值照原型 */
+}
+.sw__masked {
+  letter-spacing: 3rpx;                                         /* ds-ok 原型 .10em */
+  color: #787878;                                               /* ds-ok */
+}
+.sw__ico {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, .92);                         /* ds-ok 原型 --glass-strong */
+  backdrop-filter: blur(44rpx) saturate(180%);
+  -webkit-backdrop-filter: blur(44rpx) saturate(180%);
+  box-shadow: 0 8rpx 36rpx rgba(31, 41, 51, .10);  /* ds-ok 表盘的柔光,逐值照原型 */
+}
+.sw__ico--press { opacity: .88; }
+/* 暂停符号画出来:图标集里只有 play,没有 pause,而这两个必须是一对 */
+.sw__pause { display: flex; gap: 6.4rpx; }                      /* ds-ok 原型 3.2px */
+.sw__pause-b {
+  width: 6.8rpx; height: 28rpx;                                 /* ds-ok 原型 3.4×14px */
+  border-radius: 2.4rpx;  /* ds-ok 表盘的柔光,逐值照原型 */
+  background: currentColor;
+}

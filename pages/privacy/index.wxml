@@ -1,0 +1,30 @@
+<!-- 路由本体继续保留:app.js 的隐私授权钩子和自动化仍按真实页面进入;
+     页面内的弹窗外壳统一交给 cy-sheet，不改变路由身份。 -->
+<cy-sheet class="theme-dark" show="{{true}}" title="隐私保护"
+  closable="{{!pendingAuthorization}}" maskClosable="{{false}}" bind:close="onClose">
+  <view class="privacy-content">
+    <!-- 待决策态(pendingAuthorization)是强制同意闸,不给退出叉号;
+         撤回态(else)才允许通过 cy-sheet 关闭按钮退出。 -->
+    <text class="privacy-body">城瘾会在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。</text>
+    <view class="privacy-link" bindtap="openPrivacyContract" aria-role="button" aria-label="查看用户隐私保护指引" hover-class="cy-pressed" hover-stay-time="80">查看《用户隐私保护指引》</view>
+    <cy-inline-error class="privacy-error" wx:if="{{submitError}}" kind="network" title="{{submitError}}" sub="你的选择还没有被记录，页面内容不会丢失。" action="重试" bind:action="retrySubmit" />
+    <block wx:if="{{pendingAuthorization}}">
+      <!-- ⚠️ 微信强制:同意必须是原生 <button open-type="agreePrivacyAuthorization">,不能收编 cy-btn
+           (developers.weixin.qq.com/miniprogram/dev/framework/user-privacy/PrivacyAuthorize.html) -->
+      <!-- 2026-08-06 用户定:两颗并排，不同意在左、同意在右(iOS 惯例:确认动作靠右) -->
+      <view class="privacy-actions">
+        <cy-btn variant="secondary" disabled="{{submitting}}" aria-disabled="{{submitting}}" class="privacy-action" bindtap="disagreePrivacy">暂不同意</cy-btn>
+        <button class="privacy-agree" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="agreePrivacy" loading="{{submitting}}" disabled="{{submitting}}" aria-disabled="{{submitting}}">同意并继续</button>
+      </view>
+    </block>
+    <block wx:else>
+      <text class="privacy-setting-title">漫游定位</text>
+      <text class="privacy-setting-body">撤回后，漫游不会继续读取实时位置或记录新的轨迹。</text>
+      <!-- ghost(玻璃底)在这张卡上几乎与卡面同色,看着像禁用态;撤回是可点的真动作 ⇒ 收到 secondary(描边) -->
+      <cy-btn variant="secondary" loading="{{submitting}}" disabled="{{submitting}}" aria-disabled="{{submitting}}" class="privacy-action" bindtap="withdrawRoamLocationConsent">撤回漫游定位同意</cy-btn>
+    </block>
+  </view>
+</cy-sheet>
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />

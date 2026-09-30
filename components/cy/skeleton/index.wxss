@@ -1,0 +1,266 @@
+/* cy-skeleton · 统一加载骨架(走 token,双主题自适配)。
+ * shimmer 用 skeleton-base → -highlight → -base 的横向流光(DS §2.3/§2.4 独立骨架 token,
+ * R1:禁与卡面同色,修暗端骨架几乎不可见)。 */
+:host { display: block; }
+
+.sk { padding: var(--cy-space-3) var(--cy-page-x); }
+
+.sk-bar {
+  background: linear-gradient(
+    90deg,
+    var(--cy-color-skeleton-base) 25%,
+    var(--cy-color-skeleton-highlight) 37%,
+    var(--cy-color-skeleton-base) 63%
+  );
+  background-size: 400% 100%;
+  animation: cy-sk 1.4s var(--cy-ease) infinite;
+  border-radius: var(--cy-radius-sm);
+}
+
+@keyframes cy-sk {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* 减少动态效果:保留块位和明暗层级，只去掉横向扫光。 */
+.sk--static .sk-bar {
+  background: var(--cy-color-skeleton-base);
+  animation: none;
+}
+
+/* —— 通用行/块 —— */
+.sk-line { height: var(--cy-space-3-5); margin-top: var(--cy-space-2); }
+.sk-line:first-child { margin-top: 0; }
+.sk-w35 { width: 35%; }
+.sk-w40 { width: 40%; }
+.sk-w50 { width: 50%; }
+.sk-w60 { width: 60%; }
+.sk-w70 { width: 70%; }
+.sk-w80 { width: 80%; }
+.sk-w85 { width: 85%; }
+.sk-gap { height: var(--cy-space-4); }
+
+/* —— amount:资金主数/余额 —— */
+.sk-amount { padding-top: var(--cy-space-2); padding-bottom: var(--cy-space-2); }
+.sk-amount-label { width: 32%; height: var(--cy-space-2-5); }
+.sk-amount-value { width: 56%; height: var(--cy-space-7); margin-top: var(--cy-space-2); }
+
+/* —— list:头像 + 两行 —— */
+/* 帖文鱼骨:几何必须与 cy-post-card 逐 rpx 一致,否则加载完成时内容横向跳。
+   真源是 post-card/index.wxss 的 --pc-avatar 与 gap,改那边这里要同步改;
+   post-card-shared-contract 里有一条同步闸会在两边走散时变红。
+   ⚠️ 刻意不跟 Figma 的骨架稿 —— 稿子的意图正是「加载完不横向跳」,
+      跟真卡片才是实现那个意图,跟稿子的数值反而做不到。 */
+.sk-post-list { padding: 0; }
+.sk-post {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-2-5);
+  padding: 36rpx var(--cy-page-x);
+}
+/* ⚠️ 与 cy-post-card 逐像素同步(Figma 297:1827):头像 44pt=88rpx、首列间距 10pt=20rpx、
+   上下内边距 18pt=36rpx。骨架比真卡宽/窄一格,加载完成时整栏会横向弹一下。
+   真卡在 components/cy/post-card/index.wxss —— 那边改了这里必须跟着改。 */
+.sk-post-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: var(--cy-radius-pill);
+  flex: none;
+}
+.sk-post-main { flex: 1; min-width: 0; }
+/* 10pt 高、5pt 圆角(设计稿) */
+.sk-post-line { height: var(--cy-space-2-5); border-radius: var(--cy-space-1-5); }
+.sk-post-l1 { width: 31%; }                                  /* 105/335 —— 昵称行 */
+.sk-post-l2 { width: 89%; margin-top: var(--cy-space-2); }   /* 299/335 */
+.sk-post-l3 { width: 70%; margin-top: var(--cy-space-2); }   /* 233/335 */
+.sk-post-media {
+  height: 460rpx;                       /* 230pt:同真卡的横滑图廊高 */
+  margin-top: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);   /* 32rpx = 16pt,同真卡 */
+}
+.sk-post-acts {
+  display: flex;
+  gap: 44rpx;                           /* 动作间距 22pt,同真卡 */
+  margin-top: var(--cy-space-3);
+}
+.sk-post-act { width: 88rpx; height: var(--cy-space-3-5); }
+
+.sk-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3) 0;
+  border-bottom: 1rpx solid var(--cy-border-card);
+}
+.sk-avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: var(--cy-radius-pill);
+  flex-shrink: 0;
+}
+.sk-row-main { flex: 1; }
+
+/* —— card:封面 + 标题 + 元信息 —— */
+.sk-card { margin-bottom: var(--cy-space-4); }
+.sk-cover {
+  width: 100%;
+  height: 320rpx;
+  border-radius: var(--cy-radius-md);
+  margin-bottom: var(--cy-space-3);
+}
+
+/* —— detail:Hero + 多行 —— */
+.sk-detail { padding-top: 0; }
+.sk-hero {
+  width: 100%;
+  height: var(--cy-map-h);
+  border-radius: 0;
+  margin-bottom: var(--cy-space-4);
+}
+
+/* —— ticket:票面 + 票根 —— */
+.sk-ticket-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sk-ticket {
+  position: relative;
+  width: 78%;
+  height: 720rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-elevated);
+}
+.sk-ticket-band {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--cy-space-1);
+  border-radius: var(--cy-radius-lg) 0 0 var(--cy-radius-lg);
+}
+.sk-ticket-face {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.sk-ticket-cover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 0;
+}
+.sk-ticket-copy {
+  position: absolute;
+  left: var(--cy-space-4);
+  right: var(--cy-space-4);
+  bottom: var(--cy-space-4);
+}
+.sk-ticket-title { width: 62%; height: var(--cy-space-3-5); }
+.sk-ticket-time { width: 38%; height: var(--cy-space-2-5); margin-top: var(--cy-space-2); }
+.sk-ticket-stub {
+  flex: none;
+  height: 132rpx;
+  box-sizing: border-box;
+  padding: var(--cy-space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2rpx dashed var(--cy-color-border-strong);
+  background: var(--cy-color-bg-elevated);
+}
+.sk-ticket-label { width: 28%; height: var(--cy-space-3); }
+.sk-ticket-action { width: 24%; height: var(--cy-space-3); }
+
+/* —— feed-card:封面 + 正文 + 标签 —— */
+.sk-feed-card {
+  overflow: hidden;
+  margin-bottom: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+}
+.sk-feed-cover {
+  width: 100%;
+  height: 360rpx;
+  border-radius: 0;
+}
+.sk-feed-copy { padding: var(--cy-space-4); }
+.sk-feed-meta {
+  display: flex;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-3);
+}
+.sk-chip {
+  width: 120rpx;
+  height: var(--cy-space-5);
+  border-radius: var(--cy-radius-pill);
+}
+.sk-chip--short { width: 88rpx; }
+
+/* —— map-card:地图 + 地点摘要 —— */
+.sk-map-list { padding-top: 0; }
+.sk-map-card {
+  margin-bottom: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+  background: var(--cy-color-bg-surface);
+}
+.sk-map-canvas {
+  width: 100%;
+  height: var(--cy-map-h);
+  border-radius: 0;
+}
+.sk-map-copy { padding: var(--cy-space-3) var(--cy-space-4) var(--cy-space-4); }
+
+/* —— merchant-metric:两列标签 / 主数 / 趋势 —— */
+.sk-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cy-space-3);
+}
+.sk-metric-card {
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+}
+.sk-metric-label { width: 54%; height: var(--cy-space-2-5); }
+.sk-metric-value { width: 76%; height: var(--cy-space-6); margin-top: var(--cy-space-3); }
+.sk-metric-trend { width: 46%; height: var(--cy-space-2-5); margin-top: var(--cy-space-2); }
+
+/* —— route-timeline:节点 + 连接线 + 文案 —— */
+.sk-route-row { display: flex; gap: var(--cy-space-3); min-height: 128rpx; }
+.sk-route-rail { position: relative; width: var(--cy-space-4); display: flex; justify-content: center; flex: none; }
+.sk-route-dot {
+  position: relative;
+  z-index: 1;
+  width: var(--cy-space-3);
+  height: var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+}
+.sk-route-line {
+  position: absolute;
+  top: var(--cy-space-3);
+  bottom: 0;
+  width: 4rpx;
+  border-radius: var(--cy-radius-pill);
+}
+.sk-route-row:last-child .sk-route-line { display: none; }
+.sk-route-copy { flex: 1; padding-bottom: var(--cy-space-4); }
+
+/* —— form-section:标签 + 输入框 —— */
+.sk-form-field { margin-bottom: var(--cy-space-4); }
+.sk-form-label { width: 28%; height: var(--cy-space-2-5); margin-bottom: var(--cy-space-2); }
+.sk-form-input {
+  width: 100%;
+  height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-md);
+}

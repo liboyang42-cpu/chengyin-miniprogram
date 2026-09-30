@@ -1,0 +1,35 @@
+/* cy-play-countin · 限时挑战开跑前的 3-2-1(原型真源:模板编辑页 v2 · playkit countIn) */
+.ci {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ci-scrim, var(--cy-color-play-scrim, rgba(8, 8, 10, .78)));  /* ds-ok 玩法台面的遮罩,浅色皮肤由 --ci-scrim 换浅 */
+  transition: opacity .26s ease;  /* ds-ok 逐值照原型 .cin */
+}
+
+/* 数完不是「啪」地消失,而是淡掉这 260ms —— 原型 .cin.go 同值,
+   玩法在这 260ms 之后才真正开跑(见 index.js 的 GO_MS)。 */
+.ci--go { opacity: 0; }
+.ci__n {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-play-display-3xl);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ci-ink, var(--cy-color-text-primary));
+}
+
+/* 每跳一个数字弹一下。逐值照原型 @keyframes cinpop —— 早先用 wx.createAnimation 做的,
+   只能给 scale 1.28 / 180ms / ease-out:createAnimation 的 timingFunction 收不了
+   cubic-bezier,所以永远对不上原型那条曲线。改走 CSS。
+   ⚠️ 同一个元素重放动画要换个类名才会重新起跑(wxml 里没有 offsetWidth 那个把戏),
+   所以 a / b 两个类轮着挂,规则完全一样。 */
+.ci__n--a, .ci__n--b { animation: ci-pop .5s cubic-bezier(.2, .9, .3, 1); }  /* ds-ok 逐值照原型 */
+.cy-motion-reduced .ci__n--a, .cy-motion-reduced .ci__n--b { animation: none; }
+@keyframes ci-pop {
+  from { transform: scale(1.5); opacity: 0; }  /* ds-ok 逐值照原型 */
+  60% { opacity: 1; }
+  to { transform: scale(1); opacity: 1; }
+}

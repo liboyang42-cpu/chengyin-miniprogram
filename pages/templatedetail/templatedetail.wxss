@@ -1,0 +1,896 @@
+@import '../../style/merchant-light-scope.wxss';
+
+/* ============================================================
+ * 玩法详情 · Xbox Game Pass 游戏页还原 (Mobbin Xbox iOS Apr 2025)
+ * 色板:暗底 / DS 品牌语义色主按钮与链接 / 白色主字 / 灰色次级
+ * ============================================================ */
+/* 共享页:page{} 在根节点之外求值,拿不到 .theme-merchant 的变量,商家进来会露出暗底色带。
+   照 pages/template/index 的做法,由根容器 .xb-page 铺满并吃当前主题底(见 wxss 下方)。 */
+page {
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+.theme-merchant { min-height: 100vh; background: var(--cy-color-bg-page); }
+
+.xb-page {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* 保留旧名兼容现有选择器,实际颜色跟随 DS 语义 token。
+     --xb-green 于上一轮桥接(tests/unit/templatedetail-theme.test.js 钉住 + 自带负控);
+     本轮把剩余 5 个补齐,消费方选择器一行未动 —— 本页从此不再持有全站唯一的页面级私有色板。
+     顺带把 R1 的文本对比度修正接进本页:--xb-muted 原先是一个自定的中灰,现随 --cy-color-text-secondary。 */
+  --xb-green: var(--cy-color-brand);
+  --xb-bg: var(--cy-color-bg-page);
+  --xb-card: var(--cy-color-bg-elevated);
+  --xb-text: var(--cy-color-text-primary);
+  --xb-muted: var(--cy-color-text-secondary);
+  --xb-line: var(--cy-color-border-subtle);
+}
+.xb-state { position: relative; z-index: 1; display: flex; flex-direction: column; flex: 1; }
+/* cy-empty/cy-error 是 styleIsolation:isolated 组件,宿主标签默认 display:block,
+   组件内部的 flex:1 要宿主自己也是 flex 容器才生效,从页面外部补一层。 */
+.fill-slot{ display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+
+.ep1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ep2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 全屏模糊背景 */
+.xb-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.xb-bg-img {
+  position: absolute;
+  left: -12%;
+  top: -15%;
+  width: 124%;
+  height: 130%;
+  /* saturate:糊过之后颜色会发灰,补一点饱和度,让「封面给页面上色」这件事真读得出来。
+     不许再降 opacity:底下是实色页底(#020104),任何 <1 都是在往封面里掺黑,
+     之前顶部看着「有块黑」就是这么来的(实测 .xb-bg 几何本身铺满视口,不存在遮挡物)。 */
+  filter: blur(72rpx) saturate(1.35);
+  opacity: 1;
+}
+
+.xb-bg-mask {
+  position: absolute;
+  inset: 0;
+  /* ★渐变到纯黑,不是全屏铺一层灰。
+     全屏模糊 = 每块文字都得自带深色底才读得清,于是满屏都是方块,很丑。
+     改成:顶部(封面/标题/主动作)保留模糊,到分区 tab 那条线**收干净**,
+     tab 以下是纯粹的页面底色 —— 卡片、正文从此不需要任何「压字底」。
+     ⚠️ 这里**必须**有不透明色标(下半程),和上一版「不许有不透明色标」的结论相反:
+     那一版的目标是让封面贯穿整屏,这一版的目标是让它**只占顶部**。 */
+  background: linear-gradient(180deg,
+    rgba(136, 136, 136, 0.20) 0%,   /* ds-ok: 亮度归一用的中性纱 */
+    rgba(136, 136, 136, 0.20) 26%,  /* ds-ok: 同上 */
+    rgba(2, 1, 4, 0.58) 34%,        /* ds-ok: 过渡 */
+    var(--cy-color-bg-page) 44%,
+    var(--cy-color-bg-page) 100%);
+}
+
+/* 商家浅色:上面那条渐变的中段是近黑(rgba(2,1,4,.58)),在浅底上就是一摊脏灰,
+   还把 hero 里的次级文字压到读不清。浅域走同形状的白色纱,收口点仍是页底色。 */
+.theme-merchant .xb-bg-mask {
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.74) 0%,   /* ds-ok: 浅域纱要压得比暗域重 —— 暗域是浅字压深封面,
+                                       浅域是深字压封面,封面本身可能是深色图,纱不够厚就读不清 */
+    rgba(255, 255, 255, 0.74) 26%,  /* ds-ok: 同上 */
+    rgba(255, 255, 255, 0.88) 34%,  /* ds-ok: 过渡 */
+    var(--cy-color-bg-page) 44%,
+    var(--cy-color-bg-page) 100%);
+}
+
+/* 顶栏 */
+
+/* 滚动区 */
+.xb-scroll {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  box-sizing: border-box;
+  padding-top: calc(var(--status-bar-height, 44px) + var(--nav-bar-height, 44px));
+}
+
+/* ADA:成功态 hero 全出血,顶部不再让位(wxml 上换成 .xb-scroll--bleed 且去掉行内 padding-top)。
+   loading/error 走 .xb-state,仍各自带 statusBar+navBar 的让位。 */
+.xb-scroll--bleed { padding-top: 0; }
+
+/* CTA 已按参考图搬进页面流(不再有固定底栏遮正文),这里只留常规收尾留白 + 安全区。 */
+.xb-scroll-pad {
+  height: calc(var(--cy-space-7) + env(safe-area-inset-bottom));
+}
+
+/* 头部(参考 Xbox 63 首屏态):大方封面在左 + 标题/发行方在右,**随页滚动、不吸顶**。
+   量图依据(参考图 881px 宽 = 750rpx,1px ≈ 0.851rpx):
+     · 方封面 270px → 230rpx(原来 120rpx 是参考图 64~67 那个「滚动后吸顶态」的尺寸,
+       拿它当首屏形态,是把第二态误当唯一态 —— 这正是「看着不像」的头号原因)。
+     · 标题 36px 级 → --cy-font-display;发行方次级灰 --xb-muted。
+   不吸顶:230rpx 的大头吸住会吃掉小半屏;参考图的吸顶态是另一套小尺寸,我们不做两段变形。 */
+.xb-head {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-4);
+  padding: var(--cy-space-4) 40rpx var(--cy-space-5);  /* ds-ok: 40rpx 与本页其余分节左右内距对齐,量表无半步 token */
+}
+
+.xb-head-cover {
+  width: 230rpx;
+  height: 230rpx;
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+  flex: none;
+  background: var(--xb-card);
+}
+
+.xb-head-cover image { width: 100%; height: 100%; display: block; }
+/* CU-M-104:与上一级 pages/template/index 的 .cover-error 同一口径(图标 + 短文案),
+   只是这里要塞进 230rpx 方格,图标收到 64rpx。 */
+.xb-head-cover-ph {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1);
+  background: var(--cy-bg-card-2);
+  color: var(--cy-text-secondary);
+}
+.xb-cover-ph-icon { width: 64rpx; height: 48rpx; flex: 0 0 auto; }
+.xb-cover-ph-txt { font-size: var(--cy-font-micro); line-height: var(--cy-leading-normal); }
+
+.xb-head-meta { flex: 1; min-width: 0; }
+
+.xb-head-title {
+  font-size: var(--cy-font-display);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--xb-text);
+}
+
+.xb-head-sub {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-body);
+  /* ⚠️ 这一行压在**封面图**上,不是压在页面底色上。--xb-muted(=--cy-color-text-secondary,
+     暗域 #B7B7B7)是按页面底色调的,遇到亮封面就废:2026-08-19 B57 实测像素对比度 **1.16:1**
+     (WCAG AA 正文要 4.5:1),肉眼几乎看不见 —— 封面是张蓝天照片,而 .xb-bg-mask 顶部只有
+     20% 中性纱压不住它。同一行的标题用 --xb-text(白)所以没事。
+     ⇒ hero 内的次级文字也必须用「图上安全」的色:白色降透明度,仍然次级,但不吃封面亮度。
+     浅色商家域的纱是白色、文字是深色,那一域仍走 --xb-muted。 */
+  color: rgba(255, 255, 255, 0.82); /* ds-ok: 图上次级文字,量表外 */
+}
+.theme-merchant .xb-head-sub { color: var(--xb-muted); }
+
+/* 「官方」从右上角挪进标题列(参考图右侧没有第三列,那一列会把标题挤窄) */
+.xb-head-badge {
+  display: inline-block;
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+  color: var(--cy-btn-solid-fg);
+  background: var(--cy-btn-solid-bg);
+  padding: var(--cy-legacy-4) var(--cy-legacy-10);
+  border-radius: 6rpx;
+}
+
+/* 主动作:参考图里是头部正下方的**通栏大按钮 + 右侧圆形 ···**,在页面流里,不是固定底栏。
+   ⚠️ 原来是 fixed 底栏,tests/unit/ada-p0-nav-state-contract.test.js 按那个形态写了
+   「承托必须实底 + scroll-pad 让位」两道闸;形态改了,那两道闸的前提也随之变了,已同步改测。 */
+.xb-cta {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: 0 40rpx;  /* ds-ok: 40rpx 与本页其余分节左右内距对齐,量表无半步 token */
+  margin-bottom: var(--cy-space-6);
+}
+.xb-cta-btn { flex: 1; min-width: 0; }
+
+.xb-more {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--xb-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+/* 关键信息块(Xbox ESRB 块)。⚠️ 不要卡片承托:参考图里这块是**裸在模糊封面底上**、
+   靠细分隔线成组的。之前套了 --xb-card(#18151F,偏紫的深灰)当卡底,在模糊底上就是一块
+   突兀的紫灰长方形,既盖掉封面色也和参考图不是一回事。分组交给下面 .xb-inforow 的行分隔线。 */
+.xb-infoblock {
+  margin: 0 40rpx var(--cy-space-7);  /* ds-ok: 40rpx 与本页其余分节左右内距对齐,量表无半步 token */
+}
+
+/* 键值行。分隔线挂在每一行自己头上,不挂容器:每行都是 wx:if 条件渲染,
+   线画在容器上时「一行都不满足」会剩一条下面什么都没有的悬空横线。 */
+/* 难度徽标那一列已删,缩进的锚点也就没了,行回到块的左边缘。 */
+.xb-infoblock-rows {
+  margin-top: var(--cy-space-3);
+}
+
+.xb-inforow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-2-5) 0;
+  border-top: 1rpx solid var(--xb-line);
+}
+
+.xb-inforow-k {
+  flex: none;
+  width: 150rpx;
+  font-size: var(--cy-font-label);
+  color: var(--xb-muted);
+}
+
+.xb-inforow-v {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-font-label);
+  color: var(--xb-text);
+  line-height: 1.4;
+}
+
+/* 2026-07-31:.xb-rating-meta / .xb-rating-lines / .xb-rating-line 随「四行裸下划线」一起收进
+   .xb-infoblock 了,对应选择器已无渲染方,删掉不留死 CSS。 */
+
+.xb-infoblock .xb-notice {
+  margin-top: var(--cy-space-4);
+  padding: 0;
+  font-size: var(--cy-font-label);
+  line-height: 44rpx;
+  color: var(--xb-muted);
+}
+
+.xb-notice--solo {
+  padding: 0 40rpx var(--cy-space-7);  /* ds-ok: 40rpx 介于 --cy-space-4(32)/--cy-space-5(48) 正中间,量表无半步 token,保留字面值 */
+  font-size: var(--cy-font-label);
+  line-height: 44rpx;
+  color: var(--xb-muted);
+}
+
+/* Tab */
+.xb-tabs-wrap {
+  padding: 0 40rpx;  /* ds-ok: 40rpx 介于 --cy-space-4(32)/--cy-space-5(48) 正中间,量表无半步 token,保留字面值 */
+  margin-bottom: 56rpx;  /* ds-ok: 56rpx 介于 --cy-space-5(48)/--cy-space-6(64) 正中间,量表无半步 token,保留字面值 */
+}
+
+/* 双行横滑截图（简介上方） */
+.xb-mosaic-wrap {
+  padding: var(--cy-space-2) 0 var(--cy-space-7); /* ds-ok: 80rpx无匹配token */
+}
+
+.xb-mosaic-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.xb-mosaic-inner {
+  display: inline-flex;
+  gap: var(--cy-space-2-5);
+  padding: 0 40rpx;  /* ds-ok: 40rpx 介于 --cy-space-4(32)/--cy-space-5(48) 正中间,量表无半步 token,保留字面值 */
+}
+
+/* 参考图:单行大图横滑,16:9,右侧刻意露出下一张(544×306px → 542×305rpx 取整) */
+.xb-mosaic-cell {
+  width: 542rpx;
+  height: 305rpx;
+  flex: none;
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+  background: var(--xb-card);
+}
+
+.xb-mosaic-cell image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 内容块 */
+.xb-block {
+  padding: 0 40rpx 88rpx;  /* ds-ok: 40rpx 介于 --cy-space-4(32)/--cy-space-5(48) 正中间,量表无半步 token,保留字面值 */
+}
+
+/* 2026-08-04 用户定:tab 下方的分节标题偏大。降到卡片标题档 —— 这一层是「段落名」,
+   页面里已经没有比它更高的标题需要它去对齐,36rpx 会跟头部主标题抢层级。 */
+.xb-block-tit {
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--xb-text);
+  margin-bottom: var(--cy-space-3-5);
+}
+.xb-body {
+  font-size: var(--cy-font-body);
+  line-height: 44rpx;
+  color: var(--xb-text);
+}
+
+.xb-body--soft {
+  color: var(--xb-muted);
+}
+
+.xb-body--clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+}
+
+.xb-link-more {
+  margin-top: var(--cy-space-2-5);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--xb-green);
+}
+
+.xb-block--lead {
+  padding-bottom: var(--cy-space-5);
+}
+
+.xb-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+  margin-bottom: var(--cy-space-3);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--xb-text);
+}
+
+.xb-section-title cy-icon {
+  color: var(--xb-muted);
+}
+
+.xb-section-note {
+  margin-left: auto;
+  font-size: var(--cy-font-caption);
+  font-weight: 500;
+  color: var(--xb-muted);
+}
+
+.xb-stat-grid {
+  display: flex;
+  gap: var(--cy-space-2);
+  padding: 0 40rpx var(--cy-space-6); /* ds-ok: 与 .xb-block 同一版心 */
+}
+
+.xb-stat-card {
+  flex: 1;
+  min-width: 0;
+  padding: var(--cy-space-2-5);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.xb-stat-value {
+  font-size: var(--cy-font-subtitle);
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--xb-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xb-stat-label {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  line-height: 1.35;
+  color: var(--xb-muted);
+}
+
+.xb-rule-card {
+  display: flex;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.xb-rule-mark {
+  flex: none;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-elevated);
+  color: var(--xb-text);
+  font-size: var(--cy-font-caption);
+  font-weight: 700;
+  line-height: 44rpx;
+  text-align: center;
+}
+
+.xb-rule-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.xb-kv-card {
+  padding: var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.xb-kv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-2-5) 0;
+  border-bottom: 1rpx solid var(--xb-line);
+}
+
+.xb-kv-row:last-child {
+  border-bottom: none;
+}
+
+.xb-kv-k {
+  flex: none;
+  font-size: var(--cy-font-label);
+  color: var(--xb-muted);
+}
+
+.xb-kv-v {
+  min-width: 0;
+  flex: 1;
+  text-align: right;
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--xb-text);
+}
+
+.xb-type-scroll,
+.xb-node-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.xb-type-inner,
+.xb-node-inner {
+  display: inline-flex;
+  gap: var(--cy-space-2-5);
+  min-width: 100%;
+}
+
+.xb-type-item {
+  width: 108rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-1);
+  color: var(--xb-text);
+  font-size: var(--cy-font-caption);
+}
+
+.xb-type-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: var(--cy-color-bg-surface-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--xb-muted);
+}
+
+.xb-node-card {
+  width: 232rpx;
+  flex: none;
+}
+
+.xb-node-img {
+  width: 232rpx;
+  height: 232rpx;
+  display: block;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.xb-node-foot {
+  padding-top: var(--cy-space-2);
+}
+
+.xb-node-name {
+  display: block;
+  font-size: var(--cy-font-label);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--xb-text);
+}
+
+.xb-node-desc {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  line-height: 1.4;
+  color: var(--xb-muted);
+}
+
+.xb-quote-card {
+  display: flex;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.xb-quote-img {
+  flex: none;
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-elevated);
+}
+
+.xb-quote-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.xb-quote-author {
+  display: block;
+  font-size: var(--cy-font-label);
+  font-weight: 700;
+  color: var(--xb-text);
+}
+
+.xb-quote-text {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  line-height: 1.6;
+  color: var(--xb-muted);
+}
+
+.xb-rating-card {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.xb-rating-num {
+  font-size: 52rpx; /* ds-ok: Figma 评价数字为正文块里的大号数字,非全局字阶 */
+  line-height: 1;
+  font-weight: 700;
+  color: var(--xb-text);
+}
+
+.xb-rating-copy {
+  min-width: 0;
+  flex: 1;
+  font-size: var(--cy-font-caption);
+  color: var(--xb-muted);
+}
+
+.xb-rating-stars {
+  display: flex;
+  gap: var(--cy-space-1);
+  color: var(--cy-color-status-warning);
+  margin-bottom: var(--cy-space-1);
+}
+
+/* 包含内容卡（全宽，与正文对齐） */
+.xb-edition-card {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-sm);
+  overflow: hidden;
+  background: var(--xb-card);
+}
+
+.xb-edition-img {
+  width: 100%;
+  height: 520rpx;
+  display: block;
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.xb-edition-foot {
+  padding: var(--cy-space-3-5) var(--cy-space-3-5) var(--cy-space-4) var(--cy-space-3-5); /* ds-ok: 28rpx无匹配token */
+  background: var(--xb-card);
+}
+
+.xb-edition-name {
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--xb-text);
+  line-height: 40rpx;
+}
+
+/* 创作者横滑卡 */
+.xb-hscroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.xb-hscroll-inner {
+  display: inline-flex;
+  gap: var(--cy-space-2);
+}
+
+.xb-dev-card {
+  width: 480rpx;
+  border-radius: var(--cy-radius-sm);
+  overflow: hidden;
+  background: var(--xb-card);
+}
+
+.xb-dev-img {
+  width: 100%;
+  height: 260rpx;
+  display: block;
+  background: #333; /* ds-ok: 图片加载中的媒体占位底色,装饰语义非文字对比度 */
+}
+
+.xb-dev-img--placeholder {
+  background: linear-gradient(135deg, #333 0%, #1a1a1a 100%); /* ds-ok: 无图占位渐变,同上 */
+}
+
+.xb-dev-foot {
+  padding: var(--cy-space-2-5);
+}
+
+.xb-dev-txt {
+  font-size: var(--cy-font-label);
+  color: var(--xb-muted);
+  line-height: 40rpx;
+}
+
+/* 能力列表 */
+.xb-sheet-item {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--cy-space-4);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--xb-text);
+  text-align: center;
+  border-bottom: 1rpx solid var(--xb-line);
+  border-radius: 0;
+  background: transparent;
+  line-height: var(--cy-leading-normal);
+}
+
+button.xb-sheet-item { width: 100%; margin: 0; }
+button.xb-sheet-item::after { border: 0; }
+
+.xb-sheet-cancel {
+  color: var(--xb-muted);
+  border-bottom: none;
+  margin-top: var(--cy-space-1);
+}
+
+.xb-sheet-item--press {
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-color-text-secondary);
+}
+
+/* 节点预览弹窗 */
+.pop-model::before {
+  background-image: url('/images/index-figma/nearby-card.jpg');
+  background-size: cover;
+}
+
+.pop-model .pop-top .tit {
+  color: var(--xb-text);
+}
+
+.david_tk {
+  overflow: hidden;
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.david_tk_box {
+  overflow: hidden;
+  margin-top: var(--cy-space-3-5);
+}
+
+.david_tk_sr_title {
+  margin: 0 var(--cy-legacy-10) 40rpx var(--cy-legacy-10);  /* ds-ok: 40rpx 介于 --cy-space-4(32)/--cy-space-5(48) 正中间,量表无半步 token,保留字面值 */
+}
+
+.david_tk_sr_title_name {
+  color: var(--xb-text);
+  font-size: var(--cy-font-subtitle);
+}
+
+.david_tk_sr_inp {
+  height: 100rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--xb-card);
+}
+
+.david_tk_sr_inp input {
+  font-size: var(--cy-font-body);
+  height: 100rpx;
+  margin: 0 var(--cy-space-3);
+  color: var(--xb-text);
+}
+
+.david_tk_sr_tgb {
+  overflow: hidden;
+}
+
+.david_tk_sr_tgb_li {
+  width: 40%;
+  height: 68rpx;
+  line-height: 68rpx;
+  background: var(--xb-card);
+  border: 4rpx solid var(--xb-line);
+  text-align: center;
+  font-size: var(--cy-font-body);
+  color: var(--xb-text);
+  float: left;
+  margin: var(--cy-legacy-10) 4% var(--cy-space-3-5) 4%;
+  border-radius: 34rpx;
+}
+
+.david_tk_sr_tgb_li.on {
+  border-color: var(--xb-green);
+}
+
+.david_tk_box_tpis {
+  text-align: center;
+  color: var(--xb-text);
+  font-size: var(--cy-font-body);
+  margin: 100rpx var(--cy-space-3); /* ds-ok: 100rpx无匹配token */
+  line-height: var(--cy-leading-normal);
+}
+
+/* cy-sheet 收编 popDavid:把 .pop-model 卡壳降级为透明直通(chrome 由 cy-sheet 面板提供),
+ * 保留 .pop-model 内层类让 .pop-model .pop-top* 与页级 .pop-top .tit 继续生效 */
+.pop-model {
+  position: static;
+  width: auto;
+  left: auto;
+  bottom: auto;
+  z-index: auto;
+  border-radius: 0;
+  padding: 0;
+  display: block;
+  color: var(--xb-text);
+}
+.pop-model::before {
+  display: none;
+}
+.david_tk {
+  height: auto;
+  overflow: visible;
+}
+
+/* 输入占位色:原为 WXML 内联 placeholder-style 硬编码灰(WXSS 门禁扫不到),收进类里走 token */
+.fld-ph { color: var(--cy-color-text-placeholder); }
+
+/* 2026-08-05 §4.3 tab2:能力表改成按小标题分组,/* 段距也要跟着降:.xb-block 的 88rpx 底距是给「详情」那种长段落用的,
+   能力表拆成三组后会连吃三次,整屏散架。组间只需要一档呼吸。 */
+.xb-block--cap {
+  padding-bottom: var(--cy-space-5);
+}
+
+/* §4.3 tab1 ④ 难度 · 时长 · 人数 chips */
+.xb-chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+  padding: 0 40rpx 88rpx; /* ds-ok: 与 .xb-block 同一版心/段距,见该处说明 */
+}
+
+.xb-chiprow--inblock {
+  padding: 0;
+}
+
+.xb-chip {
+  min-height: 56rpx; /* ds-ok: 与 CAP_INLINE_MAX 的单行高度同口径 */
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--cy-space-1) var(--cy-space-2-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  font-size: var(--cy-font-caption);
+  color: var(--xb-text);
+}
+
+/* §4.3 tab2 ⑧「不能直接开团」:是规则不是空数据,给说明条不给空态卡 */
+.xb-notice-card {
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface);
+}
+
+.xb-notice-tit {
+  font-size: var(--cy-font-label);
+  color: var(--xb-text);
+  line-height: 1.5;
+}
+
+.xb-notice-txt {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--xb-muted);
+  line-height: 1.6;
+}
+
+/* 能力 tab 的标签行:标签固定在左,值区 chip 自动换行。
+   收起态只露一行(一行约 3 枚,与 CAP_INLINE_MAX 同一口径),点「展开」放全。 */
+.xb-caps {
+  margin: var(--cy-space-2) 40rpx 88rpx; /* ds-ok: 与 .xb-block 同一版心 */
+  padding: var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+}
+
+.xb-caprow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3) 0;
+  border-bottom: 1rpx solid var(--xb-line);
+}
+
+.xb-caprow:last-child {
+  border-bottom: none;
+}
+
+.xb-caprow-k {
+  flex: none;
+  width: 96rpx; /* ds-ok: 两字标签列宽,量表无对应 token */
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--xb-muted);
+  line-height: 56rpx; /* ds-ok: 与 chip 行高对齐,量表外 */
+}
+
+.xb-caprow-v {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+}
+
+/* 收起态:只露一行 chip。56rpx = chip 高度,溢出的下一行藏起来 */
+.xb-caprow-v--clamp {
+  max-height: 56rpx; /* ds-ok: 单行 chip 高度,量表外 */
+  overflow: hidden;
+}
+
+.xb-caprow-more {
+  flex: none;
+  font-size: var(--cy-font-caption);
+  color: var(--xb-green);
+  line-height: 56rpx; /* ds-ok: 与 chip 行高对齐,量表外 */
+}
+
+/* 动作 chip(节点预览):带箭头、可点,与纯展示 chip 区分 */
+.xb-chip--act {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  color: var(--xb-green);
+  font-weight: 600;
+}

@@ -1,0 +1,178 @@
+<view class="theme-merchant od-root">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar overlay="{{!!e}}" scrolled="{{navScrolled}}" pill="{{!!e && !navScrolled}}" pillDark="{{!!e && !navScrolled}}" tint="{{(!e || navScrolled) ? 'dark' : 'light'}}" />
+
+  <view class="od-page" wx:if="{{e}}">
+    <text class="od-refresh-state" wx:if="{{loading}}" aria-role="status">正在更新活动详情…</text>
+    <scroll-view scroll-y class="od-scroll" enhanced show-scrollbar="{{false}}" bindscroll="onScroll">
+      <view class="od-hero">
+        <image wx:if="{{e.coverImg}}" class="od-hero-image" src="{{e.coverImg}}" mode="aspectFill" />
+        <view wx:else class="od-hero-placeholder"><cy-icon name="image" size="52" /></view>
+        <view class="od-hero-scrim"></view>
+        <view class="od-hero-meta">
+          <text class="od-category">{{e._categoryText}}</text>
+          <view class="od-organizer">
+            <image class="od-organizer-logo" src="/images/cy_logo_mark.png" mode="aspectFill" />
+            <text class="od-organizer-name">城瘾官方</text>
+            <text class="od-organizer-role">发起</text>
+          </view>
+        </view>
+      </view>
+
+      <scroll-view scroll-x class="od-facts" enhanced show-scrollbar="{{false}}">
+        <view class="od-facts-inner">
+          <view class="od-fact">
+            <text class="od-fact-label">参与</text>
+            <text class="od-fact-value">{{e.participants || 0}}</text>
+            <text class="od-fact-sub">人已报名</text>
+          </view>
+          <view class="od-fact" wx:if="{{e.signed}}">
+            <text class="od-fact-label">我的进度</text>
+            <text class="od-fact-value od-fact-value--compact">{{e._progressText}}</text>
+            <text class="od-fact-sub">{{e._isV2 ? '有效任务' : '已完成'}}</text>
+          </view>
+          <view class="od-fact">
+            <text class="od-fact-label">活动周期</text>
+            <text class="od-fact-value od-fact-value--compact">{{e._durationText}}</text>
+            <text class="od-fact-sub">总时长</text>
+          </view>
+          <view class="od-fact">
+            <text class="od-fact-label">开放时间</text>
+            <text class="od-fact-value od-fact-value--compact">{{e._dateRange}}</text>
+            <text class="od-fact-sub">北京时间</text>
+          </view>
+          <view class="od-fact">
+            <text class="od-fact-label">活动范围</text>
+            <text class="od-fact-value od-fact-value--compact">{{e._scopeText}}</text>
+            <text class="od-fact-sub">{{countdown || e._statusText}}</text>
+          </view>
+          <view class="od-fact" wx:if="{{e._taskTotal}}">
+            <text class="od-fact-label">活动任务</text>
+            <text class="od-fact-value">{{e._taskTotal}}</text>
+            <text class="od-fact-sub">项任务</text>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="od-section od-overview">
+        <text class="od-title">{{e.title}}</text>
+        <text wx:if="{{e.subtitle || e.story}}" class="od-copy">{{e.subtitle || e.story}}</text>
+        <view wx:if="{{e.city}}" class="od-location">
+          <view class="od-location-copy">
+            <text class="od-location-name">{{e.city}}</text>
+            <text class="od-location-sub">活动举办城市</text>
+          </view>
+          <view class="od-location-map">
+            <view class="od-map-line od-map-line--a"></view>
+            <view class="od-map-line od-map-line--b"></view>
+            <view class="od-map-pin"><cy-icon name="pin" size="32" /></view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{e._activityCards.length}}" class="od-section od-section--divided">
+        <text class="od-heading">活动介绍</text>
+        <scroll-view scroll-x class="od-card-scroll" enhanced show-scrollbar="{{false}}">
+          <view class="od-card-row">
+            <view wx:for="{{e._activityCards}}" wx:key="_key" class="od-activity-card {{item.complete ? 'is-complete' : ''}}"
+                  aria-role="text" aria-label="{{item.title}}，{{item.description}}">
+              <view class="od-activity-cover">
+                <image wx:if="{{e.coverImg}}" src="{{e.coverImg}}" mode="aspectFill" />
+                <view wx:else class="od-activity-cover-placeholder"><cy-icon name="flag" size="40" /></view>
+                <text wx:if="{{item.complete}}" class="od-card-state">已验证</text>
+              </view>
+              <text class="od-card-title">{{item.title}}</text>
+              <text class="od-card-sub">{{item.description}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view wx:if="{{e._showStoryDetail}}" class="od-section od-section--divided">
+        <text class="od-heading">详情信息</text>
+        <text class="od-copy">{{e.story}}</text>
+      </view>
+
+      <view wx:if="{{e._isV2}}" class="od-section od-section--divided">
+        <view class="od-section-head">
+          <text class="od-heading">我的活动任务</text>
+          <text class="od-eligible {{e.eligible ? 'is-ok' : ''}}">{{e._eligibleText}}</text>
+        </view>
+        <text wx:if="{{!e.signed}}" class="od-note">报名后发生的新到达或主题完成才会归入本场活动。</text>
+        <text wx:if="{{e.paused}}" class="od-note od-note--danger">活动暂时暂停：{{e.pausedReason || '等待运营处理后恢复'}}</text>
+        <cy-inline-error wx:if="{{boundTopicError}}" kind="data" title="绑定主题名称没读到" sub="{{boundTopicError}}" />
+        <view wx:if="{{e.missions.length}}" class="od-task-list">
+          <view wx:for="{{e.missions}}" wx:key="missionCode" class="od-task {{item.complete ? 'is-complete' : ''}}"
+                bindtap="onMissionTap" data-code="{{item.missionCode}}" hover-class="cy-pressed" hover-stay-time="80"
+                aria-role="button" aria-label="{{item._titleText}}，{{item._descText}}，{{item.complete ? '已验证' : item._supported ? (item.canVerifyArrival ? '去验证' : '自动同步') : '暂不支持'}}">
+            <view class="od-task-index">
+              <cy-icon wx:if="{{item.complete}}" name="check" size="28" />
+              <text wx:else>{{index + 1}}</text>
+            </view>
+            <view class="od-task-copy">
+              <text class="od-task-title">{{item._titleText}}</text>
+              <text wx:if="{{item._topicName}}" class="od-task-sub">绑定主题：{{item._topicName}}</text>
+              <text class="od-task-sub">{{item._descText}}</text>
+            </view>
+            <text class="od-task-action">{{item.complete ? '已验证' : item._supported ? (item.canVerifyArrival ? '去验证' : '自动同步') : '暂不支持'}}</text>
+          </view>
+        </view>
+        <text wx:else class="od-note">运营方尚未配置可验证任务。</text>
+      </view>
+
+      <view class="od-section od-section--divided">
+        <text class="od-heading">活动奖励</text>
+        <!-- F22:只展示后端 rewardJson 里真实配置的奖励;没有配置就如实说明,不摆默认承诺。 -->
+        <view wx:if="{{rewards.length}}" class="od-reward-list">
+          <view wx:for="{{rewards}}" wx:key="*this" class="od-reward-row">
+            <text class="od-reward-name">{{item}}</text>
+            <cy-icon name="gift" size="30" />
+          </view>
+        </view>
+        <text wx:else class="od-note">主办方尚未配置奖励，页面不承诺任何奖励。</text>
+      </view>
+
+      <view wx:if="{{e.collective && e.collective.enabled}}" class="od-section od-section--divided">
+        <view class="od-progress-head">
+          <view>
+            <text class="od-progress-value">{{e.collective.pct === 0 ? 0 : (e.collective.pct || '--')}}%</text>
+            <text class="od-progress-label">全城已点亮</text>
+          </view>
+          <text class="od-progress-count">{{e.collective.current}} / {{e.collective.threshold}}</text>
+        </view>
+        <view class="od-progress-track"><view class="od-progress-fill" style="width:{{e.collective.pct || 0}}%"></view></view>
+        <!-- F22:集体进度区始终保留;只有真的配置了合法集体券才承诺「达标发放」,否则如实说明不承诺。 -->
+        <text class="od-progress-tip" wx:if="{{e._hasCollectiveReward}}">开启且集体达标、本人保持有效报名并完成全部任务后发放集体奖励</text>
+        <text class="od-progress-tip" wx:else>当前未配置集体奖励，全城进度仅供了解</text>
+      </view>
+
+      <view wx:if="{{rewards.length}}" class="od-reward-tip">
+        <cy-icon name="gift" size="28" />
+        <view>
+          <text>完成活动任务后按上方配置发放</text>
+          <text>实际发放结果以活动结算为准</text>
+        </view>
+      </view>
+
+      <view class="od-bottom-space"></view>
+    </scroll-view>
+
+    <view class="od-cta-bar">
+      <button class="od-share" open-type="share" aria-label="分享活动">
+        <view class="od-share-visual"><cy-icon name="share" size="34" /></view>
+      </button>
+      <view wx:if="{{cta.type !== 'wait' && cta.type !== 'ended'}}" class="od-cta {{cta.type}}"
+            bindtap="onCta" aria-role="button" aria-label="{{cta.text}}" hover-class="cy-pressed" hover-stay-time="80">{{cta.text}}</view>
+      <view wx:else class="od-cta {{cta.type}}" aria-role="text">{{cta.text}}</view>
+    </view>
+  </view>
+
+  <cy-skeleton wx:elif="{{loading}}" type="detail" />
+  <view wx:else class="od-loading">
+    <cy-state-shell fill size="lg" kind="{{loadErrKind}}"
+                    title="{{loadErrTitle}}" sub="{{loadErrSub}}"
+                    primary="{{loadErrAction}}" bind:primary="onLoadErrorAction" auto-back custom-back bind:back="onLoadErrorBack" />
+  </view>
+</view>

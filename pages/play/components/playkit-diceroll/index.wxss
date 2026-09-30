@@ -1,0 +1,264 @@
+@import "/pages/play/style/play-surface.wxss";
+
+.d20 { padding-bottom: calc(env(safe-area-inset-bottom) + var(--cy-space-8) + var(--cy-space-8)); overflow-y: auto; }
+.d20__content { display: flex; flex-direction: column; align-items: center; gap: var(--cy-space-3); width: 100%; flex: none; margin: auto 0; text-align: center; }
+.d20__title { font-size: var(--cy-type-page-title); font-weight: 700; color: var(--ink); }
+.d20__meta { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--cy-space-3); font-size: var(--cy-type-caption); color: var(--sub); }
+.d20__stage { margin-top: var(--cy-space-7); width: 100%; height: 440rpx; flex: none; } /* ds-ok: 3D mesh needs a stable canvas viewport. */
+.d20__canvas { width: 100%; height: 100%; }
+.d20__retry { display: inline-flex; align-items: center; min-height: 88rpx; padding: 0 var(--cy-space-3); color: var(--ink); } /* ds-ok: accessible retry touch target. */
+.d20__outcome { width: 100%; min-height: calc(var(--cy-type-data-2xl) + var(--cy-space-8)); color: var(--ink); }
+.d20__outcome--pending { visibility: hidden; }
+.d20__total { font-family: var(--cy-font-numeric); font-size: var(--cy-type-data-2xl); font-weight: 700; line-height: 1; }
+.d20__result { margin-top: var(--cy-space-4); font-size: var(--cy-type-section-title); line-height: 1.6; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.d20__error { font-size: var(--cy-type-caption); color: var(--sub); }
+
+/* cy-playkit-diceroll · 掷骰子(逐值照抄原型 playkit.html 的 .dz 一族)
+ * 尺寸来自在浏览器里对着原型读回来的 computed style,不是估的。
+ * 原型 375px 画布,1px = 2rpx。⚠️ 整段是玩法道具色,ds-ok。
+ */
+.dz {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 上边距让开台面那颗「退出」(--pk-top 按真实状态栏高算);原型那 52px 是它自己那块屏
+     没有退出钮也没有微信胶囊。底下再加安全区,不然「再摇一次」压在小白条上。 */
+  padding: var(--pk-top, 120rpx) 44rpx calc(env(safe-area-inset-bottom) + 60rpx);   /* ds-ok 原型 22px/30px */
+  box-sizing: border-box;
+  text-align: center;
+  color: #2a2540;                          /* ds-ok 原型 .dz */
+  /* 参考视频里的地是暖灰,中间稍亮一点,像顶上有一盏灯 */
+  background: radial-gradient(64% 42% at 50% 58%, #f6eaea 0%, #f3f0ee 58%, #f1f1ef 100%);  /* ds-ok */
+}
+.dz--press { opacity: .96; }
+
+.dz__k {
+  flex: none;
+  font-size: var(--cy-type-caption);
+  font-weight: 800;
+  letter-spacing: 7rpx;                    /* ds-ok 原型 3.45px */
+  opacity: .5;
+}
+
+/* 一颗 / 两颗:胶囊分段。原型是 169×36,内边距 3px */
+.dz__seg {
+  flex: none;
+  display: flex;
+  gap: 8rpx;
+  margin-top: 28rpx;                       /* ds-ok 原型 14px */
+  padding: 6rpx;                           /* ds-ok 原型 3px */
+  border-radius: 999rpx;  /* ds-ok 骰子的投影与圆角,逐值照原型 */
+  background: rgba(42, 37, 64, .08);       /* ds-ok */
+}
+.dz__segb {
+  padding: 12rpx 30rpx;                    /* ds-ok 原型 6px 15px */
+  border-radius: 999rpx;  /* ds-ok 骰子的投影与圆角,逐值照原型 */
+  font-size: var(--cy-type-label);
+  font-weight: 700;
+  color: #6b6386;                          /* ds-ok */
+}
+.dz__segb--press { opacity: .7; }
+.dz__segb.is-on {
+  background: #fff;                        /* ds-ok */
+  color: #2a2540;                          /* ds-ok */
+  box-shadow: 0 2rpx 6rpx rgba(42, 37, 64, .16);  /* ds-ok 骰子的投影与圆角,逐值照原型 */
+}
+
+/* 舞台是普通的容器,不是画布。俯视,所以透视放很远、接近正投影 ——
+   透视一强,靠边的骰子会被拉成斜的,看着像侧着摆在那儿。参考视频里镜头就在正上方。 */
+.dz__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  margin-top: 12rpx;                       /* ds-ok 原型 6px */
+}
+.dz__die {
+  position: absolute;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4rpx;
+  width: 148rpx;                           /* ds-ok 原型 74px */
+  height: 148rpx;
+  padding: 18rpx;                          /* ds-ok 原型 9px */
+  box-sizing: border-box;
+  border-radius: 24rpx;                    /* ds-ok 原型 12px */
+  /* 六个面同色。按面号给「侧面」上淡紫的话,停下来朝着人的可能正好是那几个面之一,
+     于是两颗骰子一白一紫 —— 而它们本该一模一样。 */
+  background: #f8f6f3;                     /* ds-ok */
+  box-shadow: inset 0 0 0 2rpx rgba(42, 37, 64, .08),  /* ds-ok 骰子的投影与圆角,逐值照原型 */
+              0 16rpx 36rpx rgba(42, 37, 64, .14);  /* ds-ok 骰子的投影与圆角,逐值照原型 */
+}
+.dz__die--roll { animation: dz-roll .9s cubic-bezier(.3, .1, .3, 1); }
+@keyframes dz-roll {
+  0%   { transform: translateY(0)      rotate(0); }
+  30%  { transform: translateY(-46rpx) rotate(220deg); }
+  60%  { transform: translateY(0)      rotate(420deg); }
+  78%  { transform: translateY(-16rpx) rotate(520deg); }
+  100% { transform: translateY(0)      rotate(720deg); }
+}
+.dz--reduced .dz__die--roll { animation: none; }
+
+.dz__pip {
+  align-self: center;
+  justify-self: center;
+  width: 22rpx;                            /* ds-ok 原型 11px */
+  height: 22rpx;
+  border-radius: 50%;
+  background: #2a2540;                     /* ds-ok */
+}
+/* 落影:骰子扔到哪就停在哪,影子跟着它 */
+.dz__sh {
+  position: absolute;
+  width: 132rpx;                           /* ds-ok 原型 66px */
+  height: 32rpx;                           /* ds-ok 原型 16px */
+  border-radius: 50%;
+  /* ⚠️ 原型用的是 `background: rgba(...); filter: blur(6px)`,照抄过来在小程序里
+     渲染成一块**硬边方块**(filter 在真机/模拟器上时灵时不灵)。改成径向渐变自己做羽化,
+     不依赖 filter,深浅与原型同值(中心 .55 → 边缘全透)。 */
+  background: radial-gradient(50% 50% at 50% 50%,
+              rgba(42, 37, 64, .55) 0%,    /* ds-ok 逐值照原型 .dz3sh */
+              rgba(42, 37, 64, .28) 55%,   /* ds-ok 羽化中段,逐值照原型 .dz3sh */
+              rgba(42, 37, 64, 0) 100%);   /* ds-ok 羽化边缘,逐值照原型 .dz3sh */
+}
+
+.dz__out {
+  flex: none;
+  min-height: 156rpx;                      /* ds-ok 原型 78px */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8rpx;
+}
+.dz__sum {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-play-display-xl);
+  font-weight: 900;
+  line-height: 1;
+}
+.dz__sub {
+  font-size: var(--cy-type-body);
+  opacity: .66;
+  line-height: 1.6;
+  max-width: 24em;
+  margin: 0 auto;
+}
+
+.dz__hint {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding-bottom: 4rpx;
+  font-size: var(--cy-type-label);
+  letter-spacing: 1.5rpx;
+  opacity: .5;
+}
+.dz__hint-i {
+  width: 36rpx; height: 36rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 10rpx;  /* ds-ok 骰子的投影与圆角,逐值照原型 */
+  animation: dz-shake .9s ease-in-out infinite;
+}
+@keyframes dz-shake {
+  0%, 100% { transform: rotate(-12deg); }
+  50%      { transform: rotate(12deg); }
+}
+.dz--reduced .dz__hint-i { animation: none; }
+
+/* ===== 内嵌版(契约 §1.5,diceRoll 例外)=====
+   故事流里的一块,不是整屏:普通流布局 + 一个按钮。
+   ⚠️ 这里**不许**出现 .dz 那套 position:absolute 铺满 / --pk-top 让位 ——
+   内嵌块的几何来自故事流,照搬整屏假设会在滚动流里错位。 */
+.dzi {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18rpx;
+  padding: 36rpx 44rpx;
+  text-align: center;
+  color: #2a2540;                          /* ds-ok 与整屏版同一道具色 */
+  background: radial-gradient(64% 42% at 50% 42%, #f6eaea 0%, #f3f0ee 58%, #f1f1ef 100%);  /* ds-ok */
+}
+.dzi__k {
+  flex: none;
+  font-size: var(--cy-type-caption);
+  font-weight: 800;
+  letter-spacing: 7rpx;
+  opacity: .5;
+}
+.dzi__dice {
+  flex: none;
+  display: flex;
+  gap: 28rpx;
+}
+.dzi__die {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3rpx;
+  width: 104rpx;                           /* ds-ok 整屏版 74px 的道具,内嵌收一档 */
+  height: 104rpx;
+  padding: 13rpx;
+  box-sizing: border-box;
+  border-radius: 18rpx;                    /* ds-ok */
+  background: #f8f6f3;                     /* ds-ok */
+  box-shadow: inset 0 0 0 2rpx rgba(42, 37, 64, .08),  /* ds-ok */
+              0 10rpx 24rpx rgba(42, 37, 64, .14);  /* ds-ok */
+}
+/* 复用整屏版那条 dz-roll,不新造 keyframes(动效台账只减不增)——
+   同一支骰子,两套构图共一个滚动姿态。 */
+.dzi--rolling .dzi__die { animation: dz-roll .9s cubic-bezier(.3, .1, .3, 1); }
+.dzi--reduced .dzi__die { animation: none; }
+.dzi__pip {
+  align-self: center;
+  justify-self: center;
+  width: 16rpx;                            /* ds-ok */
+  height: 16rpx;
+  border-radius: 50%;
+  background: #2a2540;                     /* ds-ok */
+}
+.dzi__out {
+  flex: none;
+  min-height: 84rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6rpx;
+}
+.dzi__sum {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-data-xl);
+  font-weight: 900;
+  line-height: 1;
+}
+.dzi__sub {
+  font-size: var(--cy-type-body);
+  opacity: .66;
+  line-height: 1.55;
+  max-width: 22em;
+}
+/* 内嵌版的主按钮:道具色里的深底浅字,与整屏版的白底深字刻意不同 ——
+   同一屏里它必须一眼看出是「按这里掷」,而不是又一枚骰子。 */
+.dzi__roll {
+  flex: none;
+  min-height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 56rpx;
+  border-radius: 999rpx;  /* ds-ok 道具胶囊 */
+  background: #2a2540;                     /* ds-ok */
+  color: #F8F6F3;                          /* ds-ok */
+  font-size: var(--cy-type-body);
+  font-weight: 800;
+}
+.dzi__roll--press { opacity: .86; }

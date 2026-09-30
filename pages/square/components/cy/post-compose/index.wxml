@@ -1,0 +1,120 @@
+<!-- cy-post-compose · 新建帖文(Figma 379:2484 定内容,334:3563 定呈现)。
+     ⚠️ 这**不是**页面,是挂在广场页上的弹窗(用户 2026-09-03 定:「新建帖文是弹窗,
+     草稿就是弹窗叠弹窗」)。做成独立路由的话,新路由下前一页不会被渲染,
+     压暗底层就是假的 —— 稿 334:3563 的「压暗底层 + 8px 留白 + 圆角顶面板」也就无从谈起。 -->
+<view class="pc theme-dark">
+  <!-- ① 新建帖文这一层。不传 variant:bottom 档没有自带顶栏,稿要的
+       「取消 / 新建帖文 / 草稿」才画得出来(full 档自带返回/标题/✕,会打架)。
+       稿 334:3585 是「状态栏 + 8px 留白 + 圆角顶」,微信这边要让开的是胶囊不是状态栏,
+       所以 max-h 由 JS 按胶囊底实测算(sheetStyle,见 index.js sheetTopStyle 的理由)——
+       用 --cy-comp-sheet-max-height 那个 token 会在 env() 返回 0 的设备上压住胶囊。
+       ⚠️ 抬上限只是抬**天花板**;真正让面板定高的是 .pc-panel 的 min-height,见 wxss。 -->
+  <cy-sheet show="{{show}}" bind:close="onCancel" style="{{sheetStyle}}">
+    <view class="pc-panel {{draftsShow ? 'pc-panel--pushed' : ''}}">
+      <!-- Topbar:稿 379:2439。面板顶已在胶囊之下,所以不再需要给右侧留胶囊宽度。 -->
+      <view class="cmp-bar">
+        <view class="cmp-cancel" bindtap="onCancel" aria-role="button" aria-label="取消并关闭" hover-class="cy-pressed" hover-stay-time="80">取消</view>
+        <view class="cmp-bar-gap"></view>
+        <view class="cmp-bar-title">{{editMode ? '编辑帖文' : '新建帖文'}}</view>
+        <view class="cmp-bar-gap"></view>
+        <view class="cmp-bar-acts">
+          <!-- 草稿是「新建」的存档;编辑态的正文不回写草稿槽位,所以不给草稿入口 -->
+          <view class="cmp-act" wx:if="{{!editMode}}" bindtap="onOpenDrafts" aria-role="button" aria-label="草稿箱" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon name="draft" size="48" />
+          </view>
+        </view>
+      </view>
+      <view class="cmp-hr"></view>
+
+      <view class="cmp-editor">
+        <!-- 头像 + 串联线:线是「这条帖文之后还能接着写」的占位,现在只有一条,故不接内容 -->
+        <view class="cmp-rail">
+          <image class="cmp-avatar" src="{{avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+          <view class="cmp-thread"></view>
+        </view>
+        <view class="cmp-col">
+          <view class="cmp-name ep1">{{nickname || '城瘾玩家'}}</view>
+          <textarea class="cmp-input"
+                    value="{{content}}"
+                    bindinput="onInput"
+                    maxlength="8000"
+                    auto-height
+                    adjust-position="{{true}}"
+                    show-confirm-bar="{{false}}"
+                    aria-label="帖文内容"
+                    placeholder="有什么新鲜好玩的分享吗？"
+                    placeholder-class="cmp-ph" />
+          <view class="cmp-preview" wx:if="{{picList.length || address || selectedActivity}}">
+            <view class="cmp-preview-pics" wx:if="{{picList.length}}">
+            <view class="cmp-pic" wx:for="{{picList}}" wx:key="*this">
+              <image class="cmp-pic-img" src="{{item}}" mode="aspectFill" />
+              <view class="cmp-chip-x" catchtap="onClearPic" data-inx="{{index}}" aria-role="button" aria-label="删除这张图片" hover-class="cy-pressed" hover-stay-time="80">
+                <cy-icon name="close-sm" size="24" />
+              </view>
+            </view>
+            </view>
+          <view class="cmp-chip" wx:if="{{address}}">
+            <cy-icon name="pin" size="28" />
+            <text class="cmp-chip-txt ep1">{{address}}</text>
+            <view class="cmp-chip-x" catchtap="onClearLocation" aria-role="button" aria-label="清除已选地点" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="close-sm" size="24" />
+            </view>
+          </view>
+          <view class="cmp-chip" wx:if="{{selectedActivity}}">
+            <cy-icon name="flag" size="28" />
+            <text class="cmp-chip-txt ep1">{{selectedActivity.name}}</text>
+            <view class="cmp-chip-x" catchtap="onClearActivity" aria-role="button" aria-label="清除已选活动" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="close-sm" size="24" />
+            </view>
+          </view>
+          </view>
+          <!-- 附件工具只服务「新建」:编辑态只提交正文,图片/地点/关联由后端保留原值(R10-06)。
+               留着工具却提交不上去,就是骗用户。 -->
+          <view class="cmp-tools" wx:if="{{!editMode}}">
+            <view class="cmp-tool" bindtap="onPickImage" aria-role="button" aria-label="添加图片" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="image" size="44" />
+            </view>
+            <view class="cmp-tool" bindtap="onPickLocation" aria-role="button" aria-label="添加地点" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="pin" size="44" />
+            </view>
+            <view class="cmp-tool" bindtap="onOpenActivityPicker" aria-role="button" aria-label="选择活动" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="flag" size="44" />
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="cmp-fill"></view>
+
+      <view class="cmp-foot">
+        <image class="cmp-foot-avatar" src="{{avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+        <view class="cmp-count">{{contentLen || 0}}/8000</view>
+        <view class="cmp-bar-gap"></view>
+        <view class="cmp-send {{canSubmit && !submitting ? '' : 'cmp-send--off'}}" bindtap="onPublish"
+              aria-role="button" aria-label="{{editMode ? '保存' : '发布'}}" aria-disabled="{{!canSubmit || submitting}}"
+              hover-class="{{canSubmit && !submitting ? 'cy-pressed' : ''}}" hover-stay-time="80">{{editMode ? '保存' : '发布'}}</view>
+      </view>
+    </view>
+  </cy-sheet>
+
+  <!-- ② 草稿。必须是上面那层 sheet 的【兄弟】,不能塞进它的 slot ——
+       塞进去会被面板的 overflow 裁掉,也盖不住面板顶上那条留白。
+       DOM 在后 ⇒ 叠在上面,这就是「弹窗叠弹窗」。
+       id="drafts" 是必须的:删除确认闸长在组件里,这边删完要回调 deleteDone() 关闸。 -->
+  <cy-post-drafts id="drafts" show="{{draftsShow}}" drafts="{{drafts}}" sheet-style="{{draftsSheetStyle}}"
+                  bind:select="onPickDraft" bind:delete="onDeleteDraft" bind:close="onCloseDrafts" />
+
+  <cy-sheet show="{{activityPickerShow}}" title="选择活动" handle="{{true}}" closable bind:close="onCloseActivityPicker">
+    <view class="cmp-act-pick">
+      <cy-skeleton wx:if="{{activityLoading}}" type="list" count="3" />
+      <cy-error wx:elif="{{activityError}}" title="活动列表没有加载出来" sub="只显示你参加过或主办的活动" retry="重试" bind:retry="loadActivityOptions" />
+      <block wx:else>
+        <cy-cell wx:for="{{activityList}}" wx:key="activityId"
+                 title="{{item.name}}" description="{{item.sourceLabel}}"
+                 data-index="{{index}}" data-activity-id="{{item.activityId}}"
+                 bind:tap="onPickActivity" />
+        <cy-empty wx:if="{{!activityList.length}}" size="sm" title="还没有可关联的活动" sub="参加或主办一场之后，这里会列出来" />
+      </block>
+    </view>
+  </cy-sheet>
+</view>

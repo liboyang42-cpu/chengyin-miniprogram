@@ -1,0 +1,213 @@
+<cy-playkit-timewindow wx:if="{{kit.type === 'timewindow'}}"
+  show="{{show}}" eyebrow="{{kit.eyebrow}}" glyph="{{kit.glyph}}" title="{{kit.title}}"
+  open-from="{{kit.openFrom}}" open-to="{{kit.openTo}}"
+  remain-seconds="{{kit.remainSeconds}}" subscribed="{{kit.subscribed}}"
+  bind:subscribe="onSubscribe" bind:open="onOpen" bind:close="onClose" />
+
+<cy-playkit-blindtaste wx:elif="{{kit.type === 'blindtaste'}}"
+  show="{{show}}" eyebrow="{{kit.eyebrow}}" title="{{kit.title}}" steps="{{kit.steps}}"
+  options="{{kit.options}}" hint="{{kit.hint}}" xp-label="{{kit.xpLabel}}"
+  selected-key="{{kit.selectedKey}}" locked="{{kit.locked}}"
+  bind:answer="onAnswer" bind:close="onClose" />
+
+<cy-playkit-silentorder wx:elif="{{kit.type === 'silentorder'}}"
+  show="{{show}}" eyebrow="{{kit.eyebrow}}" title="{{kit.title}}" rule="{{kit.rule}}"
+  qr-url="{{kit.qrUrl}}" elapsed-seconds="{{kit.elapsedSeconds}}"
+  bind:giveup="onGiveUp" bind:close="onClose" />
+
+<cy-playkit-diyname wx:elif="{{kit.type === 'diyname'}}"
+  show="{{show}}" eyebrow="{{kit.eyebrow}}" title="{{kit.title}}" photo-url="{{kit.photoUrl}}"
+  value="{{kit.value}}" suggestions="{{kit.suggestions}}" cta-label="{{kit.ctaLabel}}"
+  submitting="{{kit.submitting}}"
+  bind:namechange="onNameChange" bind:submit="onSubmit"
+  bind:close="onClose" bind:requestclose="onRequestClose" />
+
+<cy-playkit-musiccorner wx:elif="{{kit.type === 'musiccorner'}}"
+  show="{{show}}" eyebrow="{{kit.eyebrow}}" arrived="{{kit.arrived}}" title="{{kit.title}}"
+  track-name="{{kit.trackName}}" duration="{{kit.duration}}" position="{{kit.position}}"
+  playing="{{kit.playing}}" hint="{{kit.hint}}"
+  bind:toggle="onToggle" bind:close="onClose" />
+
+<cy-playkit-steps wx:elif="{{kit.type === 'steps'}}"
+  show="{{show}}" eyebrow="{{kit.eyebrow}}" steps="{{kit.steps}}" goal="{{kit.goal}}"
+  co2-label="{{kit.co2Label}}" remain-label="{{kit.remainLabel}}" refreshing="{{kit.refreshing}}"
+  bind:refresh="onRefresh" bind:close="onClose" />
+
+<cy-playkit-dailysign wx:elif="{{kit.type === 'dailysign'}}"
+  show="{{show}}" date-label="{{kit.dateLabel}}" address="{{kit.address}}"
+  lines="{{kit.lines}}" signer="{{kit.signer}}" left-at="{{kit.leftAt}}"
+  serial-label="{{kit.serialLabel}}" text-max="{{kit.textMax}}"
+  revealed="{{kit.revealed}}" photo-url="{{kit.photoUrl}}"
+  claimed="{{kit.claimed}}" my-text="{{kit.myText}}" my-photo-url="{{kit.myPhotoUrl}}"
+  bind:accept="onAccept" bind:close="onClose" />
+
+<cy-playkit-slowtask wx:elif="{{kit.type === 'slowtask'}}"
+  show="{{show}}" eyebrow="{{kit.eyebrow}}" title="{{kit.title}}"
+  start-hint="{{kit.startHint}}" start-label="{{kit.startLabel}}"
+  wait-hint="{{kit.waitHint}}" wait-cta="{{kit.waitCta}}"
+  unlock-label="{{kit.unlockLabel}}" unlock-text="{{kit.unlockText}}"
+  started="{{kit.started}}" claimed="{{kit.claimed}}" days-left="{{kit.daysLeft}}"
+  bind:start="onSlowStart" bind:claim="onSlowClaim" bind:close="onClose" />
+
+<cy-playkit-coinflip wx:elif="{{kit.type === 'coinflip'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" face="{{kit.face}}"
+  heads-label="{{kit.headsLabel}}" heads-action="{{kit.headsAction}}"
+  tails-label="{{kit.tailsLabel}}" tails-action="{{kit.tailsAction}}"
+  bind:flip="onFlip" bind:settled="onSettled" bind:close="onClose" />
+
+<cy-playkit-diceroll wx:elif="{{kit.type === 'diceroll'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" faces="{{kit.faces}}" values="{{kit.values}}"
+  dice-count="{{kit.diceCount}}" inline="{{inline}}"
+  mode="{{kit.mode}}" dc="{{kit.dc}}" modifier="{{kit.modifier}}" roll-mode="{{kit.rollMode}}"
+  result="{{kit.result}}" preview="{{kit.preview}}"
+  bind:roll="onRoll" bind:count="onCount" bind:settled="onSettled" bind:close="onClose" />
+
+<cy-playkit-reaction wx:elif="{{kit.type === 'reaction'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" rounds="{{kit.rounds}}" goal-ms="{{kit.goalMs}}"
+  bind:start="onStart" bind:submit="onSubmit" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-ballshake wx:elif="{{kit.type === 'ballshake'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" goal="{{kit.goal}}"
+  timed="{{kit.timed}}" seconds="{{kit.seconds}}"
+  bind:start="onStart" bind:submit="onSubmit" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-quiethold wx:elif="{{kit.type === 'quiethold'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" sub="{{kit.sub}}" seconds="{{kit.seconds}}"
+  bind:start="onStart" bind:submit="onSubmit" bind:verdict="onVerdict" bind:micdenied="onMicDenied" bind:close="onClose" />
+
+<cy-playkit-compass wx:elif="{{kit.type === 'compass'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" target="{{kit.bearing}}" tolerance="{{kit.tolerance}}"
+  hold-seconds="{{kit.holdSeconds}}" hint="{{kit.hint}}" done="{{kit.done}}"
+  bind:submit="onSubmit" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-shout wx:elif="{{kit.type === 'shout'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" seconds="{{kit.seconds}}"
+  bind:start="onStart" bind:submit="onSubmit" bind:verdict="onVerdict" bind:micdenied="onMicDenied" bind:close="onClose" />
+
+<cy-playkit-countdown wx:elif="{{kit.type === 'countdown'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" seconds="{{kit.seconds}}" done-text="{{kit.doneText}}"
+  bind:start="onStart" bind:finish="onFinish" bind:close="onClose" />
+
+<cy-playkit-stopwatch wx:elif="{{kit.type === 'stopwatch'}}"
+  show="{{show}}" kicker="{{kit.kicker}}" target-seconds="{{kit.targetSeconds}}"
+  tolerance-ms="{{kit.toleranceMs}}" tries="{{kit.tries}}"
+  bind:start="onStart" bind:submit="onSubmit" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-qa wx:elif="{{kit.type === 'qa'}}"
+  show="{{show}}" mode="{{kit.mode}}" theme="{{kit.theme}}" title="{{kit.title}}"
+  image-url="{{kit.imageUrl}}" audio-url="{{kit.audioUrl}}" lead="{{kit.lead}}"
+  options="{{kit.options}}" shot-lead="{{kit.shotLead}}" shot-note="{{kit.shotNote}}"
+  limit-seconds="{{kit.limitSeconds}}" max-tries="{{kit.maxTries}}" reveal="{{kit.reveal}}"
+  answer-id="{{kit.answerId}}"
+  multi="{{kit.multi}}" attempts="{{kit.attempts}}" feedback-text="{{kit.feedback}}"
+  bind:submit="onSubmit" bind:shoot="onShoot" bind:audio="onAudio"
+  bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-branch wx:elif="{{kit.type === 'branch'}}"
+  show="{{show}}" title="{{kit.title}}" body="{{kit.body}}" options="{{kit.options}}"
+  ended="{{kit.ended}}" limit-seconds="{{kit.limitSeconds}}"
+  bind:choose="onChoose" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-estimate wx:elif="{{kit.type === 'estimate'}}"
+  show="{{show}}" title="{{kit.title}}" unit="{{kit.unit}}"
+  min="{{kit.min}}" max="{{kit.max}}"
+  limit-seconds="{{kit.limitSeconds}}" max-tries="{{kit.maxTries}}"
+  bind:submit="onSubmit" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-pricepair wx:elif="{{kit.type === 'pricepair'}}"
+  show="{{show}}" title="{{kit.title}}" items="{{kit.items}}"
+  limit-seconds="{{kit.limitSeconds}}" max-tries="{{kit.maxTries}}"
+  bind:submit="onSubmit" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-hidden wx:elif="{{kit.type === 'hidden'}}"
+  show="{{show}}" title="{{kit.title}}" image-url="{{kit.imageUrl}}"
+  targets="{{kit.targets}}" total="{{kit.total}}"
+  limit-seconds="{{kit.limitSeconds}}" max-tries="{{kit.maxTries}}"
+  bind:submit="onSubmit" bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-predict wx:elif="{{kit.type === 'predict'}}"
+  show="{{show}}" question="{{kit.question}}" hint="{{kit.hint}}" options="{{kit.options}}"
+  close-at-hour="{{kit.closeAtHour}}" reveal-days="{{kit.revealDays}}" reveal-hour="{{kit.revealHour}}"
+  settle-status="{{kit.settleStatus}}" settled-option="{{kit.settledOption}}"
+  won="{{kit.won}}" my-option-key="{{kit.myOptionKey}}"
+  bind:submit="onSubmit" bind:close="onClose" />
+
+<cy-playkit-random wx:elif="{{kit.type === 'random'}}"
+  show="{{show}}" deck-name="{{kit.deckName}}" cards="{{kit.cards}}"
+  drawn="{{kit.drawn}}" draw-count="{{kit.drawCount}}"
+  bind:draw="onDraw" bind:drawn="onDrawn" bind:close="onClose" />
+
+<cy-playkit-bingo wx:elif="{{kit.type === 'bingo'}}"
+  show="{{show}}" title="{{kit.title}}" labels="{{kit.labels}}" cell-specs="{{kit.cellSpecs}}"
+  filled-positions="{{kit.filledPositions}}" line-reward="{{kit.lineReward}}"
+  full-reward="{{kit.fullReward}}" limit-seconds="{{kit.limitSeconds}}"
+  bind:verdict="onVerdict" bind:close="onClose" />
+
+<cy-playkit-scan wx:elif="{{kit.type === 'scan'}}"
+  show="{{show}}" title="{{kit.title}}" kind="{{kit.kind}}" reply="{{kit.reply}}"
+  audio-url="{{kit.audioUrl}}" image-url="{{kit.imageUrl}}"
+  overlay-url="{{kit.overlayUrl}}" overlay-scale="{{kit.overlayScale}}"
+  ar-mode="{{kit.arMode}}" marker-url="{{kit.markerUrl}}" model-url="{{kit.modelUrl}}"
+  bind:scanned="onScanned" bind:audio="onAudio" bind:close="onClose" />
+
+<cy-playkit-walk wx:elif="{{kit.type === 'walk'}}"
+  show="{{show}}" goal="{{kit.goal}}" steps="{{kit.steps}}" syncing="{{kit.syncing}}"
+  goal-locked="{{kit.goalLocked}}"
+  bind:goalchange="onGoalChange" bind:sync="onSync" bind:claim="onClaim" bind:close="onClose" />
+
+<!-- ===== 《预制人生》四个新段(契约 §2;§2.3 的 check 已作废)===== -->
+<cy-playkit-profile wx:elif="{{kit.type === 'profile'}}"
+  show="{{show}}" title="{{kit.title}}" lead="{{kit.lead}}" avatar="{{kit.avatar}}"
+  questions="{{kit.questions}}" answers="{{kit.answers}}" avatar-url="{{kit.avatarUrl}}"
+  done="{{kit.done}}"
+  bind:submit="onSubmit" bind:avatar="onAvatar" bind:close="onClose" />
+
+<!-- 拍物成卡(mode=CARD)走自己那一屏:取景 → 点阵消散 → 信息卡(样稿 artifact 9U7HFWDfbinjmt2tppvVGp)。
+     必须排在普通拍照前面,否则 wx:elif 链先落到旧屏。故事流里内嵌(inline)时仍走旧屏:
+     那一层有 transform,固定定位的整屏面板会被圈进段落里。 -->
+<cy-playkit-objectcard id="objectCard" wx:elif="{{kit.type === 'photocheck' && kit.mode === 'CARD' && !inline}}"
+  show="{{show}}" title="{{kit.title}}" tries="{{kit.tries}}" passed="{{kit.passed}}"
+  flagged="{{kit.flagged}}" degraded="{{kit.degraded}}" fallback="{{kit.fallback}}"
+  last-reason="{{kit.lastReason}}" card="{{kit.card}}" place="{{kit.place}}"
+  photo-fail-seq="{{kit.photoFailSeq}}" preview="{{kit.preview}}"
+  bind:shoot="onShoot" bind:close="onClose" />
+
+<cy-playkit-photocheck wx:elif="{{kit.type === 'photocheck'}}"
+  show="{{show}}" title="{{kit.title}}" shot-note="{{kit.shotNote}}"
+  max-tries="{{kit.maxTries}}"
+  fallback="{{kit.fallback}}" tries="{{kit.tries}}" passed="{{kit.passed}}"
+  flagged="{{kit.flagged}}" degraded="{{kit.degraded}}" last-reason="{{kit.lastReason}}"
+  last-url="{{kit.lastUrl}}" card="{{kit.card}}"
+  frame-url="{{kit.frameUrl}}" frame-opacity="{{kit.frameOpacity}}" inline="{{inline}}"
+  bind:shoot="onShoot" bind:close="onClose" />
+
+<cy-playkit-note wx:elif="{{kit.type === 'note'}}"
+  show="{{show}}" title="{{kit.title}}" prompt="{{kit.prompt}}" max-length="{{kit.maxLength}}"
+  presets="{{kit.presets}}" previous="{{kit.previous}}" mine="{{kit.mine}}" done="{{kit.done}}"
+  bind:submit="onSubmit" bind:close="onClose" />
+
+<cy-playkit-typein wx:elif="{{kit.type === 'typein'}}"
+  show="{{show}}" title="{{kit.title}}" target="{{kit.target}}" seconds="{{kit.seconds}}"
+  case-sensitive="{{kit.caseSensitive}}" tries="{{kit.tries}}" attempts="{{kit.attempts}}"
+  passed="{{kit.passed}}"
+  bind:start="onStart" bind:submit="onSubmit" bind:close="onClose" />
+
+<!-- R3 排序 / 连线 / 分类。⚠️ 每个属性都必须真有人喂(kit.X 由 pickPlayKit 产出):
+     漏一个不会报错,那一行字只是恒空 —— 由「kit 属性没人喂」门禁与属性契约钉住。 -->
+<cy-playkit-sort wx:elif="{{kit.type === 'sort'}}"
+  show="{{show}}" prompt="{{kit.prompt}}" items="{{kit.items}}"
+  attempts="{{kit.attempts}}" passed="{{kit.passed}}" finished="{{kit.finished}}"
+  last-correct="{{kit.lastCorrect}}"
+  bind:submit="onSubmit" bind:close="onClose" />
+
+<cy-playkit-match wx:elif="{{kit.type === 'match'}}"
+  show="{{show}}" prompt="{{kit.prompt}}" left="{{kit.left}}" right="{{kit.right}}"
+  attempts="{{kit.attempts}}" passed="{{kit.passed}}" last-correct="{{kit.lastCorrect}}"
+  bind:submit="onSubmit" bind:close="onClose" />
+
+<cy-playkit-classify wx:elif="{{kit.type === 'classify'}}"
+  show="{{show}}" prompt="{{kit.prompt}}" bins="{{kit.bins}}" items="{{kit.items}}"
+  attempts="{{kit.attempts}}" passed="{{kit.passed}}" last-correct="{{kit.lastCorrect}}"
+  bind:submit="onSubmit" bind:close="onClose" />
+
+<cy-playkit-album wx:if="{{kit.type === 'album'}}" show="{{show}}" title="{{kit.title}}" images="{{kit.images}}" bind:close="onClose" />

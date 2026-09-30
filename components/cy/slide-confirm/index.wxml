@@ -1,0 +1,20 @@
+<view class="sc sc--{{state}} {{disabled ? 'is-disabled' : ''}} {{reducedMotion ? 'sc--reduced' : ''}}"
+      bindtap="onTap" bindtouchstart="onStart" bindtouchmove="onMove" bindtouchend="onEnd" bindtouchcancel="onCancel"
+      aria-role="button" aria-label="{{state === 'done' ? doneLabel : label}}，滑动确认" hover-class="cy-pressed" hover-stay-time="80">
+  <text class="sc__label">{{state === 'done' ? doneLabel : (state === 'release' ? releaseLabel : label)}}</text>
+  <view class="sc__knob" style="transform:translateX({{x}}px)">
+    <cy-icon name="{{state === 'done' ? 'check' : 'slide-arrow'}}" size="61" />
+  </view>
+  <!-- 星星/桃心/火花爆点(Figma 3965:17359 Explode 态的 shape 矢量,原色内联):
+       只在确认瞬间放一次;减少动态时整组不渲染 -->
+  <block wx:if="{{state === 'done' && !reduced}}">
+    <view class="scp scp--heart" style="--tx:96rpx;--ty:-110rpx;animation-delay:.02s"></view>
+    <view class="scp scp--heart scp--sm" style="--tx:150rpx;--ty:-40rpx;animation-delay:.10s"></view>
+    <view class="scp scp--star" style="--tx:-120rpx;--ty:-96rpx;animation-delay:0s"></view>
+    <view class="scp scp--star scp--sm" style="--tx:-170rpx;--ty:20rpx;animation-delay:.12s"></view>
+    <view class="scp scp--star scp--sm" style="--tx:60rpx;--ty:-150rpx;animation-delay:.06s"></view>
+    <view class="scp scp--spark" style="--tx:-60rpx;--ty:-140rpx;animation-delay:.04s"></view>
+    <view class="scp scp--spark" style="--tx:130rpx;--ty:-130rpx;animation-delay:.08s"></view>
+    <view class="scp scp--spark" style="--tx:-150rpx;--ty:-30rpx;animation-delay:.14s"></view>
+  </block>
+</view>

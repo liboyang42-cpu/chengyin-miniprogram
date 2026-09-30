@@ -1,0 +1,68 @@
+<!-- 节点 NPC 半屏(CR-927)。壳复用 cy-sheet,字段/动作行样式对齐 chapter-node-form。 -->
+<cy-sheet show="{{show}}" title="节点NPC" closable="{{!saving}}" maskClosable="{{!saving}}" bind:close="onSheetClose">
+  <view class="nnf-subtitle">{{nodeName || '当前点位'}} · 玩家会在这个点位遇到他</view>
+
+  <view class="nnf-loading" wx:if="{{loading}}">正在读取…</view>
+  <block wx:else>
+    <view class="nnf-field">
+      <view class="nnf-label">角色名字 <text class="nnf-required">必填</text></view>
+      <input class="nnf-input" maxlength="32" value="{{form.name}}" disabled="{{saving}}"
+        placeholder="玩家在点位里遇到的角色名" placeholder-class="nnf-placeholder"
+        data-key="name" bindinput="onInput" />
+    </view>
+
+    <view class="nnf-field">
+      <view class="nnf-label">形象 <text class="nnf-required">必填</text></view>
+      <view class="nnf-avatars">
+        <view class="nnf-avatar {{presetId === item && source === 'preset' ? 'is-on' : ''}}"
+          wx:for="{{presetIds}}" wx:key="*this" data-id="{{item}}" bindtap="pickPreset"
+          hover-class="cy-pressed" hover-stay-time="80"
+          aria-role="button" aria-label="选择形象 {{item}}">
+          <cy-npc-avatar src="{{'px1:' + item}}" />
+        </view>
+      </view>
+      <view class="nnf-photo-row">
+        <cy-btn variant="ghost" size="sm" class="cy-btn-inline" disabled="{{saving || processing}}"
+          bindtap="choosePhoto">{{processing ? '处理中…' : (source === 'photo' ? '换一张照片' : '用照片生成')}}</cy-btn>
+        <view class="nnf-photo-preview" wx:if="{{source === 'photo'}}">
+          <cy-npc-avatar src="{{avatarPreview}}" />
+        </view>
+      </view>
+    </view>
+
+    <view class="nnf-field">
+      <view class="nnf-label">台词 <text class="nnf-optional">选填</text></view>
+      <textarea class="nnf-textarea" maxlength="255" value="{{form.greeting}}" disabled="{{saving}}"
+        placeholder="玩家见到他时说的第一句话" placeholder-class="nnf-placeholder"
+        data-key="greeting" bindinput="onInput" />
+    </view>
+
+    <view class="nnf-field">
+      <view class="nnf-label">声音 <text class="nnf-optional">选填</text></view>
+      <view class="nnf-voice-status">{{voiceStatusText}}</view>
+      <view class="nnf-voice-file" wx:if="{{voiceFileText}}">{{voiceFileText}}</view>
+      <view class="nnf-actions nnf-actions--start">
+        <cy-btn variant="ghost" size="sm" disabled="{{saving || voiceBusy || voiceStatus === 1}}"
+          bindtap="chooseVoice">选择录音</cy-btn>
+        <cy-btn variant="primary" size="sm" disabled="{{!voiceFile || saving || voiceBusy || voiceStatus === 1}}"
+          bindtap="uploadVoice">生成声音</cy-btn>
+      </view>
+      <view class="nnf-actions nnf-actions--start" wx:if="{{voiceSample || voiceStatus === 3}}">
+        <cy-btn variant="ghost" size="sm" wx:if="{{voiceSample}}" bindtap="playVoice">{{voicePlaying ? '停止' : '试听'}}</cy-btn>
+        <cy-btn variant="ghost" size="sm" bindtap="resetVoice">清除重录</cy-btn>
+      </view>
+    </view>
+
+    <view class="nnf-actions">
+      <cy-btn variant="ghost" size="sm" disabled="{{saving}}" bindtap="onSheetClose">取消</cy-btn>
+      <cy-btn variant="primary" size="sm" loading="{{saving}}" disabled="{{!form.name}}" bindtap="save">保存</cy-btn>
+    </view>
+  </block>
+
+  <!-- 端上像素化的离屏画布:不进布局,但必须真实渲染出来才拿得到节点 -->
+  <canvas type="2d" id="nnf-work" class="nnf-work" />
+</cy-sheet>
+
+<!-- 结果面板放在 sheet 之后:同档 z-index 下后画的在上,与既有页面(coop/invite)同一做法 -->
+<cy-result-sheet show="{{result.show}}" kind="{{result.kind}}" title="{{result.title}}" why="{{result.why}}"
+  duration="{{result.duration}}" bind:close="onResultClose" />

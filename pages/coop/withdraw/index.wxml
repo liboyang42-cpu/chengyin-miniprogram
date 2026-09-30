@@ -1,0 +1,16 @@
+<!-- 商家侧提现页:同 coop/finance,挂 theme-merchant 走日间白底。 -->
+<view class="page theme-merchant" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="" />
+  <cy-nav-bar title="" />
+  <cy-page-title title="提现方式已调整" subtitle="改为联系平台客服线下处理" safe-top="{{false}}" flush="{{true}}" />
+  <!-- 这不是错误态,而是「提现方式已调整」的中性告知；使用 polite status 语义，
+       唯一动作仍在页脚的「联系平台客服提现」。 -->
+  <cy-empty class="fill-slot" kind="empty" size="lg" fill icon="/images/no_data.svg"
+    title="联系平台客服提现" sub="添加客服微信，核对金额后线下处理。" />
+  <view class="foot">
+    <view class="submit" bindtap="goBankWithdraw" aria-role="button" aria-label="联系平台客服提现" hover-class="cy-pressed" hover-stay-time="80">联系平台客服提现</view>
+  </view>
+</view>

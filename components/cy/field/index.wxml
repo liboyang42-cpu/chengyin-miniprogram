@@ -1,0 +1,25 @@
+<view class="fd fd--{{variant}} {{_focused ? 'is-focused' : ''}} {{_filled ? 'is-filled' : ''}} {{error ? 'is-error' : ''}} {{success ? 'is-success' : ''}} {{disabled ? 'is-disabled' : ''}} {{readonly ? 'is-readonly' : ''}}">
+  <view class="fd__label">
+    <text class="fd__label-t">{{label}}</text>
+    <text wx:if="{{required}}" class="fd__req">*</text>
+    <text wx:if="{{showCount}}" class="fd__count {{value.length > maxlength ? 'fd__count--over' : ''}}">{{value.length}}/{{maxlength}}</text>
+  </view>
+
+  <view class="fd__control">
+    <textarea wx:if="{{variant === 'textarea'}}" class="fd__ta" value="{{value}}" placeholder="{{placeholder}}" placeholder-class="fd__ph" maxlength="{{showCount ? -1 : maxlength}}" disabled="{{disabled || readonly}}" bindinput="onInput" bindfocus="onFocus" bindblur="onBlur" />
+    <view wx:elif="{{variant === 'select'}}" class="fd__select" bindtap="onSelectTap" hover-class="fd__select--press" hover-stay-time="80">
+      <text class="{{displayValue ? 'fd__val' : 'fd__ph'}}">{{displayValue || placeholder}}</text>
+      <cy-icon name="arrow-right" size="32" class="fd__arrow {{active ? 'fd__arrow--up' : ''}}" />
+    </view>
+    <input wx:else class="fd__input" value="{{value}}" placeholder="{{placeholder}}" placeholder-class="fd__ph" maxlength="{{showCount ? -1 : maxlength}}" disabled="{{disabled || readonly}}" bindinput="onInput" bindfocus="onFocus" bindblur="onBlur" />
+
+    <cy-icon wx:if="{{variant !== 'select' && success}}" name="check" size="40" class="fd__tail fd__tail--ok" />
+    <cy-icon wx:elif="{{variant !== 'select' && readonly}}" name="lock" size="36" class="fd__tail" />
+    <view wx:elif="{{variant === 'text' && clearable && value}}" class="fd__tail fd__clear" catchtap="onClear" aria-role="button" aria-label="清空" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="32" /></view>
+  </view>
+
+  <view class="fd__help">
+    <block wx:if="{{error && errorText}}"><cy-icon name="warning" size="28" class="fd__err-i" /><text class="fd__err">{{errorText}}</text></block>
+    <text wx:elif="{{helperText}}" class="fd__helper">{{helperText}}</text>
+  </view>
+</view>

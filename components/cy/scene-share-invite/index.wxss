@@ -1,0 +1,126 @@
+:host { display: block; height: 100%; }
+
+.siv {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 32rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--cy-color-text-primary);
+  /* 同 scene-roam-history:面板底由 .ss__panel 出,这里再刷一层半透会叠成近实色。 */
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", sans-serif;
+}
+
+.siv--player {
+  --siv-bg: var(--cy-comp-sheet-player-bg);
+  --siv-text: var(--cy-color-text-primary);
+  --siv-muted: var(--cy-comp-sheet-player-muted);
+  --siv-border: var(--cy-comp-sheet-invite-border-player);
+  --siv-missing-bg: var(--cy-comp-sheet-invite-missing-bg-player);
+  background: var(--siv-bg);
+  color: var(--siv-text);
+}
+
+.siv--merchant {
+  --siv-bg: var(--cy-comp-sheet-merchant-bg);
+  --siv-text: var(--cy-comp-sheet-merchant-title);
+  --siv-muted: var(--cy-color-text-tertiary);
+  --siv-border: var(--cy-comp-sheet-invite-border-merchant);
+  --siv-missing-bg: var(--cy-comp-sheet-invite-missing-bg-merchant);
+  background: var(--siv-bg);
+  color: var(--siv-text);
+}
+
+.siv__qr-frame {
+  position: relative;
+  width: 520rpx;
+  height: 520rpx;
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--cy-comp-sheet-invite-qr-radius);
+  background: var(--cy-comp-sheet-invite-qr-bg);
+}
+
+.siv__qr-status { width: 100%; }
+
+.siv__qr {
+  position: absolute;
+  inset: 0;
+  width: 520rpx;
+  height: 520rpx;
+  display: block;
+  opacity: 0;
+  transition: opacity var(--cy-motion-standard) var(--cy-ease);
+}
+
+.siv__qr--ready { opacity: 1; }
+
+.siv__qr-state {
+  width: 520rpx;
+  height: 520rpx;
+  flex: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  padding: 40rpx;
+  border-radius: var(--cy-comp-sheet-invite-missing-radius);
+  background: var(--siv-missing-bg);
+  text-align: center;
+}
+
+.siv__copy {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32rpx;
+  text-align: center;
+}
+
+.siv__title {
+  max-width: 640rpx;
+  font-size: var(--cy-comp-sheet-invite-title-size);
+  line-height: 56rpx;
+  font-weight: 700;
+  letter-spacing: -.3rpx;
+}
+
+.siv__description {
+  max-width: 620rpx;
+  margin-top: 16rpx;
+  color: var(--siv-muted);
+  font-size: var(--cy-comp-sheet-invite-description-size);
+  line-height: 40rpx;
+}
+
+.siv__share {
+  width: 640rpx;
+  height: 116rpx;
+  flex: none;
+  box-sizing: border-box;
+  margin-top: auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid var(--siv-border);
+  border-radius: var(--cy-comp-sheet-invite-button-radius);
+  background: transparent;
+  color: var(--siv-text);
+  font-size: var(--cy-comp-sheet-sound-status-size);
+  line-height: 44rpx;
+  font-weight: 700;
+}
+
+.siv__share::after { border: 0; }
+.siv__share.button-hover { opacity: .68; }

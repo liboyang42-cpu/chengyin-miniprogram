@@ -1,0 +1,36 @@
+/* 俱乐部申请页与 scene-club-edit 共用的表单样式单一真源。 */
+.body { flex: 1; padding: 8rpx var(--cy-page-x) 0; box-sizing: border-box; }
+.body-pad { height: 180rpx; }
+.sec-label { font-size: var(--cy-font-label); color: var(--cy-text-secondary); padding: 0 8rpx var(--cy-legacy-14); }
+.sec-label.mt { padding-top: var(--cy-space-3-5); }
+.foot { font-size: var(--cy-font-label); color: var(--cy-text-secondary); padding: var(--cy-legacy-14) 8rpx 0; line-height: var(--cy-leading-normal); }
+
+.card {
+  background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); padding: 8rpx 32rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.07), 0 1rpx 4rpx rgba(0,0,0,0.06);
+}
+
+/* 表单行 */
+.frow { display: flex; align-items: center; min-height: 104rpx; border-bottom: 1rpx solid var(--cy-border-card); }
+.frow.last { border-bottom: none; }
+.fl { font-size: var(--cy-font-subtitle); color: var(--cy-text-title); font-weight: 500; flex-shrink: 0; }
+.req { color: var(--cy-danger); margin-left: var(--cy-legacy-4); }
+.fi { flex: 1; text-align: right; font-size: var(--cy-font-body); color: var(--cy-text-title); margin-left: var(--cy-space-2-5); }
+.ph { color: var(--cy-text-secondary); }
+
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: var(--cy-legacy-18); padding: var(--cy-space-3-5) var(--cy-space-3-5); }
+.chip {
+  padding: 16rpx var(--cy-space-4); border-radius: var(--cy-radius-lg);
+  background: rgba(120,120,128,0.12); color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+}
+.chip.on { background: var(--cy-accent); color: var(--cy-text-inverse); }
+
+/* ===== 底部按钮 ===== */
+.bottom {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 16rpx var(--cy-page-x) calc(24rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent 0%, var(--cy-bg-page) 30%);
+}

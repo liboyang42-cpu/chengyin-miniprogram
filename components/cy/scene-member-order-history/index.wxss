@@ -1,0 +1,89 @@
+/* 骨架屏→内容淡切:isolated 组件收不到全局 components.wxss,@import 同一份定义 */
+@import '../../../style/fade-in.wxss';
+/* H09 订单卡样式沿用 subpackageMember/order/order.wxss 的 D04 范式(§11.1 认定它已达标),
+   只去掉页面级 chrome:.order-page 整页 flex 容器、.order-tabs-wrap 吸顶、
+   .order-state/.order-error*(错误态已换成共享 cy-error)。
+   面板底色由 scene-sheet 的 .ss__panel 出,这里不重刷。 */
+:host { display: block; height: 100%; }
+.moh { width: 100%; min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+/* chip 的左右边距由 scene-sheet 正文的 --cy-comp-sheet-body-pad-x(16px)提供,
+   这里**不能**再补 --cy-page-x(也是 16px)—— 那就是双份缩进。 */
+.order-tabs-wrap { flex: none; padding: 0 0 var(--cy-space-3); }
+.moh-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: calc(var(--cy-space-4) + env(safe-area-inset-bottom)); }
+/* 卡片原来靠 --cy-page-x 撑页面左右边距;弹窗正文已有自己的内距,这里左右归零免双份缩进,
+   卡间距 --cy-space-5 与页面版保持一致。 */
+/* 根容器 flex column + 确定高度,是 cy-empty 的 fill(flex:1)真正吃满"标题下方到屏幕底部"
+   剩余空间的前提(2026-07-31 总控根因修复:居中=剩余空间居中,不是整屏/贴顶)。 */
+/* top 由 wxml 内联给(= 状态栏 + 导航条,让开 fixed 的 cy-nav-bar);
+   z-index 必须低于 --cy-z-nav,否则吸住时盖在顶栏上。 */
+
+/* flex:1 吃满 order-page 里除 nav/title/tabs 外的剩余高度,自身也是 flex column
+   (min-height:0 允许在 flex 布局里正确收缩),让 cy-empty 的 fill 在其中居中生效。 */
+/* padding-top = tab 与下方第一张卡的间距 */
+/* R1-C04:.order-loading / .order-skel-* 已由 <cy-skeleton> 取代,定义随之移除 */
+/* 玩家弹窗卡片统一消费 scene-roam-history 的共享变量。 */
+.orderbox_li{overflow: hidden; border-radius: var(--cy-scene-card-radius, var(--cy-radius-lg)); background: var(--cy-scene-card-bg, var(--cy-bg-card)); padding: var(--cy-scene-card-pad-y, var(--cy-space-3)) var(--cy-scene-card-pad-x, var(--cy-space-3)); margin: 0 0 var(--cy-scene-card-gap, var(--cy-space-5)); box-shadow: var(--cy-scene-card-shadow, var(--cy-shadow-card)); border: 2rpx solid var(--cy-scene-card-border, var(--cy-border-card));}
+.orderbox_li_top{ margin: 0 0 var(--cy-space-3) 0; overflow: hidden;height: var(--cy-space-7); line-height: 80rpx; font-size: var(--cy-font-label); border-bottom: 2rpx solid var(--cy-border-card); padding-top: var(--cy-legacy-10);}
+.orderbox_li_top_left{float: left; color: var(--cy-text-secondary); font-weight: 500;}
+.orderbox_li_top_left .moh-no{ margin-left:16rpx;}
+.orderbox_li_top_right{ float: right; font-size: var(--cy-font-label);}
+.orderbox_li_top_right .moh-state{display: block; height: 48rpx; line-height: 48rpx; border-radius: var(--cy-radius-md); padding: 0 16rpx; font-weight: bold; margin-top: 16rpx;}
+/* gap = 缩略图与右侧文字块的横向间距 */
+.orderbox_li_con{overflow: hidden; margin: 0 0 var(--cy-space-4) 0; display: flex; justify-content: space-between; gap: var(--cy-space-3);}
+.orderbox_li_con_tu{ width: 256rpx; height: 180rpx; flex-shrink: 0; overflow: hidden; border-radius: var(--cy-radius-sm);}
+.orderbox_li_con_tu .moh-cover{ width: 100%; height: 100%; vertical-align: top;}
+/* 行间距不再用统一 gap:用户要求「标题→日期」和「日期→地点」两档不同,
+   改由各行自己的 margin-top 承担(首行 order-mode-line 不带,天然贴顶)。 */
+.orderbox_li_con_info{overflow: hidden; flex: 1; display: flex; flex-direction: column; justify-content: center;}
+.order-mode-line{display:flex; align-items:center; gap:var(--cy-legacy-10); min-width:0;}
+.order-mode-tag{flex:none; height:34rpx; line-height:34rpx; padding:0 var(--cy-space-1-5); border-radius: var(--cy-radius-pill); background:var(--cy-bg-subtle); color:var(--cy-info); font-size:var(--cy-font-caption); font-weight:800;}
+.order-mode-tag.green{background:var(--cy-bg-subtle); color:var(--cy-success);}
+.order-mode-copy{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--cy-text-secondary); font-size:var(--cy-font-caption);}
+/* 标题 → 日期 = space-2 */
+.orderbox_li_con_info_time{ font-size: var(--cy-font-label); color: var(--cy-text-body); margin-top: var(--cy-space-2);}
+.orderbox_li_con_info_time .moh-ico{ width: 24rpx; height: 24rpx; vertical-align: top;margin: var(--cy-legacy-4) var(--cy-legacy-6) 0 0;}
+.orderbox_li_con_info_name{ font-size: var(--cy-font-title); color: var(--cy-text-title); font-weight: bold; margin-top: var(--cy-space-1-5);}
+/* 日期 → 地点 = space-1-5 */
+.orderbox_li_con_info_txt{font-size: var(--cy-font-label); color: var(--cy-text-body); margin-top: var(--cy-space-1-5);}
+.orderbox_li_con_info_txt .moh-ico{ width: 24rpx; height: 24rpx; vertical-align: top; margin: var(--cy-legacy-4) var(--cy-legacy-6) 0 0;}
+/* 原 float 布局下"实付款"文字与 88rpx 高的按钮各自居中基准不同,按钮视觉上偏高;
+   改 flex + align-items:center 让两侧共用同一条居中基线。 */
+.orderbox_li_bot{ margin: 0; overflow: hidden; border-top: 2rpx solid var(--cy-border-card); padding: var(--cy-space-3) 0; display: flex; align-items: center; justify-content: space-between;}
+.orderbox_li_bot_left{ color: var(--cy-text-body); font-size: var(--cy-font-label); display: flex; align-items: baseline; }
+.orderbox_li_bot_left .moh-amount{color: var(--cy-price); font-weight: bold;font-size: var(--cy-font-body); margin-right: var(--cy-legacy-4);}
+.orderbox_li_bot_left .moh-amount{color: var(--cy-price); font-weight: bold;font-size: var(--cy-font-display);}
+.orderbox_li_bot_right{ font-size: var(--cy-font-body); display: flex; align-items: center;}
+/* R1-C04:命中区 56/60rpx → 88rpx(全局规范 §3.8 / WCAG 2.2 SC 2.5.8)。
+   第3批用户反馈「按钮有点高」——但那说的是**观感**,命中区不能跟着降破 44pt 底线。
+   ⇒ 沿用仓库既有范式(pages/searchmap/index.wxss 的 .smap-back:大命中盒套小视觉):
+   外壳 .orderbut1/.orderbut2 仍是 88rpx 接触面积,可见药丸交给内层 .orderbut__visual 的 56rpx。
+   ⚠️ .orderbut2 外壳保留 --cy-btn-solid-* 两条声明(r1-c04 契约据此判主 CTA 语义,不能挪走),
+   用 background-clip:content-box + 上下 16rpx 内距把自身着色收窄到与内层药丸完全重合,
+   所以不会画出 88rpx 的大色块;两层同色同圆角,视觉上就是一颗 56rpx 药丸。 */
+.orderbut1{ width: 148rpx; height:88rpx; display:flex; align-items:center; justify-content:center; margin-left: 16rpx;}
+/* R1-C04:原为 --cy-danger 实底 —— 「立即支付 / 查看票夹」既非破坏性动作,红实底也不是危险语义
+   的正确表达(Revolut Business 210:破坏性的 Reject 用的正是中性反色药丸)。改反色中性主 CTA。 */
+.orderbut2{width: 160rpx; height:88rpx; display:flex; align-items:center; justify-content:center; margin-left: 16rpx; padding: 16rpx 0; box-sizing: border-box; color: var(--cy-btn-solid-fg); border-radius: var(--cy-radius-lg); background: var(--cy-btn-solid-bg); background-clip: content-box;}
+/* 可见药丸:高度 56rpx = 用户要的"矮一档",外壳的 88rpx 只做接触面积不参与外观 */
+.orderbut__visual{ width: 100%; height: 56rpx; line-height: 56rpx; text-align: center; border-radius: var(--cy-radius-lg); font-weight: 500; box-sizing: border-box;}
+.orderbut1 .orderbut__visual{ color: var(--cy-text-body); border: 2rpx solid var(--cy-border-line);}
+.orderbut2 .orderbut__visual{ color: var(--cy-btn-solid-fg); background: var(--cy-btn-solid-bg);}
+/* .orderbut-play 原本就是为「把红底改回深色」而存在,但写的是硬编码前景/背景;
+   现与 .orderbut2 同源,只保留类名以免动 WXML 条件分支。 */
+.orderbut-play{background:var(--cy-btn-solid-bg); color:var(--cy-btn-solid-fg); box-shadow:none;}
+.orderbut-play .orderbut__visual{background:var(--cy-btn-solid-bg); color:var(--cy-btn-solid-fg);}
+.moh-state.order-state-pending_payment{color: var(--cy-danger); background: var(--cy-bg-page);}
+.moh-state.order-state-not_started{color: var(--cy-info); background: var(--cy-bg-page);}
+.moh-state.order-state-in_progress{color: var(--cy-success); background: var(--cy-bg-page);}
+.moh-state.order-state-completed{color: var(--cy-text-body); background: var(--cy-bg-page);}
+.moh-state.order-state-refunding{color: var(--cy-gold); background: var(--cy-bg-page);}
+.moh-state.order-state-refunded{color: var(--cy-success); background: var(--cy-bg-page);}
+.moh-state.order-state-non_refundable{color: var(--cy-text-secondary); background: var(--cy-bg-page);}
+
+/* 订单卡整张可点,原来点下去没有任何即时反馈 */
+.orderbox_li--press { opacity: 0.82; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

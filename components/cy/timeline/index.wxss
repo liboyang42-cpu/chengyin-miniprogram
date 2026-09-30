@@ -1,0 +1,111 @@
+:host { display: block; }
+
+/* isolated 组件里全局 .cy-pressed 进不来,本地补一份(只减淡,不位移) */
+.cy-pressed { opacity: .88; }
+
+.cyt { color: var(--cy-color-text-primary); }
+
+.cyt__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  min-height: var(--cy-space-6);
+}
+.cyt__summary {
+  flex: 1;
+  min-width: 0;
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-body);
+  line-height: var(--cy-leading-tight);
+}
+.cyt__chevron {
+  flex: none;
+  color: var(--cy-color-text-tertiary);
+  transform: rotate(90deg);
+  transition: transform var(--cy-motion-fast) var(--cy-ease);
+}
+.cyt__chevron--up { transform: rotate(-90deg); }
+
+.cyt__body { margin-top: var(--cy-space-2); }
+
+.cyt__node { display: flex; gap: var(--cy-space-3); }
+.cyt__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: none;
+  width: var(--cy-space-3);
+}
+.cyt__dot {
+  flex: none;
+  width: 20rpx;
+  height: 20rpx;
+  margin-top: 10rpx;
+  border-radius: var(--cy-radius-pill);
+}
+.cyt__line {
+  flex: 1;
+  width: 10rpx;
+  min-height: var(--cy-space-3);
+  margin-top: var(--cy-space-1);
+  border-radius: var(--cy-radius-pill);
+}
+.cyt__copy { flex: 1; min-width: 0; padding-bottom: var(--cy-space-4); }
+.cyt__node:last-child .cyt__copy { padding-bottom: 0; }
+
+.cyt__title {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  line-height: var(--cy-leading-tight);
+}
+.cyt__avatar { flex: none; align-self: flex-start; margin-top: var(--cy-space-1); }
+.cyt__meta,
+.cyt__note {
+  margin-top: var(--cy-space-1);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  line-height: var(--cy-leading-normal);
+}
+.cyt__action { display: block; margin-top: var(--cy-space-2); }
+
+/* 状态色只出现在圆点和连线上 —— 文字与底色一律中性。 */
+.cyt__dot--done     { background: var(--cy-color-status-success); }
+.cyt__dot--doing    { background: var(--cy-color-status-info); }
+.cyt__dot--rejected { background: var(--cy-color-status-danger); }
+.cyt__dot--todo     { background: var(--cy-color-text-tertiary); }
+.cyt__line--done     { background: var(--cy-color-status-success); }
+.cyt__line--doing    { background: var(--cy-color-status-info); }
+.cyt__line--rejected { background: var(--cy-color-status-danger); }
+/* 未走到的那段线:与灰圆点同一个中性色再压淡 —— 直接借 border-strong 会翻车,
+   .theme-topic-editor 里它是 #1A2233 的重描边色,在浅底页面上比圆点还黑。 */
+.cyt__line--todo     { background: var(--cy-color-text-tertiary); opacity: .38; }
+
+/* 还没走到的那几站整块压暗(参考图 291),不然「未开始」和「已完成」只差一个小圆点。 */
+.cyt__node--todo .cyt__title { color: var(--cy-color-text-secondary); }
+
+/* 横向步骤条(参考图 290/293):圆点串在一条横线上,标题与时间戳挂在下面。 */
+.cyt--horizontal .cyt__body { display: flex; align-items: flex-start; }
+.cyt--horizontal .cyt__node {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--cy-space-2);
+}
+.cyt--horizontal .cyt__rail {
+  flex-direction: row;
+  align-items: center;
+  width: auto;
+  align-self: stretch;
+}
+.cyt--horizontal .cyt__dot { margin-top: 0; }
+.cyt--horizontal .cyt__line {
+  width: auto;
+  height: 10rpx;
+  min-height: 0;
+  margin: 0 0 0 var(--cy-space-1);
+}
+.cyt--horizontal .cyt__copy { padding: 0 var(--cy-space-3) 0 0; }
+.cyt--horizontal .cyt__title { font-size: var(--cy-type-label); }
+.cyt--horizontal .cyt__meta { font-size: var(--cy-type-micro); }

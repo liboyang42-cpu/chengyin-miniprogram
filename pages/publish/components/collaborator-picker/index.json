@@ -1,0 +1,13 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-search": "/components/cy/search/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index"
+  }
+}

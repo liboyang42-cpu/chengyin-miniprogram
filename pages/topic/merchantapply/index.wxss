@@ -1,0 +1,350 @@
+@import '../../../style/merchant-light.wxss';
+
+page { background: var(--cy-bg-page); }
+
+.ma-page { min-height: 100vh; }
+
+.ma-load {
+  min-height: 720rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ⚠️ 横向内边距已经由 cy-sheet 的 .sh__panel(full 变体)统一给了 var(--cy-page-x),
+ * 这里的卡片/文案只加纵向 margin,不再重复横向,否则会撞上"双倍缩进"那类坑。 */
+.ma-sub {
+  padding: var(--cy-space-1) 0 var(--cy-space-3);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+
+.ma-card {
+  margin: 0 0 var(--cy-space-3);
+  padding: var(--cy-space-3-5);
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-lg);
+  box-sizing: border-box;
+}
+
+.ma-row {
+  margin-bottom: var(--cy-space-3);
+  transition: transform var(--cy-motion-press) var(--cy-ease-out);
+}
+.ma-row:last-child { margin-bottom: 0; }
+.ma-row--pressed { transform: scale(.99); }
+
+.ma-row-tit {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-body);
+  margin-bottom: var(--cy-space-1-5);
+}
+
+.ma-req { color: var(--cy-danger); margin-left: 4rpx; }
+
+.ma-hint {
+  display: block;
+  margin: -8rpx 0 var(--cy-space-1-5); /* ds-ok: 负值上提贴紧标题,calc(-1*var())意义不大 */
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+.ma-purpose { margin-top: var(--cy-space-1-5); }
+
+.ma-row-cont {
+  height: var(--cy-space-8);
+  line-height: 96rpx;
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-sm);
+  padding: 0 var(--cy-space-2-5);
+  box-sizing: border-box;
+}
+/* 稿 133:310:**已填=白底,未填=灰底**。原来一律灰底 —— 填没填看不出来,
+   一屏六项要逐个读值才知道还差哪个。白底在灰页面上自己会跳出来。 */
+.ma-row-cont.is-filled,
+.ma-cont2.is-filled { background: var(--cy-color-bg-surface); }
+.ma-row-cont.is-focused { box-shadow: inset 0 0 0 2rpx var(--cy-color-text-primary); }
+.ma-range-cont { display: flex; align-items: center; justify-content: space-between; line-height: normal; color: var(--cy-text-title); }
+.ma-row-cont.is-error,
+.ma-cont2.is-error {
+  background: var(--cy-color-status-danger-soft);
+  box-shadow: inset 0 0 0 2rpx var(--cy-color-status-danger);
+}
+
+.ma-inp {
+  height: 100%;
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-title);
+}
+
+.ma-ph { color: var(--cy-text-placeholder); }
+
+.ma-cont2 {
+  padding: var(--cy-space-2-5);
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-sm);
+  box-sizing: border-box;
+  min-height: 160rpx;
+}
+.ma-cont2.is-focused { box-shadow: inset 0 0 0 2rpx var(--cy-color-text-primary); }
+.ma-cont2 textarea {
+  width: 100%;
+  min-height: 120rpx;
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+}
+.ma-count {
+  text-align: right;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-placeholder);
+}
+
+.ma-inline-error { display: block; margin-top: var(--cy-space-1); }
+
+/* 九宫格图片上传(同构 styles/photo-grid.wxss,页面独立命名避免样式隔离下拿不到全局 @import) */
+.ma-pgrid-head { margin-bottom: var(--cy-space-1-5); }
+.ma-pgrid { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); }
+.ma-pgrid-cell {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: var(--cy-radius-sm);
+  overflow: hidden;
+  background: var(--cy-color-bg-surface-subtle);
+}
+.ma-pgrid-img { width: 100%; height: 100%; }
+.ma-pgrid-del {
+  position: absolute; top: 4rpx; right: 4rpx;
+  width: var(--cy-btn-h); height: var(--cy-btn-h);
+}
+.ma-pgrid-del__glyph {
+  position: absolute; top: 0; right: 0;
+  width: 40rpx; height: 40rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--cy-color-overlay); color: var(--cy-color-text-inverse);
+}
+.ma-pgrid-add {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: transform var(--cy-motion-press) var(--cy-ease-out), background var(--cy-motion-fast) var(--cy-ease-out);
+}
+.ma-pgrid-add--pressed { transform: scale(.97); background: var(--cy-bg-subtle); }
+.ma-pgrid-plus { display: flex; color: var(--cy-text-secondary); }
+.ma-pgrid-txt { margin-top: 6rpx; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+
+/* 成功态 */
+.ma-success {
+  padding: var(--cy-space-8) 0 var(--cy-space-4);
+  text-align: center;
+  animation: merchant-success-in var(--cy-motion-slow) var(--cy-ease-out) both;
+}
+/* 稿 365:957 的成功标是**锯齿绿章**(组件「成功对勾 / Success check」里的 48×48 badge),
+   不是一个圆 + 勾。它是双色图形(章身 #22B573 + 白勾),cy-icon 那套是
+   mask + currentColor 的单色体系,套不进去 —— 所以直接用矢量原路径做 background-image。
+   路径逐字取自 Figma 节点 I365:964;356:4755 与 ...:4759(白勾按 check-clip 的
+   相对位移 12.5/15.5 平移过),没有手描。 */
+.ma-succ-icon {
+  width: 96rpx; height: 96rpx;
+  margin: 0 auto var(--cy-space-4);
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2048%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M48%2023.9998C48%2024.6198%2047.81%2025.2598%2047.54%2025.8498C47.27%2026.4398%2046.8%2027.0098%2046.4%2027.5498C46%2028.0898%2045.49%2028.5698%2045.15%2029.0798C44.8%2029.5898%2044.49%2030.0598%2044.31%2030.5998C44.14%2031.1398%2044.11%2031.7098%2044.09%2032.3198C44.07%2032.9398%2044.2%2033.6298%2044.21%2034.2998C44.22%2034.9698%2044.27%2035.6998%2044.13%2036.3398C44%2036.9698%2043.78%2037.6098%2043.42%2038.1098C43.05%2038.6098%2042.52%2039.0098%2041.96%2039.3398C41.39%2039.6598%2040.68%2039.8398%2040.04%2040.0398C39.4%2040.2398%2038.7%2040.3298%2038.12%2040.5398C37.54%2040.7398%2037.02%2040.9498%2036.56%2041.2798C36.09%2041.6098%2035.74%2042.0498%2035.36%2042.5398C34.99%2043.0298%2034.68%2043.6598%2034.3%2044.2098C33.91%2044.7498%2033.52%2045.3798%2033.04%2045.8198C32.56%2046.2498%2032%2046.6298%2031.42%2046.8298C30.83%2047.0198%2030.16%2047.0298%2029.51%2046.9598C28.87%2046.8898%2028.18%2046.6098%2027.55%2046.3998C26.91%2046.1898%2026.3%2045.8498%2025.71%2045.6798C25.11%2045.5098%2024.57%2045.3598%2024%2045.3598C23.43%2045.3598%2022.89%2045.5098%2022.29%2045.6798C21.7%2045.8498%2021.09%2046.1898%2020.45%2046.3998C19.82%2046.6098%2019.13%2046.8898%2018.49%2046.9598C17.84%2047.0298%2017.17%2047.0198%2016.58%2046.8298C16%2046.6298%2015.44%2046.2498%2014.96%2045.8198C14.48%2045.3798%2014.09%2044.7498%2013.7%2044.2098C13.32%2043.6598%2013.01%2043.0298%2012.64%2042.5398C12.26%2042.0498%2011.91%2041.6098%2011.44%2041.2798C10.98%2040.9498%2010.46%2040.7398%209.88%2040.5398C9.3%2040.3298%208.6%2040.2398%207.96%2040.0398C7.32%2039.8398%206.61%2039.6598%206.04%2039.3398C5.48%2039.0098%204.95%2038.6098%204.58%2038.1098C4.22%2037.6098%204%2036.9698%203.87%2036.3398C3.73%2035.6998%203.78%2034.9698%203.79%2034.2998C3.8%2033.6298%203.93%2032.9398%203.91%2032.3198C3.89%2031.7098%203.86%2031.1398%203.69%2030.5998C3.51%2030.0598%203.2%2029.5898%202.85%2029.0798C2.51%2028.5698%202%2028.0898%201.6%2027.5498C1.2%2027.0098%200.73%2026.4398%200.46%2025.8498C0.19%2025.2598%200%2024.6198%200%2023.9998C0%2023.3798%200.19%2022.7398%200.46%2022.1498C0.73%2021.5598%201.2%2020.9898%201.6%2020.4498C2%2019.9098%202.51%2019.4298%202.85%2018.9198C3.2%2018.4098%203.51%2017.9398%203.69%2017.3998C3.86%2016.8598%203.89%2016.2898%203.91%2015.6798C3.93%2015.0598%203.8%2014.3698%203.79%2013.6998C3.78%2013.0298%203.73%2012.2998%203.87%2011.6598C4%2011.0298%204.22%2010.3898%204.58%209.88983C4.95%209.38983%205.48%208.98983%206.04%208.65983C6.61%208.33983%207.32%208.15983%207.96%207.95983C8.6%207.75983%209.3%207.66983%209.88%207.45983C10.46%207.25983%2010.98%207.04983%2011.44%206.71983C11.91%206.38983%2012.26%205.94983%2012.64%205.45983C13.01%204.96983%2013.32%204.33983%2013.7%203.78983C14.09%203.24983%2014.48%202.61983%2014.96%202.17983C15.44%201.74983%2016%201.36983%2016.58%201.16983C17.17%200.979832%2017.84%200.969832%2018.49%201.03983C19.13%201.10983%2019.82%201.38983%2020.45%201.59983C21.09%201.80983%2021.7%202.14983%2022.29%202.31983C22.89%202.48983%2023.43%202.63983%2024%202.63983C24.57%202.63983%2025.11%202.48983%2025.71%202.31983C26.3%202.14983%2026.91%201.80983%2027.55%201.59983C28.18%201.38983%2028.87%201.10983%2029.51%201.03983C30.16%200.969832%2030.83%200.979832%2031.42%201.16983C32%201.36983%2032.56%201.74983%2033.04%202.17983C33.52%202.61983%2033.91%203.24983%2034.3%203.78983C34.68%204.33983%2034.99%204.96983%2035.36%205.45983C35.74%205.94983%2036.09%206.38983%2036.56%206.71983C37.02%207.04983%2037.54%207.25983%2038.12%207.45983C38.7%207.66983%2039.4%207.75983%2040.04%207.95983C40.68%208.15983%2041.39%208.33983%2041.96%208.65983C42.52%208.98983%2043.05%209.38983%2043.42%209.88983C43.78%2010.3898%2044%2011.0298%2044.13%2011.6598C44.27%2012.2998%2044.22%2013.0298%2044.21%2013.6998C44.2%2014.3698%2044.07%2015.0598%2044.09%2015.6798C44.11%2016.2898%2044.14%2016.8598%2044.31%2017.3998C44.49%2017.9398%2044.8%2018.4098%2045.15%2018.9198C45.49%2019.4298%2046%2019.9098%2046.4%2020.4498C46.8%2020.9898%2047.27%2021.5598%2047.54%2022.1498C47.81%2022.7398%2048%2023.3798%2048%2023.9998Z%22%20fill%3D%22%2322B573%22%2F%3E%3Cpath%20d%3D%22M15%2024.5L21%2030.5L33.5%2018%22%20stroke%3D%22white%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E"); /* ds-ok:稿 365:957 的双色图形原件,色值属图形本身 */
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.ma-succ-title {
+  /* 稿 365:957 的标题是 22px。section-title(18px)撑不起这一屏唯一的主角,
+     而 sheet-title 正是 22px —— 这一屏本来就在 cy-sheet 里。 */
+  font-size: var(--cy-font-sheet-title);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.ma-succ-desc {
+  margin-top: var(--cy-space-3);
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-secondary);
+  /* 稿 365:957 这句是**居中**的一行短句。左对齐是给下面那条多行长文用的。 */
+  text-align: center;
+}
+/* 改报名成功那一版文案有三行,居中会排成一个梯形 —— 只有它退回左对齐。 */
+.ma-succ-desc--long { text-align: left; }
+
+/* 底部固定操作区(sh__footer 已处理安全区,这里只排内容) */
+.ma-footer { width: 100%; }
+.ma-footer--form { display: flex; align-items: center; }
+
+/* 时间选择器(嵌在独立 cy-sheet 里) */
+.time-picker-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cy-space-3-5);
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-lg);
+}
+.time-section {
+  flex: 1; text-align: center;
+  padding: var(--cy-space-2);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+.time-label { font-size: var(--cy-font-body); color: var(--cy-text-body); margin-bottom: var(--cy-space-2-5); }
+.time-selector { height: 600rpx; }
+.time-picker-view { height: 100%; }
+.picker-item { display: flex; align-items: center; justify-content: center; height: var(--cy-space-7); font-size: var(--cy-font-subtitle); }
+.time-separator { margin: 0 var(--cy-space-4); font-size: var(--cy-font-subtitle); color: var(--cy-text-title); font-weight: bold; }
+
+/* cy-sheet 收编 timePicker:同 merchantapply1 的降级 chrome 处理 */
+.pop-model {
+  position: static; left: auto; bottom: auto; width: auto; z-index: auto;
+  border-radius: 0; padding: 0; display: block;
+}
+.pop-model::before { display: none; }
+.pop-model.time-picker { color: var(--cy-text-body); }
+.time-picker-confirm { display: block; margin-top: var(--cy-space-3); }
+
+@keyframes merchant-success-in {
+  0% { opacity: 0; transform: translateY(16rpx) scale(.985); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.cy-motion-reduced .ma-row,
+.cy-motion-reduced .ma-pgrid-add { transition: none !important; }
+.cy-motion-reduced .ma-success { animation: none !important; }
+
+/* ===== 你的门店 + 分组头(2026-09-05,对稿 133:310)===== */
+.ma-shop { display: flex; flex-direction: column; }
+/* 稿 133:310:左封面 100×72,右边三行 */
+.ma-shop-row { display: flex; align-items: center; gap: var(--cy-space-3); }
+.ma-shop-cover {
+  flex: none;
+  width: 200rpx;
+  height: 144rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+}
+.ma-shop-lines { flex: 1; min-width: 0; }
+.ma-shop-time {
+  /* ⚠️ 这三行原来是 .ma-shop(column flex)的直接子元素,各自占一行;包进
+     .ma-shop-lines(普通 block)之后 text 就是 inline —— 营业时间和店名会连成一行
+     (实拍抓到)。这里显式 block。 */
+  display: block;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.ma-shop-name {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.ma-shop-addr {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-body);
+}
+/* 「你的门店 / 主办方按这些信息判断要不要选你这一站」——说明这张卡为什么在这里 */
+.ma-shop-note {
+  margin-top: var(--cy-space-3);
+  padding-top: var(--cy-space-3);
+  border-top: 1rpx solid var(--cy-border-card);
+}
+.ma-shop-note-t {
+  display: block;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+}
+.ma-shop-note-s {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.ma-group-head { margin: var(--cy-space-5) 0 var(--cy-space-2); }
+.ma-group-t {
+  display: block;
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.ma-group-s {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* 稿 365:957 提交成功:一行短句 + 摘要卡 + 一句提醒 + 单个按钮 */
+.ma-succ-card {
+  /* ⚠️ 不要再加左右外边距:.sh__panel 已经给了 var(--cy-page-x),
+     再加一层这张卡就比底部按钮多缩进一格(实拍抓到:卡和按钮左边缘对不齐)。 */
+  margin: var(--cy-space-5) 0 0;
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);   /* 稿 365:957 = 16px */
+  /* ⚠️ 不能用 --cy-bg-card:在这个 full sheet 的作用域里它就等于面板底色,卡会隐形
+     (实拍确认)。同页 .ma-card 用的就是 surface,跟它走。 */
+  background: var(--cy-color-bg-surface);
+  text-align: left;
+}
+
+.ma-succ-card-t {
+  display: block;
+  font-size: var(--cy-font-subtitle);   /* 稿 365:957 = 16px */
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+.ma-succ-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-1) var(--cy-space-4);
+  margin-top: var(--cy-space-1-5);      /* 稿 365:957 = 6px */
+  font-size: var(--cy-font-label);      /* 稿 365:957 = 12px */
+  color: var(--cy-text-tertiary);
+}
+
+.ma-succ-note {
+  display: block;
+  margin: var(--cy-space-4) 0 0;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-tertiary);
+}
+
+/* 稿 133:310(2026-09-06 改):「选填」标记 + 字段填法说明 */
+.ma-opt {
+  margin-left: var(--cy-space-1);
+  font-size: var(--cy-font-micro);
+  color: var(--cy-text-tertiary);
+}
+.ma-row-hint {
+  display: block;
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-micro);
+  color: var(--cy-text-tertiary);
+}
+
+/* 稿 133:310 / 436:890:承接标的卡。卡内距 10/12,圆角 14;
+   名称 16 Bold、时段与地址 11 —— 没拉节点详情时只出名字那两行,不留空位。 */
+.ma-target {
+  margin: 0 var(--cy-page-x) var(--cy-space-3);
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  border-radius: 28rpx;   /* ds-ok: 稿 436:890 标注 radius 14px */
+  background: var(--cy-bg-card);
+}
+.ma-target-k {
+  display: block;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.ma-target-n {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.ma-target-s {
+  display: block;
+  margin-top: 4rpx;   /* ds-ok: 稿文列 gap 3px */
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}

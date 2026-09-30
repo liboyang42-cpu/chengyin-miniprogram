@@ -1,0 +1,143 @@
+/* 裁剪页 · 纯黑取景台(参考 Threads:框固定、图动、框外全黑) */
+
+.crop {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--cy-comp-crop-stage-bg);
+}
+
+/* 顶部标题栏 —— 与底栏同色,把黑色取景区夹在中间 */
+.crop__nav {
+  flex: none;
+  background: var(--cy-comp-crop-bar-bg);
+}
+.crop__nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.crop__title {
+  font-size: var(--cy-type-card-title);
+  font-weight: 600;
+  color: var(--cy-color-text-primary);
+}
+
+/* 取景区:占满剩余高度,框在其中居中(flex 居中 = 以真实布局高度为准) */
+.crop__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--cy-comp-crop-stage-bg);
+}
+.crop__stage--empty {
+  background: var(--cy-color-bg-elevated);
+  padding: var(--cy-space-6) var(--cy-page-x);
+  box-sizing: border-box;
+}
+.crop__missing {
+  width: 100%;
+  height: 100%;
+}
+/* 等图态:中性说明,不用无源态的图标/文案,免得把"在等"画成"没有" */
+.crop__waiting {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.crop__export-error { position: absolute; left: var(--cy-page-x); right: var(--cy-page-x); bottom: var(--cy-space-4); z-index: 2; }
+
+.crop__frame {
+  position: relative;
+  overflow: hidden;              /* 框外直接裁掉 = 参考图里的纯黑 */
+  box-sizing: border-box;
+  border: 1px solid var(--cy-comp-crop-frame-line);
+}
+
+/* 定位在框心,translate(-50%,-50%) 让 transform-origin 与几何模型的「相对框心位移」对齐 */
+.crop__img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+/* 底栏:取消 / 选取。底色取页面纯黑:原 --cy-comp-crop-bar-bg 映射到 bg-elevated,
+   是抬高一层的深灰,压在纯黑取景台上会浮出一条灰底;顶部一条细线承担与取景区的分隔。 */
+.crop__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--cy-space-4);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: content-box;       /* 安全区加在 56px 之外,不吃掉按钮高度 */
+  background: var(--cy-color-bg-page);
+  border-top: 1rpx solid var(--cy-border-line);
+}
+
+/* 命中区 ≥88rpx(=44pt,规范 §3.8 / §10-5):原来只靠上下 16rpx 内距,实高约 64rpx */
+.crop__action {
+  min-width: var(--cy-btn-pad-x);
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  padding: var(--cy-space-2) var(--cy-space-2);
+  font-size: var(--cy-type-button);
+  color: var(--cy-color-text-primary);
+  border-radius: var(--cy-comp-btn-radius);
+}
+/* 「选取」= 白色实心主按钮(与全站 --cy-btn-solid-* 主 CTA 一致)。
+   变实心后内容盒被 --cy-btn-pad-x 撑宽,原来靠 flex-end/right 贴右缘的排法会让文字
+   在药丸里偏右,故随之改居中——这是变实心的必然配套,不是另一处独立改动。
+   左边「取消」仍走 .crop__action 基类的纯文字次级样式,不受影响。 */
+.crop__action--confirm {
+  font-weight: 600;
+  justify-content: center;
+  text-align: center;
+  padding-left: var(--cy-btn-pad-x);
+  padding-right: var(--cy-btn-pad-x);
+  color: var(--cy-btn-solid-fg);
+  background: var(--cy-btn-solid-bg);
+}
+.crop__bar--missing {
+  justify-content: center;
+}
+/* missing 态下「返回上一页」是这一屏唯一动作(取消/选取的次级语义在这一态压根不适用,
+   wx:if 让「选取」不渲染,本按钮 flex:1 独占整条底栏)——按全站标准(cy-empty/cy-error 的
+   CTA 同款 --cy-btn-solid-*)改实心;ready 态的 .crop__action(与「选取」并列的「取消」)
+   仍走通用次级样式,不受这条影响。 */
+.crop__bar--missing .crop__action--return {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+  font-weight: 600;
+  color: var(--cy-btn-solid-fg);
+  background: var(--cy-btn-solid-bg);
+  border: none;
+}
+.crop__action--press {
+  background: var(--cy-color-state-pressed);
+}
+.crop__action--busy {
+  color: var(--cy-color-text-disabled);
+}
+
+/* 离屏画布:只为 canvasToTempFilePath 提供节点。不能用 display:none / visibility:hidden,
+   否则 selectorQuery 拿不到节点或画不出内容;推到视口外是唯一可靠做法。
+   ⚠️ CSS 尺寸给足、别压成 1px:canvasToTempFilePath 的默认导出范围取的是 canvas 宽高,
+   若某些实现读的是元素渲染尺寸而非 drawing buffer,1px 会被拉伸成 1440 的糊图。 */
+.crop__canvas {
+  position: fixed;
+  left: 0;
+  top: -9999px;
+  width: 750rpx;
+  height: 750rpx;
+}

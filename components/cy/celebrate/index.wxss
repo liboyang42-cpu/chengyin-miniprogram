@@ -1,0 +1,31 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cy-z-celebrate);
+  pointer-events: none;
+}
+
+.cy-celebrate {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.cy-celebrate__piece {
+  position: absolute;
+  top: 0;
+  width: 16rpx;
+  height: var(--cy-space-3-5);
+  border-radius: 3rpx; /* ds-ok: 沿用既有 confetti 彩旗片的窄矩形圆角 */
+  animation: cy-celebrate-fall var(--cy-motion-celebrate) linear both;
+}
+
+.cy-celebrate--reduced-motion {
+  display: none;
+}
+
+@keyframes cy-celebrate-fall {
+  0% { transform: translateY(-60rpx) rotate(0); opacity: 1; }
+  100% { transform: translateY(1280rpx) rotate(560deg); opacity: 0; }
+}

@@ -1,0 +1,92 @@
+<view class="page m-flush-nav" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar title="自由探索" />
+  <cy-skeleton wx:if="{{loading && !card}}" type="detail" count="{{1}}" loading-label="正在准备自由探索" />
+  <cy-state-shell wx:elif="{{errorText && !card}}" kind="{{errorKind}}"
+                  title="{{errorText}}" sub="{{errorSub}}" primary="{{errorAction}}"
+                  fill size="lg" bind:primary="onStateAction" auto-back custom-back bind:back="goBack" />
+  <block wx:else>
+    <!-- receipt=unknown:点它只重读不重写,所以文案是「再核对」不是「重试」。
+         与商家页同一套状态条形制:色只在圆点,叙述交给排版。 -->
+    <view class="cy-status cy-status--{{receipt}}" wx:if="{{receiptText}}" bindtap="retryReceiptReadback"
+      aria-role="{{receipt === 'unknown' ? 'button' : ''}}" aria-label="{{receiptText}}" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="cy-status__dot"></view>
+      <view class="cy-status__body">
+        <text class="cy-status__text">{{receiptText}}</text>
+        <text class="cy-status__act" wx:if="{{receipt === 'unknown'}}">再核对一次</text>
+      </view>
+    </view>
+    <view class="circle-sync-state">
+      <text wx:if="{{refreshing && card}}" class="circle-sync" aria-role="status">正在核对探索状态…</text>
+    </view>
+  <block wx:if="{{card}}">
+    <view class="hero">
+      <view class="eyebrow">玩家自助记录</view>
+      <view class="title">{{theme.name}}</view>
+      <view class="subtitle">{{theme.subtitle}}</view>
+      <view class="combination">本地组合：{{combinationText || '已有记录中的商家组合'}}</view>
+      <view class="progress">已记录 {{card.recordedMerchantCount || 0}} / 2 家</view>
+      <view class="invite">同行邀请码：{{card.inviteCode}}</view>
+      <button class="share-btn" wx:if="{{!readOnly}}" open-type="share">邀请同行加入</button>
+    </view>
+
+    <view class="readonly" wx:if="{{readOnlyText}}">{{readOnlyText}}</view>
+
+    <view class="section-title">这次可探索的商家</view>
+    <view class="offer {{item.recorded ? 'offer-done' : ''}}" wx:for="{{offers}}" wx:key="offerId">
+      <view class="offer-head"><text class="offer-code">{{item.candidateCode}}</text><text class="offer-name">{{item.candidateName}}</text><text class="offer-status">{{item.recorded ? '已记录' : ''}}</text></view>
+      <view class="supply-name">{{item.supplyName}}</view>
+      <view class="facts">主题作用：{{item.roleLabel}}</view>
+      <view class="facts">日常价 {{item.priceText}} · {{item.minPeople}}—{{item.maxPeople}}人</view>
+      <view class="facts">可用时间：{{item.availableHours}}</view>
+      <view class="facts">体验约 {{item.durationMinutes}} 分钟 · {{item.bookingText}}</view>
+      <view class="facts">供给复核：{{item.reviewText}}</view>
+      <view class="facts" wx:if="{{item.optionalBenefit}}">可选权益：{{item.optionalBenefit}}</view>
+      <view class="facts" wx:if="{{item.benefitRules}}">权益规则：{{item.benefitRules}}</view>
+      <view class="facts">玩家动作：{{item.actionLabel}} · 各自向商家购买或预约</view>
+      <button class="action-btn" data-id="{{item.offerId}}" bindtap="openOfferAction">{{item.actionButtonText}}</button>
+      <textarea wx:if="{{!readOnly && !item.recorded}}" class="note" maxlength="500" placeholder="写一句只属于你的记录（选填）" data-id="{{item.offerId}}" bindinput="onNoteInput" />
+      <button wx:if="{{!readOnly && !item.recorded}}" class="record-btn" data-id="{{item.offerId}}" loading="{{submitting}}" bindtap="recordOffer">自助记录这家</button>
+    </view>
+
+    <view class="section-title" wx:if="{{!readOnly}}">主题轻互动</view>
+    <view class="interaction" wx:if="{{!readOnly}}" wx:for="{{interactions}}" wx:for-item="interaction" wx:key="stage">
+      <view class="interaction-title">{{interaction.title}}</view>
+      <view class="interaction-prompt">{{interaction.prompt}}</view>
+      <textarea wx:if="{{interaction.input === 'text'}}" class="note" maxlength="300" placeholder="写下这一刻" data-stage="{{interaction.stage}}" bindinput="onAnswerInput" />
+      <view wx:elif="{{interaction.perRecordedOffer}}">
+        <view class="keyword-row" wx:for="{{interaction.recordedOffers}}" wx:for-item="recordedOffer" wx:key="candidateCode">
+          <view class="keyword-offer">{{recordedOffer.candidateName}}</view>
+          <view class="choices">
+            <view class="choice {{shanghaiDrafts[recordedOffer.candidateCode] === keyword ? 'choice-active' : ''}}" wx:for="{{recordedOffer.keywords}}" wx:for-item="keyword" wx:key="*this" data-code="{{recordedOffer.candidateCode}}" data-value="{{keyword}}" bindtap="chooseShanghaiKeyword"
+                  aria-role="radio" aria-checked="{{shanghaiDrafts[recordedOffer.candidateCode] === keyword}}" aria-label="为{{recordedOffer.candidateName}}选择关键词{{keyword}}" hover-class="cy-pressed" hover-stay-time="80">{{keyword}}</view>
+          </view>
+        </view>
+        <button class="answer-btn" data-stage="{{interaction.stage}}" loading="{{submitting}}" bindtap="submitShanghaiKeywords">保存城市关键词</button>
+      </view>
+      <view wx:else class="choices">
+        <view class="choice {{answerDrafts[interaction.stage] === choice.value ? 'choice-active' : ''}}" wx:for="{{interaction.choices}}" wx:for-item="choice" wx:key="value" data-stage="{{interaction.stage}}" data-value="{{choice.value}}" bindtap="chooseAnswer"
+              aria-role="radio" aria-checked="{{answerDrafts[interaction.stage] === choice.value}}" aria-label="选择{{choice.label}}" hover-class="cy-pressed" hover-stay-time="80">{{choice.label}}</view>
+      </view>
+      <button wx:if="{{!interaction.perRecordedOffer}}" class="answer-btn" data-stage="{{interaction.stage}}" loading="{{submitting}}" bindtap="submitAnswer">保存</button>
+    </view>
+
+    <view class="complete" wx:if="{{card.completed}}">
+      <view class="complete-title">{{card.memoryTitle || '共同记忆卡'}}</view>
+      <view class="complete-line" wx:for="{{card.memoryLines}}" wx:for-item="memoryLine" wx:key="*this">{{memoryLine}}</view>
+      <view class="complete-empty" wx:if="{{!card.memoryLines.length}}">本次探索已完成，记录卡已生成。</view>
+    </view>
+    <view class="history" wx:if="{{card.records && card.records.length}}">
+      <view class="section-title">我的探索记录</view>
+      <view class="history-card" wx:for="{{card.records}}" wx:for-item="record" wx:key="id">
+        <view class="history-name">{{record.candidateName || record.supplyName || '已记录商家'}}</view>
+        <view class="history-supply" wx:if="{{record.candidateName && record.supplyName}}">{{record.supplyName}}</view>
+        <view class="history-note" wx:if="{{record.note}}">{{record.note}}</view>
+      </view>
+    </view>
+    <view class="disclaimer">本卡仅记录玩家自助选择，不代表商家确认到店、预约、核销或成交。</view>
+  </block>
+  </block>
+</view>

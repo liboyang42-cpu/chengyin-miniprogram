@@ -1,0 +1,101 @@
+<view class="fabu theme-topic-editor">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar custom-back bind:back="onCancel" />
+  <cy-page-title title="优惠券设置" />
+  <view class="wp">
+    <view class="form">
+
+      <view class="li">
+        <view class="item-tit">优惠券名称<text>*</text></view>
+        <view class="item-cont">
+          <input class="davidinp" type="text" placeholder="请输入优惠券名称" value="{{formData.name}}"
+            bindinput="onNameInput" />
+        </view>
+      </view>
+
+      <view class="ul">
+        <view class="li">
+          <view class="item-tit">优惠券日期<text>*</text></view>
+          <view class="item-cont">
+            <!-- 时间段 -->
+            <view class="picker_group flex-cb" bindtap="showStartTimePicker" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="picker">
+                <view class="{{formData.startTime?'text-style2':'text-style1'}}">
+                  {{displayStartTime}}
+                </view>
+              </view>
+              <view class="text-style1">-</view>
+              <view class="picker">
+                <view class="{{formData.endTime?'text-style2':'text-style1'}}">
+                  {{displayEndTime}}
+                </view>
+              </view>
+              <image lazy-load="true" src="/subpackageMember/images/d_yhqadd1.png" mode="widthFix" />
+            </view>
+          </view>
+        </view>
+
+
+        <view class="li">
+          <view class="item-tit">投放数<text>*</text></view>
+          <view class="item-cont">
+            <input class="davidinp2" type="number" placeholder="请输入投放数量" value="{{formData.publishCount}}"
+              bindinput="onPublishCountInput" />
+            <image lazy-load="true" class="davidyu" src="/subpackageMember/images/d_yhqadd2.png" mode="widthFix" />
+          </view>
+        </view>
+      </view>
+
+      <view class="li">
+        <view class="item-tit">优惠券类型<text>*</text></view>
+        <view class="item-cont">
+          <view class="picker picker2 flex-cb" style="width: 100%;" bindtap="openCouponTypeSheet" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="tit"> {{array2[index2]}}</view>
+            <view class="jt">
+              <image lazy-load="true" src="/images/icon_right.png" mode="widthFix" />
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="li li2">
+        <view class="item-tit">优惠券说明</view>
+        <view class="item-cont item-cont2">
+          <textarea value="{{formData.description}}" auto-height placeholder="请输入优惠券说明"
+            bindinput="onDescriptionInput" />
+        </view>
+      </view>
+
+    </view>
+    <cy-inline-error class="submit-error" wx:if="{{submitError}}" kind="{{submitErrorKind}}"
+      title="{{submitErrorTitle}}" sub="{{submitError}}"
+      action="{{submitErrorRetryable ? '重试' : ''}}" bind:action="onSubmit" />
+  </view>
+  <view class="fabu-btn safebot">
+    <view class="wrap flex-cb">
+      <cy-btn variant="secondary" disabled="{{isSubmitting}}" aria-disabled="{{isSubmitting}}"
+        style="width:170rpx" bindtap="onCancel">取消</cy-btn>
+      <cy-btn variant="primary" loading="{{isSubmitting}}" disabled="{{!canSubmit || isSubmitting}}"
+        aria-disabled="{{!canSubmit || isSubmitting}}" style="flex:1;margin-left:16rpx"
+        bindtap="onSubmit">发布优惠券</cy-btn>
+    </view>
+  </view>
+
+  <cy-sheet show="{{couponTypeSheetVisible}}" title="选择优惠券类型" bind:close="closeCouponTypeSheet">
+    <view class="coupon-type-option {{index2 === index ? 'coupon-type-option--on' : ''}}"
+      wx:for="{{array2}}" wx:key="*this" data-index="{{index}}" bindtap="selectCouponType" hover-class="cy-pressed" hover-stay-time="80">{{item}}</view>
+  </cy-sheet>
+
+  <!-- 有效期选择:起止一屏内切换 + 当场显示跨度 + 当场判定。
+       原来是「选择开始时间」「选择结束时间」两个先后弹出的面板,选结束时看不到开始选了什么,
+       日期与时刻还被拆成两个 picker-view、中间塞一个连接词(读成「9 月 1 日 的 14:30」)。 -->
+  <cy-datetime-range
+    show="{{rangePickerShow}}"
+    title="选择优惠券有效期"
+    value="{{rangeValue}}"
+    bind:cancel="onRangeCancel"
+    bind:confirm="onRangeConfirm"
+  />
+</view>

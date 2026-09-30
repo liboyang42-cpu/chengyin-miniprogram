@@ -1,0 +1,69 @@
+:host { display: block; }
+
+/* 窄容器(比如半宽两列里的那两条)放不下「图标 + 文案 + 动作」一行时,
+   让动作换到下一行;不许 wrap 的话文案会被挤成每行一个字的竖排。 */
+.inline-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* 2026-09-02:窄容器里必须能折行。实拍(创建域「玩家人数/玩法时长」两列格)坐实:
+     列宽约 330rpx,而 图标(40)+ 间距(24)+ 操作键(min-width 144)+ 内边距(48)
+     已经吃掉大半,正文只剩几十 rpx ⇒ 标题被压成**每行一个字**的竖排。
+     不折行的 flex 在窄容器里不是"挤一点",是直接把正文压没。 */
+  flex-wrap: wrap;
+  gap: var(--cy-space-3);
+  min-height: var(--cy-btn-h);
+  padding: var(--cy-space-2) var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-status-info-soft);
+  color: var(--cy-color-text-primary);
+}
+
+.inline-error--network { background: var(--cy-color-status-warning-soft); }
+/* 失败档:动作没成,不重试就没有结果。软红底 + 红 ⚠,与 cy-badge 的 danger 同一套色。 */
+.inline-error--error { background: var(--cy-color-status-danger-soft); }
+
+.inline-error__icon {
+  width: var(--cy-space-5);
+  height: var(--cy-space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: var(--cy-color-status-info);
+}
+.inline-error--network .inline-error__icon { color: var(--cy-color-status-warning); }
+.inline-error--error .inline-error__icon { color: var(--cy-color-status-danger); }
+
+/* min-width:正文低于这个宽度就宁可让操作键换行,也不把字压成竖排。
+   宽容器上一切照旧(一行装得下就不会触发换行)。 */
+.inline-error__copy { flex: 1 1 auto; min-width: 240rpx; }
+.inline-error__title {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+  font-weight: 600;
+  line-height: var(--cy-leading-tight);
+}
+.inline-error__sub {
+  margin-top: var(--cy-space-1);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  line-height: var(--cy-leading-normal);
+}
+
+.inline-error__action {
+  min-width: 144rpx;
+  height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-3);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+}
+.inline-error__action--pressed { background: var(--cy-color-state-pressed); }

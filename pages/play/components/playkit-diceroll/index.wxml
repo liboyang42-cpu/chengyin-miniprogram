@@ -1,0 +1,91 @@
+<!-- 掷骰子。这一屏在原型里**一个按钮都没有**:摇一摇就扔,点屏幕是没有加速度计时的退路。
+     六个面的清单也不在这一屏 —— 那是商家在编辑页填的东西,玩家这儿只需要知道
+     「摇出来是几、要做哪件事」。把六条都摆出来会让人先读一遍再摇,那是说明书不是游戏。 -->
+
+<!-- ★ 内嵌版(契约 §1.5,diceRoll 例外,2026-09-18 用户点名两种写法都保留):
+     故事流里直接掷。这是**另一套构图**,不是把整屏那版等比缩小 ——
+     没有四边贴死、没有摇一摇(走在路上会误触发)、没有「一颗/两颗」切换,
+     一排骰子 + 一个按钮就是全部。判定仍走服务端 ROLL_DICE,这里只发请求。 -->
+<cy-play-stage wx:if="{{mode === 'd20'}}" id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="g-col d20">
+    <view class="d20__content">
+      <view class="d20__title">{{kicker || 'D20 检定'}}</view>
+      <view class="d20__meta">
+        <text>{{rollMode === 'advantage' ? '优势 · 取高' : (rollMode === 'disadvantage' ? '劣势 · 取低' : '普通')}}</text>
+        <text>DC {{dc}}</text>
+        <text>加值 {{modifier >= 0 ? '+' : ''}}{{modifier}}</text>
+      </view>
+      <view class="d20__stage" aria-label="{{d20Rolling ? '二十面骰旋转中' : (result ? '本次骰点：' + result.values : '立体二十面骰')}}">
+        <canvas type="2d" id="d20Canvas" class="d20__canvas" binderror="onD20CanvasError" />
+      </view>
+      <view class="d20__error" wx:if="{{d20Error}}">骰子暂时无法显示。
+        <text class="d20__retry" bindtap="onRetryD20" aria-role="button" aria-label="重试显示 3D 骰子" hover-class="g-btn--press" hover-stay-time="80">重试显示</text>
+      </view>
+      <view class="d20__outcome {{!result || d20Rolling ? 'd20__outcome--pending' : ''}}" aria-hidden="{{!result || d20Rolling}}" aria-label="{{'总分 ' + result.total + '，' + (result.success ? '检定成功' : '检定失败')}}">
+        <view class="d20__total">{{result.total}}</view>
+        <view class="d20__result">{{result.text}}</view>
+      </view>
+    </view>
+  </view>
+  <view class="g-btn" wx:if="{{!result || d20Rolling}}" bindtap="onRoll" aria-role="button" aria-label="{{d20Rolling ? '正在掷骰' : '掷 D20'}}" aria-disabled="{{d20Rolling}}"
+        hover-class="g-btn--press" hover-stay-time="80">{{d20Rolling ? '正在掷骰…' : '掷 D20'}}</view>
+  <view class="g-btn" wx:else bindtap="onClose" aria-role="button" aria-label="继续"
+        hover-class="g-btn--press" hover-stay-time="80">继续</view>
+</cy-play-stage>
+<block wx:else>
+<cy-play-stage wx:if="{{inline}}" id="cy-play-stage" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="dzi {{rolling ? 'dzi--rolling' : ''}} {{reducedMotion ? 'dzi--reduced' : ''}}">
+    <view class="dzi__k">{{kicker}}</view>
+    <view class="dzi__dice">
+      <view class="dzi__die" wx:for="{{dice}}" wx:key="i">
+        <view class="dzi__pip" wx:for="{{item.pips}}" wx:for-item="on" wx:key="*this"
+              style="visibility:{{on ? 'visible' : 'hidden'}}"></view>
+      </view>
+    </view>
+    <view class="dzi__out">
+      <text class="dzi__sum" wx:if="{{sum}}">{{sum}}</text>
+      <text class="dzi__sub">{{sub}}</text>
+    </view>
+    <view class="dzi__roll" bindtap="onRoll"
+          aria-role="button" aria-label="掷一次骰子" hover-class="dzi__roll--press" hover-stay-time="60">{{rolling ? '掷出去了…' : '掷一次'}}</view>
+  </view>
+</cy-play-stage>
+
+<!-- 整屏版(原型那版,逐字保留):摇一摇就扔,点屏幕是没有加速度计时的退路。 -->
+<cy-play-stage wx:else id="cy-play-stage" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="dz {{reducedMotion ? 'dz--reduced' : ''}}" bindtap="onRoll"
+        aria-role="button" aria-label="摇一摇手机，或点屏幕扔一次"
+        hover-class="dz--press" hover-stay-time="60">
+    <view class="dz__k">{{kicker}}</view>
+
+    <!-- 一颗 / 两颗。两颗只报点数和,用来分胜负,不对应任务 -->
+    <!-- 子按钮用 catchtap 自己截住冒泡,容器不需要再挂一个空处理器 -->
+    <view class="dz__seg">
+      <view class="dz__segb {{count === 1 ? 'is-on' : ''}}" data-n="1" catchtap="onCount"
+            aria-role="radio" aria-checked="{{count === 1}}"
+            hover-class="dz__segb--press" hover-stay-time="60">一颗</view>
+      <view class="dz__segb {{count === 2 ? 'is-on' : ''}}" data-n="2" catchtap="onCount"
+            aria-role="radio" aria-checked="{{count === 2}}"
+            hover-class="dz__segb--press" hover-stay-time="60">两颗</view>
+    </view>
+
+    <view class="dz__stage">
+      <!-- 两颗一模一样:一白一紫会让人以为两颗的规则不同,而它们只是两颗一样的骰子 -->
+      <view class="dz__die {{rolling ? 'dz__die--roll' : ''}}" wx:for="{{dice}}" wx:key="i"
+            style="left:calc(50% - 37px + {{item.dx}}px);top:calc(50% - 37px);animation-delay:{{item.delay}}s">
+        <view class="dz__pip" wx:for="{{item.pips}}" wx:for-item="on" wx:key="*this"
+              style="visibility:{{on ? 'visible' : 'hidden'}}"></view>
+      </view>
+      <view class="dz__sh" wx:for="{{dice}}" wx:key="i"
+            style="left:calc(50% - 33px + {{item.dx}}px);top:calc(50% + 29px)"></view>
+    </view>
+
+    <view class="dz__out">
+      <view class="dz__sum" wx:if="{{sum}}">{{sum}}</view>
+      <view class="dz__sub">{{sub}}</view>
+    </view>
+
+    <view class="dz__hint"><view class="dz__hint-i"></view><text>{{hint}}</text></view>
+  </view>
+</cy-play-stage>
+</block>

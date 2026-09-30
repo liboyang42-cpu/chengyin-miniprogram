@@ -1,0 +1,75 @@
+/* 拍物成卡 · 当场揭晓。尺寸逐项照样稿(390pt 宽的手机稿,1pt ≈ 1.92rpx)。
+   深色:面板 = surface-subtle,卡片 = elevated,主色 = 文字白(9-18 规则:无白底,主按钮反色中性)。
+   ⚠️ 不新增 @keyframes(仓内只减不增):点阵、上移都由 canvas 逐帧画,转圈由 setData 转角度。 */
+/* 整屏,不是弹窗(9-24 用户定):底色铺满到状态栏;内容区 .oc__sheet 从胶囊下面开始,不越过微信导航栏 */
+.oc { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 900; background: var(--cy-color-bg-surface-subtle); }
+.oc__sheet { position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; background: var(--cy-color-bg-surface-subtle); }
+.oc__stage { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+
+.oc__head { position: absolute; left: 0; right: 0; top: 24rpx; text-align: center; z-index: 3; transition: opacity 0.25s; }
+.oc__head.is-off { opacity: 0; }
+.oc__title { font-size: var(--cy-type-sheet-title); line-height: 62rpx; font-weight: 600; color: var(--cy-color-text-primary); }
+.oc__hints { display: flex; justify-content: center; gap: 28rpx; margin-top: 12rpx; line-height: 32rpx; }
+.oc__hint { display: flex; align-items: center; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+.oc__hint::before { content: ''; width: 22rpx; height: 22rpx; margin-right: 8rpx; background-size: contain; background-repeat: no-repeat; }
+.oc__hint--center::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2014%2014%22%20fill%3D%22none%22%20stroke%3D%22%23919191%22%20stroke-width%3D%221.4%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%224.5%22%2F%3E%3Cpath%20d%3D%22M7%200v3M7%2011v3M0%207h3M11%207h3%22%2F%3E%3C%2Fsvg%3E"); }
+.oc__hint--bright::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2014%2014%22%20fill%3D%22none%22%20stroke%3D%22%23919191%22%20stroke-width%3D%221.4%22%3E%3Ccircle%20cx%3D%227%22%20cy%3D%227%22%20r%3D%222.8%22%2F%3E%3Cpath%20d%3D%22M7%20.5v2M7%2011.5v2M.5%207h2M11.5%207h2M2.4%202.4l1.4%201.4M10.2%2010.2l1.4%201.4M2.4%2011.6l1.4-1.4M10.2%203.8l1.4-1.4%22%2F%3E%3C%2Fsvg%3E"); }
+.oc__hint--clear::before { width: 24rpx; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2015%2014%22%20fill%3D%22none%22%20stroke%3D%22%23919191%22%20stroke-width%3D%221.4%22%3E%3Cpath%20d%3D%22M1%207s2.4-4.5%206.5-4.5S14%207%2014%207s-2.4%204.5-6.5%204.5S1%207%201%207z%22%2F%3E%3Ccircle%20cx%3D%227.5%22%20cy%3D%227%22%20r%3D%222%22%2F%3E%3C%2Fsvg%3E"); }
+.oc__sub { margin-top: 12rpx; padding: 0 64rpx; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+
+/* 取景框(9-24 用户:再大一点、上下留白居中):左右各 32rpx。上沿 = 标题区底(24 + 62 + 12 + 32 = 130rpx)+ 40,
+   下沿 = 按钮行顶(110 + 127 = 237rpx,再加安全区)+ 40 —— 两段留白相等。改标题区或按钮行高度时两边一起算 */
+.oc__vf { position: absolute; left: 32rpx; right: 32rpx; top: 170rpx; bottom: calc(env(safe-area-inset-bottom) + 277rpx);
+  border-radius: var(--cy-radius-2xl); overflow: hidden; background: var(--cy-color-bg-surface); z-index: 1; }
+.oc__live { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.oc__live.is-dim { opacity: 0.45; }
+.oc__live--off { display: flex; align-items: center; justify-content: center; padding: 0 64rpx; box-sizing: border-box;
+  text-align: center; font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+
+.oc__ctrls { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 110rpx); height: 127rpx;
+  display: flex; justify-content: center; align-items: center; gap: 142rpx; z-index: 3; }
+.oc__sq { width: 88rpx; height: 88rpx; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-raised);
+  display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-primary); }
+.oc__shutter { width: 127rpx; height: 127rpx; border-radius: 50%; box-sizing: border-box; border: 6rpx solid var(--cy-color-text-primary);
+  display: flex; align-items: center; justify-content: center; }
+.oc__shutter-in { width: 100rpx; height: 100rpx; border-radius: 50%; background: var(--cy-color-text-primary); transition: transform 0.12s; }
+.oc__shutter.is-busy .oc__shutter-in { transform: scale(0.86); opacity: 0.6; }
+.oc--press { opacity: 0.7; }
+
+/* iOS 式小菊花:8 根辐条,整组按 45° 一格转 */
+.oc__spin { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 146rpx); width: 54rpx; height: 54rpx;
+  margin-left: -27rpx; z-index: 3; }
+.oc__spoke { position: absolute; left: 24rpx; top: 0; width: 6rpx; height: 16rpx; border-radius: 3rpx; /* ds-ok: 菊花辐条 6rpx 宽,圆角取半宽 */
+  background: var(--cy-color-text-secondary); transform-origin: 3rpx 27rpx; }
+
+.oc__pill { position: absolute; right: 38rpx; top: 50rpx; z-index: 5; padding: 15rpx 31rpx; border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-body); font-weight: 600; background: var(--cy-color-bg-raised); color: var(--cy-color-text-primary);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s, background 0.3s, color 0.3s; }
+.oc__pill.is-on { opacity: 1; pointer-events: auto; }
+.oc__pill.is-ready { background: var(--cy-color-text-primary); color: var(--cy-color-bg-page); }
+
+/* 信息态:物品框中心 222pt、250×200pt(与 canvas 里浮上来的终点同一个框,不然交接那一下会跳) */
+.oc__obj { position: absolute; left: 50%; top: 235rpx; width: 480rpx; height: 384rpx; margin-left: -240rpx; z-index: 3; }
+.oc__pdot { position: absolute; left: 50%; top: 627rpx; width: 12rpx; height: 12rpx; margin-left: -6rpx; border-radius: 50%;
+  background: var(--cy-color-text-tertiary); opacity: 0; transition: opacity 0.3s; z-index: 3; }
+.oc__pdot.is-on { opacity: 1; }
+.oc__form { position: absolute; left: 27rpx; right: 27rpx; top: 677rpx; z-index: 3; opacity: 0; transform: translateY(115rpx);
+  transition: opacity 0.45s, transform 0.55s cubic-bezier(0.2, 0.9, 0.25, 1); pointer-events: none; }
+.oc__form.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.oc__group { background: var(--cy-color-bg-elevated); border-radius: var(--cy-radius-lg); overflow: hidden; }
+.oc__row { display: flex; align-items: center; height: 100rpx; padding: 0 31rpx; font-size: var(--cy-type-body); color: var(--cy-color-text-primary); }
+.oc__row + .oc__row { border-top: 1rpx solid var(--cy-color-border-subtle); }
+.oc__dot { width: 50rpx; height: 50rpx; border-radius: 50%; margin-right: 21rpx; flex: none;
+  display: flex; align-items: center; justify-content: center; color: #FFFFFF; /* ds-ok: 行图标照视频,白线条压在彩色圆底上 */ }
+.oc__dot--name { background: #9DBE74; /* ds-ok: 行图标底色照 FullPack 视频 */ }
+.oc__dot--cat { background: #4B5C57; /* ds-ok: 行图标底色照 FullPack 视频 */ }
+.oc__dot--place { background: #7C8D58; /* ds-ok: 行图标底色照 FullPack 视频 */ }
+.oc__k { flex: none; }
+.oc__v { flex: 1; min-width: 0; margin-left: 24rpx; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc__v--dim { color: var(--cy-color-text-tertiary); }
+.oc__sec { padding: 42rpx 31rpx 15rpx; font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.oc__saved { padding: 28rpx 31rpx 0; text-align: center; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+
+/* 减弱动态效果:表单、按钮、标题直接给终态,不做过渡 */
+.oc--reduced .oc__form, .oc--reduced .oc__pill, .oc--reduced .oc__head, .oc--reduced .oc__pdot,
+.oc--reduced .oc__shutter-in { transition: none; }

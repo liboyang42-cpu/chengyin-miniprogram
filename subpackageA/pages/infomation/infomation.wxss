@@ -1,0 +1,120 @@
+@charset "UTF-8";
+@import '../../../style/merchant-light-scope.wxss';
+/* 顶栏底色跟 cy-nav-bar 同一枚 token(--cy-comp-nav-bg → --cy-color-bg-page)。
+   页底必须取同一个语义 token,否则顶栏与正文在交界处出色带。 */
+page { background: var(--cy-bg-page); }
+
+.info-shell { min-height: 100vh; background: var(--cy-color-bg-page); }
+
+.gl-page { min-height: 100vh; padding: 0 var(--cy-page-x); box-sizing: border-box; }
+.ep1 { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ep2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+/* ===== 大标题(粗细混排)===== */
+.gl-hero { padding: var(--cy-space-4) 0 var(--cy-space-5); }
+.gl-hero-tit { font-size: var(--cy-font-page-title); line-height: 1.22; letter-spacing: 0; }
+.gl-hero-thin { font-weight: 300; color: var(--cy-text-secondary); }
+.gl-hero-bold { font-weight: 800; color: var(--cy-text-title); }
+.gl-hero-sub {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* ===== 三种玩法卡 ===== */
+.gl-modes { display: flex; flex-direction: column; gap: var(--cy-space-3); }
+.gl-mode {
+  background: var(--cy-bg-card);
+  border: 1rpx solid var(--cy-border-card);
+  border-radius: var(--cy-radius-md);
+  padding: var(--cy-space-4);
+}
+.gl-mode-hd { display: flex; align-items: center; gap: var(--cy-space-2); }
+.gl-mode-ico {
+  width: 72rpx; height: 72rpx; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--cy-bg-elevated);
+  border: 1rpx solid var(--cy-border-line);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-text-title);
+}
+.gl-mode-name { font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title); }
+.gl-mode-tag {
+  margin-left: auto; flex-shrink: 0;
+  font-size: var(--cy-font-caption); color: var(--cy-text-secondary);
+}
+.gl-mode-desc {
+  margin-top: var(--cy-space-2-5);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+/* 按钮不铺满整行:cy-btn host 默认 display:block,靠这层 flex 收成右对齐的短钮 */
+.gl-mode-act { margin-top: var(--cy-space-3); display: flex; justify-content: flex-end; }
+.gl-mode-btn { width: 200rpx; }
+
+/* ===== 区块标题 ===== */
+.gl-sec {
+  display: flex; align-items: baseline; gap: var(--cy-space-2);
+  margin: var(--cy-space-6) 0 var(--cy-space-3);
+}
+.gl-sec-tit { font-size: var(--cy-font-title); font-weight: 700; color: var(--cy-text-title); }
+.gl-sec-sub { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+/* ===== 现成玩法卡 ===== */
+.gl-tpl {
+  display: flex; gap: var(--cy-space-3);
+  background: var(--cy-bg-card);
+  border: 1rpx solid var(--cy-border-card);
+  border-radius: var(--cy-radius-md);
+  padding: var(--cy-space-3);
+  margin-bottom: var(--cy-space-2-5);
+}
+.gl-tpl-pic {
+  width: 160rpx; height: 160rpx; flex-shrink: 0;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-elevated);
+}
+/* 无封面时的字母占位:与列表其它卡同尺寸,不塌陷 */
+.gl-tpl-pic--ph {
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-title); font-weight: 700;
+  color: var(--cy-text-secondary);
+}
+.gl-tpl-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.gl-tpl-name { font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); }
+.gl-tpl-desc {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+.gl-tpl-foot {
+  margin-top: auto; padding-top: var(--cy-space-2);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2);
+}
+.gl-tpl-used { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.gl-tpl-btn { width: 160rpx; flex-shrink: 0; }
+
+/* ===== 更多 ===== */
+.gl-more {
+  display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1);
+  height: 88rpx;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+.gl-more-t { font-weight: 600; }
+
+/* ===== 玩法文档 ===== */
+.gl-docs {
+  background: var(--cy-bg-card);
+  border: 1rpx solid var(--cy-border-card);
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+}
+
+.gl-bottom-pad { height: calc(var(--cy-space-6) + env(safe-area-inset-bottom)); }
+
+/* 本页底色为 page 档:导航钩子跟随同色(2026-07-29 导航统一) */
+page { --cy-comp-nav-bg: var(--cy-bg-page); }

@@ -1,0 +1,18 @@
+@import '../../style/merchant-light-scope.wxss';
+
+page { background: var(--cy-color-bg-page); }
+
+.userinfo-missing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+
+.userinfo-missing__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: 0 var(--cy-page-x) var(--cy-safe-bottom);
+}

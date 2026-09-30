@@ -1,0 +1,94 @@
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上。 */
+.cy-pressed { opacity: .88; }
+/* F3 选承接标的。横滑两组卡片 —— 稿 159:346。 */
+.ctp { padding-bottom: var(--cy-space-2); }
+.ctp-h {
+  margin: var(--cy-space-4) 0 var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.ctp-h:first-child { margin-top: 0; }
+/* 横滑条要能越过 sheet 的左右内边距,否则第一张卡看着像被切了一半 */
+.ctp-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+/* 章节卡:稿 159:346 是矮扁块,标题一行、副信息一行;选中整块黑底白字
+   —— 商家浅色域的主按钮就是黑底白字,选中态跟着它走,不另造一套描边语言。 */
+.ctp-card {
+  display: inline-flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  margin-right: var(--cy-space-2);
+  padding: var(--cy-space-3) var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  white-space: nowrap;
+}
+.ctp-card:last-child { margin-right: 0; }
+.ctp-card.is-on { background: var(--cy-text-title); }
+.ctp-card-t {
+  /* 稿 159:346 章节名是 13px;subtitle=16px 在 140×60 的矮卡里把两行字撑得没有呼吸。
+     token 里没有 13 这一档,body=14 是最近的一档(--cy-font-label=12 又偏小)。 */
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+}
+.ctp-card.is-on .ctp-card-t { color: var(--cy-bg-card); }
+.ctp-card-s {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.ctp-card.is-on .ctp-card-s { color: var(--cy-bg-card); }
+
+/* 玩法:封面方图是主体,名称与描述在图下方、不套卡(稿 159:346) */
+.ctp-tpl {
+  display: inline-flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 220rpx;
+  margin-right: var(--cy-space-3);
+  white-space: normal;
+}
+.ctp-tpl:last-child { margin-right: 0; }
+.ctp-tpl-img {
+  /* 220rpx = 110px,与稿 110×110 一致 */
+  width: 220rpx;
+  height: 220rpx;
+  /* 稿的圆角是 24px(方图圆得很厉害,像 App 图标);lg=16px 偏方。xl=20px 是最近的一档。 */
+  border-radius: var(--cy-radius-xl);
+  background: var(--cy-bg-card-2);
+}
+/* 没有封面就退回首字母块,不留一个空方框 */
+.ctp-tpl-img--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-font-page-title);
+  color: var(--cy-text-secondary);
+}
+/* 选中:图上加一圈描边(图本身是彩色的,压黑底会看不出内容) */
+.ctp-tpl.is-on .ctp-tpl-img {
+  border: 4rpx solid var(--cy-text-title);
+}
+.ctp-tpl-t {
+  display: block;
+  margin-top: var(--cy-space-2);
+  /* 稿 13px,同 .ctp-card-t 的理由 */
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+}
+.ctp-tpl.is-on .ctp-tpl-t { font-weight: 700; }
+.ctp-tpl-s {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.ctp-foot { width: 100%; }
+
+/* 选中章节的招募事实:一行一行摞着,不做成标签云 —— 条款和名额是要读的,不是装饰 */
+.ctp-facts { display: flex; flex-direction: column; gap: var(--cy-space-1); margin-top: var(--cy-space-2); }
+.ctp-fact { font-size: var(--cy-font-caption); color: var(--cy-text-muted); }
+.ctp-foot-note { margin-top: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-text-muted); text-align: center; }

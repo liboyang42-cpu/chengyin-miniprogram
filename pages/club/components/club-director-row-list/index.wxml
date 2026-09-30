@@ -1,0 +1,24 @@
+<view class="cdrl cdrl--{{surface}}" wx:if="{{rows.length}}">
+  <view
+    wx:for="{{rows}}" wx:key="id"
+    class="cdrl__row {{item.disabled ? 'is-disabled' : ''}}"
+    data-id="{{item.id}}"
+    bindtap="onRowTap"
+    aria-role="{{selectable ? 'button' : ''}}"
+    aria-label="{{item.title}}"
+    hover-class="{{selectable && !item.disabled ? 'cy-pressed' : ''}}"
+    hover-stay-time="80"
+  >
+    <view class="cdrl__main">
+      <text class="cdrl__title">{{item.title}}</text>
+      <text class="cdrl__subtitle" wx:if="{{item.subtitle}}">{{item.subtitle}}</text>
+      <!-- details:一行放不下的权威信息(异常队伍的卡点节点/提示层级/最近有效事件)。
+           抽成组件时这三行一度被压没了,而它们恰恰是「缺失要保持待确认、不许伪造」
+           的那部分 —— 每条自带 label,缺值时由喂数据的一侧写「待确认」。 -->
+      <view class="cdrl__details" wx:if="{{item.details.length}}">
+        <text class="cdrl__detail" wx:for="{{item.details}}" wx:for-item="d" wx:key="label">{{d.label}}：{{d.text}}</text>
+      </view>
+    </view>
+    <text class="cdrl__value cdrl__value--{{item.valueTone || 'default'}}" wx:if="{{item.value}}">{{item.value}}</text>
+  </view>
+</view>

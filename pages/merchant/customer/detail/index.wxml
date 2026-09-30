@@ -1,0 +1,154 @@
+<view class="cd-page theme-merchant m-flush-nav" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar plain custom-back bind:back="onNavBack" />
+
+  <cy-skeleton wx:if="{{pageState === 'loading'}}" type="card" count="4" />
+
+  <!-- E 加载失败(Figma 71:457) -->
+  <cy-error wx:elif="{{pageState === 'error'}}" fill size="lg" title="客户详情加载失败"
+            sub="{{errorMessage || '网络开小差了，稍后再试一次'}}" retry="重新加载" bind:retry="retry" auto-back />
+
+  <!-- D 无客户权限(Figma 71:442) -->
+  <cy-empty wx:elif="{{pageState === 'no-permission'}}" fill size="lg" kind="no-permission"
+            title="当前岗位没有客户查看权限" sub="请联系店主在经营团队中调整权限"
+            cta="返回客户列表" bind:cta="onNavBack" />
+
+  <scroll-view wx:elif="{{pageState === 'ready'}}" scroll-y class="cd-scroll cy-fade-in" enhanced show-scrollbar="{{false}}">
+    <!-- 客户身份(Figma 71:287) -->
+    <view class="cd-identity">
+      <view class="cd-identity-body">
+        <text class="cd-name">{{detail.summary.displayName}}</text>
+        <text class="cd-identity-line">{{detail.identityLine}}</text>
+      </view>
+      <cy-avatar class="cd-avatar" src="{{detail.summary.avatar || '/images/d_profile.png'}}" name="{{detail.summary.displayName}}" size="120" />
+    </view>
+
+    <!-- 累计实付(Figma 71:308;B 态服务端直接给「无查看权限」) -->
+    <view class="cd-paid">
+      <text class="cd-paid-label">累计实付</text>
+      <text class="cd-paid-value {{detail.summary.paidAmount === null ? 'cd-paid-value--denied' : ''}}">{{detail.summary.paidAmountText}}</text>
+    </view>
+
+    <!-- 客户概览(Figma 71:298) -->
+    <view class="cd-sec">
+      <text class="cd-sec-title">客户概览</text>
+      <view class="cd-metrics">
+        <view class="cd-metric">
+          <text class="cd-metric-num">{{detail.summary.arrivedCount}}</text>
+          <text class="cd-metric-label">到店次数</text>
+        </view>
+        <view class="cd-metric">
+          <text class="cd-metric-num">{{detail.summary.pendingCount}}</text>
+          <text class="cd-metric-label">待核销</text>
+        </view>
+        <view class="cd-metric">
+          <text class="cd-metric-num">{{detail.summary.refundedCount}}</text>
+          <text class="cd-metric-label">已退款</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 参与记录(Figma 71:312 / C 态 71:432) -->
+    <view class="cd-sec">
+      <text class="cd-sec-title">参与记录</text>
+      <view class="cd-records" wx:if="{{detail.participation.length}}">
+        <view class="cd-record" wx:for="{{detail.participation}}" wx:key="key">
+          <view class="cd-record-date">
+            <text class="cd-record-day">{{item.day}}</text>
+            <text class="cd-record-month">{{item.month}}</text>
+          </view>
+          <view class="cd-record-body">
+            <text class="cd-record-title">{{item.title}}</text>
+            <text class="cd-record-status">{{item.statusText}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="cd-records-empty" wx:else>
+        <cy-empty kind="empty" title="暂无参与记录" sub="完成报名或核销后会出现在这里" />
+      </view>
+    </view>
+
+    <!-- 标签与备注(Figma 71:334 / C 态 71:439) -->
+    <view class="cd-sec">
+      <text class="cd-sec-title">标签与备注</text>
+      <view class="cd-notecard">
+        <view class="cd-chips" wx:if="{{hasTags}}">
+          <view class="cd-chip" wx:for="{{detail.systemTags}}" wx:key="code"><text>{{item.label}}</text></view>
+          <view class="cd-chip" wx:for="{{detail.merchantTags}}" wx:key="id"><text>{{item.tagName}}</text></view>
+        </view>
+        <text class="cd-note" wx:if="{{latestNoteText}}">备注：{{latestNoteText}}</text>
+        <text class="cd-note cd-note--empty" wx:if="{{!hasTags && !latestNoteText}}">暂无标签与备注</text>
+        <view class="cd-notecard-foot">
+          <view wx:if="{{canEdit}}" class="cd-edit" bindtap="openEditor" aria-role="button" aria-label="编辑标签与备注"
+                hover-class="cy-pressed" hover-stay-time="80">
+            <text class="cd-edit-label">编辑</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="cd-tail"></view>
+  </scroll-view>
+
+  <!-- F 编辑标签与备注(Figma 87:339) -->
+  <cy-sheet show="{{editorOpen}}" handle title="编辑标签与备注" bind:close="closeEditor">
+    <view class="cd-editor">
+      <text class="cd-editor-label">客户标签</text>
+      <view class="cd-chips" wx:if="{{detail.merchantTags.length}}">
+        <view class="cd-chip cd-chip--removable" wx:for="{{detail.merchantTags}}" wx:key="id">
+          <text>{{item.tagName}}</text>
+          <text class="cd-chip-x" data-tagid="{{item.id}}" catchtap="removeTag"
+                aria-role="button" aria-label="移除标签 {{item.tagName}}" hover-class="cy-pressed" hover-stay-time="80">×</text>
+        </view>
+      </view>
+      <text class="cd-editor-hint" wx:else>还没有店内标签</text>
+
+      <view class="cd-field">
+        <input class="cd-field-input" value="{{tagName}}" maxlength="16" placeholder="输入新标签"
+               placeholder-class="cd-placeholder" bindinput="onTagInput" bindconfirm="submitTag" />
+        <text class="cd-field-action {{tagSubmitting ? 'cd-field-action--busy' : ''}}" bindtap="submitTag"
+              aria-role="button" aria-label="添加标签" hover-class="cy-pressed" hover-stay-time="80">{{tagSubmitting ? '添加中…' : '添加'}}</text>
+      </view>
+      <cy-inline-error class="cd-editor-error" wx:if="{{tagError}}" kind="data"
+        title="标签未添加" sub="{{tagError}}" />
+
+      <text class="cd-editor-label">客户备注</text>
+      <text wx:if="{{correctsNoteId}}" class="cd-editor-hint">正在更正备注 #{{correctsNoteId}}；系统追加新记录，不改原文。<text class="cd-editor-cancel" catchtap="cancelCorrection" aria-role="button" aria-label="取消更正" hover-class="cy-pressed" hover-stay-time="80">取消更正</text></text>
+      <view class="cd-textarea-wrap">
+        <textarea class="cd-textarea" value="{{noteContent}}" maxlength="500"
+                  placeholder="记录偏好、承诺事项或下次联系计划" placeholder-class="cd-placeholder"
+                  bindinput="onNoteInput" />
+        <text class="cd-textarea-count">{{noteContent.length}}/500</text>
+      </view>
+      <cy-inline-error class="cd-editor-error" wx:if="{{noteError}}" kind="data"
+        title="备注未保存" sub="{{noteError}}" />
+
+      <!-- 稿的编辑弹窗没画这块,但线上已有这些能力,收编时不能顺手删掉:
+           ① 跟进的「追加更正」(只追加不改原文)与「隐藏」(保留审计);
+           ② 触达(CAMPAIGN)记录 —— 旧「互动时间线」删掉后它没别的落点,只读展示。
+           操作钮只挂在可管理的跟进上,触达行没有。 -->
+      <view wx:if="{{noteHistory.length}}">
+        <text class="cd-editor-label">跟进与触达</text>
+        <view class="cd-history">
+        <view class="cd-history-row" wx:for="{{noteHistory}}" wx:key="key">
+          <view class="cd-history-body">
+            <text class="cd-history-text">{{item.description}}</text>
+            <text class="cd-history-time">{{item.typeText}} · {{item.occurredAtText || '时间待确认'}}</text>
+          </view>
+          <view class="cd-history-actions" wx:if="{{item.canManageNote}}">
+            <text class="cd-history-action" data-noteid="{{item.noteId}}" catchtap="startCorrection"
+                  aria-role="button" aria-label="追加更正" hover-class="cy-pressed" hover-stay-time="80">更正</text>
+            <text class="cd-history-action cd-history-action--danger" data-noteid="{{item.noteId}}" data-version="{{item.noteVersion}}"
+                  catchtap="hideNote" aria-role="button" aria-label="隐藏这条跟进"
+                  hover-class="{{noteHidingId ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{noteHidingId === item.noteId ? '处理中…' : '隐藏'}}</text>
+          </view>
+        </view>
+        </view>
+      </view>
+
+      <cy-btn class="cd-save" variant="primary" loading="{{noteSubmitting}}" bindtap="submitNote">保存</cy-btn>
+    </view>
+  </cy-sheet>
+</view>

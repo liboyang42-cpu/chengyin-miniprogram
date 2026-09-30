@@ -1,0 +1,12 @@
+<cy-modal show="{{show}}" title="{{title}}" content="{{editable ? '' : content}}" confirm-text="{{confirmText}}" cancel-text="{{cancelText}}"
+  show-cancel="{{showCancel}}" danger="{{danger}}" bind:confirm="onConfirm" bind:cancel="onCancel">
+  <view wx:if="{{editable}}" class="mh__editable">
+    <text wx:if="{{content}}" class="mh__content">{{content}}</text>
+    <input class="mh__input" value="{{inputValue}}" placeholder="{{placeholderText}}" placeholder-class="mh__placeholder"
+      maxlength="{{maxlength > 0 ? maxlength : 140}}" bindinput="onInput" confirm-type="done" aria-label="{{placeholderText || title}}" />
+    <!-- CU-C-56/58/M-49:校验不过的提示贴在输入框下,面板不关、输入不丢 -->
+    <cy-inline-error wx:if="{{inputError}}" class="mh__error" kind="error" title="{{inputError}}" sub="" />
+  </view>
+</cy-modal>
+<!-- 已登记危险写(utils/danger-actions.js)走三段式确认;modal.show({ dangerKey, dangerParams, success }) 路由到这里 -->
+<cy-danger-confirm id="dc" bind:confirm="onDcConfirm" bind:cancel="onDcCancel" />

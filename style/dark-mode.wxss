@@ -1,0 +1,158 @@
+/* ============================================================
+ * 系统深色模式(2026-08-22)—— 只作用于**浅色业务域**
+ *
+ * 设计前提:本项目有两层「主题」,别混成一维 ——
+ *   · 业务域主题:玩家域(page{} 基底)恒深色,是沉浸式游戏语境,**系统外观不该改变它**;
+ *     商家域(.theme-light/.theme-merchant)恒浅色,是长时工作台,**夜间必须能跟随系统变深**。
+ *   · 系统外观:用户在手机系统里开的深色模式。本块只在系统深色时,把商家域切到深值。
+ *
+ * 值的来源:逐条取 page{} 基底(玩家域)的同名 token —— 那套调色板已做过 R1 对比度校正,
+ * 不另发明第二套深色,避免 38 个未经评审的新色值。
+ * ⚠️ 已知取舍:因此商家域深色 = 玩家域深色(bg-page 纯黑)。Material 深色规范建议工作台
+ * 基底用 #121212 而非纯黑以便用高度分层;此项留作后续设计决策,不在本批擅自改。
+ *
+ * ⚠️ 必须整组重声明:WXSS 变量在 .theme-light 块里就地求值、按值继承(见该块 2026-08-07 实证),
+ * 只覆盖语义层不覆盖旧名 alias 会出现「一半变一半没变」。键集完整性由
+ * tests/unit/system-darkmode-contract.test.js 逐条对齐 .theme-light 判红。
+ *
+ * ⚠️ WXSS 的 prefers-color-scheme **不受 app.json 的 darkmode 开关影响**(微信官方文档),
+ * 只要客户端支持深色,本块即生效;app.json 的 darkmode 只用于让 JS 读到 theme。
+ *
+ * 未覆盖:.theme-topic-editor(主题创建域)—— 它有独立的对比度契约
+ * (topic-editor-theme-contract),且是低频创作流程,留后续批次。
+ * ============================================================ */
+@media (prefers-color-scheme: dark) {
+  page.theme-light,
+  .theme-light,
+  .theme-merchant {
+    --cy-color-bg-page: #000000;
+    --cy-color-bg-surface: #0A0A0B;
+    --cy-color-bg-surface-subtle: #141416;
+    --cy-color-bg-elevated: #1C1C1E;
+    --cy-color-bg-surface-strong: #3B3B3D;
+    --cy-color-bg-raised: #2A2A2C;
+    --cy-color-bg-glass: rgba(28,28,30,.82);
+    --cy-color-text-primary: #F8F8F8;
+    --cy-color-text-secondary: #B7B7B7;
+    --cy-color-text-tertiary: #919191;
+    --cy-color-text-placeholder: #868686;
+    --cy-color-text-disabled: rgba(255,255,255,.40);
+    --cy-color-text-inverse: #0A0A0A;
+    /* 2026-09-03:空亮填暗(与 tokens page{} 同步) */
+    --cy-color-input-idle-bg: #3B3B3D;
+    --cy-color-input-filled-bg: #1C1C1E;
+    --cy-color-input-text: #F2F2F4;
+    --cy-color-input-filled-fg: #F2F2F4;
+    --cy-color-input-placeholder: #A3A3A5;
+    --cy-comp-search-idle-bg: var(--cy-color-input-idle-bg);
+    --cy-comp-search-filled-bg: var(--cy-color-input-filled-bg);
+    --cy-comp-search-filled-fg: var(--cy-color-input-filled-fg);
+    --cy-comp-search-placeholder: var(--cy-color-input-placeholder);
+    --cy-color-border-subtle: rgba(255,255,255,.08);
+    --cy-comp-nav-bg: var(--cy-color-bg-page);
+    --cy-comp-nav-border: transparent;
+    --cy-comp-card-highlight: rgba(255,255,255,.08);
+    --cy-comp-card-shadow-day: 0 0 0 0 transparent;
+    --cy-comp-card-border: transparent;
+    --cy-comp-cell-fill-bg: var(--cy-color-bg-surface-subtle);
+    --cy-comp-sheet-bg: var(--cy-color-bg-glass);
+    --cy-text-title: var(--cy-color-text-primary);
+    --cy-color-border-strong: rgba(255,255,255,.16);
+    --cy-color-sheet-handle: #5A5A5A;
+    --cy-color-result-fail-badge: #F94D5C;
+    --cy-color-state-pressed: rgba(255,255,255,.10);
+    --cy-color-overlay: rgba(0,0,0,.56);
+    --cy-color-action-primary-bg: #F8F8F8;
+    --cy-color-action-primary-fg: #0A0A0A;
+    --cy-color-action-secondary-bg: rgba(255,255,255,.08);
+    --cy-color-action-danger-bg: var(--cy-ref-red-700);
+    --cy-color-action-danger-fg: #FFFFFF;
+    --cy-color-selection: var(--cy-color-text-primary);
+    --cy-color-brand: var(--cy-color-text-primary);
+    --cy-color-brand-strong: var(--cy-color-text-secondary);
+    --cy-color-brand-soft: rgba(248,248,248,.12);
+    --cy-color-status-success: #22C55E;                    /* 2026-09-01 D3:跟 page{} 同步,原 #12B886 */
+    --cy-color-status-warning: #D58300;   /* 跟 tokens 的 9-02 实测值同步 */
+    --cy-color-status-danger: #E5484D;
+    --cy-color-status-info: var(--cy-ref-blue-400);
+    --cy-color-status-danger-soft: rgba(229,72,77,.14);
+    --cy-color-status-neutral-soft: rgba(145,145,145,.16);   /* 2026-09-01:状态胶囊软底,与其余五支同构(本域 text-tertiary 的低透明版) */
+    --cy-color-rare-soft: rgba(245,159,0,.14);          /* 同上;rare 与 warning 同为琥珀,按手册「同色靠图标区分」的既有做法,不换色相 */
+    --cy-color-rare-fg: var(--cy-color-rare);   /* 夜间琥珀压在自己的软底上 7.6:1,直接用本色 */
+    --cy-color-status-success-soft: rgba(34,197,94,.14);
+    --cy-color-status-warning-soft: rgba(213,131,0,.18);
+    --cy-color-status-info-soft: rgba(76,134,255,.14);
+    --cy-color-skeleton-base: #191919;
+    --cy-color-skeleton-highlight: #242424;
+    --cy-color-bg-interactive:                        #4D4D4D;
+    --cy-color-status-danger-on-interactive:          #FF3B4F;
+    --cy-color-medal-gold:                            #FFCB3C;
+    --cy-color-medal-silver:                          #D6D6D6;
+    --cy-color-medal-bronze:                          #F58C41;
+    --cy-color-skeleton-on-sheet:                     #303038;
+    /* 模板页紫面 —— 系统深色下,商家域(浅端)也要切到暗值,
+       否则 .theme-merchant 的极淡紫面在系统深色里会变成一块刺眼白。
+       键集必须与 tokens.wxss 的 page.theme-light/.theme-merchant 块逐字对应(本文件有双向契约)。 */
+    --cy-color-panel-accent-top:   #5B2A9D;
+    --cy-color-panel-accent-mid:   #341A55;
+    --cy-color-panel-accent-deep:  #180E24;
+    --cy-color-panel-accent-base:  #0B0810;
+    --cy-color-glow-sweep:         #FFFFFF;
+    --cy-color-glow-sweep-soft:    #EFEDFA;
+    --cy-bg-subtle: rgba(255,255,255,0.04);
+    --cy-white-4: rgba(255,255,255,0.04);
+    --cy-white-64: rgba(255,255,255,0.64);
+    --cy-price: #FFFFFF;
+    --cy-shadow-card: none;
+    --cy-bg-page: var(--cy-color-bg-page);
+    --cy-bg-card: var(--cy-color-bg-surface);
+    --cy-comp-modal-panel: #4D4D4D;   /* 危险确认面板:跟 page{} 一致,别继承成 #0A0A0B 隐形 */
+    --cy-bg-card-2: var(--cy-color-bg-surface-subtle);
+    --cy-bg-glass: var(--cy-color-bg-glass);
+    --cy-bg-elevated: var(--cy-color-bg-elevated);
+    --cy-bg-raised: var(--cy-color-bg-raised);
+    --cy-bg-interactive: var(--cy-color-bg-interactive);
+    --cy-bg-accent-weak: var(--cy-color-brand-soft);
+    --cy-text-body: var(--cy-color-text-secondary);
+    --cy-text-secondary: var(--cy-color-text-tertiary);
+    --cy-text-placeholder: var(--cy-color-text-placeholder);
+    --cy-text-inverse: var(--cy-color-text-inverse);
+    --cy-border-card: var(--cy-color-border-subtle);
+    --cy-border-line: var(--cy-color-border-strong);
+    --cy-brand: var(--cy-color-brand);
+    --cy-brand-soft: var(--cy-color-brand-soft);
+    --cy-accent: var(--cy-color-brand);
+    --cy-accent-strong: var(--cy-color-brand-strong);
+    --cy-accent-soft: var(--cy-color-brand-soft);
+    --cy-info: var(--cy-color-status-info);
+    --cy-success: var(--cy-color-status-success);
+    --cy-danger: var(--cy-color-status-danger);
+    --cy-danger-soft: var(--cy-color-status-danger-soft);
+    --cy-gold: var(--cy-color-rare);
+    --cy-white-8: var(--cy-color-border-subtle);
+    --cy-white-16: var(--cy-color-border-strong);
+    --cy-white-40: var(--cy-color-text-disabled);
+    --cy-btn-solid-bg: var(--cy-color-action-primary-bg);
+    --cy-btn-solid-fg: var(--cy-color-action-primary-fg);
+    /* 与 tokens.wxss 的 .theme-merchant 块逐字对应(双向契约):comp 档也要在这里
+       重新求值,否则夜间商家页的 cy-btn 会停在白天的黑底快照上。 */
+    --cy-comp-btn-primary-bg: var(--cy-color-action-primary-bg);
+    --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+    --cy-comp-btn-secondary-bg: var(--cy-color-bg-surface-subtle);
+    --cy-comp-btn-secondary-fg: var(--cy-color-text-primary);
+    --cy-comp-sheet-role-glass: var(--cy-comp-sheet-player-glass);
+    --cy-comp-sheet-role-page: var(--cy-comp-sheet-player-page);
+    --cy-comp-sheet-role-surface: var(--cy-comp-sheet-player-surface);
+    --cy-comp-sheet-role-card: var(--cy-comp-sheet-player-card);
+    --cy-comp-sheet-role-elevated: var(--cy-comp-sheet-player-elevated);
+    --cy-comp-sheet-role-text: var(--cy-comp-sheet-player-text);
+    --cy-comp-sheet-role-text-secondary: var(--cy-comp-sheet-player-text-secondary);
+    --cy-comp-sheet-role-muted: var(--cy-comp-sheet-player-muted);
+    --cy-comp-sheet-role-action-secondary: var(--cy-comp-sheet-player-action-secondary);
+    --cy-comp-sheet-role-divider: var(--cy-comp-sheet-player-divider);
+    --cy-comp-sheet-role-border-strong: var(--cy-comp-sheet-player-border-strong);
+    --cy-comp-sheet-role-btn-bg: var(--cy-comp-sheet-player-text);
+    --cy-comp-sheet-role-btn-fg: var(--cy-comp-sheet-player-page);
+    --cy-comp-sheet-role-card-shadow: 0 0 0 0 transparent;
+  }
+}

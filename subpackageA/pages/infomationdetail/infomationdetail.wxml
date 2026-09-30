@@ -1,0 +1,43 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="container">
+  <!-- 本页 onShareAppMessage(infomationdetail.js:122)会把自身路由做成分享 path
+       ⇒ 分享卡片点开时它**就是**页面栈第一页,组件内建返回必然不动 = 死箭头(硬证据)。
+       接管后兜底回同域的玩法列表(无参),语义最近。 -->
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <!-- .container 本身有横向 padding,cy-page-title 不 flush 会被推成双倍缩进(2026-07-31 组件统一清单) -->
+  <cy-page-title title="玩法详情" flush="{{true}}" />
+  <!-- 加载 / 参数缺失 / 失败 / 内容四态互斥:原来 error 块与 wx:else 的内容块并列渲染,
+       出错时空标题 + 空 meta(自带 border-bottom)照样占位 ⇒ 用户看到「一段空内容 + 一个错误」。
+       微信官方设计指南亦要求同一页面不同时出现多于一个加载/状态。
+       加载态走 bbb(骨架屏,不写"加载中"文字);参数缺失走 aaa(missing-param,零假重试,只给真出口)。 -->
+  <cy-skeleton wx:if="{{loading}}" type="detail" />
+
+  <cy-empty class="if-fill cy-fade-in" wx:elif="{{missing}}" fill="{{true}}" size="lg" kind="missing-param" cta="返回" bind:cta="onMissingBack" />
+
+  <!-- 接口 200 但实体已被删除:重试没有意义(它真的不在了),所以给的是「去看看别的」而不是「重试」 -->
+  <cy-empty class="if-fill" wx:elif="{{notfound}}" fill="{{true}}" size="lg"
+    title="这篇玩法说明不在了" sub="它可能已被下架。去玩法列表看看其它的。"
+    cta="返回玩法列表" bind:cta="onMissingBack" />
+
+  <cy-error class="if-fill" wx:elif="{{error}}" fill="{{true}}" size="lg" icon="/images/no_data.svg" title="加载失败" sub="{{errorMsg || '请稍后重试'}}" bind:retry="retryLoad" auto-back />
+
+  <!-- 内容区域 -->
+  <view wx:else class="detail-content">
+    <!-- 标题 -->
+    <view class="detail-title">{{detailData.title}}</view>
+    
+    <!-- 副标题和其他信息 -->
+    <view class="detail-meta">
+      <text class="detail-time" wx:if="{{detailData.createTime}}">{{detailData.createTime}}</text>
+    </view>
+    
+    <!-- HTML内容区域 -->
+    <view class="html-content">
+      <rich-text nodes="{{contentNodes}}"></rich-text>
+    </view>
+  </view>
+</view>
+</view>

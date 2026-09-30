@@ -1,0 +1,77 @@
+<view class="sdl" catchtouchmove="blockTouch">
+  <cy-scene-sheet
+    wx:if="{{sceneCurrent}}"
+    show="{{true}}"
+    variant="{{sceneCurrent.variant}}"
+    theme="{{sceneCurrent.theme}}"
+    title="{{sceneCurrent.title}}"
+    can-back="{{sceneCurrent.variant !== 'half' && (sceneCurrent.canBack || sceneStack.length > 1)}}"
+    dirty="{{sceneCurrent.dirty}}"
+    mask-closable="{{sceneCurrent.maskClosable}}"
+    footer="{{sceneCurrent.footer}}"
+    bind:requestclose="requestSceneClose"
+    bind:back="backScene"
+  >
+    <block wx:if="{{sceneCurrent.id === 'play-activity-detail'}}">
+      <cy-scene-play-activity-detail activity-id="{{sceneCurrent.params.id}}" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'roam-task-list'}}">
+      <cy-scene-roam-task-list bind:open="openChildScene" bind:close="closeChildScene" bind:official="openOfficialEvent" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'roam-poi-detail'}}">
+      <cy-scene-roam-poi-detail poi-id="{{sceneCurrent.params.poiId}}" merchant-id="{{sceneCurrent.params.merchantId}}" bind:open="openChildScene" bind:close="closeChildScene" bind:citystamp="openCityStamp" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'roam-discover'}}">
+      <cy-scene-roam-discover bind:open="openChildScene" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'roam-history'}}">
+      <cy-scene-roam-history bind:open="openChildScene" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'roam-session'}}">
+      <cy-scene-roam-session ts="{{sceneCurrent.params.ts}}" bind:back="backScene" bind:share="onSessionShare" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'game-coupon-wallet'}}">
+      <cy-scene-game-coupon-wallet bind:open="openChildScene" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'qr-coupon'}}">
+      <cy-scene-qr-coupon coupon-history-id="{{sceneCurrent.params.couponHistoryId}}" name="{{sceneCurrent.params.name}}" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'qr-group-code'}}">
+      <cy-scene-qr-group-code activity-id="{{sceneCurrent.params.activityId}}" topic-id="{{sceneCurrent.params.topicId}}" name="{{sceneCurrent.params.name}}" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'qr-citynode'}}">
+      <cy-scene-qr-citynode poi-id="{{sceneCurrent.params.poiId}}" name="{{sceneCurrent.params.name}}" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'qr-ticket'}}">
+      <cy-scene-qr-ticket registration-id="{{sceneCurrent.params.registrationId}}" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'roam-stamp-album'}}">
+      <cy-scene-roam-stamp-album bind:camera="openStampCamera" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'member-withdraw-history'}}">
+      <cy-scene-member-withdraw-history theme="{{sceneCurrent.theme}}" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'member-order-detail'}}">
+      <cy-scene-member-order-detail order-id="{{sceneCurrent.params.id}}" theme="{{sceneCurrent.theme}}" bind:back="backScene" bind:close="closeChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'asset-income-detail'}}">
+      <cy-scene-asset-income-detail theme="{{sceneCurrent.theme}}" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'member-order-history'}}">
+      <cy-scene-member-order-history bind:open="openChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'asset-earnings'}}">
+      <cy-scene-asset-earnings theme="{{sceneCurrent.theme}}" bind:open="openChildScene" />
+    </block>
+    <block wx:elif="{{sceneCurrent.id === 'share-invite'}}">
+      <cy-scene-share-invite theme="{{sceneCurrent.theme}}" design-preview="{{true}}" />
+    </block>
+    <block wx:else>
+      <cy-scene-route-content id="deepSceneRouteContent" scene-id="{{sceneCurrent.id}}" params="{{sceneCurrent.params}}" theme="{{sceneCurrent.theme}}" bind:open="openChildScene" bind:back="backScene" bind:close="closeChildScene" bind:dirtychange="onSceneDirtyChange" />
+    </block>
+    <view wx:if="{{sceneCurrent.footer}}" slot="footer" class="sdl__footer">
+      <cy-btn variant="primary" bindtap="submitSceneForm">{{sceneCurrent.id === 'member-withdraw' ? '确认提现' : sceneCurrent.id === 'settings-profile' ? '保存资料' : sceneCurrent.id === 'settings-feedback' ? '提交建议' : sceneCurrent.id === 'merchant-apply' ? '提交入驻申请' : sceneCurrent.id === 'club-apply' ? '提交申请' : sceneCurrent.id === 'merchant-citynode' ? '提交互动模板' : '保存'}}</cy-btn>
+    </view>
+  </cy-scene-sheet>
+  <cy-modal show="{{sceneConfirm.show}}" title="放弃当前修改？" content="当前内容还没有保存，关闭后会丢失。" confirm-text="放弃并关闭" cancel-text="继续编辑" danger bind:confirm="confirmSceneDiscard" bind:cancel="cancelSceneDiscard" />
+</view>

@@ -1,0 +1,19 @@
+<cy-sheet show="{{show}}" title="{{title}}" closable="{{true}}" footer="{{!immediate}}"
+          bind:close="onClose" bind:requestclose="onClose">
+  <view class="os">
+    <view class="os__row {{row.disabled ? 'os__row--off' : ''}} {{(!immediate && picked === row.index) ? 'os__row--on' : ''}}"
+          wx:for="{{rows}}" wx:for-item="row" wx:key="index"
+          data-index="{{row.index}}" bindtap="onRow"
+          hover-class="{{row.disabled ? '' : 'cy-pressed'}}" hover-stay-time="80"
+          aria-role="{{immediate ? 'button' : 'radio'}}"
+          aria-label="{{row.label}}"
+          aria-selected="{{!immediate && picked === row.index}}"
+          aria-disabled="{{row.disabled}}">
+      <view class="os__label">{{row.label}}</view>
+      <view class="os__dot" wx:if="{{!immediate}}"><cy-icon wx:if="{{picked === row.index}}" name="check" size="24" /></view>
+    </view>
+  </view>
+  <view slot="footer" wx:if="{{!immediate}}">
+    <cy-btn variant="{{picked < 0 ? 'disabled' : 'primary'}}" disabled="{{picked < 0}}" bindtap="onConfirm">{{confirmText}}</cy-btn>
+  </view>
+</cy-sheet>

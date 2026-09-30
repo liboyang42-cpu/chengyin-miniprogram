@@ -1,0 +1,55 @@
+:host { display: block; }
+.cts { width: 100%; padding-top: 12rpx; padding-bottom: 8rpx; box-sizing: border-box; }
+
+.cts__card {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 28rpx;
+  background: var(--cy-color-bg-raised);
+  border-radius: var(--cy-radius-md);
+}
+
+.cts__row { width: 100%; padding: 24rpx 0; box-sizing: border-box; }
+.cts__row-main { display: flex; align-items: center; gap: 16rpx; width: 100%; }
+.cts__title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+}
+.cts__value {
+  flex-shrink: 0;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-tertiary);
+}
+.cts__value--success { color: var(--cy-color-status-success); }
+.cts__chevron { flex-shrink: 0; font-size: var(--cy-type-body); color: var(--cy-color-text-tertiary); }
+.cts__hint {
+  display: block;
+  margin-top: 6rpx;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+  line-height: 1.5;
+}
+
+.cts__hairline { width: 100%; height: 1px; background: var(--cy-color-border-subtle); }
+
+.cts__section {
+  display: block;
+  margin-top: 40rpx;
+  margin-bottom: 32rpx;
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--cy-color-text-tertiary);
+}
+
+.cts__footnote {
+  display: block;
+  margin-top: 28rpx;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-placeholder);
+  line-height: 1.5;
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,本地补一份(照 scene-club-edit 的既有做法) */
+.cy-pressed { opacity: .88; }

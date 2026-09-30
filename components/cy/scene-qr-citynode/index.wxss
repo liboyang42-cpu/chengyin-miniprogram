@@ -1,0 +1,2 @@
+:host { display: block; min-height: 100%; }
+.citynode-code-body { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }

@@ -1,0 +1,346 @@
+<wxs src="../../../utils/time-format.wxs" module="tf" />
+<view class="page theme-merchant {{reducedMotion ? 'cy-motion-reduced' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- ===== 头部 ===== -->
+  <cy-nav-bar title="{{mode==='status' ? '审核状态' : (step===5 ? '提交成功' : '')}}" custom-back bind:back="onHeaderBack" />
+  <view class="merchant-apply-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <view class="wizard-head" wx:if="{{bootstrapState === 'ready' && mode==='form' && step<5 && !introMode}}">
+    <view class="wizard-head__meta"><text>商家入驻</text><text>{{step}} / 4</text></view>
+    <view class="wizard-progress {{morphing ? 'prog--ghost' : ''}}"
+      aria-role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-valuenow="{{step}}"
+      aria-label="商家入驻，第 {{step}} 步，共 4 步，{{stepLabels[step - 1]}}">
+      <view wx:for="{{dots}}" wx:key="*this"
+            class="progress-segment {{item < step ? 'on' : ''}}"></view>
+    </view>
+    <view class="wizard-head__copy {{stepIn ? 'cy-rise-in' : ''}}">
+      <view class="wizard-head__eyebrow">{{stepEyebrows[step - 1]}}</view>
+      <view class="wizard-head__title">{{stepHeadlines[step - 1]}}</view>
+      <view class="wizard-head__legend" wx:if="{{step < 4}}">标 <text class="req" aria-hidden="true">*</text> 的是必填</view>
+    </view>
+  </view>
+
+  <!-- ===== 开场屏(四步之前,Figma M0) ===== -->
+  <view class="intro {{morphing ? 'intro--out' : 'cy-rise-in'}}"
+        wx:if="{{bootstrapState === 'ready' && mode==='form' && (introMode || morphing)}}">
+    <view class="intro__eyebrow">商家入驻</view>
+    <view class="intro__title">把你的店
+放进玩家的路线里</view>
+    <view class="intro__sub">四步，填完提交审核。</view>
+    <view class="intro__points">
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>基础信息 · 经营信息 · 资质 · 确认</text></view>
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>营业执照用于核验经营主体</text></view>
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>提交后可随时回来看进度与驳回原因</text></view>
+    </view>
+    <view class="intro-cta"><cy-btn variant="primary" accessibilityLabel="开始入驻" bindtap="startForm">开始入驻</cy-btn></view>
+    <view class="intro__fine">审核团队会用你填的联系电话与你确认。</view>
+  </view>
+
+  <!-- 开场胶囊 → 进度条:共享元素形变,几何与约束见 utils/wizard-morph.js -->
+  <view class="morph" wx:if="{{morph}}" aria-hidden="true"
+        style="left:{{morph.x}}px; top:{{morph.y}}px; width:{{morph.w}}px; height:{{morph.h}}px;
+               transform: translate({{morphRun ? morph.dx : 0}}px, {{morphRun ? morph.dy : 0}}px)
+                          scale({{morphRun ? morph.sx : 1}}, {{morphRun ? morph.sy : 1}});
+               border-radius: {{morphRun ? 3 : 999}}px;">
+    <view class="morph__track" style="opacity:{{morphRun ? 1 : 0}}"></view>
+    <view class="morph__fill" style="transform: scaleX({{morphRun ? morph.fx : 1}})"></view>
+  </view>
+
+  <!-- 开场屏在时这层要整个关掉:它带 flex:1,空着也占一半高度,
+       会把贴底的开场屏顶上去(实测)。只在「ready+form+开场」这一态关。 -->
+  <scroll-view scroll-y class="body" wx:if="{{!(bootstrapState === 'ready' && mode==='form' && introMode && !morphing)}}">
+    <view class="bootstrap-state" wx:if="{{bootstrapState === 'checking-role'}}">
+      <cy-state-shell kind="loading" title="正在确认申请资格" sub="确认当前账号是否可以申请商家入驻" theme="merchant" />
+    </view>
+    <view class="bootstrap-state" wx:elif="{{bootstrapState === 'checking-application'}}">
+      <cy-state-shell kind="loading" title="正在检查已有申请" sub="已有资料不会重复提交" theme="merchant" />
+    </view>
+    <view class="bootstrap-state" wx:elif="{{bootstrapState === 'error'}}">
+      <cy-state-shell kind="{{bootstrapErrorKind || 'error'}}"
+                      title="{{bootstrapErrorKind === 'network' ? '网络没连上' : '暂时无法确认申请状态'}}"
+                      sub="{{bootstrapError}}" primary="重新检查" theme="merchant"
+                      bind:primary="retryBootstrap" auto-back="{{!everSettled}}" />
+    </view>
+
+    <block wx:elif="{{bootstrapState === 'ready'}}">
+
+    <block wx:if="{{hasOwnedClubs}}">
+      <view class="sec-label">主理人身份处理</view>
+      <cy-card class="apply-card club-transfer-card">
+        <view class="club-transfer-title">商家账号生效前，须完成俱乐部移交</view>
+        <view class="club-transfer-sub">申请可以先提交审核。以下是当前账号名下全部未删除俱乐部；只有已生效俱乐部可进入治理页移交。</view>
+        <view class="club-transfer-row" wx:for="{{ownedClubs}}" wx:key="id">
+          <view class="club-transfer-copy">
+            <view class="club-transfer-name">{{item.name}}</view>
+            <cy-badge type="status" variant="{{item.badgeVariant}}" label="{{item.statusText}}" />
+          </view>
+          <view wx:if="{{item.canTransfer}}" class="club-transfer-action">
+            <cy-btn variant="secondary" size="sm"
+                    data-club-id="{{item.id}}" bindtap="openClubGovernance"
+                    accessibilityLabel="前往{{item.name}}治理页移交主理人">前往移交</cy-btn>
+          </view>
+        </view>
+      </cy-card>
+    </block>
+
+    <!-- ===== 审核状态 ===== -->
+    <block wx:if="{{mode==='status'}}">
+      <view class="sec-label">商家入驻申请</view>
+      <cy-card class="apply-card status-card">
+        <view class="st-row">
+          <cy-badge type="status"
+                    variant="{{apply.badgeVariant}}"
+                    label="{{apply.statusLabel}}" />
+        </view>
+        <view class="succ-desc">{{apply.statusText}}</view>
+        <view class="preview-kv"><text class="pk">店铺名称</text><text class="pv">{{apply.name || '—'}}</text></view>
+        <view class="preview-kv"><text class="pk">联系电话</text><text class="pv">{{apply.phone || '—'}}</text></view>
+        <view class="preview-kv last"><text class="pk">店铺地址</text><text class="pv">{{apply.address || '—'}}</text></view>
+      </cy-card>
+      <cy-card class="apply-card timeline">
+        <view class="tl-item done">
+          <view class="tl-dot"></view>
+          <view class="tl-body"><view class="tl-t">提交申请</view><view class="tl-s">{{apply.createTime || '已提交'}}</view></view>
+        </view>
+        <view class="tl-item {{apply.status===0 ? 'cur' : 'done'}}">
+          <view class="tl-dot"></view>
+          <view class="tl-body"><view class="tl-t">资料初审</view><view class="tl-s">{{apply.status===0 ? '审核团队审核中' : '已完成'}}</view></view>
+        </view>
+        <view class="tl-item last {{apply.timelineClass}}">
+          <view class="tl-dot"></view>
+          <view class="tl-body"><view class="tl-t">审核结果</view><view class="tl-s">{{apply.timelineText}}</view></view>
+        </view>
+      </cy-card>
+    </block>
+
+    <!-- ===== 步骤1:基础信息 ===== -->
+    <view class="step cy-rise-in" wx:if="{{mode==='form' && step===1 && !introMode}}">
+      <cy-card class="apply-card wizard-card">
+        <view class="frow frow--field">
+          <text class="fl">店铺名称<text class="req" aria-hidden="true">*</text></text>
+          <input class="fi" data-field="name" value="{{name}}" bindinput="onInput" placeholder="品牌名称" placeholder-class="ph"
+                 aria-required="true" aria-label="店铺名称，必填" />
+        </view>
+        <view class="frow frow--field">
+          <text class="fl">经营类目</text>
+          <input class="fi" data-field="preference" value="{{preference}}" bindinput="onInput" placeholder="如 餐饮、零售、文创" placeholder-class="ph" />
+        </view>
+        <view class="frow frow--field last">
+          <text class="fl">联系电话<text class="req" aria-hidden="true">*</text></text>
+          <input class="fi" data-field="phone" value="{{phone}}" bindinput="onInput" type="number" placeholder="11位手机号" placeholder-class="ph"
+                 aria-required="true" aria-label="联系电话，必填" />
+        </view>
+      </cy-card>
+      <view class="foot">请填写真实有效的信息，以便审核团队联系。</view>
+    </view>
+
+    <!-- ===== 步骤2:经营信息 ===== -->
+    <view class="step cy-rise-in" wx:if="{{mode==='form' && step===2 && !introMode}}">
+      <cy-card class="apply-card wizard-card">
+        <view class="frow frow--field" bindtap="chooseLocation" aria-role="button" aria-required="true" aria-label="店铺地址，必填，点击选择位置" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="fl">店铺地址<text class="req" aria-hidden="true">*</text></text>
+          <view class="field-control"><text class="fi {{address ? '' : 'ph'}}">{{address || '点击选择位置'}}</text><cy-icon name="arrow-right" size="28" /></view>
+        </view>
+        <view class="frow frow--field last" bindtap="openHoursPicker" aria-role="button" aria-required="true" aria-label="经营时间，必填，点击设置营业日与时段" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="fl">经营时间<text class="req" aria-hidden="true">*</text></text>
+          <view class="field-control"><text class="fi {{businessTime ? '' : 'ph'}}">{{businessTime || '点击设置营业日与时段'}}</text><cy-icon name="arrow-right" size="28" /></view>
+        </view>
+      </cy-card>
+      <cy-card class="apply-card wizard-card mt-s">
+        <text class="fl text-area-label">店铺介绍</text>
+        <view class="text-area-block">
+          <textarea class="fta" data-field="description" value="{{description}}" bindinput="onInput" maxlength="200"
+                    placeholder="介绍你的品牌、特色产品或服务，让用户快速了解你。" placeholder-class="ph" />
+          <view class="ta-count">{{description.length}} / 200</view>
+        </view>
+      </cy-card>
+    </view>
+
+    <!-- ===== 步骤3:资质信息 ===== -->
+    <view class="step cy-rise-in" wx:if="{{mode==='form' && step===3 && !introMode}}">
+      <cy-card class="apply-card wizard-card">
+        <view class="up-row" aria-role="group" aria-required="true" aria-label="营业执照，必填">
+          <view class="up-left">
+            <text class="fl">营业执照<text class="req" aria-hidden="true">*</text></text>
+            <text class="up-hint">上传清晰照片或扫描件</text>
+          </view>
+          <view class="up-box" wx:if="{{!businessLicense}}" bindtap="uploadLicense" aria-role="button" aria-label="上传营业执照，必填" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon class="up-plus" name="plus" size="40" />
+          </view>
+          <view class="up-box has-img" wx:else>
+            <image lazy-load="true" src="{{businessLicense}}" mode="aspectFill" />
+            <view class="up-del" catchtap="removeLicense" aria-role="button" aria-label="删除营业执照照片" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="up-del__glyph"><cy-icon name="close-sm" size="28" /></view>
+            </view>
+          </view>
+        </view>
+      </cy-card>
+      <view class="foot">营业执照为必填项，是审核的主要依据。</view>
+
+      <view class="sec-label mt">品牌形象图（选填）</view>
+      <cy-card class="apply-card wizard-card">
+        <view class="imgs">
+          <view class="img-item" wx:for="{{derivatives}}" wx:key="*this">
+            <image lazy-load="true" src="{{item}}" mode="aspectFill" />
+            <view class="img-del" catchtap="removeDerivative" data-i="{{index}}" aria-role="button" aria-label="删除品牌形象图 {{index + 1}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="img-del__glyph"><cy-icon name="close-sm" size="28" /></view>
+            </view>
+          </view>
+          <view class="img-add" bindtap="addDerivative" wx:if="{{derivatives.length < 6}}"
+                aria-role="button" aria-label="添加品牌形象图" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="plus" size="40" /></view>
+        </view>
+      </cy-card>
+      <view class="foot">门店照片、产品图或品牌海报，最多 6 张。图片越多审核越快。</view>
+    </view>
+
+    <!-- ===== 步骤4:预览确认 ===== -->
+    <view class="step cy-rise-in" wx:if="{{mode==='form' && step===4 && !introMode}}">
+      <cy-card class="apply-card wizard-card">
+        <view class="preview-kv"><text class="pk">店铺名称</text><text class="pv">{{name || '—'}}</text></view>
+        <view class="preview-kv"><text class="pk">经营类目</text><text class="pv">{{preference || '—'}}</text></view>
+        <view class="preview-kv"><text class="pk">联系电话</text><text class="pv">{{phone || '—'}}</text></view>
+        <view class="preview-kv"><text class="pk">店铺地址</text><text class="pv">{{address || '—'}}</text></view>
+        <view class="preview-kv"><text class="pk">营业时间</text><text class="pv">{{businessTime || '—'}}</text></view>
+        <view class="preview-kv last">
+          <text class="pk">店铺介绍</text>
+          <text class="pv">{{description || '—'}}</text>
+        </view>
+      </cy-card>
+      <view class="sec-label mt" wx:if="{{businessLicense}}">营业执照</view>
+      <cy-card class="apply-card wizard-card" wx:if="{{businessLicense}}">
+        <image lazy-load="true" src="{{businessLicense}}" mode="widthFix" class="preview-img" />
+      </cy-card>
+      <view class="sec-label mt" wx:if="{{derivatives.length}}">品牌形象图</view>
+      <cy-card class="apply-card wizard-card" wx:if="{{derivatives.length}}">
+        <view class="imgs">
+          <image lazy-load="true" wx:for="{{derivatives}}" wx:key="*this" src="{{item}}" mode="aspectFill" class="preview-img-sm" />
+        </view>
+      </cy-card>
+      <!-- RUN-52 经营者实名:用户裁定这一段【不套白卡】,字段直接铺在灰页底上。
+           同意勾选悬在字段组外下方(同 subpackageMember/tixian 的做法),
+           读起来是「对上面这一切的授权」。已登记的人只看到一句状态。 -->
+      <view class="sec-label mt">经营者实名</view>
+      <block wx:if="{{!identityRegistered}}">
+        <view class="identity-bare">
+          <view class="frow frow--field">
+            <text class="fl">真实姓名<text class="req" aria-hidden="true">*</text></text>
+            <input class="fi" data-field="realName" value="{{realName}}" bindinput="onInput"
+                   placeholder="与身份证一致" placeholder-class="ph"
+                   aria-required="true" aria-label="真实姓名，必填" />
+          </view>
+          <view class="frow frow--field last">
+            <text class="fl">身份证号<text class="req" aria-hidden="true">*</text></text>
+            <input class="fi" data-field="idCard" value="{{idCard}}" bindinput="onInput" type="idcard" maxlength="18"
+                   placeholder="18 位" placeholder-class="ph"
+                   aria-required="true" aria-label="身份证号，必填" />
+          </view>
+        </view>
+        <cy-consent-check class="identity-consent" checked="{{identityConsented}}" text="{{identityHint}}"
+                          bind:change="onIdentityConsent" />
+        <view class="foot">执照核验到主体,这一项核验到人 —— 能收款就得可追溯,二者不互相替代。</view>
+      </block>
+      <view class="foot" wx:else>{{identityDoneHint}}</view>
+      <cy-inline-error class="submit-error" wx:if="{{submitError && step===4}}"
+                       kind="{{submitErrorKind || 'data'}}"
+                       title="申请暂未提交" sub="{{submitError}}"
+                       action="重新提交" bind:action="retrySubmit" />
+    </view>
+
+    <!-- ===== 提交成功(帧6) ===== -->
+    <block wx:if="{{mode==='form' && step===5}}">
+      <view class="success" aria-role="status" aria-live="polite"
+            aria-label="商家入驻申请已提交，{{submissionReceipt.name}}，正在等待审核">
+        <view class="succ-icon" aria-hidden="true"><cy-icon name="check" size="64" /></view>
+        <view class="succ-tit">你的申请已提交</view>
+      <view class="succ-desc">我们会在 1-3 个工作日内完成审核。审核通过且身份条件满足后，商家账号才会生效；审核期间不影响正常使用。</view>
+      </view>
+      <cy-card class="apply-card receipt-card">
+        <view class="preview-kv"><text class="pk">店铺名称</text><text class="pv">{{submissionReceipt.name || '—'}}</text></view>
+        <view class="preview-kv last"><text class="pk">联系电话</text><text class="pv">{{submissionReceipt.phone || '—'}}</text></view>
+        <view class="receipt-note">返回后，可再次进入“商家入驻”查看审核进度。</view>
+      </cy-card>
+      <cy-card class="apply-card timeline">
+        <view class="tl-item done">
+          <view class="tl-dot"></view>
+          <view class="tl-body"><view class="tl-t">提交申请</view><view class="tl-s">已提交</view></view>
+        </view>
+        <view class="tl-item cur">
+          <view class="tl-dot"></view>
+          <view class="tl-body"><view class="tl-t">资料初审</view><view class="tl-s">审核团队审核中</view></view>
+        </view>
+        <view class="tl-item">
+          <view class="tl-dot"></view>
+          <view class="tl-body"><view class="tl-t">资质核验</view><view class="tl-s">等待上一步完成</view></view>
+        </view>
+        <view class="tl-item last">
+          <view class="tl-dot"></view>
+          <view class="tl-body"><view class="tl-t">审核结果</view><view class="tl-s">等待上一步完成</view></view>
+        </view>
+      </cy-card>
+    </block>
+
+      <view class="body-pad"></view>
+    </block>
+    <view class="bootstrap-state" wx:else>
+      <cy-state-shell kind="error" title="页面状态暂时不可用"
+                      sub="请重新检查当前账号与申请状态" primary="重新检查"
+                      theme="merchant" bind:primary="retryBootstrap" auto-back="{{!everSettled}}" />
+    </view>
+  </scroll-view>
+
+  <!-- ===== 底部按钮 ===== -->
+  <view class="bottom wizard-actions" wx:if="{{bootstrapState === 'ready' && mode==='form' && step<5 && !introMode}}">
+    <cy-btn variant="primary" class="wizard-primary" disabled="{{!canNext}}" loading="{{submitting}}"
+            bind:disabledtap="onNextDisabledTap"
+            accessibilityLabel="{{submitting ? '正在提交商家入驻申请' : (step===4 ? '提交商家入驻申请' : '继续填写商家入驻申请')}}"
+            style="width:100%" bindtap="onNext">{{step===4 ? (submitting ? '提交中…' : '提交申请') : '继续'}}</cy-btn>
+  </view>
+  <view class="bottom" wx:if="{{bootstrapState === 'ready' && mode==='form' && step===5}}">
+    <cy-btn variant="primary" bindtap="onHome">返回首页</cy-btn>
+  </view>
+  <view class="bottom" wx:if="{{bootstrapState === 'ready' && mode==='status'}}">
+    <cy-btn variant="primary" bindtap="onStatusAction">{{apply.canReapply ? '重新申请' : '返回'}}</cy-btn>
+  </view>
+
+  <!-- ===== 经营时间选择:周一~周日 + 起止时段(2026-07-31) ===== -->
+  <cy-date-sheet show="{{hoursPickerShow}}" title="设置经营时间"
+    bind:cancel="closeHoursPicker" bind:confirm="confirmHoursPicker">
+    <view class="hp-sheet">
+      <view class="hp-label">经营日</view>
+      <view class="hp-days">
+        <view class="hp-day {{item.on ? 'hp-day--on' : ''}}" wx:for="{{hoursDraft.days}}" wx:key="key"
+              data-index="{{index}}" bindtap="toggleHoursDay"
+              aria-role="checkbox" aria-checked="{{item.on}}"
+              aria-label="周{{item.label}}，{{item.on ? '已选择' : '未选择'}}" hover-class="cy-pressed" hover-stay-time="80">{{item.label}}</view>
+      </view>
+      <view class="hp-label">营业时段</view>
+      <view class="hp-time-row">
+        <view class="hp-time-box">
+          <text class="hp-time-value">{{hoursDraft.start}}</text>
+          <picker-view class="hp-time-picker" value="{{startTimeValue}}" indicator-style="height:72rpx" bindchange="onHoursStartChange">
+            <picker-view-column>
+              <view class="hp-time-item" wx:for="{{timeHours}}" wx:key="*this">{{tf.pad2(item)}}时</view>
+            </picker-view-column>
+            <picker-view-column>
+              <view class="hp-time-item" wx:for="{{timeMinutes}}" wx:key="*this">{{tf.pad2(item)}}分</view>
+            </picker-view-column>
+          </picker-view>
+        </view>
+        <text class="hp-time-sep">至</text>
+        <view class="hp-time-box">
+          <text class="hp-time-value">{{hoursDraft.end}}</text>
+          <picker-view class="hp-time-picker" value="{{endTimeValue}}" indicator-style="height:72rpx" bindchange="onHoursEndChange">
+            <picker-view-column>
+              <view class="hp-time-item" wx:for="{{timeHours}}" wx:key="*this">{{tf.pad2(item)}}时</view>
+            </picker-view-column>
+            <picker-view-column>
+              <view class="hp-time-item" wx:for="{{timeMinutes}}" wx:key="*this">{{tf.pad2(item)}}分</view>
+            </picker-view-column>
+          </picker-view>
+        </view>
+      </view>
+    </view>
+  </cy-date-sheet>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

@@ -1,0 +1,123 @@
+/* cy-story-sheet · 剧情全屏叙事页
+ * 转场档位 = 13_剧情弹窗.mp4 的「Scale + Dim」(视频里与 Dim Only 并排对照,取推荐的这档)。
+ * 分工:本组件出「压暗层 + 前景面板放大展开」,背景页缩到 0.94 由页面根节点加 class 做
+ * (组件在 isolated 边界内够不到页面根节点,也不该去够)。
+ * 时长/曲线两侧必须一致,否则会看出是两段各自为政的动画:
+ *   360ms + cubic-bezier(0.32, 0.72, 0, 1)(iOS 卡片推拉的那条,起手快、收尾稳)
+ */
+:host { display: block; }
+
+.sts {
+  position: fixed;
+  inset: 0;
+  z-index: 320;   /* 高于 play 内各叙事层,低于 cy-qr-voucher(210 以上另算) */
+}
+
+.sts__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--cy-color-overlay);
+  opacity: 0;
+  animation: sts-dim 360ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* 前景面板:从下方放大展开。留出顶部一截,让缩小的背景页露出圆角边
+   —— 参考视频里能看到前景是「叠」在背景上的,不是背景整个消失。 */
+.sts__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* 顶部留白要够,缩小的背景页才真的露得出来一截圆角(参考视频里能看出前景是「叠」着的)。
+     实拍发现只留 96rpx 时这一截几乎看不见 —— 本页背景本身就是深色,和面板挤在一起分不开,
+     所以再让开一个状态栏的高度。
+     ⚠️ 这里只是首帧兜底,真正生效的是 index.js `_layout()` 下发的内联 top(内联优先级更高)。
+        原因:env(safe-area-inset-top) 在开发者工具模拟器上解析成 0,面板顶只到 96rpx,
+        会被微信胶囊(51~83px)压住关闭钮。别把这条当唯一真源改。 */
+  top: calc(env(safe-area-inset-top) + var(--cy-space-8));
+  overflow: hidden;
+  border-radius: var(--cy-radius-lg) var(--cy-radius-lg) 0 0;
+  background: var(--cy-color-bg-page);
+  transform-origin: 50% 100%;
+  animation: sts-rise 360ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  display: flex;
+  flex-direction: column;
+}
+
+.sts__nav {
+  flex: none;
+  min-height: var(--cy-btn-h);
+  box-sizing: border-box;
+  padding-left: var(--cy-page-x);
+  padding-right: var(--cy-page-x);
+  padding-bottom: var(--cy-space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  border-bottom: 2rpx solid var(--cy-color-border-subtle);
+}
+.sts__nav-copy { flex: 1; min-width: 0; }
+.sts__nav-copy .sts__step { margin-bottom: 4rpx; }
+.sts__nav-copy .sts__title { font-size: var(--cy-font-subtitle); }
+.sts__hero { position: relative; width: 100%; height: 420rpx; overflow: hidden; }
+.sts__hero-img { width: 100%; height: 100%; display: block; }
+/* 下缘压深:任何亮配图上标题都读得出来 */
+.sts__hero-scrim {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 60%;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.72) 100%); /* ds-ok 配图下缘压深渐变:token 层无渐变表达 */
+}
+
+.sts__close {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-primary);
+  /* 2026-09-18 用户裁决:✕ 一律纯字形无圆底,与 cy-scene-sheet 同口径 */
+  background: transparent;
+  font-size: var(--cy-type-section-title);
+  line-height: 1;
+}
+
+.sts__scroll { position: relative; flex: 1; min-height: 0; }
+
+.sts__title {
+  display: block;
+  font-size: var(--cy-type-page-title);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--cy-color-text-primary);
+}
+
+.sts__p {
+  padding: 0 var(--cy-page-x);
+  margin-bottom: var(--cy-space-3);
+  font-size: var(--cy-type-body);
+  line-height: 1.75;
+  color: var(--cy-color-text-secondary);
+}
+
+.sts__pad { height: calc(var(--cy-space-8) + env(safe-area-inset-bottom)); }
+
+@keyframes sts-dim {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sts-rise {
+  from { transform: translateY(6%) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* 减弱动态效果:直接给终态 */
+.sts--reduced .sts__scrim,
+.sts--reduced .sts__panel { animation: none; opacity: 1; transform: none; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

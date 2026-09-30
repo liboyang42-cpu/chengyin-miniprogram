@@ -1,0 +1,225 @@
+@import '../../../style/wizard-intro.wxss';
+@import '../../../style/merchant-light.wxss';
+
+page { background: var(--cy-color-bg-page); }
+.page { min-height: 100vh; display: flex; flex-direction: column; background: var(--cy-color-bg-page); }
+
+/* ===== 头部:参考入驻向导的 1/4 + 分段进度 + 大问题结构 ===== */
+.wizard-head { padding: 0 var(--cy-page-x) var(--cy-space-6); }
+.wizard-head__meta { display: flex; align-items: center; justify-content: space-between; min-height: 48rpx; color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.wizard-progress { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--cy-space-1); margin-top: var(--cy-space-2); }
+.progress-segment { height: 6rpx; border-radius: var(--cy-radius-pill); background: var(--cy-color-border-subtle); }
+.progress-segment.on { background: var(--cy-color-text-primary); }
+.wizard-head__eyebrow { margin-top: var(--cy-space-6); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.wizard-head__title { margin-top: var(--cy-space-2); color: var(--cy-text-title); font-size: var(--cy-type-display); line-height: 1.15; font-weight: 750; letter-spacing: -1rpx; }
+
+/* ===== 内容 ===== */
+.body { flex: 1; padding: 0 var(--cy-page-x); box-sizing: border-box; background: var(--cy-color-bg-page); }
+.bootstrap-state { min-height: 72vh; display: flex; align-items: center; justify-content: center; }
+.body-pad { height: 200rpx; }
+.sec-label { font-size: var(--cy-font-label); color: var(--cy-text-secondary); padding: 0 var(--cy-space-1) var(--cy-legacy-14); }
+.sec-label.mt { padding-top: var(--cy-space-3-5); }
+.foot { font-size: var(--cy-font-label); color: var(--cy-text-secondary); padding: var(--cy-legacy-14) var(--cy-space-1) 0; line-height: var(--cy-leading-normal); }
+
+.apply-card {
+  --cy-comp-card-pad: var(--cy-space-3-5);
+  --cy-comp-card-bg: var(--cy-color-bg-surface);
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-shadow-day: none;
+}
+.wizard-card {
+  --cy-comp-card-bg: var(--cy-color-bg-surface);
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-shadow-day: none;
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-lg);
+}
+.apply-card.mt-s { margin-top: var(--cy-space-2); }
+.submit-error { display: block; margin-top: var(--cy-space-3); }
+
+/* 表单行 */
+.frow { margin-bottom: var(--cy-space-4); }
+.frow.last { margin-bottom: 0; }
+.frow--field { display: flex; flex-direction: column; align-items: stretch; }
+.fl { display: block; font-size: var(--cy-font-label); color: var(--cy-text-title); font-weight: 600; }
+/* 必填标记 = 红星号,不是「必填」两个字(2026-09-06 用户定)。
+ * 星号对读屏没有意义,所以标签里标了 aria-hidden;必填语义由 input 自己的
+ * aria-required + aria-label="…，必填" 承担 —— 两者都在,别只留一个。 */
+.wizard-head__legend { margin-top: var(--cy-space-3); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.req { margin-left: var(--cy-space-1); font-size: var(--cy-font-body); font-weight: 400; color: var(--cy-danger); }
+.fi { width: 100%; height: 92rpx; box-sizing: border-box; margin-top: var(--cy-space-1-5); padding: 0 var(--cy-space-2-5); text-align: left; font-size: var(--cy-font-body); color: var(--cy-text-title); border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle); }
+.field-control { display: flex; align-items: center; min-height: 92rpx; margin-top: var(--cy-space-1-5); padding-right: var(--cy-space-2); border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle); color: var(--cy-text-secondary); }
+.field-control .fi { flex: 1; width: auto; height: auto; min-height: 92rpx; margin: 0; background: transparent; display: flex; align-items: center; }
+.ph { color: var(--cy-text-secondary); }
+
+/* ===== 经营者实名(第 4 步)=====
+ * 用户裁定:这一段【不套白卡】,字段直接铺在灰页底上。槽压在 bg-page #F3F4F4 上时,
+ * 仓库默认的 bg-surface-subtle #EEEEEE 对页底只剩 1.05:1(tokens.wxss:939 自己注过这个数),
+ * 会糊成「根本没有框」,所以换用现成的再深一档 bg-raised #E6E6E6(:942)。 */
+.identity-bare .fi { background: var(--cy-color-bg-raised); }
+.identity-consent { margin-top: var(--cy-space-1); }
+
+.fta {
+  width: 100%; box-sizing: border-box; min-height: 220rpx;
+  padding: var(--cy-space-3) var(--cy-space-3) var(--cy-space-1); font-size: var(--cy-font-body); color: var(--cy-text-title); line-height: var(--cy-leading-normal);
+}
+.text-area-label { margin-bottom: var(--cy-space-1-5); }
+.text-area-block { border-radius: var(--cy-radius-sm); background: var(--cy-color-bg-surface-subtle); }
+.ta-count { text-align: right; font-size: var(--cy-font-label); color: var(--cy-text-secondary); padding: 0 var(--cy-space-3) var(--cy-space-2); }
+
+/* 资质上传 */
+.up-row { display: flex; align-items: flex-start; gap: var(--cy-space-3); padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); }
+.up-left { flex: 1; }
+.up-hint { display: block; font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-space-1); }
+.up-box {
+  width: 160rpx; height: 160rpx; border-radius: var(--cy-radius-md); flex-shrink: 0;
+  background: var(--cy-color-bg-surface); border: none;
+  display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+}
+/* ⚠️ 上传框自身没有边框(.up-box border:none),#FFFFFF 落在 #F4F4F4 的 .up-row 上,
+   边界对比度只有 1.10:1 —— 也就是说「这里可以点」全靠这个 + 号传达。
+   原值 rgba(120,120,128,.7) 合成后是 #A0A0A6,对白底 2.60:1,低于 WCAG 1.4.11 非文本 3:1。
+   换成同块 .up-hint 已在用的 --cy-text-secondary(商家浅色 = #6B6B6B,5.33:1)。
+   不给 .up-box 补边框:DS 最重的 --cy-color-border-strong 也才 1.41:1,
+   为一个上传框单独造 3:1 的重边框会破「细线」规范,affordance 由 + 号承担即可。 */
+.up-plus { color: var(--cy-text-secondary); }
+.up-box.has-img { border: none; background: none; position: relative; }
+.up-box.has-img image { width: 100%; height: 100%; border-radius: var(--cy-radius-md); }
+.up-del {
+  position: absolute; top: calc(var(--cy-legacy-10) * -1); right: calc(var(--cy-legacy-10) * -1);
+  width: var(--cy-btn-h); height: var(--cy-btn-h); min-width: 88rpx; min-height: 88rpx;
+}
+.up-del__glyph {
+  position: absolute; top: 0; right: 0; width: 40rpx; height: 40rpx;
+  background: rgba(0,0,0,0.6); color: var(--cy-text-inverse); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* 品牌形象图 */
+.imgs { display: flex; flex-wrap: wrap; gap: var(--cy-space-2-5); padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); }
+.img-item, .img-add { width: 160rpx; height: 160rpx; border-radius: var(--cy-radius-md); }
+.img-item { position: relative; }
+.img-item image { width: 100%; height: 100%; border-radius: var(--cy-radius-md); }
+.img-del {
+  position: absolute; top: calc(var(--cy-legacy-10) * -1); right: calc(var(--cy-legacy-10) * -1);
+  width: var(--cy-btn-h); height: var(--cy-btn-h); min-width: 88rpx; min-height: 88rpx;
+}
+.img-del__glyph {
+  position: absolute; top: 0; right: 0; width: 40rpx; height: 40rpx;
+  background: rgba(0,0,0,0.6); color: var(--cy-text-inverse); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.img-add {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-bg-surface); border: none;
+  color: var(--cy-text-secondary); box-sizing: border-box;
+}
+
+/* 预览行 */
+.preview-kv {
+  display: flex; align-items: flex-start; gap: var(--cy-space-2);
+  margin-bottom: var(--cy-space-2); padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+}
+.preview-kv.last { margin-bottom: 0; }
+.pk { font-size: var(--cy-font-body); color: var(--cy-text-secondary); flex-shrink: 0; min-width: 140rpx; }
+.pv { font-size: var(--cy-font-body); color: var(--cy-text-title); font-weight: 500; }
+.preview-img { width: 100%; border-radius: var(--cy-radius-md); margin: var(--cy-space-3) 0; }
+.preview-img-sm { width: 160rpx; height: 160rpx; border-radius: var(--cy-radius-md); }
+
+/* ===== 底部按钮 ===== */
+.bottom {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center;
+  padding: var(--cy-space-2-5) var(--cy-page-x) calc(var(--cy-space-2-5) + env(safe-area-inset-bottom));
+  /* 固定/粘性底栏必须自带不透明底,否则下方内容从 padding 区透出来,按钮看上去压在正文上
+     (2026-08-19 C27 实拍坐实同一病因)。 */
+  background: var(--cy-bg-page);
+}
+.wizard-actions {
+  position: fixed;
+  background: var(--cy-color-bg-page);
+}
+.wizard-secondary { --cy-comp-btn-secondary-bg: var(--cy-color-action-secondary-bg); }
+.wizard-primary { --cy-bg-subtle: var(--cy-color-bg-surface-subtle); }
+
+/* ===== 提交成功 ===== */
+.success { text-align: center; padding: var(--cy-space-6) 0 var(--cy-space-4); }
+.succ-icon {
+  width: 120rpx; height: 120rpx; margin: 0 auto var(--cy-space-3-5);
+  background: var(--cy-success); color: var(--cy-text-inverse);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.succ-tit { font-size: var(--cy-type-page-title); font-weight: 800; color: var(--cy-text-title); margin-bottom: var(--cy-space-2); }
+.succ-desc { font-size: var(--cy-font-body); color: var(--cy-text-body); line-height: var(--cy-leading-normal); padding: 0 var(--cy-space-2); }
+.receipt-card { --cy-comp-card-pad: var(--cy-space-4); }
+.receipt-note {
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+}
+
+.status-card { --cy-comp-card-pad: var(--cy-space-4); }
+.st-row { display: flex; align-items: center; margin-bottom: var(--cy-space-3); }
+
+.club-transfer-card { --cy-comp-card-pad: var(--cy-space-4); margin-bottom: var(--cy-space-4); }
+.club-transfer-title { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.club-transfer-sub { margin-top: var(--cy-space-2); font-size: var(--cy-font-label); line-height: var(--cy-leading-normal); color: var(--cy-text-secondary); }
+.club-transfer-row { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-3); padding-top: var(--cy-space-3); margin-top: var(--cy-space-3); border-top: 1rpx solid var(--cy-border-line); }
+.club-transfer-action { flex-shrink: 0; }
+.club-transfer-copy { flex: 1; min-width: 0; }
+.club-transfer-name { margin-bottom: var(--cy-space-1); font-size: var(--cy-font-body); color: var(--cy-text-title); }
+
+/* 时间线(审核进度) */
+.timeline { --cy-comp-card-pad: var(--cy-space-4); margin-top: var(--cy-space-3); }
+.tl-item { position: relative; display: flex; padding-bottom: var(--cy-space-4); padding-left: var(--cy-space-5); }
+.tl-item.last { padding-bottom: 0; }
+.tl-item::before {
+  content: ''; position: absolute; left: 11rpx; top: var(--cy-space-3-5); bottom: 0; width: 2rpx;
+  background: var(--cy-border-card);
+}
+.tl-item.last::before { display: none; }
+.tl-dot {
+  position: absolute; left: 0; top: var(--cy-legacy-4); width: 24rpx; height: 24rpx; border-radius: 50%;
+  background: rgba(120,120,128,0.3);
+}
+.tl-item.done .tl-dot { background: var(--cy-accent); }
+.tl-item.cur .tl-dot { background: var(--cy-bg-card); border: 6rpx solid var(--cy-gold); }
+.tl-item.rej .tl-dot { background: var(--cy-danger); }
+.tl-t { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.tl-item.cur .tl-t { color: var(--cy-gold); }
+.tl-s { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-6); }
+
+/* 经营时间选择器(2026-07-31) */
+.hp-sheet { padding: var(--cy-space-4); }
+.hp-label { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-bottom: var(--cy-space-2); }
+.hp-days {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(88rpx, 1fr));
+  gap: var(--cy-space-1);
+  margin-bottom: var(--cy-space-4);
+}
+.hp-day {
+  flex: 1; height: 88rpx; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-radius-sm); background: var(--cy-bg-subtle); color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+.hp-day--on { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); font-weight: 600; }
+.hp-time-row { display: flex; align-items: center; gap: var(--cy-space-3); margin-bottom: var(--cy-space-5); }
+.hp-time-box {
+  flex: 1; min-width: 0;
+  border-radius: var(--cy-radius-sm); background: var(--cy-bg-subtle); color: var(--cy-text-title);
+  font-size: var(--cy-font-title); font-variant-numeric: tabular-nums;
+}
+.hp-time-value { display: block; padding-top: var(--cy-space-2); text-align: center; }
+.hp-time-picker { height: 240rpx; }
+.hp-time-item { height: 72rpx; display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-label); }
+.hp-time-sep { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+/* 进场动效用全仓共用的 .cy-rise-in;本页自身没有 transition,
+ * 减动效由 style/motion-entry.wxss 里的 `.cy-motion-reduced .cy-rise-in { animation: none }`
+ * 兜住 —— 生效前提是根节点真的挂得上 cy-motion-reduced(见 wxml 与 onShow)。 */

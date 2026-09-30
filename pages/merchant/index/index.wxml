@@ -1,0 +1,364 @@
+<view class="rv-merchant theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+<wxs src="../../../utils/wxs/money.wxs" module="money" />
+
+  <!-- 身份/加载失败不再整屏拦:静默登录失败或身份没能确认时,只在页内挂一条
+       内联错误 + 重试。整屏身份闸(未登录即锁屏、确认中占屏、无身份占屏)已删除
+       (2026-09-16 裁决:商家自己的账号被登录闸拦住只是添麻烦)。 -->
+  <scroll-view class="rv-scroll" scroll-y enhanced show-scrollbar="{{false}}"
+               scroll-into-view="{{scrollIntoView}}"
+               style="height: 100vh; padding-top: {{statusBarHeight + navBarHeight}}px;"
+               refresher-enabled
+               refresher-triggered="{{refreshing}}"
+               bindrefresherrefresh="onRefresh">
+
+    <cy-inline-error class="rv-console-error" wx:if="{{consoleError}}" kind="data"
+                     title="商家工作台没有加载出来"
+                     sub="{{consoleError}}"
+                     action="重新加载" bind:action="reloadConsole" />
+
+    <!-- 入驻审核中/未通过/停用:页内说清状态与原因 + 查看申请进度,不再静默跳回会员中心
+         (2026-09-17 拍板 #24)。这不是整屏身份闸:只替换没有经营数据可看的空壳,
+         无商家身份的普通玩家仍在 loadConsoleAccess 里静默 switchTab。 -->
+    <cy-card class="rv-apply-state" wx:if="{{consoleStatus}}">
+      <view class="rv-apply-state-head">
+        <text class="rv-apply-state-badge rv-apply-state-badge--{{consoleStatus.badgeVariant}}">{{consoleStatus.statusLabel}}</text>
+      </view>
+      <text class="rv-apply-state-text">{{consoleStatus.statusText}}</text>
+      <view class="rv-apply-state-action" bindtap="goApplicationProgress" hover-class="rv-tap" hover-stay-time="80"
+            aria-role="button" aria-label="查看入驻申请进度">
+        <text>查看申请进度</text>
+        <cy-icon name="arrow-right" size="24" />
+      </view>
+    </cy-card>
+
+    <!-- 欢迎 + 收入 -->
+    <view class="rv-hero {{ merchantAccess.canReadFinance ? '' : 'rv-hero--no-revenue' }}" wx:if="{{!consoleStatus}}">
+      <view class="rv-hero-top">
+        <view class="rv-hero-greet">
+          <view class="rv-hero-line ep1">
+            <text class="rv-hero-hi">Hi，</text><text class="rv-hero-name">{{ displayName }}</text>
+          </view>
+          <view class="rv-hero-meta">
+            <view wx:if="{{merchantAccess.canWriteProfile}}" class="rv-biz {{ businessStatus == 0 ? 'rv-biz--off' : '' }}" catchtap="toggleBusiness" aria-role="button" aria-label="{{businessStatus == 0 ? '当前已打烊，点击开始营业' : '当前营业中，点击打烊'}}" hover-class="cy-pressed" hover-stay-time="80">
+              <text class="rv-biz-dot"></text>{{ businessStatus == 0 ? '已打烊' : '营业中' }}
+            </view>
+            <view wx:else class="rv-biz {{ businessStatus == 0 ? 'rv-biz--off' : '' }}">
+              <text class="rv-biz-dot"></text>{{ businessStatus == 0 ? '已打烊' : '营业中' }}
+            </view>
+            <text class="rv-hero-tip">欢迎回来，今天也加油吧</text>
+          </view>
+        </view>
+        <view wx:if="{{merchantAccess.canWriteProfile}}" class="rv-hero-avatar-hit" bindtap="goBrandManage" aria-role="button" aria-label="管理品牌资料" hover-class="cy-pressed" hover-stay-time="80">
+          <cy-avatar class="rv-hero-avatar" size="112" bordered
+                    src="{{ merchantInfo.logo || '' }}" name="{{ displayName }}" />
+        </view>
+        <view wx:else class="rv-hero-avatar-hit">
+          <cy-avatar class="rv-hero-avatar" size="112" bordered
+                    src="{{ merchantInfo.logo || '' }}" name="{{ displayName }}" />
+        </view>
+      </view>
+
+      <!-- 收入数字给所有有 FINANCE_READ 的岗位（店主/财务）：/api/merchant/dashboard
+           按权限码放行，财务岗不再 403。财务台账入口仍走下面的「财务」快捷方式。 -->
+      <view wx:if="{{merchantAccess.canReadFinance}}" class="rv-revenue-zone">
+        <view class="rv-revenue-label">收入</view>
+        <view class="rv-revenue-value">
+          <cy-skeleton wx:if="{{dashboardLoading && dashboardData.revenue == null}}" type="amount" count="{{1}}" />
+          <view class="rv-revenue-amount" wx:elif="{{dashboardData.revenue != null}}">{{money.amount2(dashboardData.revenue)}}</view>
+          <view wx:else class="rv-revenue-unknown">暂未取到</view>
+        </view>
+        <view class="rv-revenue-feedback">
+          <view class="rv-revenue-sync" wx:if="{{dashboardLoading && dashboardData.revenue != null}}" aria-role="status">正在更新经营数据…</view>
+          <cy-inline-error wx:if="{{dashboardError}}" kind="data"
+                           title="收入没更新成功"
+                           sub="{{dashboardData.revenue != null ? '上次确认的金额仍可查看' : '这次暂未取到金额'}}"
+                           action="重新加载此部分" bind:action="reloadDashboard" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="rv-actions" wx:if="{{!consoleStatus}}">
+      <view class="rv-action" wx:if="{{merchantAccess.canVerify}}" bindtap="goScanQR" aria-role="button" aria-label="扫码" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="rv-action-circle">
+          <cy-icon name="qr" size="44" />
+        </view>
+        <text class="rv-action-label">扫码</text>
+      </view>
+      <view class="rv-action" wx:if="{{merchantAccess.canReadCrm}}" bindtap="goCustomers" aria-role="button" aria-label="客户" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="rv-action-circle">
+          <cy-icon name="mtab-customers" size="44" />
+        </view>
+        <text class="rv-action-label">客户</text>
+      </view>
+      <view class="rv-action" wx:if="{{merchantAccess.canReadFinance}}" bindtap="goFinance" aria-role="button" aria-label="财务" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="rv-action-circle">
+          <cy-icon name="finance" size="44" />
+        </view>
+        <text class="rv-action-label">财务</text>
+      </view>
+      <view class="rv-action" wx:if="{{merchantAccess.canReadVerifyRecords || merchantAccess.canReadOrders || merchantAccess.canReadFinance || merchantAccess.canManageCoupons || merchantAccess.canWriteProfile}}" bindtap="openMoreMenu" aria-role="button" aria-label="更多" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="rv-action-circle">
+          <cy-icon name="more" size="44" />
+        </view>
+        <text class="rv-action-label">更多</text>
+      </view>
+    </view>
+
+    <!-- 售后是有时效的交易待办：只在真实待回应数大于 0 时直达，不挤占四个固定快捷位。 -->
+    <view class="rv-aftercare-alert"
+          wx:if="{{merchantAccess.canReadAftercare && !todoLoading && todo.refundCount > 0}}"
+          bindtap="goAftercare" hover-class="rv-tap"
+          aria-role="button" aria-label="有 {{todo.refundCount || 0}} 笔售后待回应，打开退款售后">
+      <view class="rv-aftercare-alert__mark"></view>
+      <text class="rv-aftercare-alert__text">有 {{todo.refundCount || 0}} 笔售后待回应</text>
+      <view class="rv-aftercare-alert__chev" aria-hidden="true"><cy-icon name="arrow-right" size="24" /></view>
+    </view>
+
+    <!-- 竞猜「给答案」是有期限的待办:48 小时不给答案这一轮就作废、奖发不出去。
+         它按点位归属、落不到某张项目卡上,所以与售后提醒一样做区块级入口直达待答页
+         (2026-09-17 拍板 #23)。超时作废后后端不再下发这个数,入口随 0 消失。 -->
+    <view class="rv-aftercare-alert"
+          wx:if="{{merchantAccess.canManageProjects && !todoLoading && todo.pendingPredict > 0}}"
+          bindtap="goPredictInbox" hover-class="rv-tap"
+          aria-role="button" aria-label="有 {{todo.pendingPredict || 0}} 轮竞猜待给答案，打开竞猜待办">
+      <view class="rv-aftercare-alert__mark"></view>
+      <text class="rv-aftercare-alert__text">有 {{todo.pendingPredict || 0}} 轮竞猜待给答案</text>
+      <view class="rv-aftercare-alert__chev" aria-hidden="true"><cy-icon name="arrow-right" size="24" /></view>
+    </view>
+
+    <!-- 项目：承接与主办合成一列卡片，每张卡自带角色标、今日待办与动态气泡。
+         一个项目都没有时整块不显示(含「项目」标题与空态)——去合作中心的入口不在这里
+         (2026-09-18 用户走查 UI-01)。仍在加载或加载失败时整块保留,骨架/错误才有地方渲染。 -->
+    <view class="rv-section" wx:if="{{merchantAccess.canManageProjects && (projectCards.length || joinLoading || hostLoading || todoLoading || gameEntryLoading || joinError || hostError)}}">
+      <view class="rv-section-head">
+        <text class="rv-section-title">项目</text>
+        <!-- 卡片只铺前几条,总数得报真实的 joinTotal/hostProjectTotal(取自全量 list,
+             不是被截断的那份),否则 30 个项目会被说成 4 个;2026-09-16 起只数未结束的,
+             已结束的项目仍可在「全部」完整列表页里查到 -->
+        <view class="rv-section-more" wx:if="{{joinTotal || hostProjectTotal}}" bindtap="goPublishedProjects" aria-role="button" aria-label="查看全部 {{joinTotal + hostProjectTotal || 0}} 个项目" hover-class="cy-pressed" hover-stay-time="80"><text>全部 {{joinTotal + hostProjectTotal}}</text><cy-icon name="arrow-right" size="24" /></view>
+      </view>
+
+      <!-- 首载没有任何项目时才整块骨架:半份数据渲成卡片,商家会读到「今日无待办」这种
+           **加载中冒充空态**的假结论;已有项目时刷新保留旧卡,避免整块闪退。 -->
+      <cy-skeleton wx:if="{{!projectCards.length && (joinLoading || hostLoading || todoLoading || gameEntryLoading)}}" type="list" count="{{2}}" />
+      <view wx:else>
+        <view class="rv-project-cards" wx:if="{{projectCards.length}}">
+          <view class="rv-project-item" wx:for="{{projectCards}}" wx:key="key">
+          <view class="rv-project-card" bindtap="openProjectCard"
+                data-role="{{item.role}}" data-id="{{item.id}}" data-topicid="{{item.ownerId}}" data-biztype="{{item.bizType}}" data-source="{{item.projectSource}}"
+                hover-class="rv-tap" aria-role="button" aria-label="打开{{item.roleLabel || ''}}项目{{item.title}}">
+            <!-- 72×72 封面。承接取主题封面、主办取自己主题的封面;字段是逗号分隔多图,取首张。
+                 底色本身就是缺图时的占位,不另画空图标。 -->
+            <view class="rv-project-thumb">
+              <image class="rv-project-thumb-img" wx:if="{{img.first(item.thumb)}}"
+                     src="{{img.first(item.thumb)}}" mode="aspectFill" lazy-load="true" />
+            </view>
+
+            <view class="rv-project-body">
+              <!-- 2026-08-20 稿 3910:580 重排:签行(状态+类目)→ 大标题 → 日期 → 待办,顶对齐。
+                   ⚠️ 同一张卡另有早稿 134:185(M15),卡底多一行「承接方 · 幸会咖啡」+「承接进度 ›」。
+                      两条都不采:① 承接方名字后端没有下发(buildProjectCards 的入参里没有这个字段),
+                      ② 卡面动作按钮是 2026-08-20 用户拍板删掉的,同文件更晚的 260:369 又把这条
+                      写成了通则(「整行可点,不放按钮,连箭头都不放」)——134 是这条规则之前的稿。 -->
+              <view class="rv-project-line1">
+                <text class="rv-project-status" wx:if="{{item.statusLabel}}">{{item.statusLabel}}</text>
+                <text class="rv-project-cat" wx:if="{{item.catLabel}}">{{item.catLabel}}</text>
+                <view class="rv-project-line1-fill"></view>
+                <!-- 铃铛只报条数,正文在核销记录里看 —— 收入到账/核销这些流水
+                     不该铺在工作台上。catchtap 截住冒泡,免得连带打开项目详情。 -->
+                <view class="rv-project-bell" wx:if="{{item.msgCount}}"
+                      catchtap="goProjectMessages"
+                      hover-class="rv-tap" aria-role="button"
+                      aria-label="查看核销记录，本项目{{item.msgCount || 0}}条" hover-stop-propagation="true">
+                  <view class="rv-project-bell-ico">
+                    <image class="rv-project-bell-img" src="/pages/merchant/images/icon_bell_alert.svg" mode="aspectFit" />
+                    <view class="rv-project-bell-dot"></view>
+                  </view>
+                  <text class="rv-project-bell-count">{{item.msgCount}}</text>
+                </view>
+                <!-- 没动态时是不可点的占位铃铛,标题宽度不跳 -->
+                <view class="rv-project-bell rv-project-bell--muted" wx:else aria-label="暂无动态">
+                  <view class="rv-project-bell-ico">
+                    <image class="rv-project-bell-img" src="/pages/merchant/images/icon_bell_muted.svg" mode="aspectFit" />
+                  </view>
+                </view>
+              </view>
+
+              <text class="rv-project-card-title ep1">{{item.title}}</text>
+              <text class="rv-project-card-meta ep1">{{item.meta}}</text>
+
+              <view class="rv-project-line3">
+                <!-- 一件事一段:标签和数字各自把话说完,颜色只做语义强化。
+                     待办没取到时这一格留空(失败只在区块顶部报一次,不在每张卡上写日志)。
+                     2026-08-20 用户拍板:主办/承办角色 pill 从卡面删除(aria-label 仍带角色语义)。 -->
+                <view class="rv-project-todos">
+                  <block wx:if="{{item.todoCount}}">
+                    <block wx:for="{{item.todoChips}}" wx:for-item="chip" wx:key="key">
+                      <text class="rv-project-todo-sep" wx:if="{{index > 0}}">·</text>
+                      <text class="rv-project-todo rv-project-todo--{{chip.tone}}">{{chip.label}}</text>
+                      <text class="rv-project-todo-num rv-project-todo--{{chip.tone}}">{{chip.count}}</text>
+                    </block>
+                  </block>
+                  <text class="rv-project-card-note" wx:elif="{{item.todoText}}">{{item.todoText}}</text>
+                </view>
+                <!-- 2026-09-23 用户裁决:项目卡都是已确定接待的项目,不写「本站可接待」这类站点状态;
+                     俱乐部要来时写「谁、哪天几点到店」(upcoming-runs,含俱乐部自己开的场次)。 -->
+                <text class="rv-project-visit" wx:if="{{item.visitText}}">{{item.visitText}}</text>
+              </view>
+            </view>
+            <!-- 稿 134:201:卡底一行 ——「承接方 · 幸会咖啡」在左,动作在右。
+                 只有承接卡有这一行(主办卡稿上底行只有「N 报名 · N 浏览」)。
+                 动作 catchtap 截住冒泡:整卡点进承接进度,这颗要能单独去扫码核销。 -->
+            <view class="rv-project-foot" wx:if="{{item.acceptorName || item.cardAction}}">
+              <text class="rv-project-acceptor" wx:if="{{item.acceptorName}}">承接方 · {{item.acceptorName}}</text>
+              <view class="rv-project-foot-gap"></view>
+              <view class="rv-project-act" wx:if="{{item.cardAction}}"
+                    catchtap="onProjectCardAction"
+                    data-action="{{item.cardAction.key}}" data-id="{{item.id}}" data-topicid="{{item.ownerId}}" data-source="{{item.projectSource}}"
+                    aria-role="button" aria-label="{{item.cardAction.text}}：{{item.title}}"
+                    hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">
+                <text>{{item.cardAction.text}}</text>
+                <cy-icon class="rv-project-act-arrow" name="arrow-right" size="24" />
+              </view>
+            </view>
+          </view>
+          </view>
+        </view>
+
+        <cy-error wx:if="{{joinError || hostError}}" title="项目和待办没能加载出来" sub="网络异常，请重试"
+                  retry="重试" bind:retry="reloadProjects" />
+      </view>
+      <view class="rv-project-state">
+        <view class="rv-project-sync" wx:if="{{projectCards.length && (joinLoading || hostLoading || todoLoading)}}" aria-role="status">正在更新项目与待办…</view>
+      </view>
+    </view>
+
+    <!-- 我的消息(2026-08-20 稿 3910:580):动态流水前 3 条铺在工作台底部,
+         点开按类型去结算/核销记录(goEvent);项目卡气泡照旧按 topicId 归属。 -->
+    <view class="rv-section" wx:if="{{notifications.length}}">
+      <view class="rv-section-head">
+        <text class="rv-section-title">我的消息</text>
+        <view class="rv-section-more" bindtap="goEvent" aria-role="button" aria-label="查看全部经营动态" hover-class="cy-pressed" hover-stay-time="80"><text>全部</text><cy-icon name="arrow-right" size="24" /></view>
+      </view>
+      <view class="rv-msg-card">
+        <view class="rv-msg-item" wx:for="{{notifications}}" wx:key="id" wx:if="{{index < 3}}"
+              bindtap="goEvent" data-type="{{item.type}}" hover-class="rv-tap" aria-role="button" aria-label="查看消息：{{item.label}}">
+          <view class="rv-msg-ico">
+            <cy-icon name="{{item.type === 'income' ? 'finance' : (item.type === 'verify' ? 'check' : 'bell')}}" size="34" />
+          </view>
+          <view class="rv-msg-main">
+            <text class="rv-msg-title">{{item.label}}</text>
+            <text class="rv-msg-sub ep1">{{item.content}}</text>
+          </view>
+          <text class="rv-msg-time">{{item.time}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="rv-scroll-pad"></view>
+  </scroll-view>
+
+  <!-- 更多 · Blackbird 半屏菜单 -->
+  <view class="scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'merchant-more-menu'}}" catchtouchmove="blockSceneTouch">
+    <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeMoreMenu">
+      <view class="rv-more-list">
+        <!-- 工作台没有铃铛,协作邀请(=合作中心铃铛那一页)从这里进;接口要 COOP_MANAGE,核销/财务岗不给入口。
+             CU-M-150:这一页只有「收到的 / 我发出的」协作记录,聊天与系统通知在「站内消息」,入口名不再写「消息中心」。 -->
+        <view class="rv-more-item" wx:if="{{merchantAccess.canManageCoop}}" bindtap="onMoreItem" data-action="messages" aria-role="button" aria-label="打开协作邀请" hover-class="cy-pressed" hover-stay-time="80">
+          <image class="rv-more-ico" src="/images/nav_msg.svg" mode="aspectFit" />
+          <text class="rv-more-label">协作邀请</text>
+          <cy-icon class="rv-more-chev" name="arrow-right" size="28" />
+        </view>
+        <view class="rv-more-item" wx:if="{{merchantAccess.canReadAftercare}}" bindtap="onMoreItem" data-action="aftercare" aria-role="button" aria-label="打开退款售后" hover-class="cy-pressed" hover-stay-time="80">
+          <image class="rv-more-ico" src="/pages/merchant/images/icon_wallet.svg" mode="aspectFit" />
+          <text class="rv-more-label">退款售后</text>
+          <cy-icon class="rv-more-chev" name="arrow-right" size="28" />
+        </view>
+        <view class="rv-more-item" wx:if="{{merchantAccess.canManageCoupons}}" bindtap="onMoreItem" data-action="coupon" aria-role="button" aria-label="管理优惠券" hover-class="cy-pressed" hover-stay-time="80">
+          <image class="rv-more-ico" src="/pages/merchant/images/icon_wallet.svg" mode="aspectFit" />
+          <text class="rv-more-label">管理优惠券</text>
+          <cy-icon class="rv-more-chev" name="arrow-right" size="28" />
+        </view>
+        <!-- #814 删掉的那个假入口(文案与实际跳转不符,跳的是核销台账)不要再加回来;
+             rebase 并集时它连同一个没闭合的 brand 开标签一起被带回来过,这里已清掉。
+             ⚠️ 这段注释刻意不写那两个字 —— 语义门禁扫的是整段 WXML 文本,注释也算。 -->
+        <view class="rv-more-item" wx:if="{{merchantAccess.canWriteProfile}}" bindtap="onMoreItem" data-action="brand" aria-role="button" aria-label="打开品牌资料" hover-class="cy-pressed" hover-stay-time="80">
+          <image class="rv-more-ico" src="/images/icon_shop.svg" mode="aspectFit" />
+          <text class="rv-more-label">品牌资料</text>
+          <cy-icon class="rv-more-chev" name="arrow-right" size="28" />
+        </view>
+      </view>
+  </cy-scene-sheet>
+  </view>
+  <!-- [P0-2] ③ 选章核销:一商家在同一路线承接多章是常态 ⇒ 交集≥2 时由他自己选,
+       选完调 scan_qr_code_chapter。不用 wx.showActionSheet —— 它的 itemList 上限 6 项,
+       超了就得截断 = 静默丢选项。 -->
+  <view class="scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'merchant-chapter-picker'}}" catchtouchmove="blockSceneTouch">
+    <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="onChapterSheetClose">
+    <view class="chpick">
+      <view class="chpick__hint">你在本路线承接了多个章节,请选择本次要核销的那一个</view>
+      <view class="chpick__item" wx:for="{{chapterSheet.items}}" wx:key="id"
+            data-id="{{item.id}}" bindtap="onChapterPick" aria-role="button" aria-label="选择核销章节{{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="chpick__name">{{item.name}}</text>
+        <cy-icon class="chpick__chev" name="arrow-right" size="28" />
+      </view>
+    </view>
+  </cy-scene-sheet>
+  </view>
+
+  <!-- 城市定向多据点归属:候选回执不是核销成功,只有点选后才调用选择端点。 -->
+  <view class="scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'merchant-station-picker'}}" catchtouchmove="blockSceneTouch">
+    <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="onStationSheetClose">
+    <view class="chpick">
+      <view class="chpick__hint">你在本路线承接了多个据点,请选择本次实际核销的据点</view>
+      <view class="chpick__item" wx:for="{{stationSheet.items}}" wx:key="registrationMerchantId"
+            data-registration-merchant-id="{{item.registrationMerchantId}}" bindtap="onStationPick" aria-role="button" aria-label="选择实际核销据点{{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="chpick__name">{{item.name}}</text>
+        <cy-icon class="chpick__chev" name="arrow-right" size="28" />
+      </view>
+    </view>
+  </cy-scene-sheet>
+  </view>
+
+  <view class="scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'merchant-verification-result'}}" catchtouchmove="blockSceneTouch">
+    <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeVerificationResult">
+    <view class="verify-result verify-result--{{verificationResult.state}}">
+      <text class="verify-result__title">{{verificationResult.title}}</text>
+      <text class="verify-result__message">{{verificationResult.message}}</text>
+      <view class="verify-result__action" bindtap="closeVerificationResult" aria-role="button" aria-label="关闭核销结果" hover-class="cy-pressed" hover-stay-time="80">知道了</view>
+    </view>
+  </cy-scene-sheet>
+  </view>
+
+  <tabBar mode="merchant" activeKey="workbench" />
+</view>
+
+<!-- 商家台账/分润/提现/装修/据点统一为白色 scene-full；宿主不复制业务正文。 -->
+<view class="merchant-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id !== 'play-activity-detail' && sceneCurrent.id !== 'roam-poi-detail' && sceneCurrent.id !== 'merchant-more-menu' && sceneCurrent.id !== 'merchant-chapter-picker' && sceneCurrent.id !== 'merchant-station-picker' && sceneCurrent.id !== 'merchant-verification-result'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" dirty="{{sceneCurrent.dirty}}" mask-closable="{{sceneCurrent.maskClosable}}" footer="{{sceneCurrent.footer}}" bind:requestclose="requestSceneClose" bind:back="backScene">
+    <cy-scene-route-content id="sceneRouteContent" scene-id="{{sceneCurrent.id}}" params="{{sceneCurrent.params}}" theme="{{sceneCurrent.theme}}" bind:open="openChildScene" bind:back="backScene" bind:close="closeScene" bind:dirtychange="onSceneDirtyChange" />
+    <view wx:if="{{sceneCurrent.footer}}" slot="footer" class="merchant-scene-footer">
+      <cy-btn variant="primary" bindtap="submitSceneForm">{{sceneCurrent.id === 'merchant-apply' ? '提交入驻申请' : sceneCurrent.id === 'merchant-citynode' ? '提交互动模板' : '保存店铺资料'}}</cy-btn>
+    </view>
+  </cy-scene-sheet>
+</view>
+
+<view class="merchant-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'play-activity-detail'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" dirty="{{sceneCurrent.dirty}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="requestSceneClose" bind:back="backScene">
+    <cy-scene-play-activity-detail activity-id="{{sceneCurrent.params.id}}" bind:close="closeScene" />
+  </cy-scene-sheet>
+</view>
+<view class="merchant-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'roam-poi-detail'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" dirty="{{sceneCurrent.dirty}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="requestSceneClose" bind:back="backScene">
+    <cy-scene-roam-poi-detail poi-id="{{sceneCurrent.params.poiId}}" merchant-id="{{sceneCurrent.params.merchantId}}" bind:open="openChildScene" bind:close="closeScene" bind:citystamp="openCityStamp" />
+  </cy-scene-sheet>
+</view>
+<cy-modal class="theme-merchant" show="{{sceneConfirm.show}}" title="放弃未保存修改？" content="关闭后，本次修改不会保留。" confirm-text="放弃修改" cancel-text="继续编辑" danger bind:confirm="confirmSceneDiscard" bind:cancel="cancelSceneDiscard" />
+
+<!-- 隐私授权闸(真弹窗):页内组件,不压页面栈。app.js 在需要授权时调本页 showPrivacyGate()。 -->
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

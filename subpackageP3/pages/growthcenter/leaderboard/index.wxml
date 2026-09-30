@@ -1,0 +1,150 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="gc-page {{reducedMotion ? 'gc--reduced' : ''}}">
+  <cy-nav-bar />
+  <cy-page-title title="完整排行榜" />
+
+  <!-- period tabs:走 cy-tabs chip 变体(ccc 标准,与 roam/history、income-detail 同一套视觉语言)。
+       default 变体的选中下划线默认色是 --cy-tabs-accent 兜底 --cy-brand(紫),chip 变体选中态
+       走反色中性实心底,不经过这条紫色兜底路径,同时解决 ccc 一致性与去紫色化两条。 -->
+  <cy-tabs
+    class="gc-tabs"
+    variant="chip"
+    tabs="{{[{key:'week',label:'周榜'},{key:'total',label:'总榜'}]}}"
+    active="{{period}}"
+    bind:change="onPeriodChange"
+  />
+  <view class="gc-divider"></view>
+
+  <!-- 真失败:走全仓统一的 cy-error(带重试)。原来这里是裸 <view> 一行红字、没有任何
+       重试入口 —— 全仓唯一的例外(B64/D10/D24/D31/E02/F06 全是 cy-error + 重试),
+       用户看到「排行榜加载失败」之后只能退出页面(2026-08-19 UI 复核 B75 拍到)。 -->
+  <cy-error
+    wx:if="{{errorMsg}}"
+    class="gc-error-board"
+    fill
+    size="lg"
+    title="排行榜没能加载出来"
+    sub="{{errorMsg}}"
+    retry="重新加载"
+    bind:retry="onRetry"
+  />
+  <!-- ⚠️ 门从 top3.length===0 改成 !top3[0]:首次进来 top3 是 [],但 buildBoard 拿到空榜后
+       会把它填成 [null,null,null](length 3) —— 用 length 判会让「空榜后再次切榜」那一下
+       既进不了加载态、也进不了下面的空态,直接掉进榜单分支渲染出一片黑。 -->
+  <cy-skeleton wx:elif="{{loading && !top3[0]}}" type="list" count="3" />
+
+  <!-- 空榜:接口成功但一个人都没有。榜单里每一块又各自挂在 top3[i]/rest/me 上,
+       没有这条兜底就是整页只剩两排 Tab、下面一片黑(2026-08-19 UI 复核 B74 拍到)。
+       写法照抄同域 growthcenter/index 的徽章空态,不自创。 -->
+  <cy-empty
+    wx:elif="{{!loading && !top3[0] && !rest.length && !me}}"
+    class="gc-empty-board"
+    fill
+    size="lg"
+    kind="empty"
+    title="这张榜还没有人上榜"
+    sub="完成一次城市探索就会累计{{unit}}，第一个上榜的可能就是你"
+    cta="去探索"
+    bind:cta="goExplore"
+  />
+
+  <block wx:else>
+    <view class="gc-board" wx:key="animKey">
+
+      <!-- PODIUM -->
+      <view class="gc-podium">
+        <!-- 2nd -->
+        <view class="gc-pod gc-pod-side">
+          <block wx:if="{{top3[1]}}">
+            <view class="gc-ring gc-ring-2 gc-breathe" style="background:{{top3[1].ringBg}}">
+              <view class="gc-pav gc-pav-2" style="background:{{top3[1].bg}}">
+                <image wx:if="{{top3[1].avatarUrl}}" class="gc-avatar-img" src="{{top3[1].avatarUrl}}" mode="aspectFill"/>
+                <image wx:elif="{{top3[1].memoji}}" class="gc-avatar-img" src="{{top3[1].memoji}}" mode="aspectFill"/>
+                <text wx:else>{{top3[1].initial}}</text>
+              </view>
+              <view class="gc-medal gc-medal-2">2</view>
+            </view>
+            <view class="gc-pod-name">{{top3[1].name}}</view>
+            <view class="gc-pod-score"><view class="gc-dot gc-dot-s"></view><text class="gc-num">{{top3[1].scoreText}}</text><text class="gc-unit">{{unit}}</text></view>
+          </block>
+        </view>
+
+        <!-- 1st -->
+        <view class="gc-pod gc-pod-first">
+          <block wx:if="{{top3[0]}}">
+            <cy-icon class="gc-crown" name="star" size="40" />
+            <view class="gc-ring gc-ring-1 gc-breathe" style="background:{{top3[0].ringBg}}">
+              <view class="gc-pav gc-pav-1" style="background:{{top3[0].bg}}">
+                <image wx:if="{{top3[0].avatarUrl}}" class="gc-avatar-img" src="{{top3[0].avatarUrl}}" mode="aspectFill"/>
+                <image wx:elif="{{top3[0].memoji}}" class="gc-avatar-img" src="{{top3[0].memoji}}" mode="aspectFill"/>
+                <text wx:else>{{top3[0].initial}}</text>
+              </view>
+              <view class="gc-medal gc-medal-1">1</view>
+            </view>
+            <view class="gc-pod-name gc-pod-name-1">{{top3[0].name}}</view>
+            <view class="gc-pod-score"><view class="gc-dot gc-dot-g"></view><text class="gc-num gc-num-g">{{top3[0].scoreText}}</text><text class="gc-unit gc-unit-g">{{unit}}</text></view>
+          </block>
+        </view>
+
+        <!-- 3rd -->
+        <view class="gc-pod gc-pod-side">
+          <block wx:if="{{top3[2]}}">
+            <view class="gc-ring gc-ring-2 gc-breathe" style="background:{{top3[2].ringBg}}">
+              <view class="gc-pav gc-pav-2" style="background:{{top3[2].bg}}">
+                <image wx:if="{{top3[2].avatarUrl}}" class="gc-avatar-img" src="{{top3[2].avatarUrl}}" mode="aspectFill"/>
+                <image wx:elif="{{top3[2].memoji}}" class="gc-avatar-img" src="{{top3[2].memoji}}" mode="aspectFill"/>
+                <text wx:else>{{top3[2].initial}}</text>
+              </view>
+              <view class="gc-medal gc-medal-3">3</view>
+            </view>
+            <view class="gc-pod-name">{{top3[2].name}}</view>
+            <view class="gc-pod-score"><view class="gc-dot gc-dot-b"></view><text class="gc-num">{{top3[2].scoreText}}</text><text class="gc-unit">{{unit}}</text></view>
+          </block>
+        </view>
+      </view>
+
+      <!-- metric toggle:同样走 cy-tabs chip 变体,和上面周榜/总榜、以及 income-detail 的筛选 tab 统一同一套 ccc 视觉 -->
+      <view class="gc-metric-row">
+        <cy-tabs
+          variant="chip"
+          tabs="{{[{key:'point',label:'积分榜'},{key:'exp',label:'成长榜'}]}}"
+          active="{{metric}}"
+          bind:change="onMetricChange"
+        />
+      </view>
+
+      <!-- list rows 4+ -->
+      <view class="gc-list">
+        <view class="gc-row" wx:for="{{rest}}" wx:key="memberId">
+          <view class="gc-row-rank">{{item.rank}}</view>
+          <view class="gc-avatar" style="background:{{item.bg}}">
+            <image wx:if="{{item.avatarUrl}}" class="gc-avatar-img" src="{{item.avatarUrl}}" mode="aspectFill"/>
+            <image wx:elif="{{item.memoji}}" class="gc-avatar-img" src="{{item.memoji}}" mode="aspectFill"/>
+            <text wx:else>{{item.initial}}</text>
+          </view>
+          <view class="gc-row-name">{{item.name}}</view>
+          <view class="gc-row-score"><text class="gc-num">{{item.scoreText}}</text><text class="gc-unit">{{unit}}</text></view>
+        </view>
+
+        <!-- my highlighted row -->
+        <view wx:if="{{me}}" class="gc-row gc-row-me">
+          <view class="gc-row-rank gc-row-rank-me">{{me.rank}}</view>
+          <view class="gc-avatar" style="background:{{me.bg}}">
+            <image wx:if="{{me.avatarUrl}}" class="gc-avatar-img" src="{{me.avatarUrl}}" mode="aspectFill"/>
+            <image wx:elif="{{me.memoji}}" class="gc-avatar-img" src="{{me.memoji}}" mode="aspectFill"/>
+            <text wx:else>{{me.initial}}</text>
+          </view>
+          <view class="gc-row-name-me">
+            <text class="gc-me-name">{{me.name}}</text>
+            <text class="gc-me-tag">我</text>
+          </view>
+          <view class="gc-row-score"><text class="gc-num gc-num-g">{{me.scoreText}}</text><text class="gc-unit gc-unit-g">{{unit}}</text></view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>
+</view>

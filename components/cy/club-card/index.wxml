@@ -1,0 +1,63 @@
+<view class="cc" hover-class="{{loading ? '' : 'cc--press'}}" hover-stay-time="80"
+      aria-role="{{interactive ? 'button' : ''}}"
+      aria-label="{{interactive ? (club.name ? '查看俱乐部：' + club.name : '查看俱乐部') : ''}}"
+      aria-disabled="{{loading}}" catchtap="onTap">
+  <!-- 骨架:与实卡同构 -->
+  <view wx:if="{{loading}}" class="cc__sk">
+    <view class="cc__cover sk"></view>
+    <view class="cc__body">
+      <view class="sk sk-l"></view>
+      <view class="sk sk-l short"></view>
+      <view class="sk sk-block"></view>
+      <view class="cc__sk-chips"><view class="sk sk-chip"></view><view class="sk sk-chip"></view></view>
+    </view>
+  </view>
+
+  <block wx:elif="{{club}}">
+    <!-- 封面:cover(表里一直有,以前从没露过)→ 纯色底+图标 -->
+    <view class="cc__cover">
+      <image wx:if="{{club.coverUrl}}" class="cc__cover-img" src="{{club.coverUrl}}" mode="aspectFill" />
+      <view wx:else class="cc__cover-ph"><cy-icon name="tab-club" size="80" /></view>
+      <view class="cc__logo">
+        <image wx:if="{{club.logoUrl}}" class="cc__logo-img" src="{{club.logoUrl}}" mode="aspectFill" />
+        <cy-icon wx:else name="tab-club" size="36" />
+      </view>
+    </view>
+
+    <view class="cc__body">
+      <view class="cc__name-row">
+        <text class="cc__name">{{club.name}}</text>
+        <!-- level=0 不显示徽章,禁止 Lv.0 / 空星 -->
+        <text wx:if="{{club.level > 0}}" class="cc__level">Lv.{{club.level}}</text>
+      </view>
+      <text wx:if="{{_sub}}" class="cc__sub">{{_sub}}</text>
+      <!-- null 与 0 区分:字段 null 整段隐藏,0 照常显示 -->
+      <view wx:if="{{_data}}" class="cc__data"><cy-icon name="tab-club" size="22" /><text>{{_data}}</text></view>
+
+      <!-- 主理人行:俱乐部是「跟谁玩」的生意,主理人比 logo 重要 -->
+      <view wx:if="{{club.leaderName}}" class="cc__leader">
+        <cy-avatar size="56" name="{{club.leaderName}}" />
+        <view class="cc__leader-info">
+          <text class="cc__leader-name">主理人 · {{club.leaderName}}</text>
+          <text wx:if="{{_leaderMeta}}" class="cc__leader-meta">{{_leaderMeta}}</text>
+        </view>
+        <cy-icon class="cc__leader-ic" name="star" size="28" />
+      </view>
+
+      <view wx:if="{{_abilities.length}}" class="cc__abilities">
+        <text wx:for="{{_abilities}}" wx:key="index" class="cc__ability">{{item}}</text>
+      </view>
+      <view wx:if="{{_tags.length}}" class="cc__tags">
+        <text wx:for="{{_tags}}" wx:key="index" class="cc__tag">{{item}}</text>
+      </view>
+
+      <!-- 底行(2026-08-20 用户在稿 9:2 亲手定位):权益行在左(加入免费,不展示价格)、
+           按钮贴右同排;无权益行时按钮独自贴右。玩家版/商家版同一组件,一处生效 -->
+      <view wx:if="{{_perk || _btn}}" class="cc__bottom">
+        <view wx:if="{{_perk}}" class="cc__perk">{{_perk}}</view>
+        <view wx:else class="cc__bottom-fill"></view>
+        <view wx:if="{{_btn}}" class="cc__btn cc__btn--{{_btn.kind}}" catchtap="onAction" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">{{_btn.label}}</view>
+      </view>
+    </view>
+  </block>
+</view>

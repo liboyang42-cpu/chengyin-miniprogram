@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-icon": "/components/cy/icon/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-scratch": "/pages/play/components/scratch/index"
+  }
+}

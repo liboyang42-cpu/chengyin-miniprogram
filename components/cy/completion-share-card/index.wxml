@@ -1,0 +1,70 @@
+<!-- Figma 297:1827 · Roam variant 的【内容主体】,换算 1pt = 2rpx。
+     外壳(Header / Actions / 分割线)由 cy-post-card 出,本组件经 <slot name="special"> 注入,
+     只画稿上中间这一段,自上而下:TitleRow / Stats / 轨迹图 / Kudos / CommentPreview。
+     ⚠️ 旧版是 820rpx 全幅封面卡(eyebrow「漫游成绩」/ time / 两个 metric / stamp pill),
+        那套不是本稿:eyebrow 与 stamp 稿上没有,时间归 post-card 头部,故一并撤掉。
+     ⚠️ Stats 的三个值、Kudos、CommentPreview 后端目前都没有字段 ⇒ 全部 wx:if 挂空,
+        不造假数据、不写死文案;缺哪些字段见组件返回说明。 -->
+<view class="completion-share-card" catchtap="onDetail" aria-role="button" aria-label="{{title || '本次漫游'}}，漫游成绩，查看详情" hover-class="cy-pressed" hover-stay-time="80">
+
+  <!-- TitleRow:间距 10pt,垂直居中 -->
+  <view class="completion-share-card__title-row">
+    <cy-icon class="completion-share-card__walk" name="walk" size="48" />
+    <text class="completion-share-card__title">{{title || '本次漫游'}}</text>
+    <!-- MedalPill:金/银/铜三档各自一枚,数字是三档之和。
+         ⚠️ 与 feed-play-card 的 __trophy(star + nodeTotal「通关节点数」)不是一回事:
+            那个是「走完了几个点」,这里是「在几个点上拿到了第 1/2/3 名」。 -->
+    <view class="completion-share-card__medals" wx:if="{{medalGold > 0 || medalSilver > 0 || medalBronze > 0}}">
+      <cy-icon class="completion-share-card__medal completion-share-card__medal--gold" wx:if="{{medalGold > 0}}" name="star" size="28" />
+      <cy-icon class="completion-share-card__medal completion-share-card__medal--silver" wx:if="{{medalSilver > 0}}" name="star" size="28" />
+      <cy-icon class="completion-share-card__medal completion-share-card__medal--bronze" wx:if="{{medalBronze > 0}}" name="star" size="28" />
+      <text class="completion-share-card__medal-count">{{medalGold + medalSilver + medalBronze}}</text>
+    </view>
+  </view>
+
+  <!-- Stats:三栏等分,每栏 label 在上、value 在下,竖间距 4pt -->
+  <view class="completion-share-card__score" wx:if="{{distanceText || shopText || durationText || (!roamResult && nodeTotal > 0)}}">
+    <view class="completion-share-card__metric" wx:if="{{distanceText}}">
+      <text class="completion-share-card__metric-label">距离</text>
+      <text class="completion-share-card__metric-value">{{distanceText}}</text>
+    </view>
+    <view class="completion-share-card__metric" wx:if="{{shopText}}">
+      <text class="completion-share-card__metric-label">探店</text>
+      <text class="completion-share-card__metric-value">{{shopText}}</text>
+    </view>
+    <view class="completion-share-card__metric" wx:if="{{durationText}}">
+      <text class="completion-share-card__metric-label">用时</text>
+      <text class="completion-share-card__metric-value">{{durationText}}</text>
+    </view>
+    <!-- 稿上没有这一栏,但它是本组件今天【唯一有真数据】的成绩:活动完赛帖(dataType=1)的路线节点数。
+         自由漫游帖(roamResult)后端不回 nodeTotal,所以仍按旧码只在非漫游档出现。 -->
+    <view class="completion-share-card__metric" wx:if="{{!roamResult && nodeTotal > 0}}">
+      <text class="completion-share-card__metric-label">路线节点</text>
+      <text class="completion-share-card__metric-value">{{nodeTotal}}</text>
+    </view>
+  </view>
+
+  <!-- 轨迹图:高 188pt、圆角 20pt。图源沿用 cover(漫游成绩长图 / 路线预览图),
+       漫游档仍走 aspectFit —— 那是一张竖幅成绩长图,aspectFill 会把它裁得只剩中段。 -->
+  <image wx:if="{{cover}}" class="completion-share-card__cover" src="{{cover}}" mode="{{roamResult ? 'aspectFit' : 'aspectFill'}}" lazy-load="true" />
+
+  <!-- Kudos:点赞头像组(最多三枚,叠 8pt ⇒ 组宽正好 56pt)+ 文案,间距 8pt -->
+  <view class="completion-share-card__kudos" wx:if="{{kudosAvatars.length > 0 || kudosText}}">
+    <view class="completion-share-card__kudos-avatars" wx:if="{{kudosAvatars.length > 0}}">
+      <!-- 头像 URL 可能重复(都用默认头像时),不能拿 *this 当 key;沿用 post-card 图廊的 for-index 写法。 -->
+      <block wx:for="{{kudosAvatars}}" wx:for-index="kudosIndex" wx:key="kudosIndex">
+        <image class="completion-share-card__kudos-avatar" wx:if="{{kudosIndex < 3}}" src="{{item}}" mode="aspectFill" lazy-load="true" />
+      </block>
+    </view>
+    <text class="completion-share-card__kudos-text" wx:if="{{kudosText}}">{{kudosText}}</text>
+  </view>
+
+  <!-- CommentPreview:一条评论 + 「查看全部 N 条」 -->
+  <view class="completion-share-card__comment" wx:if="{{commentText || commentCount > 0}}">
+    <view class="completion-share-card__comment-line" wx:if="{{commentText}}">
+      <text class="completion-share-card__comment-nick" wx:if="{{commentNick}}">{{commentNick}}</text>
+      <text class="completion-share-card__comment-text">{{commentText}}</text>
+    </view>
+    <text class="completion-share-card__comment-more" wx:if="{{commentCount > 0}}">查看全部 {{commentCount || 0}} 条评论</text>
+  </view>
+</view>

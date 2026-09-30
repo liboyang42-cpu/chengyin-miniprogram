@@ -1,0 +1,10 @@
+<cy-scene-sheet
+  wx:if="{{show}}"
+  show="{{true}}"
+  variant="half"
+  title="出示团码"
+  mask-closable="{{true}}"
+  bind:close="onClose"
+>
+  <cy-scene-qr-group-code activity-id="{{activityId}}" topic-id="{{topicId}}" name="{{name}}" bind:close="onClose" />
+</cy-scene-sheet>

@@ -1,0 +1,26 @@
+@import '../../../style/merchant-light.wxss';
+
+.page { min-height: 100vh; background: var(--cy-bg-page); }
+.body { padding: var(--cy-space-3) var(--cy-page-x) var(--cy-tabbar-h); }
+.rel-tabs { display: block; padding: 0 var(--cy-page-x); }
+.scope-note {
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+}
+.rel-inline-error { display: block; margin-bottom: var(--cy-space-3); }
+.refresh-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1-5);
+  min-height: 56rpx;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+/* 2026-08-20 卡片重设计:行换成卡后外层白面板退场,卡直接落页面底 */
+.rel-list { display: flex; flex-direction: column; gap: var(--cy-space-3); margin-top: var(--cy-space-3); }
+.rel-item { overflow: hidden; border-radius: var(--cy-radius-lg); }
+.fill-slot { display: flex !important; flex-direction: column !important; min-height: 60vh !important; }

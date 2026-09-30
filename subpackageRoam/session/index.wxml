@@ -1,0 +1,77 @@
+<!-- 深链兼容壳：PR 600 正文只在 scene-roam-session，页面另保留分享卡工具链。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="session-shell" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar plain custom-back bind:back="goBack" />
+  <cy-page-title title="本次漫游" subtitle="{{s.dateFull ? s.dateFull + ' · ' + s.time : ''}}" safe-top="{{false}}" />
+  <view class="session-shell__body">
+    <block wx:if="{{sharedState}}">
+      <view class="session-status" wx:if="{{sharedState === 'loading'}}" aria-role="status">正在打开朋友分享的足迹</view>
+      <cy-error wx:elif="{{sharedState === 'error'}}" fill title="这条足迹暂时打不开" sub="网络不太稳定，重试一次" retry="重试" bind:retry="retryShared" />
+      <cy-empty wx:elif="{{sharedState === 'gone'}}" fill size="lg" kind="missing-param" title="这条足迹已不再公开" sub="分享者可能已关闭分享或清理了记录" cta="去漫游看看" bind:cta="goRoam" />
+      <cy-scene-roam-session wx:else snapshot="{{snapshot}}" bind:back="goBack" bind:close="goBack" />
+    </block>
+    <cy-scene-roam-session wx:else id="roamSession" ts="{{ts}}" bind:back="goBack" bind:close="goBack" bind:share="share" />
+  </view>
+</view>
+
+<!-- 深链页专用分享卡；站内弹窗继续由五宿主的 share 事件契约承接。 -->
+<cy-sheet show="{{share.show}}" title="分享足迹卡" bind:close="closeShare">
+  <view class="ss-share-sheet">
+    <view class="ss-share-loading" wx:if="{{share.drawing}}">
+      <cy-progress-status density="compact" title="正在生成足迹卡"
+        sub="正在整理足迹、点亮地点和探索数据" aria="正在生成足迹卡" />
+    </view>
+
+    <block wx:elif="{{share.imagePath}}">
+      <cy-card class="ss-card">
+        <view class="ss-card-map">
+          <view class="ss-card-route">
+            <view class="ss-card-seg" wx:for="{{segs}}" wx:key="i"
+                  style="left:{{item.x}}rpx;top:{{item.y}}rpx;width:{{item.len}}rpx;transform:rotate({{item.deg}}deg)"></view>
+            <view class="ss-card-poi" wx:for="{{poiDots}}" wx:key="i"
+                  style="left:{{item.x}}rpx;top:{{item.y}}rpx;background:{{item.color}}"></view>
+          </view>
+          <text class="ss-card-map-tip" wx:if="{{!segs.length}}">这次没有记录到轨迹</text>
+        </view>
+        <view class="ss-card-name">{{s.routeName}}</view>
+        <view class="ss-card-fact">{{s.completeFact}}</view>
+        <view class="ss-card-date">{{s.dateFull}}</view>
+        <view class="ss-card-stats">
+          <view><text>{{s.distanceText}}</text><text>km</text></view>
+          <view><text>{{ s.explorePct === 0 ? 0 : (s.explorePct || '--') }}%</text><text>探索度</text></view>
+          <view><text>{{s.shops}}</text><text>点亮</text></view>
+        </view>
+        <view class="ss-card-brand">城瘾 · CityFog</view>
+      </cy-card>
+
+      <view class="ss-share-error" wx:if="{{share.error}}">
+        <cy-error title="{{share.error}}" sub="足迹卡仍在本页，可重试或返回" retry="重试保存" bind:retry="retryShare" />
+      </view>
+      <view class="ss-share-link" wx:if="{{share.linkReason}}">
+        <text>{{share.linkReason === 'private' ? '当前可见范围为仅自己，朋友点开只能看到漫游首页' : '足迹链接没生成，朋友点开只能看到漫游首页'}}</text>
+        <text class="ss-share-link__retry" wx:if="{{share.linkReason !== 'private'}}" bindtap="retryShareLink" aria-role="button" aria-label="重新生成足迹链接" hover-class="cy-pressed">重试</text>
+      </view>
+      <view class="ss-share-actions">
+        <cy-btn class="ss-share-action" variant="primary" loading="{{share.saving}}" disabled="{{share.saving}}" bindtap="saveShareCard">
+          <cy-icon name="image" size="34" /><text class="ss-share-action__label">保存到相册</text>
+        </cy-btn>
+        <button class="ss-share-action ss-share-action--native" open-type="share">
+          <cy-icon name="share" size="34" /><text class="ss-share-action__label">微信分享</text>
+        </button>
+      </view>
+    </block>
+
+    <view class="ss-share-error" wx:elif="{{share.error}}">
+      <cy-error title="{{share.error}}" sub="{{err ? '返回本次漫游重新选择记录' : '记录仍在本机，没有丢失'}}" retry="{{err ? '' : '重新生成'}}" bind:retry="retryShare" />
+    </view>
+    <view class="ss-share-back" bindtap="closeShare" aria-role="button"
+      aria-label="返回本次漫游" hover-class="cy-pressed">返回本次漫游</view>
+  </view>
+</cy-sheet>
+
+<canvas type="2d" id="sessionShareCanvas" class="ss-share-canvas"></canvas>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

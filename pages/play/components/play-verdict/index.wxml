@@ -1,0 +1,22 @@
+<!-- 判定屏只有两张:猜中了走 win,其余走 fail。凡是「猜中了」都走这一个,
+     每个玩法自己发明一套的话,玩家会以为自己在玩不同的产品。 -->
+<view class="pv pv--{{kind}} {{rising ? 'pv--on' : ''}} {{reducedMotion ? 'pv--reduced' : ''}}" wx:if="{{show}}"
+      aria-role="alert" aria-label="{{kind === 'win' ? ('通过。' + (text || '')) : word}}">
+  <view class="pv__fill">
+    <view class="pv__wave pv__wave--a"></view>
+    <view class="pv__wave pv__wave--b"></view>
+    <view class="pv__bubble" wx:for="{{bubbles}}" wx:key="i"
+          style="left:{{item.left}}%;width:{{item.size}}rpx;height:{{item.size}}rpx;animation-delay:{{item.delay}}s"></view>
+  </view>
+
+  <view class="pv__body">
+    <!-- 赢:一笔画上去的对勾,比直接显示一个静止的勾更像刚判完 -->
+    <view class="pv__tick" wx:if="{{kind === 'win'}}">
+      <view class="pv__tick-short"></view>
+      <view class="pv__tick-long"></view>
+    </view>
+    <!-- 输:整屏就两个字。规则说明是写给刚失败的人看的,那个时候没人读 -->
+    <view class="pv__word" wx:else>{{word}}</view>
+    <view class="pv__text" wx:if="{{kind === 'win' && text}}">{{text}}</view>
+  </view>
+</view>

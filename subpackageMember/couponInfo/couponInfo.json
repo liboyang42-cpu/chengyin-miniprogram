@@ -1,0 +1,17 @@
+{
+  "usingComponents": {
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-datetime-range": "/components/cy/datetime-range/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationBarTitleText": "优惠券设置",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F4F4",
+  "navigationStyle": "custom"
+}

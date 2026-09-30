@@ -1,0 +1,353 @@
+    <!-- 第 2 页 · 票务与档期。2026-08-10 收窄:除票务外的字段全部迁往「主题详情」弹窗
+         (topic-detail-sheet.wxml),章节级商家承接整块移除 —— 招商配置改为发布之后
+         在项目详情页做,因为招商需要时间,发布前填不准、发布后 WHITELIST 又改不了。
+         2026-08-11 按 Figma 2770:13325 / 2770:11762 重做票种编辑器,并把整页换成
+         创作域那套白卡语言(.node-card / .node-pill),不再用旧的 pd-row 列表 ——
+         稿子的信息结构和原代码本来就一致,差的只是视觉。 -->
+    <block wx:if="{{editorPage === 2}}">
+      <view class="slopes-info-page gen-page">
+          <!-- CU-C-167:这一屏原来第一个元素就是区块标题「档期」,人只能由区块反推自己在哪一步。
+               页级标题用全仓那一个 L1 组件(cy-page-title),措辞与进来时点的那张卡、
+               与底部「完成」的无障碍名同一套词:index.wxml:125「票务设置」/ :643「完成票务设置，回到创作」。
+               safe-top=false —— 这一页不是顶格导航页,上面还有 sheet 的把手与 chrome 顶距;
+               flush=true —— .slopes-info-page 自己带 32rpx 横向内边距,别叠成双倍缩进。
+               返回路径不靠这颗顶部箭头(那枚是离开整个编辑器,2026-08-11 定):
+               底部整宽「完成」回到创作页,是这一屏唯一的收尾动作。 -->
+          <cy-page-title title="票务设置" safe-top="{{false}}" flush="{{true}}" />
+
+          <!-- 2026-09-05 用户拍板:区块标题不再随身份变。
+               原来是 `merchantPoolEditable ? '档期与商家池' : '档期'` —— 标题的职责是说
+               「这块管什么」,不是「你是谁」;而且主理人把开关关成自办之后,标题照旧写
+               「与商家池」,名不副实。现在拆成两块:档期(恒显示)+ 商家招商(能开才显示),
+               标题各自固定,关掉开关时整块消失。 -->
+          <view class="pd-section-title">档期</view>
+
+          <!-- 档期(主题起止)2026-08-10 从主题详情弹窗迁来:用户「档期与商家池不是在这里配置」。
+               ⚠️ 不能只删不搬:票种编辑器的「与主题日期一致」拿的就是这两个值,删了它就没来源。 -->
+          <view class="node-card">
+            <view class="node-card__row" id="fieldDates" bindtap="showStartTimePicker" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="node-card__ico"><cy-icon name="calendar" size="32" /></view>
+              <view class="node-card__main">
+                <text class="node-card__title"><text class="g-req">*</text>开始日期</text>
+                <text class="node-card__value">{{startDateTime == '开始时间' ? '选择开始日期' : startDateTime}}</text>
+              </view>
+              <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+            </view>
+            <view class="node-card__hr"></view>
+            <view class="node-card__row" bindtap="showEndTimePicker" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="node-card__ico"><cy-icon name="calendar" size="32" /></view>
+              <view class="node-card__main">
+                <text class="node-card__title"><text class="g-req">*</text>结束日期</text>
+                <text class="node-card__value">{{endDateTime == '结束时间' ? '选择结束日期' : endDateTime}}</text>
+              </view>
+              <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+            </view>
+            <block wx:if="{{formData.productType === 2}}">
+              <view class="node-card__hr"></view>
+              <cy-date-field mode="date" value="{{formData.recruitDeadline}}" start="{{dateList[0].date}}" bind:change="onRecruitDeadlineChange">
+                <view class="node-card__row" id="fieldRecruitDeadline">
+                  <view class="node-card__ico"><cy-icon name="clock" size="32" /></view>
+                  <view class="node-card__main">
+                    <!-- ⚠️ 它对自由探索是【无条件必填】,不是「开了商家开关才要填」——
+                         后端拿它把主题置入 lifecycle=1(招募),见 utils/publish/pro-editor-policy.js:11。
+                         所以它留在档期块,不能挪进下面的商家招商块(那会暗示关了就不用填)。
+                         副文说的是它在时间轴上卡哪一刀:招募截止 → 锁价 → 开售 → 档期。 -->
+                    <text class="node-card__title"><text class="g-req">*</text>招商截止日期</text>
+                    <text class="node-card__value">{{formData.recruitDeadline || '这天之后不再接商家报名，随后锁价开售'}}</text>
+                  </view>
+                  <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+                </view>
+              </cy-date-field>
+            </block>
+          </view>
+
+          <!-- 招商资格(2026-08-11 拍板):只有俱乐部主理人能开商家池,开关对其余人不露面。
+               后端 CmsTopicServiceImpl.resolveMerchantPoolFlag 有同型闸——两层都要,少一层等于没关。 -->
+          <view class="pd-section-title" wx:if="{{merchantPoolEditable}}">商家招商</view>
+          <view class="node-card" wx:if="{{merchantPoolEditable}}">
+            <view class="node-card__row">
+              <view class="node-card__ico"><cy-icon name="discover-shop" size="32" /></view>
+              <view class="node-card__main">
+                <!-- 2026-09-05 用户拍板:文案不再按入口切。原来是
+                     `lockClub ? '愿意商家参与' : '开放给商家市场'`,而 lockClub 判的是
+                     【进这一页时带没带 clubId】,跟身份无关 —— 同一个主理人从俱乐部入口进来
+                     看到 A、从「我的主题」进来看到 B,同一个人同一件事两个说法。
+                     这句话描述的是【主题的属性】,不是读者的身份,所以对谁都是同一个名字。 -->
+                <text class="node-card__title">开放给商家承接</text>
+                <text class="node-card__value">{{formData.openMerchantPool ? '商家可报名承接' : '仅自己发布管理'}}</text>
+              </view>
+              <cy-switch checked="{{formData.openMerchantPool}}" bindchange="onMerchantPoolChange" />
+            </view>
+            <!-- ⚠️ merchantPoolEditable 在【权限快照还没拉到】时是 true(fail-open,见
+                 index.js#_syncMerchantPoolEligibility:判不出资格不擅自压值,否则会静默关掉
+                 存量主题的招商、孤立已报名商家)。代价是普通玩家也可能看到这颗开关,
+                 开了要到发布时才被后端 resolveMerchantPoolFlag 拒。闸不动 —— 只把这次拒绝
+                 提前讲明白,别让人发布到一半才挨一刀。 -->
+            <view class="node-card__hr" wx:if="{{formData.openMerchantPool}}"></view>
+            <view class="node-card__row" wx:if="{{formData.openMerchantPool}}">
+              <view class="node-card__ico"><cy-icon name="info" size="32" /></view>
+              <view class="node-card__main">
+                <text class="node-card__value">开放招商需要俱乐部主理人身份，发布时会再核一次</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 「邀请俱乐部带队」2026-09-15 裁决 12B 恢复:专业版与简易版统一默认开,主办仍可手动关。
+               只属于城市定向(spec §2.1)—— 自由探索按定义没有俱乐部带队,开关不露面;
+               服务端 assertClubLeadOnlyForCityOrienteering 对「自由探索 + 开」直接抛
+               IllegalStateException(CmsTopicClubLeadSwitchGuardTest 锁着),上送侧也必须归一为 0。
+               2026-08-11 曾整条下线,本次按新裁决恢复;存量值编辑回填时如实显示(0 保持关)。
+               归属俱乐部的主题(俱乐部自办团 / 自动挂靠)同样不露面、不上送 1:
+               池的读侧一直排除 club_id 非空的主题,服务端 resolveOpenClubPool 也恒 0
+               (2026-09-15 补充裁决,审查D §1 第 4 条)。 -->
+          <view class="pd-section-title" wx:if="{{formData.productType === 1 && !formData.clubId}}">俱乐部承接</view>
+          <view class="node-card" wx:if="{{formData.productType === 1 && !formData.clubId}}">
+            <view class="node-card__row">
+              <view class="node-card__ico"><cy-icon name="tab-club" size="32" /></view>
+              <view class="node-card__main">
+                <text class="node-card__title">邀请俱乐部带队</text>
+                <text class="node-card__value">{{formData.openClubPool ? '俱乐部可在合作池申请承接带团' : '不开放俱乐部申请'}}</text>
+              </view>
+              <cy-switch checked="{{formData.openClubPool}}" bindchange="onClubPoolChange" />
+            </view>
+          </view>
+
+          <view class="pd-section-title">玩家组队</view>
+          <view class="node-card">
+            <view class="node-card__row">
+              <view class="node-card__ico"><cy-icon name="tab-club" size="32" /></view>
+              <view class="node-card__main">
+                <text class="node-card__title">支持组队</text>
+                <text class="node-card__value">{{formData.teamMode ? '玩家可按配置创建邀请制队伍' : '玩家按普通报名流程参与'}}</text>
+              </view>
+              <cy-switch checked="{{formData.teamMode > 0}}" bindchange="onTeamSupportChange" />
+            </view>
+            <block wx:if="{{formData.teamMode > 0}}">
+              <view class="node-card__hr"></view>
+              <view class="tk-field">
+                <text class="tk-label">入口时机</text>
+                <view class="tk-segment">
+                  <view class="tk-segment__item {{formData.teamMode === 1 ? 'is-active' : ''}}" bindtap="onTeamModeSelect" data-mode="1" hover-class="cy-pressed" hover-stay-time="80">报名时</view>
+                  <view class="tk-segment__item {{formData.teamMode === 2 ? 'is-active' : ''}}" bindtap="onTeamModeSelect" data-mode="2" hover-class="cy-pressed" hover-stay-time="80">报名后</view>
+                </view>
+              </view>
+              <view class="node-card__hr"></view>
+              <cy-dropdown range="{{teamMemberOptions}}" value="{{formData.teamMaxMembers - 2}}" bind:change="onTeamMaxMembersChange">
+                <view class="node-card__row">
+                  <view class="node-card__main">
+                    <text class="node-card__title">队伍人数上限</text>
+                    <text class="node-card__value">玩家可在 2–{{formData.teamMaxMembers || 4}} 人内自选</text>
+                  </view>
+                  <view class="node-pill"><text>{{formData.teamMaxMembers || 4}} 人</text><cy-icon name="chevron-right" size="24" /></view>
+                </view>
+              </cy-dropdown>
+            </block>
+          </view>
+
+          <view class="pd-section-title">票务</view>
+          <view id="ticketSection">
+            <view class="node-card" wx:for="{{formData.tickets}}" wx:key="index" wx:for-item="ticket" wx:for-index="ti" bindtap="openTicketEditor" data-index="{{ti}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="node-card__row">
+                <view class="node-card__ico"><cy-icon name="coupon" size="32" /></view>
+                <view class="node-card__main">
+                  <text class="node-card__title">{{ticket.name || '未命名票种'}}</text>
+                  <text class="node-card__value">{{ticket.price > 0 ? '¥' + ticket.price : '免费'}} · {{ticket.mode === 1 ? '城市定向' : '自由探索'}} · {{ticket.totalStock || 0}} 张</text>
+                </view>
+                <!-- 2026-09-05:正在编辑的那一行要看得出来。编辑器就在下面展开着,
+                     这一行却还写「编辑 ›」,读起来像"还能再点开一个",实际点了是收起。 -->
+                <view class="node-pill"><text>{{showTicketEditor && editingTicket.editIndex === ti ? '编辑中' : '编辑'}}</text><cy-icon name="{{showTicketEditor && editingTicket.editIndex === ti ? 'collapse' : 'chevron-right'}}" size="24" /></view>
+              </view>
+            </view>
+
+            <!-- 空态那句「城市定向或自由探索」删掉:票种模式是跟着主题走的(见编辑器里的
+                 活动模式两格),这句读起来像"这里可以二选一",是个假选项。 -->
+            <view class="slopes-add-chapter" wx:if="{{!showTicketEditor}}" bindtap="openTicketEditor" data-index="-1" aria-role="button" aria-label="{{formData.tickets.length ? '添加新票种' : '添加票种'}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="slopes-add-chapter__ico"><cy-icon name="plus" size="28" /></view>
+              <text class="slopes-add-chapter__txt">{{formData.tickets.length ? '添加新票种' : '添加票种'}}</text>
+            </view>
+
+        <!-- 票种编辑器【就地展开】(Figma 2770:13325 自由探索档 / 2770:11762 城市定向档)。
+             2026-08-11 用户定:「不要再弹窗了,直接拉长,保存之后收起来」——
+             这一页本身常常是从主题编辑器里进来的,再盖一层 position:fixed 的整屏页
+             就成了「弹窗的弹窗」,连返回钮都叠了两个。现在它只是票种列表里长出来的一段,
+             上面的档期/商家池照旧看得见,保存或收起就缩回去。 -->
+        <block wx:if="{{showTicketEditor}}">
+          <view class="tk-editor">
+            <view class="tk-editor__hd">
+              <text class="tk-editor__label">{{editingTicket.editIndex >= 0 ? '编辑票种' : '添加票种'}}</text>
+              <view class="node-pill" bindtap="closeTicketEditor" hover-class="cy-pressed" hover-stay-time="80">收起</view>
+            </view>
+            <view class="node-card">
+              <view class="tk-field">
+                <text class="tk-label"><text class="g-req">*</text>票种名称</text>
+                <input class="tk-input" placeholder="例如：早鸟票、团体票" placeholder-class="slopes-story-placeholder" value="{{editingTicket.name}}" bindinput="onEditTicketChange" data-field="name" maxlength="20" />
+              </view>
+            </view>
+
+            <!-- 活动模式那两格删了(2026-08-11 用户定):模式是【主题级】的,真开关在创作页
+                 左边那张卡上,那里能一次看清两种模式各自意味着什么。编辑器里再放一份,
+                 要么是重复入口、要么是点了不生效的假开关 —— 下面的分区照旧按主题模式分档。 -->
+            <view class="node-card">
+              <view class="tk-grid">
+                <view class="tk-field">
+                  <text class="tk-label"><text class="g-req">*</text>票单价格 (¥)</text>
+                  <input class="tk-input" type="digit" placeholder="0.00" placeholder-class="slopes-story-placeholder" value="{{editingTicket.price}}" bindinput="onEditTicketChange" data-field="price" />
+                </view>
+                <view class="tk-field">
+                  <text class="tk-label">发行数量 (张)</text>
+                  <input class="tk-input" type="number" placeholder="100" placeholder-class="slopes-story-placeholder" value="{{editingTicket.totalStock}}" bindinput="onEditTicketChange" data-field="totalStock" />
+                </view>
+              </view>
+            </view>
+
+            <view class="node-card">
+              <view class="node-card__row" bindtap="showTicketTimePicker" data-field="saleStartTime" data-mode="date" hover-class="cy-pressed" hover-stay-time="80">
+                <view class="node-card__ico"><cy-icon name="clock" size="32" /></view>
+                <view class="node-card__main">
+                  <text class="node-card__title"><text class="g-req">*</text>售票开始</text>
+                  <text class="node-card__value">{{editingTicket.saleStartTime || '选择日期'}}</text>
+                </view>
+                <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+              </view>
+              <view class="node-card__hr"></view>
+              <view class="node-card__row" bindtap="showTicketTimePicker" data-field="saleEndTime" data-mode="date" hover-class="cy-pressed" hover-stay-time="80">
+                <view class="node-card__ico"><cy-icon name="clock" size="32" /></view>
+                <view class="node-card__main">
+                  <text class="node-card__title"><text class="g-req">*</text>售票结束</text>
+                  <text class="node-card__value">{{editingTicket.saleEndTime || '选择日期'}}</text>
+                </view>
+                <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+              </view>
+              <view class="node-card__hr"></view>
+              <view class="tk-note tk-note--inline">建议结票时间设置在活动开始前 1 小时。</view>
+            </view>
+
+            <!-- 模式专属分区。稿子给了两套彩色底(定向蓝 / 探索绿),本域是中性白卡语言,
+                 所以只保留"独立成卡 + 带图标的小标题"这层区隔,不引第二套色系。 -->
+            <view class="node-card">
+              <view class="tk-subhead">
+                <cy-icon name="{{editingTicket.mode === 1 ? 'flag' : 'tab-explore'}}" size="28" />
+                <text>{{editingTicket.mode === 1 ? '定向活动配置' : '探索有效期'}}</text>
+              </view>
+
+              <block wx:if="{{editingTicket.mode === 1}}">
+                <view class="node-card__hr"></view>
+                <view class="node-card__row" bindtap="showTicketTimePicker" data-field="startTime" data-mode="datetime" hover-class="cy-pressed" hover-stay-time="80">
+                  <view class="node-card__main">
+                    <text class="node-card__title"><text class="g-req">*</text>集合时间</text>
+                    <text class="node-card__value">{{editingTicket.startTime || '选择开始时间'}}</text>
+                  </view>
+                  <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+                </view>
+                <view class="node-card__hr"></view>
+                <view class="node-card__row" bindtap="showTicketTimePicker" data-field="endTime" data-mode="datetime" hover-class="cy-pressed" hover-stay-time="80">
+                  <view class="node-card__main">
+                    <text class="node-card__title"><text class="g-req">*</text>集合结束</text>
+                    <text class="node-card__value">{{editingTicket.endTime || '选择结束时间'}}</text>
+                  </view>
+                  <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+                </view>
+                <view class="node-card__hr"></view>
+                <view class="tk-field">
+                  <text class="tk-label">建议组队 (人)</text>
+                  <input class="tk-input" type="number" placeholder="不限" placeholder-class="slopes-story-placeholder" value="{{editingTicket.teamSize}}" bindinput="onEditTicketChange" data-field="teamSize" />
+                </view>
+                <view class="node-card__hr"></view>
+                <view class="node-card__row" bindtap="chooseTicketMeetingPoint" hover-class="cy-pressed" hover-stay-time="80">
+                  <view class="node-card__main">
+                    <text class="node-card__title"><text class="g-req">*</text>集合地点</text>
+                    <text class="node-card__value">{{editingTicket.meetingPoint || '请选择地点'}}</text>
+                  </view>
+                  <view class="node-pill"><text>{{editingTicket.meetingPoint ? '修改点位' : '选择点位'}}</text><cy-icon name="chevron-right" size="24" /></view>
+                </view>
+              </block>
+
+              <block wx:else>
+                <view class="node-card__hr"></view>
+                <view class="node-card__row">
+                  <view class="node-card__main">
+                    <text class="node-card__title">与主题日期保持一致</text>
+                    <text class="node-card__value">自动同步无需单独设置</text>
+                  </view>
+                  <cy-switch checked="{{editingTicket.syncWithTheme}}" bindchange="onEditTicketSyncToggle" />
+                </view>
+                <block wx:if="{{!editingTicket.syncWithTheme}}">
+                  <view class="node-card__hr"></view>
+                  <view class="node-card__row" bindtap="showTicketTimePicker" data-field="startTime" data-mode="datetime" hover-class="cy-pressed" hover-stay-time="80">
+                    <view class="node-card__main">
+                      <text class="node-card__title">开始日期</text>
+                      <text class="node-card__value">{{editingTicket.startTime || '选择开始时间'}}</text>
+                    </view>
+                    <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+                  </view>
+                  <view class="node-card__hr"></view>
+                  <view class="node-card__row" bindtap="showTicketTimePicker" data-field="endTime" data-mode="datetime" hover-class="cy-pressed" hover-stay-time="80">
+                    <view class="node-card__main">
+                      <text class="node-card__title">结束日期</text>
+                      <text class="node-card__value">{{editingTicket.endTime || '选择结束时间'}}</text>
+                    </view>
+                    <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+                  </view>
+                </block>
+              </block>
+            </view>
+
+            <view class="node-card">
+              <!-- 2026-09-23 裁决(CU-C-08):原「支持随时退款」开关后端从不读(OmsTicket.refundSupported 仅落库回显),
+                   退款一律按平台 RefundPolicy 判;说明写的「活动前 24 小时」还是场次票口径,不是主题票的。
+                   改为只读展示本票种真实规则,不给一个开关关了也照样退的假承诺。
+                   口径 = RefundPolicy.evaluateTopicFulfillmentWindow:截止点是票的开始时间(城市定向=集合时间,
+                   自由探索=有效期开始),不是有效期内都能退。 -->
+              <view class="node-card__row">
+                <view class="node-card__ico"><cy-icon name="lock" size="32" /></view>
+                <view class="node-card__main">
+                  <text class="node-card__title">退款规则</text>
+                  <text class="node-card__value">{{formData.productType === 2 ? '有效期开始前可全额退款；开始后或已核销不退' : '集合时间前可全额退款；错过集合或已核销不退'}}</text>
+                </view>
+              </view>
+              <view class="node-card__hr"></view>
+              <view class="tk-field">
+                <text class="tk-label">特别提示</text>
+                <textarea class="pd-card-textarea" placeholder="例如：建议穿着运动鞋，自备饮用水…" placeholder-class="slopes-story-placeholder" value="{{editingTicket.description}}" bindinput="onEditTicketChange" data-field="description" show-confirm-bar="{{false}}" fixed="{{true}}" />
+              </view>
+            </view>
+
+            <view class="pd-ticket-editor-footer">
+              <cy-btn id="ticketEditorSave" variant="primary" style="display:block;width:100%" disabled="{{!canSaveTicket}}" bindtap="saveTicket" bind:disabledtap="onSaveTicketDisabledTap">保存票种</cy-btn>
+            </view>
+          </view>
+        </block>
+          </view>
+
+          <!-- 2026-09-07 按稿 M11 收口:商家那张票务页没有自玩票整段。
+               自玩票是「玩家单独买一张通行证自己玩」,商家发的是自由探索、卖的是承接位,
+               这一段对它没有意义 —— 此前没有任何身份判据,商家也看得到。 -->
+          <block wx:if="{{operationScope !== 'MERCHANT' && formData.tickets.length > 0 && formData.tickets[0].mode == 1}}">
+            <view class="pd-section-title">自玩票</view>
+            <view class="node-card">
+              <view class="node-card__row">
+                <view class="node-card__ico"><cy-icon name="walk" size="32" /></view>
+                <view class="node-card__main">
+                  <text class="node-card__title">开放自玩票</text>
+                  <text class="node-card__value">玩家可单独买通行证</text>
+                </view>
+                <cy-switch checked="{{formData.selfPlay}}" bindchange="onSelfPlayToggle" />
+              </view>
+              <block wx:if="{{formData.selfPlay}}">
+                <view class="node-card__hr"></view>
+                <view class="tk-grid">
+                  <view class="tk-field">
+                    <text class="tk-label">自玩票价格 (¥)</text>
+                    <input class="tk-input" type="digit" placeholder="如 19.9" placeholder-class="slopes-story-placeholder" value="{{formData.selfPlayPrice}}" bindinput="onSelfPlayPriceInput" />
+                  </view>
+                  <view class="tk-field">
+                    <text class="tk-label">自玩票数 (张)</text>
+                    <input class="tk-input" type="number" placeholder="不限" placeholder-class="slopes-story-placeholder" value="{{formData.selfPlayQuota}}" bindinput="onSelfPlayQuotaInput" />
+                  </view>
+                </view>
+              </block>
+            </view>
+          </block>
+
+      </view>
+    </block>

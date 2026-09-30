@@ -1,0 +1,20 @@
+<cy-play-stage id="cy-play-stage" show="{{show}}" back-label="退出"
+               calibrate-label="先听一下这儿有多吵" calibrate-ms="2000"
+               bind:back="onClose" bind:calibratetick="onSample" bind:calibrated="onCalibrated"
+               bind:run="onRun" bind:verdict="onVerdict">
+  <!-- 段条撤了。绿黄红没丢,挪到数字本身和整屏底色上 ——
+       段条是「读数表」,而这一屏要人做的是闭嘴,不是读表。 -->
+  <view class="qt qt--{{band}}">
+    <view class="g-kicker qt__k">{{kicker}}</view>
+    <view class="qt__n g-figure">{{left}}</view>
+    <view class="qt__s" wx:if="{{sub}}">{{sub}}</view>
+
+    <!-- 按钮在这一屏是**跟着内容流**的,不绝对定位:整屏只有三行东西,
+         把按钮钉到底边会让中间空出一大块,读起来像还没加载完。
+         底色是浅绿不是白 —— 白在这块深绿上太跳,而这一屏要人静下来。 -->
+    <view class="qt__b {{running ? 'qt__b--busy' : ''}}" bindtap="onStart"
+          aria-role="button" aria-label="开始安静挑战" hover-class="qt__b--press" hover-stay-time="80">
+      {{running ? '安静中' : '开始'}}
+    </view>
+  </view>
+</cy-play-stage>

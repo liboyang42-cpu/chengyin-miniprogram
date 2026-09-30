@@ -1,0 +1,4 @@
+/* 壳只留页面级 chrome:整页 flex 容器 + 内容区左右边距。
+   卡片样式已随内容搬进 components/cy/scene-member-order-history/index.wxss。 */
+.order-page{ min-height: 100vh; display: flex; flex-direction: column; }
+.order-shell{ flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 var(--cy-page-x); box-sizing: border-box; }

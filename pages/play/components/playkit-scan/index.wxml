@@ -1,0 +1,112 @@
+<!-- 最轻的一种:扫码即完成,不出题、不判定。
+     所以这一屏没有限时、没有次数、没有判定屏,也**没有「收下」按钮** ——
+     摆一个等于在问「你要不要收」,而这本来就不是能拒绝的东西。
+     ⚠️ 逐值照原型编辑页 PV.scan 的 .pv-q / .pv-scan / .pv-bub(那份也是 375px 画布)。 -->
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="g-col sc">
+    <!-- 显形档是整屏相机(上面不留玩法页的地址栏,用户 2026-09-22 纠正):
+         标题跟着内容走 —— 取景时在底部说明条里,相机起不来时是旁路块的第一行。 -->
+    <view class="sc__q" wx:if="{{kindKey !== '显形'}}">{{titleText}}</view>
+
+    <view class="sc__wrap">
+      <!-- 取景框是正方形,而且摆在屏幕正中 —— 扫码这件事人是举着手机对准的,
+           框子是个「洞」不是一条横幅;扁的框会让人以为要横过来扫。
+           四个角是四个直角括号,不是一整圈描边:整圈会把它变成一个「相框」。 -->
+      <view class="sc__frame {{reducedMotion ? 'sc__frame--reduced' : ''}}" wx:if="{{kindKey !== '显形'}}" bindtap="onScan"
+            aria-role="button" aria-label="扫这个点位的码"
+            hover-class="sc__press" hover-stay-time="80">
+        <view class="sc__c sc__c--tl"></view>
+        <view class="sc__c sc__c--tr"></view>
+        <view class="sc__c sc__c--bl"></view>
+        <view class="sc__c sc__c--br"></view>
+        <!-- 框里没有东西在动的话,看着像一张静态图,不像相机开着 -->
+        <view class="sc__line"></view>
+      </view>
+
+      <!-- 商家写的那句话。没写就不出气泡 —— 不要用一句话替他解释为什么没有 -->
+      <block wx:if="{{kindKey === '语音'}}">
+        <view class="sc__bub sc__bub--voice {{playing ? 'sc__bub--playing' : ''}}" bindtap="onPlay"
+              aria-role="button" aria-label="{{playing ? '暂停商家的语音' : '播放商家的语音'}}"
+              hover-class="sc__press" hover-stay-time="80">
+          <view class="sc__play"></view>
+          <view class="sc__wave">
+            <view class="sc__wave-b" wx:for="{{wave}}" wx:key="index" style="height:{{item}}rpx"></view>
+          </view>
+          <view class="sc__sec">{{seconds}}″</view>
+        </view>
+        <view class="sc__sub" wx:if="{{reply}}">{{reply}}</view>
+      </block>
+
+      <block wx:elif="{{kindKey === '图片'}}">
+        <image class="sc__pic" wx:if="{{imageUrl}}" src="{{imageUrl}}" mode="aspectFill"
+               aria-role="img" aria-label="商家配的图" />
+        <view class="sc__pic sc__pic--empty" wx:else>扫完给的那张图</view>
+        <view class="sc__bub" wx:if="{{reply}}">{{reply}}</view>
+      </block>
+
+      <!-- 显形(AR 契约 §2.2):镜头从头到尾不断 —— 扫中之前是取景,扫中之后同一块画面上叠东西。
+           叠加层用普通 view + z-index,与 stamp-camera 跑在生产的写法一致(基础库 2.4.0 起 camera 同层渲染)。
+           相机起不来(权限被拒/机型不支持)整块换成旁路两键,走的仍是跑在生产的那条 wx.scanCode。 -->
+      <block wx:elif="{{kindKey === '显形'}}">
+        <view class="sc__cam" wx:if="{{camLive && !arLive}}">
+          <camera class="sc__cam-el" mode="scanCode" device-position="back" flash="off"
+                  bindscancode="onScanCode" binderror="onCamErr"></camera>
+          <!-- 整屏取景。参照 SAP Fiori「AR Scanner」与 Apple HIG · Augmented reality:
+               整屏留给画面;扫描时中央只有一个小准星(不是扫码框 —— 大框一上来就是「扫二维码」的样子);
+               说明收进底部一条半透明条,不压在画面中间。识别成功后准星退场,东西从准星的位置浮出来。 -->
+          <block wx:if="{{!overlayUrl}}">
+            <view class="sc__aim">
+              <view class="sc__tick sc__tick--tl"></view>
+              <view class="sc__tick sc__tick--tr"></view>
+              <view class="sc__tick sc__tick--bl"></view>
+              <view class="sc__tick sc__tick--br"></view>
+            </view>
+            <view class="sc__pill">
+              <view class="sc__pill-t">{{titleText}}</view>
+              <view class="sc__pill-s">对准这一站的码</view>
+            </view>
+          </block>
+          <!-- 显形:不是「啪」一下出现,是从镜头里浮出来。只动透明度与 transform(transition,不新增 keyframes)。
+               图装进固定高度的框(aspectFit),多高的图都压不到底下那句话。 -->
+          <image class="sc__over {{overIn ? 'sc__over--in' : ''}} {{reducedMotion ? 'sc__over--reduced' : ''}}"
+                 wx:if="{{overlayUrl}}" src="{{overlayUrl}}" mode="aspectFit" style="width:{{overlayW}}" />
+          <view class="sc__bub sc__over-bub {{overIn ? 'sc__over--in' : ''}} {{reducedMotion ? 'sc__over--reduced' : ''}}"
+                wx:if="{{overlayUrl && reply}}">{{reply}}</view>
+        </view>
+        <view class="sc__camoff" wx:elif="{{!arLive}}">
+          <view class="sc__camoff-h">{{titleText}}</view>
+          <view class="sc__camoff-t">相机没开成。用微信扫一扫这一站照样能过。</view>
+          <view class="sc__act sc__act--ghost" bindtap="onOpenCamSetting" aria-role="button" aria-label="去设置里开相机权限"
+                hover-class="sc__press" hover-stay-time="80">去设置</view>
+          <view class="sc__act" bindtap="onScan" aria-role="button" aria-label="用微信扫一扫"
+                hover-class="sc__press" hover-stay-time="80">用微信扫一扫</view>
+        </view>
+        <!-- 旁路扫完回来的东西没有镜头可叠 —— 按图片档的样子给,不空手骗人说显形了 -->
+        <image class="sc__pic" wx:if="{{!camLive && !arLive && overlayUrl}}" src="{{overlayUrl}}" mode="aspectFill"
+               aria-role="img" aria-label="显形出来的图" />
+        <view class="sc__bub" wx:if="{{!camLive && !arLive && reply}}">{{reply}}</view>
+        <!-- 真 AR(xr-frame):东西钉在现实里 —— 平面放置 / 贴着识别图长出来。
+             说明文字与气泡盖在 3D 画面上,但这一层必须 pointer-events:none:
+             不然玩家点屏幕放东西的那一下会被文字层吃掉,平面模式就放不下去。 -->
+        <cy-scan-ar class="sc__ar" wx:if="{{arLive}}" mode="{{arMode}}" image-url="{{overlayUrl}}"
+                            marker-url="{{markerUrl}}" model-url="{{modelUrl}}" reduced-motion="{{reducedMotion}}" width="{{arRW}}" height="{{arRH}}"
+                            style="width:{{arW}}px;height:{{arH}}px;"
+                            bind:arerror="onArError" bind:found="onArFound"
+                            bind:placed="onArPlaced" bind:landed="onArLanded" bind:tracked="onArTracked" />
+        <view class="sc__arui" wx:if="{{arLive}}">
+          <view class="sc__pill" wx:if="{{arPill}}">
+            <image class="sc__pill-mk" wx:if="{{arMode === 'MARKER'}}" src="{{markerUrl}}" mode="aspectFill"
+                   aria-role="img" aria-label="要找的那张图" />
+            <view class="sc__pill-t">{{titleText}}</view>
+            <view class="sc__pill-s">{{arPill}}</view>
+            <view class="sc__ar-giveup" bindtap="onArGiveUp" aria-role="button" aria-label="看不到，改成镜头叠图"
+                  hover-class="sc__press" hover-stay-time="80">看不到？改成叠图</view>
+          </view>
+          <view class="sc__bub sc__ar-bub" wx:if="{{arDone && reply}}">{{reply}}</view>
+        </view>
+      </block>
+
+      <view class="sc__bub" wx:elif="{{reply}}">{{reply}}</view>
+    </view>
+  </view>
+</cy-play-stage>

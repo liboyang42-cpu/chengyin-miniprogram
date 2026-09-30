@@ -1,0 +1,97 @@
+@import '../../../style/merchant-light.wxss';
+
+/* display:flex 列贯穿 shell → page 两层,让 cy-error/cy-empty 的 fill 变体吃到「标题下方到
+   屏幕底部」这段真实剩余空间,而不是退化成 min-height:60vh 的兜底 */
+.nearby-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--cy-bg-page); }
+
+.nearby-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-bg-page);
+  padding: 0 var(--cy-page-x, 32rpx) var(--cy-space-3);
+  box-sizing: border-box;
+}
+
+.retry-lg { --cy-btn-h-sm: var(--cy-btn-h); }
+
+.action-state,
+.inline-state {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--cy-space-2);
+  padding: 0 var(--cy-space-2-5);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+.action-state--ok { color: var(--cy-success); }
+.action-state--error,
+.inline-state--error { color: var(--cy-danger); }
+.inline-retry { margin-left: auto; min-height: 88rpx; display: flex; align-items: center; color: var(--cy-text-title); font-weight: 600; }
+
+.card {
+  display: flex;
+  min-height: 152rpx;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--cy-bg-card);
+  border-radius: var(--cy-radius-lg);
+  padding: var(--cy-space-3-5);
+  margin-bottom: var(--cy-space-2-5);
+}
+
+.card-photo {
+  width: 96rpx; height: 96rpx; border-radius: var(--cy-radius-sm);
+  margin-right: var(--cy-space-2-5); flex-shrink: 0; background: var(--cy-bg-card-2);
+}
+
+.card-main { flex: 1; min-width: 0; }
+
+.name {
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.badge {
+  font-size: var(--cy-font-caption);
+  font-weight: 400;
+  padding: 2rpx var(--cy-space-1-5); /* ds-ok: 胶囊徽标竖向像素级微调 */
+  border-radius: var(--cy-radius-pill);
+  margin-left: var(--cy-space-1-5);
+}
+
+/* 去紫色化:此前是暗色主题下的品牌紫底字面量,merchant-light 页面上会露出真紫色 */
+.badge-on { color: var(--cy-text-body); background: var(--cy-bg-card-2); }
+.badge-off { color: var(--cy-text-secondary); background: var(--cy-bg-card-2); }
+
+.addr { color: var(--cy-text-body); font-size: var(--cy-font-label); margin-top: 8rpx; }
+.chapter { color: var(--cy-text-title); font-size: var(--cy-font-caption); margin-top: 8rpx; }
+.meta { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); margin-top: var(--cy-legacy-6); }
+
+.ops {
+  width: 176rpx;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1-5);
+  margin-left: var(--cy-space-2-5);
+}
+
+.btn {
+  font-size: var(--cy-font-label);
+  padding: 0 24rpx;
+  box-sizing: border-box;
+  white-space: nowrap;
+  height: 60rpx;
+  line-height: 60rpx;
+  border-radius: var(--cy-radius-pill);
+  margin: 0;
+}
+
+button.btn-invite { color: var(--cy-btn-solid-fg); background: var(--cy-btn-solid-bg); }

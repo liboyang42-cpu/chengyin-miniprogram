@@ -1,0 +1,78 @@
+page {
+  background: var(--cy-color-bg-page);
+}
+
+.about-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: var(--cy-safe-bottom);
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-4);
+  padding: 0 var(--cy-page-x);
+}
+
+/* 2026-09-18 用户走查 UI-05:关于页整体不要白色底 —— 卡片不再铺白,改与页面同底。 */
+.about-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--cy-space-5) var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-page);
+}
+
+.about-app__logo {
+  width: var(--cy-space-8);
+  height: var(--cy-space-8);
+  border-radius: var(--cy-radius-md);
+}
+
+/* 商家域 logo 取黑(商家配色禁紫);玩家深色页保留原 logo,黑 logo 压在黑底上会看不见。 */
+.about-page.theme-merchant .about-app__logo {
+  filter: brightness(0);
+}
+
+.about-app__name {
+  margin-top: var(--cy-space-3);
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  line-height: var(--cy-leading-tight);
+}
+
+.about-app__version,
+.about-app__desc {
+  margin-top: var(--cy-space-1);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-label);
+  line-height: var(--cy-leading-normal);
+}
+
+.about-section {
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-page);
+}
+
+.about-section__title {
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  line-height: var(--cy-leading-tight);
+}
+
+.about-section__intro {
+  margin-top: var(--cy-space-2);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-body);
+  line-height: var(--cy-leading-normal);
+}
+
+.about-section--menu {
+  padding: 0;
+  overflow: hidden;
+}

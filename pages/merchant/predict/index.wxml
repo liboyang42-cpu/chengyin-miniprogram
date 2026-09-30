@@ -1,0 +1,76 @@
+<!-- 竞猜待答:玩家昨天押了,答案得商家给。
+     ⚠️ 这一屏是有**期限**的:超过 48 小时不给答案,那一轮由平台作废、谁都拿不到奖 ——
+     所以「还剩几天」不是装饰,它是这一屏存在的理由。 -->
+<view class="pdm-page theme-merchant" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar title="竞猜待答" custom-back bind:back="onNavBack" />
+
+  <cy-skeleton wx:if="{{pageState === 'loading'}}" type="list" count="3" />
+  <cy-error wx:elif="{{pageState === 'error'}}" fill size="lg"
+            title="待答列表加载失败" sub="{{errorMessage}}"
+            retry="重新加载" bind:retry="retry" />
+  <cy-empty wx:elif="{{pageState === 'no-permission'}}" fill size="lg" kind="no-permission"
+            title="当前岗位不能结算竞猜"
+            sub="结算会按规则发券,需要项目管理权限。请联系店主调整经营团队权限"
+            cta="返回工作台" bind:cta="onNavBack" />
+  <cy-empty wx:elif="{{pageState === 'empty'}}" fill size="lg" kind="empty"
+            title="没有等你给答案的竞猜"
+            sub="玩家押完之后,那一轮会出现在这里等你公布答案" />
+
+  <scroll-view wx:elif="{{pageState === 'ready'}}" scroll-y class="pdm-scroll"
+               enhanced show-scrollbar="{{false}}">
+    <view class="pdm-shell">
+      <view class="pdm-summary">共 {{items.length}} 轮等你给答案</view>
+
+      <view class="pdm-card" wx:for="{{items}}" wx:key="rid">
+        <view class="pdm-head">
+          <view class="pdm-title">
+            <text class="pdm-node">{{item.nodeName}}</text>
+            <text class="pdm-day">{{item.playDay}} 那一轮</text>
+          </view>
+          <!-- 今天不给答案,明天这一轮就作废 —— 这一档要红 -->
+          <cy-badge type="status" variant="{{item.daysLeft > 0 ? 'warning' : 'danger'}}"
+                    label="{{item.deadlineText}}" />
+        </view>
+
+        <text class="pdm-q">{{item.question}}</text>
+        <view class="pdm-bets">{{item.betText}}</view>
+
+        <block wx:if="{{openId === item.rid}}">
+          <view class="pdm-pick-hint">选出正确答案</view>
+          <view class="pdm-opt {{pickedKey === opt.key ? 'is-on' : ''}}"
+                wx:for="{{item.options}}" wx:for-item="opt" wx:key="key"
+                data-rid="{{item.rid}}" data-key="{{opt.key}}" bindtap="onPickOption"
+                aria-role="radio" aria-checked="{{pickedKey === opt.key}}"
+                hover-class="cy-pressed" hover-stay-time="80">
+            <text class="pdm-opt-t">{{opt.label}}</text>
+            <cy-icon wx:if="{{pickedKey === opt.key}}" name="check" size="30" />
+          </view>
+          <view class="pdm-actions">
+            <view class="pdm-btn pdm-btn--ghost" bindtap="onCancelPick"
+                  aria-role="button" aria-label="先不给" hover-class="cy-pressed" hover-stay-time="80">先不给</view>
+            <view class="pdm-btn pdm-btn--primary {{pickedKey ? '' : 'is-disabled'}}"
+                  data-rid="{{item.rid}}" bindtap="onAskConfirm"
+                  aria-role="button" aria-label="就是这个" hover-class="cy-pressed" hover-stay-time="80">就是这个</view>
+          </view>
+        </block>
+
+        <view wx:else class="pdm-foot" data-rid="{{item.rid}}" bindtap="onOpenRound"
+              aria-role="button" aria-label="给这一轮答案" hover-class="cy-pressed" hover-stay-time="80">
+          <text>{{item.optionText}}</text>
+          <view class="pdm-link"><text>给答案</text><cy-icon name="arrow-right" size="22" /></view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 结算发券且只能结一次,所以要二次确认,并且把后果写清楚;按钮横排(2026-09-18 用户定) -->
+  <cy-modal class="theme-merchant" show="{{confirm.show}}"
+            title="公布答案「{{confirm.label}}」?"
+            content="{{confirm.content}}"
+            confirm-text="公布并结算" cancel-text="再想想"
+            loading="{{submitting}}"
+            bind:confirm="onConfirmSettle" bind:cancel="onCancelConfirm" />
+</view>

@@ -1,0 +1,10 @@
+<view class="cdcg" wx:if="{{options.length}}">
+  <view
+    wx:for="{{options}}" wx:key="id"
+    class="cdcg__chip {{item.id === value ? 'is-active' : ''}}"
+    data-id="{{item.id}}"
+    bindtap="onTap"
+    aria-role="button" aria-label="{{item.label}}"
+    hover-class="cy-pressed" hover-stay-time="80"
+  >{{item.label}}</view>
+</view>

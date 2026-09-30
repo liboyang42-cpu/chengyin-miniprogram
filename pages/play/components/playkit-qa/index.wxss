@@ -1,0 +1,186 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-qa · 三种问答共用一屏(原型真源:模板编辑页 v2 · playkit qa)
+ * 配色只有黑白两版:暗版给夜里的店内(默认),亮版给白天的街区。不给自由配色 ——
+ * 一放开,同一条路线上的题会出现十种不搭的皮肤。 */
+/* 底色由 stage 的皮肤类给(skin-qa / skin-qadark),这里只继承墨色 —— 
+   壳自己再写一份 background 的话,改皮肤要改两处,迟早对不上 */
+.qa { color: var(--ink); }
+
+/* 题干在顶上(原型 .hdr 落在 84px),答题区在题干和按钮中间那块空里居中 */
+.qa__q {
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  line-height: 1.38;
+  letter-spacing: -.01em;
+}
+/* 题干之外的都在这一块里:一进来它是透明的,一秒后才淡进来。
+   ★ flex:1 + 居中 —— 照原型 .qabody(163..719,justify-content:center),
+   作答框落在这块空当的正中;不给 flex 的话它会贴着题干,底下空一大片。 */
+.qa__body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  gap: 26rpx;                             /* ds-ok 原型 .qabody gap 13px */
+  width: 100%;
+  opacity: 1;
+  transition: opacity .5s ease;
+}
+.qa--intro .qa__body { opacity: 0; }
+.qa__cta--hold { opacity: 0; }        /* 按钮跟着一起等:题还没读完就给按钮,人只会扫按钮 */
+.qa--reduced .qa__body { transition: none; }
+
+.qa__media { width: 100%; }
+.qa__img {
+  width: 100%;
+  height: 320rpx;
+  border-radius: var(--cy-radius-md);
+}
+.qa__audio, .qa__lead {
+  font-size: var(--cy-type-body);
+  line-height: 1.75;
+  color: var(--sub);
+}
+.qa__press { opacity: .88; }
+
+/* 答案是一条**发丝下划线**,不是一个灰盒子。
+   盒子会把「写答案」变成「填表格」;一条线只说「这儿写」。 */
+.qa__input {
+  width: 100%;
+  background: transparent;
+  border-bottom: 4rpx solid var(--soft);
+  /* ⚠️ input 在小程序里**不会**跟着 font-size 长高:默认那点高度装不下 50rpx 的字,
+     placeholder 会被从中间切掉(截图才看得出来,不报错)。高度按原型算死:
+     25px 的字 + 上下各 13px = 56px。 */
+  height: 112rpx;
+  padding: 0 4rpx;
+  box-sizing: border-box;
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 800;
+  text-align: left;
+  color: var(--ink);
+}
+.qa__ph { color: var(--sub); font-weight: 600; }
+
+/* 选项照闭眼味觉师那一屏:没有卡片、没有圆角框,就是几条细横线。
+   卡片会把每个选项做成一个「东西」,而选项不是东西,是一行字。 */
+.qa__opt {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  width: 100%;
+  padding: 38rpx 4rpx;                    /* ds-ok 原型 19px */
+  border-bottom: 2rpx solid var(--soft);
+  text-align: left;
+  box-sizing: border-box;
+  font-size: var(--cy-type-card-title);
+  font-weight: 500;
+  color: var(--sub);
+  transition: color .18s ease, opacity .22s;
+}
+/* 选中时内容往右挪一点。原型用的是 padding-left,但那是**布局属性动画** ——
+   每帧触发 layout+paint,而这一行在答题时会被反复触发。改成只位移内容这一块:
+   右端那个小方点留在原位,视觉与原型一致,代价是合成层的一次位移。 */
+.qa__opt-main {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  flex: 1;
+  min-width: 0;
+  transform: translateX(0);
+  transition: transform .18s ease;
+}
+.qa__opt.is-on .qa__opt-main,
+.qa__opt.is-right .qa__opt-main,
+.qa__opt.is-wrong .qa__opt-main { transform: translateX(20rpx); }
+.qa__opt--first { border-top: 2rpx solid var(--soft); }
+/* 选中/判定不是换底色,是往右挪一点 + 换字色 + 右端点亮一个小方点。
+   换底色会把这一行重新变成「一个东西」。 */
+.qa__tail {
+  margin-left: auto;
+  width: 14rpx; height: 14rpx;
+  border-radius: 2rpx;  /* ds-ok 问答的细线,照原型 */
+  background: transparent;
+  flex: none;
+  transition: background .18s;
+}
+.qa__opt.is-on    { color: var(--ink); font-weight: 700; }
+.qa__opt.is-on    .qa__tail { background: var(--ink); }
+.qa__opt.is-right { color: var(--ok); font-weight: 700; }
+.qa__opt.is-right .qa__tail { background: var(--ok); }
+.qa__opt.is-wrong { color: var(--accent); font-weight: 700; }
+.qa__opt.is-wrong .qa__tail { background: var(--accent); }
+.qa__opt.is-dim   { color: var(--soft); opacity: 1; }
+.qa__opt-k {
+  flex: none;
+  width: 28rpx;                           /* ds-ok 原型 .qaopt .k 14px */
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  color: var(--sub);
+}
+.qa__opt.is-on .qa__opt-k,
+.qa__opt.is-right .qa__opt-k,
+.qa__opt.is-wrong .qa__opt-k { color: inherit; }
+/* 选项文案占满剩下的宽度。原先这儿还有配图方块与播放角标的样式,
+   随 wxml 里那两个死角标一起删了 —— 商家配不了,全链路没人喂。 */
+.qa__opt-t { flex: 1; min-width: 0; }
+.qa__shot-lead {
+  font-size: var(--cy-type-display);
+  font-weight: 900;
+  line-height: 1.45;
+}
+.qa__shot-note {
+  font-size: var(--cy-type-body);
+  line-height: 1.75;
+  color: var(--sub);
+}
+
+/* 反馈是一块实心的话,不是一行浮字。浮字会和题干混成一段,读的人分不清哪句在回答他 */
+/* 反馈块是「刚冒出来的一句」,不是本来就在那儿的一块 —— 原型 qafb .26s */
+/* 同 pricepair:不写 both,动画没跑起来也不能把这块反馈藏没了 */
+.qa__fb-enter { animation: qa-fb .26s cubic-bezier(.2, .8, .2, 1); }
+@keyframes qa-fb { from { opacity: 0; transform: translateY(16rpx); } to { opacity: 1; transform: none; } }
+.qa--reduced .qa__fb-enter { animation: none; }
+
+.qa__fb {
+  flex: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 30rpx;                         /* ds-ok 原型 .qafb 15px */
+  border-radius: 28rpx;                   /* ds-ok 原型 14px */
+  background: var(--soft);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--ink);
+  text-align: left;
+}
+.qa__fb-h {
+  margin-bottom: 8rpx;                    /* ds-ok 原型 4px */
+  font-size: var(--cy-type-label);
+  font-weight: 800;
+  letter-spacing: 1rpx;                   /* ds-ok 原型 .04em */
+  color: var(--sub);
+}
+
+/* 时间到:题面、选项、反馈、按钮一起烧穿(原型 burnaway 1.5s)。
+   烧的是纸,不是淡出 —— 所以走 sepia + brightness 往焦黄里推,再糊掉。 */
+.qa--burning .qa__q,
+.qa--burning .qa__body,
+.qa__cta--burn { animation: qa-burn 1.5s ease-in forwards; }
+@keyframes qa-burn {
+  0%   { opacity: 1; filter: none; }
+  22%  { opacity: 1; filter: brightness(1.25) sepia(.45) saturate(3) hue-rotate(-12deg); }
+  55%  { opacity: .85; filter: blur(1rpx) brightness(1.6) sepia(.85) saturate(6) hue-rotate(-18deg); }
+  80%  { opacity: .45; filter: blur(6rpx) brightness(1.9) sepia(1) saturate(7) hue-rotate(-20deg); }
+  100% { opacity: 0; filter: blur(18rpx) brightness(2.1) sepia(1) saturate(8) hue-rotate(-22deg); }
+}
+.qa--reduced.qa--burning .qa__q,
+.qa--reduced.qa--burning .qa__body { animation: none; }
+
+/* 多选的服务端回执条:整体通过绿、没通过红 —— 服务端不给逐项对错,这一条就是全部结论 */
+.qa__fb--ok { background: var(--cy-color-status-success-soft); color: var(--cy-color-status-success); }
+.qa__fb--no { background: var(--cy-color-status-danger-soft); color: var(--cy-color-status-danger); }

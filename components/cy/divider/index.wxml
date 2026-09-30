@@ -1,0 +1,7 @@
+<view wx:if="{{variant === 'labelled' || text}}" class="dv dv--labelled">
+  <view class="dv__line"></view>
+  <text class="dv__text">{{text}}</text>
+  <view class="dv__line"></view>
+</view>
+<view wx:elif="{{variant === 'section-gap'}}" class="dv dv--gap dv--{{spacing}}"></view>
+<view wx:else class="dv dv--hairline {{inset ? 'dv--inset' : ''}} {{insetLead ? 'dv--inset-lead' : ''}}"></view>

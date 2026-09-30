@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-date-sheet": "/components/cy/date-sheet/index",
+    "cy-dropdown": "/components/cy/dropdown/index",
+    "cy-icon": "/components/cy/icon/index"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-card": "/components/cy/card/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-badge": "/components/cy/badge/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-skeleton": "/components/cy/skeleton/index"
+  },
+  "styleIsolation": "isolated"
+}

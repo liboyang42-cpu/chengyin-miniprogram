@@ -1,0 +1,231 @@
+<view class="cle">
+
+  <cy-skeleton wx:if="{{loadState === 'loading'}}" type="form-section" count="6" loading-label="正在读取俱乐部资料" />
+  <cy-error wx:elif="{{loadState === 'missing-param'}}" title="没有指定俱乐部" sub="{{loadErrorText}}" retry="返回俱乐部" bind:retry="onBack" />
+  <cy-error wx:elif="{{loadState === 'permission'}}" title="暂无编辑权限" sub="{{loadErrorText}}" retry="返回俱乐部" bind:retry="onBack" />
+  <cy-error wx:elif="{{loadState === 'business-error'}}" title="编辑资料没能打开" sub="{{loadErrorText}}" retry="重新加载" bind:retry="loadClub" />
+  <cy-error wx:elif="{{loadState === 'network-error'}}" title="网络连接失败" sub="{{loadErrorText}}" retry="重新加载" bind:retry="loadClub" />
+
+  <!-- ===== 表单 ===== -->
+  <view class="body" wx:elif="{{loadState === 'ready'}}">
+
+    <!-- 管理员副标题(Figma 29:145):管理员进来先知道自己能改什么,不用点到锁那一步才发现。 -->
+    <view class="admin-note" wx:if="{{!isOwner}}">你是管理员 · 只能改展示信息</view>
+
+    <!-- 形象 -->
+    <view class="sec-label">俱乐部形象</view>
+    <view class="card">
+      <view class="frow frow-action" bindtap="pickLogo" aria-role="button" aria-label="{{logo ? '更换俱乐部头像' : '上传俱乐部头像'}}" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="fl">头像</text>
+        <view class="avatar-pick">
+          <image wx:if="{{logo}}" class="avatar-img" src="{{logo}}" mode="aspectFill" />
+          <view wx:else class="avatar-ph"><cy-icon name="plus" size="32" /></view>
+        </view>
+        <cy-icon class="edit-arrow" name="slide-arrow" size="32" />
+      </view>
+      <view class="frow last cover-row frow-action" bindtap="pickCover" aria-role="button" aria-label="{{cover ? '更换俱乐部封面' : '上传俱乐部封面'}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cover-label">
+          <text class="fl">封面</text>
+          <text class="cover-hint">{{cover ? '已上传 · 16:9 横图' : '未上传 · 16:9 横图'}}</text>
+        </view>
+        <view class="cover-pick">
+          <image wx:if="{{cover}}" class="cover-img" src="{{cover}}" mode="aspectFill" />
+          <view wx:else class="cover-ph"><cy-icon name="plus" size="28" /></view>
+        </view>
+      </view>
+    </view>
+    <view class="foot">头像 1:1 方图 · 封面 16:9 横图,将展示在俱乐部主页与目录中。</view>
+
+    <!-- 基础信息 -->
+    <view class="sec-label mt">基础信息</view>
+    <view class="card">
+      <view class="frow">
+        <text class="fl">名称<text class="req">*</text></text>
+        <input class="fi" data-field="name" value="{{name}}" bindinput="onInput" placeholder="俱乐部名称" placeholder-class="ph" aria-label="俱乐部名称，必填" />
+      </view>
+      <view class="frow">
+        <text class="fl">城市<text class="req">*</text></text>
+        <input class="fi" data-field="city" value="{{city}}" bindinput="onInput" placeholder="所在城市" placeholder-class="ph" aria-label="所在城市，必填" />
+      </view>
+      <view class="frow">
+        <text class="fl">关键词</text>
+        <input class="fi" data-field="keywords" value="{{keywords}}" bindinput="onInput" placeholder="如:城市探索、解谜(选填)" placeholder-class="ph" aria-label="俱乐部关键词，选填" />
+      </view>
+      <view class="frow last">
+        <text class="fl">风格</text>
+        <input class="fi" data-field="style" value="{{style}}" bindinput="onInput" placeholder="如:轻松、沉浸、硬核(选填)" placeholder-class="ph" aria-label="俱乐部风格，选填" />
+      </view>
+    </view>
+    <view class="foot">主理人姓名与联系方式在「成为主理人」资料里维护,不在此修改。</view>
+
+    <!-- 介绍 -->
+    <view class="sec-label mt">俱乐部介绍</view>
+    <view class="card">
+      <textarea class="fta" data-field="description" value="{{description}}" bindinput="onInput" maxlength="200"
+                placeholder="简单介绍你的俱乐部，以及你希望创造怎样的活动体验。" placeholder-class="ph" aria-label="俱乐部介绍，最多 200 字" />
+      <view class="ta-count">{{description.length}} / 200</view>
+    </view>
+
+    <!-- 定位(Figma 37:2 / 37:23):类型与倾向合成一张卡两条 disclosure 行,
+         点开走 T1 半屏选择器 + 「应用」。原来两张 chips 卡内联平铺,
+         10 个倾向 + 6 个类型把表单撑出两屏,值本身反而读不出来。 -->
+    <view class="sec-label mt">定位</view>
+    <view class="card">
+      <view class="frow disc-row" bindtap="openTypePicker" aria-role="button"
+            aria-label="俱乐部类型，当前 {{clubType || '未选择'}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="disc-label">
+          <text class="fl">俱乐部类型</text>
+          <text class="disc-sub">决定玩家在目录里怎么找到你</text>
+        </view>
+        <view class="disc-value">
+          <text class="disc-value-text">{{clubType || '未选择'}}</text>
+          <cy-icon class="disc-arrow" name="slide-arrow" size="30" />
+        </view>
+      </view>
+      <view class="frow last disc-row" bindtap="openPrefsPicker" aria-role="button"
+            aria-label="活动倾向，已选 {{activityPrefs.length || 0}} 个" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="disc-label">
+          <text class="fl">活动倾向</text>
+          <text class="disc-sub">最多 3 个</text>
+        </view>
+        <view class="disc-value">
+          <text class="disc-value-text" wx:if="{{activityPrefs.length}}">{{activityPrefs[0]}}<text wx:if="{{activityPrefs.length > 1}}"> +{{activityPrefs.length - 1}}</text></text>
+          <text class="disc-value-text" wx:else>未选择</text>
+          <cy-icon class="disc-arrow" name="slide-arrow" size="30" />
+        </view>
+      </view>
+    </view>
+    <view class="foot">点开在半屏里选,选完点「应用」。</view>
+
+    <!-- 经营配置：后台与报名服务端同一份 club 配置，不能只改展示文案。
+         2026-08-26：这三项决定开卖时票怎么分、钱怎么收，只给主理人；
+         管理员看到锁的说明而不是灰掉的开关 —— 灰开关会让人以为再点点就能改。 -->
+    <view class="sec-label mt">会员经营配置</view>
+    <view class="card" wx:if="{{!isOwner}}">
+      <view class="op-locked">
+        <text class="op-locked-title">只有主理人能改经营配置</text>
+        <text class="op-locked-sub">成员优先报名 · 入会需要审批 · 成员保留名额 —— 这三项直接决定开卖时票怎么分、钱怎么收,所以留给主理人。</text>
+        <!-- 现状回显(Figma 29:149):管理员改不了这三项,但要能看见现值 ——
+             这是管理员唯一能知道「保留了几个名额」的地方,没有它锁说明就只是拒绝。 -->
+        <text class="op-locked-cur">当前:{{opCurrentText}}</text>
+      </view>
+    </view>
+    <block wx:if="{{isOwner}}">
+    <view class="card">
+      <view class="frow">
+        <view>
+          <text class="fl">成员优先报名</text>
+          <text class="operation-hint">保留名额不向普通玩家出售</text>
+        </view>
+        <cy-switch checked="{{prioritySignupEnabled}}" bindchange="onPrioritySignupChange" />
+      </view>
+      <view class="frow" wx:if="{{joinPolicySupported}}">
+        <view>
+          <text class="fl">入会需要审批</text>
+          <text class="operation-hint">开启后，新申请要等主理人或管理员通过</text>
+        </view>
+        <cy-switch checked="{{joinPolicy === 1}}" bindchange="onJoinPolicyChange" />
+      </view>
+      <!-- [2026-08-12 拍板] 成员优惠价全局停用,输入框一并撤掉。
+           留着的话:主理人填了、提示保存成功、库里也真存了,而会员照付原价,全程零提示 ——
+           那比「没这个功能」更坏。停用的是价格,不是会员身份/优先报名/保留名额,那几项仍在下面。
+           恢复入口在服务端 CmsRegistrationServiceImpl.clubOperationBenefit,不在这。 -->
+      <view class="frow last">
+        <text class="fl">成员保留名额</text>
+        <view class="operation-input"><input class="fi" data-field="memberReservedQuota" value="{{memberReservedQuota}}" type="number" bindinput="onInput" placeholder="0" placeholder-class="ph" aria-label="成员保留名额" /><text>个</text></view>
+      </view>
+    </view>
+    <view class="foot">保留名额会在报名报价与建单时再次校验。</view>
+    </block>
+
+    <!-- 危险操作(Figma 28:68):红标签 + danger-soft 底卡 + 后果说明 + 整宽描边 danger 胶囊。
+         原来只有底栏一个裸 danger 实心钮 —— 后果没写在按钮旁边,读到「解散」两个字时
+         人还不知道已报名不会自动退款。 -->
+    <block wx:if="{{isOwner}}">
+      <view class="sec-label mt danger-label">危险操作</view>
+      <view class="danger-card">
+        <text class="danger-title">解散俱乐部</text>
+        <text class="danger-copy">成员会失去俱乐部与群聊入口。已报名不会自动取消或退款;存在生效合作、未结束场次或未结算款项时会被拒绝。</text>
+        <view class="danger-btn {{dissolving || saving ? 'is-disabled' : ''}}" bindtap="dissolveClub"
+              aria-role="button" aria-label="解散俱乐部" aria-disabled="{{dissolving || saving}}"
+              hover-class="{{dissolving || saving ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{dissolving ? '正在解散…' : '解散俱乐部'}}</view>
+      </view>
+    </block>
+
+    <view class="body-pad"></view>
+  </view>
+
+  <!-- ===== 底部按钮 ===== -->
+  <view class="bottom" wx:if="{{loadState === 'ready'}}">
+    <!-- CU-C-07:失败提示只给「重新保存」时,审核服务不可用这类重试救不回的错就没有退路;
+         「继续编辑」收起提示、保留输入,底栏回到正常保存钮,抽屉的关闭/返回照常走 dirty 闸。 -->
+    <cy-error wx:if="{{saveErrorText}}" title="保存失败" sub="{{saveErrorText}}" retry="重新保存" bind:retry="save"
+              secondary="继续编辑" bind:secondary="dismissSaveError" />
+    <!-- loading 接的是 js 里早就有的 saving —— 在途状态本来就在,只是没告诉用户 -->
+    <cy-btn wx:else variant="{{canSave ? 'primary' : 'disabled'}}" loading="{{saving}}" bindtap="save">保存修改</cy-btn>
+    <!-- 解散钮已挪进表单末尾的「危险操作」区块 —— 后果说明要和按钮同屏,底栏放不下。 -->
+  </view>
+</view>
+
+<!-- T1 半屏选择器:定位两条 disclosure 的落点。改的是 draft,点「应用」才写回表单,
+     直接关掉 = 放弃(与 Figma 37:22「选完点应用」一致)。 -->
+<cy-sheet show="{{pickerKind === 'type'}}" title="俱乐部类型" handle closable maskClosable bind:close="closePicker">
+  <view class="pk">
+    <view class="pk-opts">
+      <view wx:for="{{typeOptions}}" wx:key="val" class="pk-opt {{draftType === item.val ? 'on' : ''}}"
+            data-val="{{item.val}}" catchtap="pickDraftType" aria-role="button"
+            aria-label="俱乐部类型：{{item.val}}" aria-pressed="{{draftType === item.val}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="pk-opt-main">
+          <text class="pk-opt-name">{{item.val}}</text>
+          <text class="pk-opt-sub" wx:if="{{item.sub}}">{{item.sub}}</text>
+        </view>
+        <cy-icon wx:if="{{draftType === item.val}}" class="pk-opt-tick" name="check" size="32" />
+      </view>
+    </view>
+    <view class="pk-apply" catchtap="applyPicker" aria-role="button" aria-label="应用俱乐部类型" hover-class="cy-pressed" hover-stay-time="80">应用</view>
+  </view>
+</cy-sheet>
+
+<cy-sheet show="{{pickerKind === 'prefs'}}" title="活动倾向" handle closable maskClosable bind:close="closePicker">
+  <view class="pk">
+    <view class="pk-hint">最多选 3 个,已选 {{draftPrefs.length || 0}} 个</view>
+    <view class="pk-chips">
+      <view wx:for="{{dirOptions}}" wx:key="*this" class="chip {{draftPrefsOn[item] ? 'on' : ''}}"
+            data-val="{{item}}" catchtap="toggleDraftDir" aria-role="button"
+            aria-label="活动倾向：{{item}}" aria-pressed="{{!!draftPrefsOn[item]}}" hover-class="cy-pressed" hover-stay-time="80">{{item}}</view>
+    </view>
+    <view class="pk-apply" catchtap="applyPicker" aria-role="button" aria-label="应用活动倾向" hover-class="cy-pressed" hover-stay-time="80">应用</view>
+  </view>
+</cy-sheet>
+
+<!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key。
+     原来这里是两屏自建 cy-sheet(初始 + 再次确认成员),合成一屏后果清单。 -->
+<cy-danger-confirm id="dc" bind:confirm="onConfirmDissolve" bind:alt="onDissolveAlt" />
+
+<!-- root-portal 把阻断清单挂到页面根：本组件嵌在 scene-sheet 里，进场 transform
+     会把内层 cy-sheet 的 position:fixed 变成新包含块，清单被 overflow 裁掉。 -->
+<root-portal enable="{{true}}" wx:if="{{showDissolutionBlockers || dissolutionErrorText}}">
+<cy-sheet inset show="{{showDissolutionBlockers}}" title="解散前待处理" handle closable maskClosable bind:close="closeDissolutionBlockers">
+  <view class="dissolution-blocker-list">
+    <text class="dissolution-blocker-copy">这些资金事实即使原合作或主题已隐藏也会保留。逐笔处理、系统确认终态后才能解散。</text>
+    <text wx:if="{{dissolutionBlockerText}}" class="dissolution-blocker-note">{{dissolutionBlockerText}}</text>
+    <text wx:if="{{dissolutionBlockerSection}}" class="dissolution-blocker-section">{{dissolutionBlockerSection}}</text>
+    <view class="dissolution-blocker-item" wx:for="{{dissolutionBlockerItems}}" wx:key="url">
+      <view class="dissolution-blocker-head">
+        <text class="dissolution-blocker-title">{{item.title || item.label}}</text>
+        <text wx:if="{{item.statusText}}" class="dissolution-blocker-status">{{item.statusText}}</text>
+      </view>
+      <text wx:if="{{item.metaText}}" class="dissolution-blocker-meta">{{item.metaText}}</text>
+      <view class="dissolution-blocker-act" data-index="{{index}}" catchtap="openDissolutionBlockerItem"
+            aria-role="button" aria-label="{{item.actionText || '处理'}}：{{item.title || item.label}}" hover-class="cy-pressed" hover-stay-time="80">
+        <text>{{item.actionText || '去处理'}}</text>
+        <cy-icon class="dissolution-blocker-arrow" name="arrow-right" size="28" />
+      </view>
+    </view>
+  </view>
+</cy-sheet>
+
+<cy-sheet inset show="{{!!dissolutionErrorText}}" title="暂时不能解散" handle closable maskClosable bind:close="closeDissolutionError">
+  <cy-error title="解散条件未通过" sub="{{dissolutionErrorText}}" retry="返回检查" bind:retry="closeDissolutionError" />
+</cy-sheet>
+</root-portal>

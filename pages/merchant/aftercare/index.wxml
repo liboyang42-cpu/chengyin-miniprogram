@@ -1,0 +1,74 @@
+<view class="acl-page theme-merchant" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- 2026-09-17 用户裁决:结构照 Revolut Business 316-318(左对齐大标题 + 文字标签 + 搜索 + 按日分组行),颜色走商家主题。 -->
+  <cy-nav-bar custom-back bind:back="onNavBack" />
+  <cy-page-title title="退款售后" safe-top="{{false}}" />
+
+  <cy-skeleton wx:if="{{pageState === 'loading'}}" type="list" count="4" />
+  <cy-error wx:elif="{{pageState === 'error'}}" fill size="lg"
+            title="售后列表加载失败" sub="{{errorMessage}}"
+            retry="重新加载" bind:retry="retry" auto-back />
+  <cy-error wx:elif="{{pageState === 'no-permission'}}" fill size="lg"
+            title="当前岗位没有售后查看权限"
+            sub="请联系店主调整经营团队权限"
+            retry="" bind:back="onNavBack" auto-back custom-back />
+
+  <view wx:elif="{{pageState === 'empty'}}" class="acl-shell">
+    <cy-tabs class="acl-filter" variant="chip" tabs="{{tabs}}"
+      active="{{bucket}}" bind:change="switchBucket" />
+    <!-- CU-M-152:三个分段共用同一句「退款申请会按平台审核与款项真实状态显示在这里」——
+         既不解释现在该做什么,也没有下一步,还把平台内部审核口径写进商家空态。分段标题已经
+         说清了是哪一段,这里只留标题。 -->
+    <cy-empty fill size="lg" kind="empty" title="{{bucket === 'PENDING' ? '没有待回应售后' : (bucket === 'PROCESSING' ? '没有处理中的售后' : '还没有已完成售后')}}" />
+  </view>
+
+  <scroll-view wx:elif="{{pageState === 'ready'}}" scroll-y class="acl-scroll"
+               enhanced show-scrollbar="{{false}}" bindscrolltolower="loadMore">
+    <view class="acl-shell">
+      <cy-tabs class="acl-filter" variant="chip" tabs="{{tabs}}"
+        active="{{bucket}}" bind:change="switchBucket" />
+      <!-- 列表接口不支持关键词:只在已加载的数据里筛;没有其他真实可筛维度,所以不放「筛选」按钮。 -->
+      <cy-search class="acl-search" value="{{keyword}}" placeholder="搜索客户、活动、单号或原因"
+                 bind:input="onSearchInput" />
+      <view class="acl-search-hint" wx:if="{{keyword && hasMore}}">
+        <text>只在已加载的 {{items.length || 0}} 笔中搜索</text>
+        <!-- 筛完可能只剩几行,滚不到底触发不了 scrolltolower,给一个显式入口 -->
+        <view class="acl-search-more" bindtap="loadMore" aria-role="button" aria-label="加载更多售后"
+              hover-class="cy-pressed" hover-stay-time="80">{{loadingMore ? '加载中…' : '加载更多'}}</view>
+      </view>
+
+      <view class="fin-group acl-group" wx:for="{{groups}}" wx:for-item="group" wx:key="key">
+        <view class="acl-group-head">
+          <text class="acl-group-label">{{group.label}}</text>
+          <!-- 合计只在这一组确实加载全了才给:搜索中不给,还有下一页时最后一组可能被截断也不给 -->
+          <text class="acl-group-total" wx:if="{{group.totalText && !keyword && !(hasMore && index === groups.length - 1)}}">{{group.totalText}}</text>
+        </view>
+        <view class="fin-card acl-card">
+          <view class="fin-row acl-row" wx:for="{{group.items}}" wx:key="refundId"
+                data-refundid="{{item.refundId}}" bindtap="openDetail"
+                aria-role="button" aria-label="打开售后 {{item.titleText}}，{{item.statusText}}{{item.takeoverText ? '，' + item.takeoverText : ''}}，{{item.refundAmountText}}"
+                hover-class="cy-pressed" hover-stay-time="80">
+            <view class="acl-avatar" aria-hidden="true"><cy-icon name="finance" size="36" /></view>
+            <view class="fin-row__main">
+              <text class="fin-row__t1">{{item.titleText}}</text>
+              <view class="fin-row__t2">
+                <text wx:if="{{item.timeText}}">{{item.timeText}} ·</text>
+                <text class="acl-status acl-status--{{item.statusTone}}">{{item.statusText}}</text>
+                <text wx:if="{{item.takeoverText}}" class="acl-status acl-status--neutral">· {{item.takeoverText}}</text>
+              </view>
+              <text class="acl-activity" wx:if="{{item.activityTitleText}}">{{item.activityTitleText}}</text>
+            </view>
+            <text class="fin-row__v {{item.hasAmount ? '' : 'fin-row__v--mute'}}">{{item.refundAmountText}}</text>
+          </view>
+        </view>
+      </view>
+
+      <cy-empty wx:if="{{keyword && !groups.length}}" size="lg" kind="not-found" title="没有找到"
+                sub="已加载的售后里没有「{{keyword}}」" cta="清除搜索" bind:cta="clearSearch" />
+      <text class="acl-more" wx:if="{{loadingMore}}">正在加载更多…</text>
+      <text class="acl-more" wx:elif="{{!hasMore && items.length && groups.length}}">已经到底了</text>
+    </view>
+  </scroll-view>
+</view>

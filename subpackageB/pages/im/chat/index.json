@@ -1,0 +1,25 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "聊天",
+  "backgroundColor": "#000000",
+  "backgroundColorTop": "#000000",
+  "backgroundColorBottom": "#000000",
+  "usingComponents": {
+    "cy-card": "/components/cy/card/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-search": "/components/cy/search/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-privacy-gate": "/components/cy/privacy-gate/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-option-sheet": "/components/cy/option-sheet/index"
+  }
+}

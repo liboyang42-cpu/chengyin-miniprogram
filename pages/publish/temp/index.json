@@ -1,0 +1,29 @@
+{
+  "usingComponents": {
+    "cy-card": "/components/cy/card/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-ai-assist": "/pages/publish/components/ai-assist/index",
+    "cy-reward-selector": "/pages/publish/components/reward-selector/index",
+    "creation-success": "/pages/publish/components/creation-success/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-category-sheet": "/components/cy/category-sheet/index",
+    "cy-switch": "/components/cy/switch/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-dropdown": "/components/cy/dropdown/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-playkit": "/pages/play/components/playkit/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-result-sheet": "/components/cy/result-sheet/index"
+  },
+  "componentPlaceholder": {
+    "cy-playkit": "view"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black"
+}

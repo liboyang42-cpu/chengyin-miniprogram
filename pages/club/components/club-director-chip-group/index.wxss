@@ -1,0 +1,22 @@
+:host { display: block; }
+.cdcg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.cdcg__chip {
+  padding: 18rpx 28rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-interactive);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+  line-height: 1;
+}
+.cdcg__chip.is-active {
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-weight: 600;
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,按仓库既有组件做法本地定义一份 */
+.cy-pressed { opacity: .88; }

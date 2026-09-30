@@ -1,0 +1,11 @@
+<!-- 深链兼容壳(§4.1):站内一律走订单父页托管的 member-order-detail 场景,这一页只服务外部直达
+     (支付回跳、分享链接)。订单详情与支付/退款逻辑只在组件里,这里不复制第二份。 -->
+<view class="odt-shell theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar overlay tint="dark" custom-back bind:back="backToOrderList" />
+  <cy-page-title title="订单详情" safe-top="{{false}}"
+    style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;" />
+  <cy-scene-member-order-detail id="orderDetail" order-id="{{id}}" bind:back="backToOrderList" bind:close="backToOrderList" />
+</view>

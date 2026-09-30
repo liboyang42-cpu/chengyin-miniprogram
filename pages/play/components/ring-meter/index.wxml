@@ -1,0 +1,8 @@
+<view class="rm rm--{{tone}}" style="width:{{size || 360}}rpx;height:{{size || 360}}rpx;--rm-r:{{radius || 180}}rpx">
+  <view class="rm__track" aria-hidden="true">
+    <view class="rm__seg {{item.on ? 'rm__seg--on' : ''}}"
+          wx:for="{{segs}}" wx:key="i"
+          style="transform:rotate({{item.deg || 0}}deg)"></view>
+  </view>
+  <view class="rm__c"><slot></slot></view>
+</view>

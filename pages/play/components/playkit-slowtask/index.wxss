@@ -1,0 +1,69 @@
+@import "/pages/play/style/playkit.wxss";
+
+/* cy-playkit-slowtask · 跨日慢任务(Figma「🌙 低压游戏循环 UX」
+ * ← Pokémon Sleep / Focus Friend / Waterllama)
+ *
+ * 稿:「低摩擦开始 → 隔天解锁地点/角色发现 → 周尺度回顾规律与变化」。
+ * ★ 它和限时挑战是相反的两件事:那个制造压力,这个刻意不制造压力。
+ *   所以这里没有秒级倒计时、没有"快没时间了"、没有连续天数中断的惩罚。
+ * ★ 主题色借夜曲紫的邻近档:它属于"慢"这一族,不该抢答题类玩法的注意力。
+ */
+.sl { position: relative; padding-top: var(--cy-space-2); }
+/* 右上角的叉号。命中区 88rpx = 44px(X12),图标本身只有 30。 */
+.sl__x { position: absolute; right: 0; top: 0; width: 88rpx; height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-tertiary); }
+.sl__intro {
+  margin-top: var(--cy-space-3);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--cy-color-text-secondary);
+}
+.sl__wait {
+  margin-top: var(--cy-space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+.sl__moon {
+  width: 128rpx;
+  height: 128rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  border: 2rpx solid var(--cy-color-playkit-slow);
+  color: var(--cy-color-playkit-slow);
+}
+.sl__days {
+  font-size: var(--cy-type-section-title);
+  font-weight: 900;
+  color: var(--cy-color-text-primary);
+}
+.sl__waithint {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+  text-align: center;
+}
+.sl__ready {
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  text-align: center;
+  color: var(--cy-color-text-secondary);
+}
+.sl__done { margin-top: var(--cy-space-3); }
+.sl__unlock {
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-play-surface-subtle);
+  border: 2rpx solid var(--cy-color-playkit-slow);
+  font-size: var(--cy-type-body);
+  line-height: 1.8;
+  color: var(--cy-color-text-primary);
+}
+.sl__cta {
+  --cy-comp-btn-primary-bg: var(--cy-color-playkit-slow);
+  --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+}

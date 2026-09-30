@@ -1,0 +1,56 @@
+page { background: var(--cy-bg-page); }
+
+.team-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-6) + env(safe-area-inset-bottom));
+  background: var(--cy-bg-page);
+  color: var(--cy-text-title);
+}
+.team-head { padding: 0 0 var(--cy-space-5); }
+.team-eyebrow { color: var(--cy-brand); font-size: var(--cy-font-label); font-weight: 700; }
+.team-title { margin-top: var(--cy-space-1); font-size: var(--cy-font-page-title); font-weight: 800; line-height: var(--cy-leading-tight); }
+.team-sub { margin-top: var(--cy-space-2); color: var(--cy-text-secondary); font-size: var(--cy-font-body); line-height: var(--cy-leading-normal); }
+.team-card { margin-bottom: var(--cy-space-3); padding: var(--cy-space-3-5); border: 1rpx solid var(--cy-border-card); border-radius: var(--cy-radius-md); background: var(--cy-bg-card); }
+.team-label { display: block; margin-bottom: var(--cy-space-1-5); color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.team-input { height: var(--cy-btn-h); padding: 0 var(--cy-space-3); border: 1rpx solid var(--cy-border-line); border-radius: var(--cy-radius-sm); background: var(--cy-bg-elevated); color: var(--cy-text-title); font-size: var(--cy-font-body); box-sizing: border-box; }
+.team-picker { height: var(--cy-btn-h); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--cy-space-3); border: 1rpx solid var(--cy-border-line); border-radius: var(--cy-radius-sm); background: var(--cy-bg-elevated); font-size: var(--cy-font-body); }
+.team-picker-arrow { color: var(--cy-text-secondary); }
+.team-note { margin-top: var(--cy-space-2); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal); }
+.team-actions { display: flex; gap: var(--cy-space-2); margin-top: var(--cy-space-4); }
+.team-action { flex: 1; min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-sm); font-size: var(--cy-font-body); font-weight: 700; box-sizing: border-box; }
+.team-action.primary { background: var(--cy-brand); color: var(--cy-text-inverse); }
+.team-action.secondary { border: 1rpx solid var(--cy-border-line); background: var(--cy-bg-card); color: var(--cy-text-title); }
+.team-action.danger { border: 1rpx solid var(--cy-danger); background: transparent; color: var(--cy-danger); }
+.team-action.disabled { opacity: .45; }
+.team-status { display: inline-flex; padding: var(--cy-space-1) var(--cy-space-2); border-radius: var(--cy-radius-pill); background: var(--cy-bg-elevated); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.team-status.live { background: var(--cy-brand-soft); color: var(--cy-brand); }
+.team-meta { display: flex; gap: var(--cy-space-4); margin-top: var(--cy-space-3); }
+.team-meta-item { flex: 1; }
+.team-meta-value { display: block; font-size: var(--cy-font-subtitle); font-weight: 800; }
+.team-meta-key { display: block; margin-top: var(--cy-space-1); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.team-section-title { margin: var(--cy-space-5) 0 var(--cy-space-2); font-size: var(--cy-font-subtitle); font-weight: 800; }
+.team-member { min-height: 96rpx; display: flex; align-items: center; gap: var(--cy-space-2); border-bottom: 1rpx solid var(--cy-border-line); }
+.team-member:last-child { border-bottom: 0; }
+.team-avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: var(--cy-bg-elevated); }
+.team-member-main { flex: 1; min-width: 0; }
+.team-member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--cy-font-body); font-weight: 600; }
+.team-member-role { margin-top: var(--cy-space-1); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.team-member-op {
+  min-width: var(--cy-btn-h);
+  min-height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--cy-danger);
+  font-size: var(--cy-font-label);
+}
+.team-refresh-state { margin-bottom: var(--cy-space-3); }
+.team-sync {
+  min-height: 72rpx;
+  display: flex;
+  align-items: center;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+.team-action--pressed { opacity: .72; }

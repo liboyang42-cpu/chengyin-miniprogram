@@ -1,0 +1,3 @@
+page { background: var(--cy-color-bg-page); }
+.hs-shell { min-height: 100vh; box-sizing: border-box; background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.hs-shell__body { min-height: 0; }

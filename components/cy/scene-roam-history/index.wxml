@@ -1,0 +1,43 @@
+<!-- PR 600 RunCard 正文；标题栏由外层 scene-sheet / 深链页提供。 -->
+<cy-error wx:if="{{state === 'error'}}" fill size="lg" title="漫游记录暂时读不出来" sub="本地记录没有被删除，可以重新读取。" retry="重试" bind:retry="retry" />
+<view wx:elif="{{state === 'loading'}}" class="history-loading" aria-role="status">正在读取漫游记录…</view>
+<view wx:else class="hs">
+  <view class="hs-sum" wx:if="{{summary.trips}}">
+    <text>{{ summary.trips || 0 }}次漫游</text>
+    <text>{{summary.km || 0}}公里</text>
+    <text>探{{summary.shopsText || 0}}家</text>
+  </view>
+
+  <view class="hs-scroll">
+    <view class="rc" wx:for="{{list}}" wx:key="ts" bindtap="openSession" data-ts="{{item.ts}}"
+          aria-role="button" aria-label="{{item.dateShort}} {{item.title}},{{item.distanceText || 0}}公里" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="rc__main">
+        <view class="rc__thumb">
+          <image wx:if="{{item.cover}}" class="rc__thumb-image" src="{{item.cover}}" mode="aspectFill" />
+          <cy-icon wx:else name="walk" size="61" />
+        </view>
+        <view class="rc__copy">
+          <text class="rc__date">{{item.dateShort}}</text>
+          <text class="rc__title">{{item.title}}</text>
+        </view>
+      </view>
+      <view class="rc__stats">
+        <view class="rc__st"><text class="rc__v">{{item.distanceText}}</text><text class="rc__l">公里</text></view>
+        <view class="rc__st"><text class="rc__v">{{item.shopsText}}</text><text class="rc__l">探店</text></view>
+        <view class="rc__st"><text class="rc__v">{{item.time}}</text><text class="rc__l">用时</text></view>
+      </view>
+      <view class="rc__badges" wx:if="{{item.medals.length || item.stamps}}">
+        <view class="rc__hex" wx:for="{{item.medals}}" wx:for-item="medal" wx:key="*this" aria-label="{{medal}}">
+          <cy-icon name="star" size="31" />
+        </view>
+        <view class="rc__stamps" wx:if="{{item.stamps}}"><cy-icon name="star" size="22" /><text>{{item.stamps || 0}} 枚邮票</text></view>
+      </view>
+    </view>
+
+    <!-- CU-M-55:正在漫游时 sessions 必然为空(记录要结算才写),此时说「你还没有开始过」
+         与事实相反,CTA 也不该是「出发第一次漫游」。判据在组件:本机 recovery 记录仍在。 -->
+    <cy-empty wx:if="{{!list.length && inProgress}}" fill size="lg" class="fill-slot" kind="not-started" title="正在漫游中" sub="这次漫游还没结束，历史只收录结算过的记录；回到地图可以接着走" cta="回到地图" bind:cta="closeToRoam" />
+    <cy-empty wx:elif="{{!list.length}}" fill size="lg" class="fill-slot" kind="empty" title="还没有漫游记录" sub="你还没有开始过城市漫游，出发一次就会在这里留下记录。记录只保存在这台手机上，换机或清缓存后不会保留" cta="出发第一次漫游" bind:cta="closeToRoam" />
+    <view wx:if="{{list.length}}" style="height:80rpx"></view>
+  </view>
+</view>

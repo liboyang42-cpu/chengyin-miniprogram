@@ -1,0 +1,21 @@
+{
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-scene-member-withdraw-history": "/components/cy/scene-member-withdraw-history/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-consent-check": "/components/cy/consent-check/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-funds-stages": "/components/cy/funds-stages/index"
+  },
+  "navigationBarTitleText": "提现申请",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#F3F4F4",
+  "navigationStyle": "custom"
+}

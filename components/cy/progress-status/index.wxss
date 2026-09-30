@@ -1,0 +1,150 @@
+:host { display: block; }
+
+.ps {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+}
+
+.ps__compact {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  min-height: var(--cy-btn-h);
+  padding: var(--cy-space-2) var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.ps__copy { min-width: 0; flex: 1; }
+.ps__eyebrow {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-micro);
+  font-weight: 600;
+  line-height: var(--cy-leading-tight);
+}
+.ps__title,
+.ps__heading,
+.ps__step-label {
+  color: var(--cy-color-text-primary);
+  font-weight: 600;
+}
+.ps__title { margin-top: var(--cy-space-1); font-size: var(--cy-type-body); }
+.ps__sub,
+.ps__intro,
+.ps__summary,
+.ps__step-status {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  line-height: var(--cy-leading-normal);
+}
+.ps__sub { margin-top: var(--cy-space-1); }
+
+.ps__trace {
+  position: relative;
+  height: var(--cy-space-1);
+  margin-top: var(--cy-space-2);
+  overflow: hidden;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-border-subtle);
+}
+.ps__runner {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  border-radius: inherit;
+  background: var(--cy-color-status-info);
+  animation: ps-indeterminate-trace var(--cy-motion-spinner-cycle) var(--cy-ease) infinite;
+}
+
+.ps__expanded {
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+}
+.ps__heading { font-size: var(--cy-type-card-title); }
+.ps__intro { margin-top: var(--cy-space-1); }
+.ps__summary { margin-top: var(--cy-space-2); font-weight: 600; }
+.ps__steps { margin-top: var(--cy-space-4); }
+.ps__step { display: flex; gap: var(--cy-space-3); min-height: 112rpx; }
+.ps__rail {
+  position: relative;
+  width: var(--cy-space-5);
+  display: flex;
+  justify-content: center;
+  flex: none;
+}
+.ps__marker {
+  position: relative;
+  z-index: 1;
+  width: var(--cy-space-5);
+  height: var(--cy-space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  border: 2rpx solid var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface);
+  color: var(--cy-color-text-secondary);
+}
+.ps__marker--done {
+  border-color: var(--cy-color-status-success);
+  background: var(--cy-color-status-success-soft);
+  color: var(--cy-color-status-success);
+}
+.ps__marker--current {
+  border-color: var(--cy-color-status-info);
+  color: var(--cy-color-status-info);
+}
+.ps__marker--current::after {
+  content: '';
+  position: absolute;
+  inset: -8rpx;
+  border: 2rpx solid var(--cy-color-status-info);
+  border-radius: var(--cy-radius-pill);
+  animation: ps-current-pulse 1.8s var(--cy-ease-out) infinite;
+}
+.ps--compact .ps__marker--current::after {
+  animation: none;
+  opacity: .32;
+  transform: none;
+}
+.ps__dot {
+  width: var(--cy-space-1-5);
+  height: var(--cy-space-1-5);
+  border-radius: var(--cy-radius-pill);
+  background: currentColor;
+}
+.ps__line {
+  position: absolute;
+  top: var(--cy-space-5);
+  bottom: 0;
+  width: 2rpx;
+  background: var(--cy-color-border-subtle);
+}
+.ps__step:last-child .ps__line { display: none; }
+.ps__step-copy { flex: 1; padding: var(--cy-space-1) 0 var(--cy-space-4); }
+.ps__step-label { font-size: var(--cy-type-body); line-height: var(--cy-leading-tight); }
+.ps__step-status { margin-top: var(--cy-space-1); }
+.ps__step--done .ps__step-status { color: var(--cy-color-status-success); }
+.ps__step--current .ps__step-status { color: var(--cy-color-status-info); font-weight: 600; }
+
+@keyframes ps-current-pulse {
+  0%, 100% { opacity: .16; transform: scale(.88); }
+  50% { opacity: .5; transform: scale(1); }
+}
+
+@keyframes ps-indeterminate-trace {
+  0% { opacity: .16; transform: translateX(-100%) scaleX(.62); }
+  50% { opacity: .88; transform: translateX(75%) scaleX(1); }
+  100% { opacity: .16; transform: translateX(250%) scaleX(.62); }
+}
+
+.ps--reduced-motion .ps__marker--current::after { animation: none; opacity: .32; transform: none; }
+.ps--reduced-motion .ps__runner {
+  animation: none;
+  opacity: .72;
+  transform: translateX(75%);
+}

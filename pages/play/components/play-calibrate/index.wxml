@@ -1,0 +1,6 @@
+<!-- 传感器玩法开局前压的一层,不是独立一屏 -->
+<view class="cal" wx:if="{{show}}" aria-role="alert" aria-label="{{label}},{{sub}}">
+  <view class="cal__t">{{label}}</view>
+  <view class="cal__bar"><view class="cal__fill" style="transform:scaleX({{percent}})"></view></view>
+  <view class="cal__s">{{sub}}</view>
+</view>

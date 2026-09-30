@@ -1,0 +1,23 @@
+:host { display: block; }
+.cdcs__body { display: flex; flex-direction: column; }
+.cdcs__primary {
+  margin-top: 20rpx;
+  padding: 30rpx 0;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  text-align: center;
+}
+.cdcs__primary.is-disabled { opacity: .45; }
+.cdcs__caption {
+  display: block;
+  margin-top: 20rpx;
+  text-align: center;
+  color: var(--cy-color-status-warning);
+  font-size: var(--cy-font-caption);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,按仓库既有组件做法本地定义一份 */
+.cy-pressed { opacity: .88; }

@@ -1,0 +1,33 @@
+<view class="lp lp--{{variant}} lp--{{status}}" hover-class="{{clickable && status !== 'locked' && status !== 'loading' ? 'lp--press' : ''}}" hover-stay-time="80" catchtap="onTap">
+  <view wx:if="{{status === 'loading'}}" class="lp__sk">
+    <view class="lp__sk-badge"></view>
+    <view class="lp__sk-col"><view class="lp__sk-line"></view><view class="lp__sk-line short"></view></view>
+  </view>
+
+  <block wx:else>
+    <view class="lp__top">
+      <view class="lp__badge">
+        <cy-icon wx:if="{{status === 'locked'}}" name="lock" size="40" />
+        <cy-icon wx:elif="{{status === 'max'}}" name="star" size="44" />
+        <text wx:else class="lp__lv">Lv.{{level}}</text>
+      </view>
+      <view class="lp__id">
+        <text class="lp__id-label">当前等级</text>
+        <text class="lp__id-name">{{identityName}}</text>
+      </view>
+      <view wx:if="{{status === 'max'}}" class="lp__pill lp__pill--max"><cy-icon name="star" size="24" /><text>满级 MAX</text></view>
+      <view wx:elif="{{status === 'level-up'}}" class="lp__pill lp__pill--up"><cy-icon name="check" size="24" /><text>已升级</text></view>
+      <cy-icon wx:elif="{{clickable}}" name="arrow-right" size="32" class="lp__chev" />
+    </view>
+
+    <block wx:if="{{status !== 'max' && variant === 'card'}}">
+      <view class="lp__labels">
+        <text class="lp__cur">当前 {{current}} {{unit}}</text>
+        <text wx:if="{{status !== 'locked'}}" class="lp__tgt">Lv.{{nextLevel}} · {{target}}</text>
+      </view>
+      <view class="lp__track"><view class="lp__fill" style="transform:scaleX({{ ((status === 'locked' ? 0 : _pct) || 0) / 100 }})"></view></view>
+      <text wx:if="{{status === 'locked'}}" class="lp__next lp__next--muted">完成新手任务解锁等级体系</text>
+      <text wx:else class="lp__next">再获 <text class="lp__strong">{{_remain}} {{unit}}</text> 即可升至 Lv.{{nextLevel}} {{nextIdentityName}}</text>
+    </block>
+  </block>
+</view>

@@ -1,0 +1,40 @@
+<view class="ps ps--{{density}} {{reducedMotion ? 'ps--reduced-motion' : ''}}"
+      aria-role="status" aria-live="polite">
+  <!-- compact:用于 2–8 秒任务的克制状态胶囊。 -->
+  <view wx:if="{{density !== 'steps'}}" class="ps__compact">
+    <view class="ps__marker {{_allDone ? 'ps__marker--done' : 'ps__marker--current'}}" aria-hidden="true">
+      <cy-icon wx:if="{{_allDone}}" name="check" size="32" />
+      <view wx:else class="ps__dot"></view>
+    </view>
+    <view class="ps__copy">
+      <view class="ps__eyebrow">{{_progressCopy || (_allDone ? '已完成' : '进行中')}}</view>
+      <view wx:if="{{title}}" class="ps__title">{{title}}</view>
+      <view wx:if="{{sub}}" class="ps__sub">{{sub}}</view>
+      <view wx:if="{{!_allDone}}" class="ps__trace" aria-hidden="true">
+        <view class="ps__runner"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- steps:超过 8 秒或需要解释进程的任务，状态文字始终可读。 -->
+  <view wx:else class="ps__expanded">
+    <view wx:if="{{title}}" class="ps__heading">{{title}}</view>
+    <view wx:if="{{sub}}" class="ps__intro">{{sub}}</view>
+    <view wx:if="{{_progressCopy}}" class="ps__summary">{{_progressCopy}}</view>
+    <view class="ps__steps">
+      <view class="ps__step ps__step--{{item.state}}" wx:for="{{_steps}}" wx:key="key">
+        <view class="ps__rail" aria-hidden="true">
+          <view class="ps__marker ps__marker--{{item.state}}">
+            <cy-icon wx:if="{{item.state === 'done'}}" name="check" size="32" />
+            <view wx:else class="ps__dot"></view>
+          </view>
+          <view class="ps__line"></view>
+        </view>
+        <view class="ps__step-copy">
+          <view class="ps__step-label">{{item.label}}</view>
+          <view class="ps__step-status">{{item.status}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

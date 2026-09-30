@@ -1,0 +1,16 @@
+<view class="nav {{plain ? 'nav--plain' : ((overlay && !scrolled) ? 'nav--overlay' : 'nav--solid')}} {{tint ? 'nav--tint-' + tint : ''}}" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav__bar" style="height: {{navBarHeight}}px;">
+    <!-- 语义只挂在这一层:它既是唯一可点的节点,又受 back 开关条件渲染 ⇒ 不会念得出却点不动。
+         内层 .nav__back-inner / .nav__back-icon 是纯视觉容器与真实图标,刻意不挂 aria-*,
+         否则读屏会把一个返回钮念成两三个控件(契约 cy-nav-back-accessibility 的负控盯着)。 -->
+    <view class="nav__back" wx:if="{{back}}" bindtap="onBack" hover-class="nav__back--press" aria-role="button" aria-label="返回">
+      <view class="nav__back-inner {{pill ? 'nav__back-inner--pill' : ''}} {{pill && pillDark ? 'nav__back-inner--pill-dark' : ''}}">
+        <cy-icon class="nav__back-icon" name="back" size="40" />
+      </view>
+    </view>
+    <view wx:if="{{showTitle}}" class="nav__title" style="left: {{titleLeft}}px; right: {{titleRight}}px;">{{title}}</view>
+    <view class="nav__actions" style="right: {{actionsRight}}px;"><slot name="actions"></slot></view>
+  </view>
+  <!-- 全局离线条:压在内容上方不挤版式,由 app.networkStatus 驱动 -->
+  <view wx:if="{{offline}}" class="nav__offline"><cy-offline-banner /></view>
+</view>

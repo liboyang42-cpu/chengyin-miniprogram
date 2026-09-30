@@ -1,0 +1,77 @@
+<!-- 显形档的真 AR(微信 xr-frame)。官方限制:一个组件只能一个 xr-scene、不能混写 <view> ——
+     所以说明文字、气泡都在宿主 playkit-scan 里,盖在这层上面。模式在挂载时定死(不支持运行中切换)。
+     写法对齐官方示例 dtysky/xr-frame-demo:xr-ar-basic(平面放置)/ xr-template-markerLock(认图锁定)/
+     xr-template-planeShadow(透明阴影)。 -->
+<xr-scene ar-system="{{arSystem}}" bind:ready="handleReady"
+          bind:ar-ready="handleArReady" bind:ar-error="handleArError" bind:tick="handleTick">
+  <xr-assets bind:loaded="handleAssetsLoaded">
+    <xr-asset-load type="texture" asset-id="reveal" src="{{imageUrl}}" />
+    <xr-asset-material asset-id="reveal-mat" effect="simple" uniforms="u_baseColorMap: reveal" states="alphaMode:BLEND" />
+    <!-- 立牌的板子:偏暖的白卡纸,让显形图有厚度、有侧边(没模型时用) -->
+    <xr-asset-material asset-id="board-mat" effect="simple" uniforms="u_baseColorFactor:0.96 0.95 0.92 1" />
+    <!-- 商家传的 3D 模型(.glb);有它就放它,不放立牌 -->
+    <xr-asset-load wx:if="{{modelUrl}}" type="gltf" asset-id="reveal-model" src="{{modelUrl}}" />
+    <!-- 落点光环:官方用 ar-plane-marker.glb,但 glb 不在小程序可上传的文件类型里,这里用一张光环图平铺在地上 -->
+    <xr-asset-load type="texture" asset-id="reticle" src="/pages/play/components/playkit-scan/ar/reticle.png" />
+    <xr-asset-material asset-id="reticle-mat" effect="simple" uniforms="u_baseColorMap: reticle" states="alphaMode:BLEND" />
+    <!-- 透明阴影(effect-plane-shadow.js 注册):地面本身看不见,只把东西的影子画在真地面/真图上 -->
+    <xr-asset-material asset-id="shadow-mat" effect="plane-shadow" />
+  </xr-assets>
+  <xr-light type="ambient" color="1 1 1" intensity="1" />
+  <!-- 主光从斜上方打下来并投影:只有主方向光出影子(官方阴影文档) -->
+  <xr-light type="directional" rotation="40 0 0" color="1 1 1" intensity="2" cast-shadow />
+
+  <!-- 平面:追踪器下挂落点光环;东西先藏着,点屏幕才放到落点上 -->
+  <xr-ar-tracker wx:if="{{mode === 'PLANE'}}" mode="Plane" bind:ar-tracker-switch="handlePlaneSwitch">
+    <xr-mesh geometry="plane" material="reticle-mat" scale="0.24 1 0.24" />
+  </xr-ar-tracker>
+  <xr-node wx:if="{{mode === 'PLANE'}}" node-id="reveal-root" visible="false">
+    <!-- 接影子的地面:透明,比卡大得多,影子往哪边斜都落得下 -->
+    <xr-mesh node-id="reveal-ground" geometry="plane" material="shadow-mat" position="0 0.001 0" scale="2 1 2" receive-shadow />
+    <!-- reveal-body:落下、长出来都动它;里面要么是模型、要么是立牌 -->
+    <xr-node node-id="reveal-body">
+      <!-- reveal-upright:识别图贴墙时把模型扶正(见 _uprightModel);reveal-model 自己只管按包围盒定尺寸 -->
+      <xr-node wx:if="{{modelUrl}}" node-id="reveal-upright">
+        <xr-gltf node-id="reveal-model" model="reveal-model" anim-autoplay cast-shadow />
+      </xr-node>
+      <!-- 立牌:一块薄板打底(有厚度、投影子),显形图贴在正面;reveal-face 每帧只绕竖直轴转向玩家
+           (官方 xr-template-lookat 的做法),所以永远立着、永远看得到正面 -->
+      <xr-node wx:if="{{!modelUrl}}" node-id="reveal-face">
+        <xr-mesh node-id="reveal-board" geometry="cube" material="board-mat"
+                 position="0 {{cardLift}} 0" scale="{{cardX}} {{cardZ}} 0.012" cast-shadow />
+        <!-- plane 几何体躺在 XZ 面上,绕 X 转 90 度立起来朝向 +Z;贴在板子正面前一点点,不和板子抢深度 -->
+        <xr-mesh node-id="reveal-card" geometry="plane" material="reveal-mat" rotation="90 0 0"
+                 position="0 {{cardLift}} 0.0065" scale="{{cardX}} 1 {{cardZ}}" />
+      </xr-node>
+    </xr-node>
+  </xr-node>
+
+  <!-- 识别图:识别器等 AR 准备好才挂(官方 xr-ar-2dmarker 的写法);认到那一刻把它的世界位置抄给下面的
+       marker-root,之后卸掉识别器 —— 东西钉在现实里,图挪开、手机转开都还在(官方 xr-template-markerLock)。
+       识别图坐标系:往外为 +Y,1 = 识别图的宽。 -->
+  <xr-node wx:if="{{loaded && arReady && !markerLocked && mode === 'MARKER'}}">
+    <xr-ar-tracker id="marker-tracker" mode="Marker" src="{{markerUrl}}" bind:ar-tracker-switch="handleTrackerSwitch" />
+  </xr-node>
+  <!-- 挂在场景根下(父节点无变换),抄来的世界矩阵才能原样当本地矩阵用 -->
+  <xr-node wx:if="{{mode === 'MARKER'}}" node-id="marker-root" visible="false">
+    <xr-mesh node-id="reveal-ground" geometry="plane" material="shadow-mat" position="0 0.001 0" scale="3 1 3" receive-shadow />
+    <!-- reveal-body:落下、长出来都动它;里面要么是模型、要么是立牌 -->
+    <xr-node node-id="reveal-body">
+      <!-- reveal-upright:识别图贴墙时把模型扶正(见 _uprightModel);reveal-model 自己只管按包围盒定尺寸 -->
+      <xr-node wx:if="{{modelUrl}}" node-id="reveal-upright">
+        <xr-gltf node-id="reveal-model" model="reveal-model" anim-autoplay cast-shadow />
+      </xr-node>
+      <!-- 立牌:一块薄板打底(有厚度、投影子),显形图贴在正面;reveal-face 每帧只绕竖直轴转向玩家
+           (官方 xr-template-lookat 的做法),所以永远立着、永远看得到正面 -->
+      <xr-node wx:if="{{!modelUrl}}" node-id="reveal-face">
+        <xr-mesh node-id="reveal-board" geometry="cube" material="board-mat"
+                 position="0 {{cardLift}} 0" scale="{{cardX}} {{cardZ}} 0.012" cast-shadow />
+        <!-- plane 几何体躺在 XZ 面上,绕 X 转 90 度立起来朝向 +Z;贴在板子正面前一点点,不和板子抢深度 -->
+        <xr-mesh node-id="reveal-card" geometry="plane" material="reveal-mat" rotation="90 0 0"
+                 position="0 {{cardLift}} 0.0065" scale="{{cardX}} 1 {{cardZ}}" />
+      </xr-node>
+    </xr-node>
+  </xr-node>
+
+  <xr-camera id="ar-camera" background="ar" is-ar-camera />
+</xr-scene>

@@ -1,0 +1,9 @@
+<cy-scene-sheet show="{{show}}" variant="half" title="{{title}}" closable maskClosable bind:close="onClose">
+  <view class="cdts__body">
+    <cy-club-director-row-list rows="{{teams}}" surface="raised" />
+    <block wx:if="{{collaboration.length}}">
+      <text class="cdts__section-title">{{collaborationTitle}}</text>
+      <cy-club-director-row-list rows="{{collaboration}}" surface="raised" />
+    </block>
+  </view>
+</cy-scene-sheet>

@@ -1,0 +1,177 @@
+<wxs src="../../../utils/wxs/money.wxs" module="money" />
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+<cy-scene-settings-deregister wx:if="{{sceneId === 'settings-deregister'}}" theme="{{theme}}" />
+<cy-scene-club-edit
+  wx:elif="{{sceneId === 'club-edit'}}"
+  club-id="{{params.id || params.clubId}}"
+  theme="{{theme}}"
+  bind:back="onNestedBack"
+  bind:saved="onNestedSaved"
+  bind:dissolved="onNestedDissolved"
+  bind:transferowner="onNestedTransferOwner"
+  bind:dirtychange="onNestedDirtyChange"
+/>
+<view wx:else class="src {{theme === 'merchant' ? 'src--merchant' : 'src--player'}}">
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="card" count="{{3}}" />
+  <cy-error class="cy-fade-in" wx:elif="{{state === 'error'}}" fill size="lg" title="这一页没能打开" sub="{{errorText}}" retry="重试" bind:retry="reload" />
+  <cy-empty wx:elif="{{state === 'no-permission'}}" fill size="lg" kind="no-permission"
+    title="当前岗位不能管理据点" sub="请联系店主或店长调整经营团队岗位" />
+  <cy-empty wx:elif="{{state === 'empty'}}" fill size="lg" title="{{emptyText}}" sub="有数据后会显示在这里" />
+
+  <block wx:elif="{{state === 'ready'}}">
+    <view class="src-summary" wx:if="{{metrics.length}}">
+      <view class="src-metric" wx:for="{{metrics}}" wx:key="label">
+        <text class="src-metric__label">{{item.label}}</text>
+        <text class="src-metric__value">{{item.value}}</text>
+      </view>
+    </view>
+
+    <view class="src-detail" wx:if="{{detail && (sceneId === 'member-order-detail' || sceneId === 'settings-how-to-play-detail' || sceneId === 'club-manage')}}">
+      <text class="src-detail__title">{{detail.title || detail.name || detail.topicName || detail.templateName || '详情'}}</text>
+      <text class="src-detail__sub">{{detail.description || detail.topicDesc || detail.activityDesc || detail.nodeName || detail.statusText || ''}}</text>
+      <view class="src-detail__rows">
+        <view class="src-detail__row" wx:if="{{detail.createTime}}"><text>时间</text><text>{{detail.createTime}}</text></view>
+        <view class="src-detail__row" wx:if="{{detail.statusText || detail.displayStatus}}"><text>状态</text><text>{{detail.statusText || detail.displayStatus}}</text></view>
+        <view class="src-detail__row" wx:if="{{detail.amount !== undefined}}"><text>金额</text><text>{{detail.amount}}</text></view>
+      </view>
+    </view>
+
+    <view class="src-favorites" wx:if="{{sceneId === 'settings-likes' && items.length}}">
+      <view class="src-favorite-card" wx:for="{{items}}" wx:key="key">
+        <image wx:if="{{img.first(item.raw.imgUrl) || img.first(item.raw.imgArr)}}" class="src-favorite-card__cover" lazy-load="true"
+          src="{{img.first(item.raw.imgUrl) || img.first(item.raw.imgArr)}}"
+          mode="aspectFill" data-index="{{index}}" bindtap="onItemTap"  aria-role="button" aria-label="打开收藏内容" hover-class="cy-pressed" hover-stay-time="80"/>
+        <view wx:else class="src-favorite-card__placeholder" data-index="{{index}}" bindtap="onItemTap" aria-role="button" aria-label="打开收藏内容" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="image" size="48" /><text>封面待确认</text></view>
+        <view class="src-favorite-card__actions">
+          <button class="src-favorite-card__action" open-type="share" data-type="topic" data-id="{{item.id}}" data-name="{{item.title}}"
+            data-img="{{img.first(item.raw.imgUrl) || img.first(item.raw.imgArr)}}" aria-label="分享主题">
+            <view class="src-favorite-card__action-visual"><cy-icon class="src-favorite-card__action-icon" name="share" size="32" /></view>
+          </button>
+          <button class="src-favorite-card__action" bindtap="topicUnlike" data-index="{{index}}" aria-label="取消收藏">
+            <view class="src-favorite-card__action-visual"><cy-icon class="src-favorite-card__action-heart" name="heart" size="32" /></view>
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <view class="src-list" wx:if="{{items.length && sceneId !== 'settings-likes'}}">
+      <view class="src-list__item" wx:for="{{items}}" wx:key="key" data-index="{{index}}" bindtap="onItemTap" aria-role="button" aria-label="打开{{item.title}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="src-list__main">
+          <text class="src-list__title">{{item.title}}</text>
+          <text class="src-list__sub">{{item.subtitle}}</text>
+        </view>
+        <view class="src-list__side">
+          <text class="src-list__amount" wx:if="{{item.amount}}">{{money.amount(item.amount)}}</text>
+          <text class="src-list__status" wx:if="{{item.status}}">{{item.status}}</text>
+          <text class="src-list__date" wx:if="{{item.date}}">{{item.date}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="src-form" wx:if="{{formType}}">
+      <view class="src-form__success" wx:if="{{submitted}}">本次提交已收到，结果会在真实状态返回后更新。</view>
+      <view class="src-form__submitting" wx:if="{{submitting}}" aria-role="status">正在提交，请稍候</view>
+      <cy-error wx:elif="{{submitError}}" title="提交没有完成" sub="{{submitError}}" retry="重试" bind:retry="submitForm" />
+      <view class="src-form__group" wx:if="{{formType === 'withdraw'}}">
+        <text class="src-form__label">银行卡提现</text>
+        <text class="src-form__field-label">提现金额</text>
+        <input class="src-form__input" type="digit" value="{{form.withdrawalAmount}}" data-field="withdrawalAmount" bindinput="onFieldInput" aria-label="提现金额" placeholder="请输入金额" />
+        <text class="src-form__hint" wx:if="{{form.balance !== undefined && form.balance !== null}}">可用余额 {{money.amount(form.balance)}}</text>
+        <text class="src-form__field-label">实名</text>
+        <input class="src-form__input" value="{{form.realname}}" data-field="realname" bindinput="onFieldInput" aria-label="实名" placeholder="请输入实名" />
+        <text class="src-form__field-label">开户银行</text>
+        <input class="src-form__input" value="{{form.bankName}}" data-field="bankName" bindinput="onFieldInput" aria-label="开户银行" placeholder="请输入开户银行" />
+        <text class="src-form__field-label">银行卡号</text>
+        <input class="src-form__input" value="{{form.bankAccount}}" data-field="bankAccount" bindinput="onFieldInput" aria-label="银行卡号" placeholder="请输入银行卡号" />
+        <text class="src-form__field-label">手机号</text>
+        <input class="src-form__input" value="{{form.mobilephone}}" data-field="mobilephone" bindinput="onFieldInput" aria-label="手机号" placeholder="请输入手机号" />
+        <!-- 个保法 §28/§29:银行账号是敏感个人信息,必须单独同意。不得默认勾选、不得打包进通用条款。 -->
+        <cy-consent-check checked="{{form.consented}}" text="同意向城瘾提供持卡人姓名、银行账号与预留手机号，仅用于本次提现打款" bind:change="onWithdrawConsent" />
+      </view>
+      <view class="src-form__group" wx:elif="{{formType === 'profile'}}">
+        <text class="src-form__label">个人资料</text>
+        <text class="src-form__field-label">昵称</text>
+        <input class="src-form__input" value="{{form.nickname}}" data-field="nickname" bindinput="onFieldInput" aria-label="昵称" placeholder="请输入昵称" />
+        <text class="src-form__field-label">邮箱</text>
+        <input class="src-form__input" value="{{form.email}}" data-field="email" bindinput="onFieldInput" aria-label="邮箱" placeholder="请输入邮箱" />
+      </view>
+      <view class="src-form__group" wx:elif="{{formType === 'feedback'}}">
+        <text class="src-form__label">投诉或建议</text>
+        <text class="src-form__field-label">关联报名记录 ID（可选）</text>
+        <input class="src-form__input" value="{{form.topicId}}" data-field="topicId" bindinput="onFieldInput" aria-label="关联报名记录 ID，可选" placeholder="请输入记录 ID" />
+        <text class="src-form__field-label">具体问题</text>
+        <textarea class="src-form__textarea" value="{{form.reason}}" data-field="reason" bindinput="onFieldInput" aria-label="具体问题" maxlength="1000" placeholder="请写下具体问题" />
+      </view>
+      <view class="src-form__group" wx:elif="{{formType === 'merchant-decor' || formType === 'merchant-apply'}}">
+        <text class="src-form__label">商家资料</text>
+        <text class="src-form__field-label">店铺名称</text>
+        <input class="src-form__input" value="{{form.name}}" data-field="name" bindinput="onFieldInput" aria-label="店铺名称" placeholder="请输入店铺名称" />
+        <block wx:if="{{formType === 'merchant-apply'}}">
+          <text class="src-form__field-label">经营类目</text><input class="src-form__input" value="{{form.preference}}" data-field="preference" bindinput="onFieldInput" aria-label="经营类目" placeholder="请输入经营类目" />
+          <text class="src-form__field-label">联系电话</text><input class="src-form__input" value="{{form.phone}}" data-field="phone" bindinput="onFieldInput" aria-label="联系电话" placeholder="请输入联系电话" />
+          <text class="src-form__field-label">店铺地址</text><input class="src-form__input" value="{{form.address}}" data-field="address" bindinput="onFieldInput" aria-label="店铺地址" placeholder="请输入店铺地址" />
+          <text class="src-form__field-label">营业时间</text><input class="src-form__input" value="{{form.businessTime}}" data-field="businessTime" bindinput="onFieldInput" aria-label="营业时间" placeholder="请输入营业时间" />
+          <!-- RUN-52 经营者实名:与 pages/merchant/apply 第 4 步同一个后端闸,不登记这两张单都提交不上去 -->
+          <block wx:if="{{!identityRegistered}}">
+            <text class="src-form__field-label">真实姓名（必填）</text><input class="src-form__input" value="{{form.realName}}" data-field="realName" bindinput="onFieldInput" aria-label="真实姓名，必填" placeholder="与身份证一致" />
+            <text class="src-form__field-label">身份证号（必填）</text><input class="src-form__input" type="idcard" maxlength="18" value="{{form.idCard}}" data-field="idCard" bindinput="onFieldInput" aria-label="身份证号，必填" placeholder="18 位" />
+            <cy-consent-check checked="{{form.consented}}" text="{{identityConsentText}}" bind:change="onIdentityConsent" />
+          </block>
+          <text class="src-form__hint" wx:else>{{identityDoneHint}}</text>
+          <text class="src-form__field-label">营业执照图片地址</text><input class="src-form__input" value="{{form.businessLicense}}" data-field="businessLicense" bindinput="onFieldInput" aria-label="营业执照图片地址" placeholder="请填写真实图片地址" />
+        </block>
+        <block wx:if="{{formType === 'merchant-decor'}}">
+          <text class="src-form__field-label">城市角色名</text><input class="src-form__input" value="{{form.cityRole}}" data-field="cityRole" bindinput="onFieldInput" aria-label="城市角色名" placeholder="请输入城市角色名" />
+          <text class="src-form__field-label">一句话 slogan</text><input class="src-form__input" value="{{form.slogan}}" data-field="slogan" bindinput="onFieldInput" aria-label="一句话 slogan" placeholder="请输入 slogan" />
+          <text class="src-form__field-label">品牌故事标题</text><input class="src-form__input" value="{{form.storyTitle}}" data-field="storyTitle" bindinput="onFieldInput" aria-label="品牌故事标题" placeholder="请输入品牌故事标题" />
+          <text class="src-form__field-label">店铺地址</text><input class="src-form__input" value="{{form.address}}" data-field="address" bindinput="onFieldInput" aria-label="店铺地址" placeholder="请输入店铺地址" />
+          <text class="src-form__field-label">可容纳人数</text><input class="src-form__input" value="{{form.capacity}}" data-field="capacity" bindinput="onFieldInput" aria-label="可容纳人数" placeholder="请输入人数" />
+          <text class="src-form__field-label">可承接时段</text><input class="src-form__input" value="{{form.availableTime}}" data-field="availableTime" bindinput="onFieldInput" aria-label="可承接时段" placeholder="请输入时段" />
+          <text class="src-form__field-label">合作诉求</text><input class="src-form__input" value="{{form.demand}}" data-field="demand" bindinput="onFieldInput" aria-label="合作诉求" placeholder="请输入合作诉求" />
+        </block>
+        <text class="src-form__field-label">店铺介绍</text>
+        <textarea class="src-form__textarea" value="{{form.description}}" data-field="description" bindinput="onFieldInput" aria-label="店铺介绍" placeholder="请输入店铺介绍" />
+      </view>
+      <view class="src-form__group" wx:elif="{{formType === 'club-apply'}}">
+        <text class="src-form__label">主理人申请</text>
+        <text class="src-form__field-label">实名/昵称</text><input class="src-form__input" value="{{form.leaderName}}" data-field="leaderName" bindinput="onFieldInput" aria-label="实名或昵称" placeholder="请输入实名或昵称" />
+        <text class="src-form__field-label">联系方式</text><input class="src-form__input" value="{{form.phone}}" data-field="phone" bindinput="onFieldInput" aria-label="联系方式" placeholder="请输入联系方式" />
+        <text class="src-form__field-label">身份说明</text><input class="src-form__input" value="{{form.identity}}" data-field="identity" bindinput="onFieldInput" aria-label="身份说明" placeholder="请输入身份说明" />
+        <text class="src-form__field-label">组织经验</text><input class="src-form__input" value="{{form.experience}}" data-field="experience" bindinput="onFieldInput" aria-label="组织经验" placeholder="请输入组织经验" />
+        <text class="src-form__field-label">最大带队人数</text><input class="src-form__input" value="{{form.maxEventSize}}" data-field="maxEventSize" bindinput="onFieldInput" aria-label="最大带队人数" placeholder="请输入人数" />
+        <text class="src-form__field-label">联合创始人（选填）</text><textarea class="src-form__textarea" value="{{form.coFounders}}" data-field="coFounders" bindinput="onFieldInput" aria-label="联合创始人，可选" placeholder="请输入联合创始人" />
+        <!-- RUN-52 发布者实名:与 pages/club/apply 第 4 步同一个后端闸(/api/club/become-leader 前置校验) -->
+        <block wx:if="{{!identityRegistered}}">
+          <text class="src-form__field-label">真实姓名（必填）</text><input class="src-form__input" value="{{form.realName}}" data-field="realName" bindinput="onFieldInput" aria-label="真实姓名，必填" placeholder="与身份证一致" />
+          <text class="src-form__field-label">身份证号（必填）</text><input class="src-form__input" type="idcard" maxlength="18" value="{{form.idCard}}" data-field="idCard" bindinput="onFieldInput" aria-label="身份证号，必填" placeholder="18 位" />
+          <cy-consent-check checked="{{form.consented}}" text="{{identityConsentText}}" bind:change="onIdentityConsent" />
+        </block>
+        <text class="src-form__hint" wx:else>{{identityDoneHint}}</text>
+      </view>
+      <view class="src-form__group" wx:elif="{{formType === 'citynode'}}">
+        <text class="src-form__label">新建互动据点模板</text>
+        <text class="src-form__field-label">互动标题</text><input class="src-form__input" value="{{form.title}}" data-field="title" bindinput="onFieldInput" aria-label="互动标题" placeholder="请输入互动标题" />
+        <text class="src-form__field-label">互动类型</text><input class="src-form__input" value="{{form.interactionType}}" data-field="interactionType" bindinput="onFieldInput" aria-label="互动类型" placeholder="请输入互动类型" />
+        <text class="src-form__field-label">核验方式</text><input class="src-form__input" value="{{form.validationMethod}}" data-field="validationMethod" bindinput="onFieldInput" aria-label="核验方式" placeholder="请输入核验方式" />
+        <text class="src-form__field-label">答案（如适用）</text><input class="src-form__input" value="{{form.answer}}" data-field="answer" bindinput="onFieldInput" aria-label="答案，可选" placeholder="请输入答案" />
+        <text class="src-form__field-label">互动说明</text><textarea class="src-form__textarea" value="{{form.description}}" data-field="description" bindinput="onFieldInput" aria-label="互动说明" placeholder="请输入互动说明" />
+      </view>
+      <view class="src-form__group" wx:elif="{{formType === 'club-create'}}">
+        <text class="src-form__label">俱乐部资料</text>
+        <text class="src-form__field-label">名称</text><input class="src-form__input" value="{{form.name}}" data-field="name" bindinput="onFieldInput" aria-label="俱乐部名称" placeholder="请输入名称" />
+        <text class="src-form__field-label">俱乐部类型</text><input class="src-form__input" value="{{form.clubType}}" data-field="clubType" bindinput="onFieldInput" aria-label="俱乐部类型" placeholder="请输入俱乐部类型" />
+        <text class="src-form__field-label">路线方向（逗号分隔）</text><input class="src-form__input" value="{{form.activityPrefs}}" data-field="activityPrefs" bindinput="onFieldInput" aria-label="路线方向" placeholder="请输入路线方向" />
+        <text class="src-form__field-label">城市</text><input class="src-form__input" value="{{form.city}}" data-field="city" bindinput="onFieldInput" aria-label="城市" placeholder="请输入城市" />
+        <text class="src-form__field-label">关键词</text><input class="src-form__input" value="{{form.keywords}}" data-field="keywords" bindinput="onFieldInput" aria-label="关键词" placeholder="请输入关键词" />
+        <text class="src-form__field-label">风格/调性</text><input class="src-form__input" value="{{form.style}}" data-field="style" bindinput="onFieldInput" aria-label="风格或调性" placeholder="请输入风格或调性" />
+        <text class="src-form__field-label">俱乐部介绍</text><textarea class="src-form__textarea" value="{{form.description}}" data-field="description" bindinput="onFieldInput" aria-label="俱乐部介绍" placeholder="请输入俱乐部介绍" />
+      </view>
+    </view>
+
+    <view class="src-inline-actions" wx:if="{{sceneId === 'club-manage'}}">
+      <button class="src-secondary" bindtap="openSecondary" data-action="club-edit">编辑俱乐部</button>
+      <button class="src-secondary" wx:if="{{detail.topicId}}" bindtap="openSecondary" data-action="group-code">出示团码</button>
+    </view>
+
+  </block>
+</view>

@@ -1,0 +1,8 @@
+:host { display: block; min-height: 100%; }
+.coupon-qr-body { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+.coupon-result { display: flex; flex-direction: column; align-items: center; }
+.coupon-result__card { width: 100%; box-sizing: border-box; padding: var(--cy-space-4); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface-subtle); }
+.coupon-result__name { display: block; color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 700; }
+.coupon-result__desc, .coupon-result__meta, .coupon-result__time { display: block; margin-top: var(--cy-space-2); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.coupon-result__status { margin-top: var(--cy-space-5); color: var(--cy-color-text-secondary); font-size: var(--cy-type-section-title); font-weight: 700; }
+.coupon-result__status--done { color: var(--cy-color-status-success); }

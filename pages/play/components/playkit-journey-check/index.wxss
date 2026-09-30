@@ -1,0 +1,143 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-journey-check · R14 旅程检定(题面/结果/结算三态共用一屏)。
+   皮肤与台面语言都来自 play-surface(--ink/--sub/--soft 由 stage 的 skin 传下来),
+   这里只画检定自己那几块。 */
+.jc { overflow-y: auto; }
+.jc__tier {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-body);
+  color: var(--sub);
+}
+.jc__tags {
+  margin-top: var(--cy-space-3);
+  display: flex;
+  justify-content: center;
+  gap: var(--cy-space-2);
+}
+.jc__tag {
+  padding: var(--cy-space-1) var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-label);
+  font-weight: 700;
+}
+.jc__tag--good { background: rgba(62, 207, 142, .18); color: var(--ok); } /* ds-ok 优势:成功色的软底,与 skin 的 --ok 同源 */
+.jc__tag--bad { background: var(--cy-color-status-danger-soft); color: var(--accent); }
+
+.jc__mods { margin-top: var(--cy-space-5); width: 100%; text-align: left; }
+.jc__mods-k {
+  font-size: var(--cy-type-caption);
+  color: var(--sub);
+  margin-bottom: var(--cy-space-1);
+}
+.jc__mod {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  padding: var(--cy-space-2) 0;
+  border-bottom: 2rpx solid var(--soft);
+}
+.jc__mod-l { font-size: var(--cy-type-body); color: var(--sub); }
+.jc__mod-v { flex: none; font-size: var(--cy-type-label); color: var(--sub); }
+.jc__mod.is-held .jc__mod-l { color: var(--ink); }
+.jc__mod.is-held .jc__mod-v { color: var(--ok); font-weight: 700; }
+
+.jc__idle {
+  margin-top: var(--cy-space-6);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--sub);
+}
+.jc__dice {
+  margin-top: var(--cy-space-6);
+  display: flex;
+  justify-content: center;
+  gap: var(--cy-space-3);
+}
+.jc__die {
+  width: 120rpx;
+  height: 120rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-md);
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-data-xl);
+  font-weight: 900;
+  /* 骰子落定。这一条是五个新屏里唯一的专属动效 —— D20 的张力全在「掷→停→读数」,
+     共用的 pk-in 表达不出「一颗一颗停下」。时长与缓动逐值取原型的
+     popcard(.5s cubic-bezier(.2,1.2,.3,1)):带回弹的落定,不自创曲线。 */
+  animation: jc-die .5s cubic-bezier(.2, 1.2, .3, 1) both;       /* ds-ok 逐值照原型 popcard */
+}
+.jc__die:nth-child(2) { animation-delay: .09s; }                /* ds-ok */
+.jc__die:nth-child(3) { animation-delay: .18s; }                /* ds-ok */
+.pk--reduced .jc__die { animation: none; }
+.pk--reset .jc__die { animation: none; }
+/* 三颗骰子最晚在 .68s 落定(.5s + .18s 错峰)。达成值与成败必须等骰子停了再读出来 ——
+ * 共用的 pk-in--2/--3 只延 .08/.16s,那会让判定抢在骰子前面,整个「掷→停→读数」就没了。
+ * 所以这一屏自己覆盖延时;指定性 0,2,0 压得过共用类的 0,1,0。 */
+.jc__total.pk-in { animation-delay: .72s; }                     /* ds-ok */
+.jc__verdict.pk-in { animation-delay: .82s; }                   /* ds-ok */
+@keyframes jc-die {
+  from { transform: translateY(-40rpx) scale(1.18); opacity: 0; }  /* ds-ok */
+  to { transform: none; opacity: 1; }
+}
+.jc__total { margin-top: var(--cy-space-3); display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.jc__total-n {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-type-display);
+  font-weight: 900;
+  color: var(--ink);
+}
+.jc__total-s { font-size: var(--cy-type-label); color: var(--sub); }
+.jc__verdict {
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+}
+.jc__verdict--ok { color: var(--ok); }
+.jc__verdict--no { color: var(--accent); }
+.jc__applied { margin-top: var(--cy-space-4); width: 100%; text-align: left; }
+.jc__hint { margin-top: var(--cy-space-3); font-size: var(--cy-type-caption); color: var(--sub); }
+.jc__copy {
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-type-body);
+  line-height: 1.8;
+  color: var(--ink);
+}
+.jc__cost { margin-top: var(--cy-space-2); font-size: var(--cy-type-label); color: var(--accent); }
+.jc__vitals {
+  margin-top: var(--cy-space-3);
+  display: flex;
+  justify-content: center;
+  gap: var(--cy-space-4);
+  font-size: var(--cy-type-label);
+  color: var(--sub);
+}
+.jc__exhaust { margin-top: var(--cy-space-2); font-size: var(--cy-type-caption); color: var(--accent); }
+
+/* 结果屏的底部两条:重掷是次级(靠左),结算贴底(与其它玩法同一颗白胶囊) */
+.jc__act {
+  position: absolute;
+  left: var(--cy-page-x);
+  bottom: calc(env(safe-area-inset-bottom) + 60rpx);
+  height: 112rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-button);
+  font-weight: 800;
+}
+.jc__act--ghost {
+  right: auto;
+  width: 260rpx;
+  background: var(--soft);
+  color: var(--ink);
+}
+.jc__act-main { left: auto; right: var(--cy-page-x); width: 340rpx; }

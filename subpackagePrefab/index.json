@@ -1,0 +1,10 @@
+{
+  "navigationStyle": "custom",
+  "backgroundColor": "#000000",
+  "backgroundTextStyle": "dark",
+  "disableScroll": true,
+  "usingComponents": {
+    "cy-privacy-gate": "/components/cy/privacy-gate/index",
+    "cy-state-shell": "/components/cy/state-shell/index"
+  }
+}

@@ -1,0 +1,21 @@
+<cy-sheet show="{{show}}" handle="{{true}}" bind:close="onClose">
+  <view class="so">
+    <view class="pk-eyebrow">{{eyebrow}}</view>
+    <view class="pk-title">{{title}}</view>
+    <view class="pk-desc">{{rule}}</view>
+
+    <view class="so__qr">
+      <image wx:if="{{qrUrl}}" class="so__qr-img" src="{{qrUrl}}" mode="aspectFit"
+             aria-role="img" aria-label="见证码，请店员扫描" />
+      <view wx:else class="so__qr-empty">见证码生成中</view>
+    </view>
+    <view class="so__qr-cap">见证码 · 店员猜中后扫这里</view>
+
+    <view class="so__foot">
+      <view class="so__timer"><cy-icon name="clock" size="26" /><text>已表演 {{clock}}</text></view>
+      <view class="so__giveup" bindtap="onGiveUp"
+            aria-role="button" aria-label="认输说话，结束本次沉默点单"
+            hover-class="cy-pressed" hover-stay-time="80"><text>认输说话</text><cy-icon name="arrow-right" size="26" /></view>
+    </view>
+  </view>
+</cy-sheet>

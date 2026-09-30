@@ -1,0 +1,17 @@
+<view class="cs {{reducedMotion ? 'cs--reduced-motion' : ''}}" wx:if="{{model.show}}" aria-role="dialog" aria-label="{{model.eyebrow}}" catchtouchmove="block">
+  <view class="cs__close" style="top:{{chrome.actionTop}}px;right:{{chrome.actionRight}}px" data-key="close" bindtap="onAction" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><view class="cs__close-glyph"><cy-icon name="close-sm" size="44" /></view></view>
+  <view class="cs__mark"><cy-icon class="cs__mark-scallop" name="scallop" size="112" /><cy-icon class="cs__mark-glyph" name="check" size="64" /></view>
+  <view class="cs__copy">
+    <view class="cs__eyebrow">{{model.eyebrow}}</view>
+    <view class="cs__title">{{model.title}}</view>
+    <view class="cs__detail" wx:if="{{model.detail}}">{{model.detail}}</view>
+  </view>
+  <view class="cs__facts" wx:if="{{model.metaPrimary || model.metaSecondary}}">
+    <view wx:if="{{model.metaPrimary}}" class="cs__fact">{{model.metaPrimary}}</view>
+    <view wx:if="{{model.metaSecondary}}" class="cs__fact">{{model.metaSecondary}}</view>
+  </view>
+  <view class="cs__actions">
+    <view class="cs__primary" data-key="primary" bindtap="onAction" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">{{model.primaryText}}</view>
+    <view class="cs__secondary" wx:if="{{model.showSecondary}}" data-key="secondary" bindtap="onAction" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">{{model.secondaryText}}</view>
+  </view>
+</view>

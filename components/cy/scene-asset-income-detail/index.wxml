@@ -1,0 +1,44 @@
+<view class="aid {{surface === 'page' ? 'aid--page' : ''}}">
+  <!-- 2026-08-11 走查:这里原有一个 Revolut 大标题「收益明细」,但三个宿主(深链壳 cy-sheet、
+       earnings 的 cy-scene-sheet、scene-deep-link)都已经在弹层头渲染同名标题 ⇒ 每次都重复两遍。
+       注释原本写的是「full sheet 内保留」,可 2026-08-07 已拍板本弹窗是**半屏**,前提没了。
+       让组件让而不是让弹层头让:①全仓所有 scene 组件都靠宿主出标题,自带标题的只有这一个;
+       ②cy-sheet 的关闭叉号与标题同在 wx:if="{{title}}" 的头里,摘 title 会把叉号一起摘掉,
+       那会违反「弃返回钮保半屏,叉号关闭」的裁决。 -->
+  <cy-tabs class="id-tabs" variant="chip" tabs="{{filterTabs}}" active="{{activeFilter}}" bind:change="onFilterChange" />
+
+  <cy-scene-merchant-profit wx:if="{{activeFilter === 'club'}}" theme="{{theme}}" bind:close="onClubClose" />
+
+  <block wx:else>
+    <cy-skeleton wx:if="{{loading && list.length === 0}}" type="list" count="{{4}}" />
+
+    <!-- wx:else 会让零记录时渲染一个只有 padding 的空卡壳,在空态上方露成一条灰带(2026-09-19 实拍) -->
+    <view class="id-list cy-fade-in" wx:elif="{{list.length}}">
+      <view class="id-item" wx:for="{{list}}" wx:key="id">
+        <view class="id-item-badge id-item-badge--{{item.eventType === 1 ? 'create' : 'brand'}}">
+          <text class="id-item-badge__txt">{{item.eventType === 1 ? '创' : '品'}}</text>
+        </view>
+        <view class="id-item-info">
+          <text class="id-item-title">{{item.changeReason || '收益记录'}}</text>
+          <view class="id-item-meta">
+            <text class="id-item-date">{{item.displayDate || '—'}}</text>
+            <view class="id-item-sep"></view>
+            <text class="id-item-status">{{item.directionText}}</text>
+          </view>
+        </view>
+        <view class="id-item-right">
+          <!-- ⚠️ 缺金额时不能吃到 --out(红):红在这一页是**支出**语义,而「没有数」不是支出。
+             原来 amountText 为空会渲染成一根**红色横线**,在资金页上读起来像负数
+             (2026-08-19 D32 实拍)。缺值走中性字色。 -->
+          <text class="id-item-amount {{!item.amountText ? '' : (item.directionKnown ? (item.isIncome ? 'id-item-amount--in' : 'id-item-amount--out') : '')}}">{{item.amountText || '—'}}</text>
+        </view>
+      </view>
+      <view class="id-more" wx:if="{{hasMore && !loading}}" bindtap="loadMore" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">加载更多</view>
+    </view>
+
+    <view wx:if="{{loadErr}}" class="id-state-fill" aria-role="alert">
+      <cy-error fill="{{true}}" size="lg" title="收益明细没加载出来" sub="网络可能不稳定，你的收益记录还在" retry="重试" bind:retry="onRetry" />
+    </view>
+    <cy-empty class="id-state-fill" wx:if="{{!loading && !loadErr && !hasMore && list.length === 0}}" fill="{{true}}" size="lg" kind="empty" title="{{emptyTitle}}" />
+  </block>
+</view>

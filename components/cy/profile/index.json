@@ -1,0 +1,24 @@
+{
+  "component": true,
+  "usingComponents": {
+    "tabBar": "/components/tabBar/index",
+    "roleBadge": "/components/roleBadge/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-cell": "/components/cy/cell/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-modal": "/components/cy/modal/index",
+    "cy-scene-route-content": "/components/cy/scene-route-content/index",
+    "cy-scene-game-coupon-wallet": "/components/cy/scene-game-coupon-wallet/index",
+    "cy-scene-qr-coupon": "/components/cy/scene-qr-coupon/index",
+    "cy-scene-roam-stamp-album": "/components/cy/scene-roam-stamp-album/index",
+    "cy-scene-share-invite": "/components/cy/scene-share-invite/index",
+    "cy-npc-avatar": "/components/cy/npc-avatar/index",
+    "cy-npc-chat": "/components/cy/npc-chat/index"
+  }
+}

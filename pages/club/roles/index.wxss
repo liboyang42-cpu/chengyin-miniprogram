@@ -1,0 +1,46 @@
+page { background: var(--cy-bg-page); }
+.page { min-height: 100vh; box-sizing: border-box; padding-bottom: calc(var(--cy-space-6) + var(--cy-safe-bottom)); }
+/* Figma 290:393 区块间距 20px(手册写 32,存量已知不一致,按 20 做);量表卡 32/48 中间,保留字面值 */
+.section { margin: 40rpx var(--cy-page-x) 0; } /* ds-ok: 40rpx = Figma 区块间距 20px，无匹配半步 token 见 style/TOKEN-MAPPING.md */
+/* 分区标题→本组 16px(见 style/TOKEN-MAPPING.md);单侧只由「下一个元素」声明 margin-top，
+   section-head 自己不带 margin-bottom —— WXSS 相邻 view 的 margin 折叠行为不可靠，别双侧都写。 */
+.section-title { color: var(--cy-text-title); font-size: var(--cy-font-body); font-weight: 700; }
+.section-caption { display: block; margin-top: var(--cy-space-4); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); line-height: 1.5; }
+
+/* Figma「卡」= bg-elevated(#1c1c1e)+ 行内发丝分隔，取代原先各自独立描边的卡片。
+   默认紧跟标题(16px);紧跟 section-caption 时降到 10px（见下方覆写）。 */
+.ds-card { margin-top: var(--cy-space-4); padding: 0 28rpx; border-radius: var(--cy-comp-card-radius); background: var(--cy-comp-card-bg); } /* ds-ok: 28rpx = Figma 卡片左右内距 14px */
+.section-caption + .ds-card { margin-top: var(--cy-space-2-5); }
+.row { display: flex; align-items: center; gap: var(--cy-space-2-5); padding: 26rpx 0; } /* ds-ok: 26rpx = Figma 行上下内距 13px */
+.row + .row { border-top: 1rpx solid var(--cy-color-border-subtle); }
+.row-text { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: var(--cy-space-1); }
+.row-title { overflow: hidden; color: var(--cy-text-title); font-size: var(--cy-font-body); text-overflow: ellipsis; white-space: nowrap; }
+.row-desc { color: var(--cy-text-tertiary); font-size: var(--cy-font-caption); line-height: 1.5; }
+.row-value { flex: none; color: var(--cy-text-tertiary); font-size: var(--cy-font-label); white-space: nowrap; }
+.row-value--primary { color: var(--cy-text-title); }
+/* 撤销是**销毁一次授权**的动作,不是描述文字。此前用 --cy-text-tertiary,
+   与它左边的 roleSummary 同色同字号,整句读下来看不出哪里能点(截图实测)。
+   配色按本仓既有约定:detail 页 .member-role-btn=--cy-info(跳转)、
+   .member-governance-btn=warning(警示)、.member-remove=--cy-danger(销毁)。 */
+.row-link { color: var(--cy-danger); }
+.row-link--disabled { opacity: .45; pointer-events: none; }
+.row-assign { display: flex; min-width: var(--cy-btn-h-sm); min-height: var(--cy-btn-h-sm); flex: none; align-items: center; justify-content: center; padding: 0 var(--cy-space-2-5); border-radius: var(--cy-radius-pill); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-label); font-weight: 700; }
+.page-note { display: block; margin: var(--cy-space-2-5) var(--cy-page-x) 0; color: var(--cy-text-tertiary); font-size: var(--cy-font-caption); line-height: 1.5; }
+.disabled { opacity: .45; pointer-events: none; }
+/* 稿 R1 290:393:行内选择器 + 一个「分配」大按钮 */
+.row-pick { flex: none; margin-left: auto; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.row-pick-arrow { flex: none; margin-left: var(--cy-space-1); color: var(--cy-text-secondary); }
+.assign-btn { margin: var(--cy-space-4) var(--cy-page-x) 0; height: 96rpx; display: flex; align-items: center;
+  justify-content: center; border-radius: var(--cy-radius-pill); background: var(--cy-text-title);
+  color: var(--cy-color-bg-page); font-size: var(--cy-font-body); font-weight: 700; }
+.assign-btn.disabled { opacity: .45; }
+.picker { padding: 0 var(--cy-page-x) calc(24rpx + env(safe-area-inset-bottom)); }
+.picker-row { display: flex; align-items: center; gap: var(--cy-space-3); padding: var(--cy-space-3) 0;
+  border-top: 1rpx solid var(--cy-color-border-subtle); }
+.picker-row--on .picker-mark { color: var(--cy-color-status-success); }
+.picker-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.picker-name { font-size: var(--cy-font-body); }
+.picker-row > .picker-name { flex: 1; min-width: 0; }
+.picker-desc { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.picker-mark { flex: none; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+

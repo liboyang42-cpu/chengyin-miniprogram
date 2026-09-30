@@ -1,0 +1,14 @@
+<view class="cy-cover">
+  <!-- 有图且没挂:正常渲染;binderror 是本组件的存在理由之一(没有它,失败的图就是个黑洞)。 -->
+  <image
+    wx:if="{{src && !failed}}"
+    class="cy-cover__img"
+    src="{{src}}"
+    mode="{{mode}}"
+    binderror="onError"
+  />
+  <!-- 无图 / 图挂:主题名文字封面(DS 底色 + 大字),不留空洞也不塞灰占位图 -->
+  <view wx:else class="cy-cover__fallback" aria-role="img" aria-label="{{title}}">
+    <view class="cy-cover__text">{{title}}</view>
+  </view>
+</view>

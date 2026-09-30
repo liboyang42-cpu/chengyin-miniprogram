@@ -1,0 +1,38 @@
+<!-- 2026-09-03 按 Brand Handbook 410-121 §⑥「顶部不要抓手,只要 ✕」去掉 handle。
+     closable 默认 true,标题左 + 圆形 ✕ 右已经是 T1 的规定动作,不用另外补。
+     模板游戏那批 playkit-* 不动 —— 规范开头的适用范围把它们豁免了。
+     ⚠️ 2026-09-05 解冲突:门店轨接进来时这里两边都动过 ——
+     master 去掉 handle 是**规范决定**,本批改的是标题按 scope 分叉,两者不冲突。
+     保留 master 的无 handle,叠上 scope 标题;别把 handle 加回来。 -->
+<!-- 文案按 scope 分叉:门店轨说的是「这家店」,漫游轨说的是「这段漫游」。
+     ★ 沿用漫游轨那套文案会让玩家以为 NPC 知道全城的事,然后问它别的店 —— 答不出来像是坏了。 -->
+<cy-sheet show="{{show}}" title="{{scope === 'merchant' ? (npcName || '店铺形象') : '漫游 AI 向导'}}" bind:close="onSheetClose">
+  <view class="npc-chat">
+    <view class="npc-chat__notice">
+      <cy-icon name="info" size="24" />
+      <text>{{scope === 'merchant' ? '由 AI 生成，仅基于这家店提供的信息回答' : '由 AI 生成，仅基于本次漫游进度回答'}}</text>
+    </view>
+
+    <scroll-view class="npc-chat__messages" scroll-y scroll-into-view="{{scrollIntoView}}" scroll-with-animation>
+      <view wx:for="{{messages}}" wx:key="id" id="npc-msg-{{item.id}}" class="npc-chat__row npc-chat__row--{{item.role}}">
+        <view class="npc-chat__bubble npc-chat__bubble--{{item.role}}">
+          <text>{{item.text}}</text>
+        </view>
+      </view>
+      <view wx:if="{{isThinking}}" id="npc-chat-thinking" class="npc-chat__thinking">
+        <view class="npc-chat__dot"></view><view class="npc-chat__dot"></view><view class="npc-chat__dot"></view>
+      </view>
+      <view wx:if="{{!messages.length && !isThinking}}" class="npc-chat__empty">{{scope === 'merchant' ? (greeting || '想吃点什么？问问我。') : '想知道下一步怎么走？问问我。'}}</view>
+    </scroll-view>
+
+    <view class="npc-chat__composer">
+      <textarea class="npc-chat__input" value="{{input}}" maxlength="300" auto-height fixed="true"
+        placeholder="{{scope === 'merchant' ? '问问这家店，比如「有什么推荐」' : '问问这段漫游…'}}" placeholder-class="npc-chat__placeholder"
+        bindinput="onInput" bindconfirm="onSend" confirm-type="send" />
+      <view class="npc-chat__composer-foot">
+        <text class="npc-chat__count">{{inputCount}}/300</text>
+        <view class="npc-chat__send {{canSend ? '' : 'npc-chat__send--disabled'}}" bindtap="onSend" aria-role="button" aria-label="发送消息" hover-class="cy-pressed" hover-stay-time="80">发送</view>
+      </view>
+    </view>
+  </view>
+</cy-sheet>

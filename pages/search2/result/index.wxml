@@ -1,0 +1,67 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="search2-result">
+  <cy-nav-bar />
+  <view class="result-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <view class="result-search">
+    <cy-search value="{{keyword}}" placeholder="搜索主题、活动、俱乐部、商家"
+      loading="{{searchLoading}}" bind:input="onKeywordInput" bind:confirm="onSearchConfirm" />
+  </view>
+
+  <view class="main">
+    <view class="wp">
+      <cy-tabs class="result-tabs" tabs="{{resultTabs}}" active="{{activeResultType}}"
+        variant="chip" bind:change="onResultTab" />
+
+      <view wx:if="{{showSearchSkeleton && !visibleResults.length}}">
+        <cy-skeleton type="feed-card" count="3" />
+      </view>
+      <cy-error class="fill-slot cy-fade-in" wx:elif="{{searchError && !visibleResults.length}}" fill="{{true}}" size="lg" title="没能完成搜索" sub="{{searchError}}" bind:retry="runSearch" auto-back="{{!everLoaded}}" />
+      <cy-empty class="fill-slot" wx:if="{{!searchLoading && !searchError && !visibleResults.length}}" fill="{{true}}" size="lg" kind="empty" title="没有找到匹配内容" sub="换个关键词，或看看地图附近有什么" />
+      <view class="result-list" wx:if="{{visibleResults.length}}">
+        <block wx:for="{{visibleResults}}" wx:key="key">
+          <view wx:if="{{item.type === 'topic'}}" class="topic-result-card" data-id="{{item.id}}" data-scene-id="{{item.sceneId}}" data-path="{{item.path}}" bindtap="goResult" aria-role="button" aria-label="查看主题：{{item.title}}" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="topic-result-card__media">
+              <image wx:if="{{item.cover}}" class="topic-result-card__cover" src="{{item.cover}}" mode="aspectFill" />
+              <view wx:else class="topic-result-card__cover topic-result-card__fallback"><cy-icon name="route" size="52" /></view>
+              <view class="topic-result-card__shade"></view>
+              <view class="topic-result-card__kind">主题</view>
+            </view>
+            <view class="topic-result-card__body">
+              <view class="topic-result-card__title">{{item.title}}</view>
+              <view class="topic-result-card__detail ep1">{{item.detail}}</view>
+              <view class="result-card__tags" wx:if="{{item.tags.length}}">
+                <text wx:for="{{item.tags}}" wx:key="*this" class="result-card__tag">{{item}}</text>
+              </view>
+            </view>
+          </view>
+          <cy-merchant-card wx:elif="{{item.type === 'merchant'}}" interactive="{{true}}" aria-label="查看商家：{{item.title}}"
+            data-id="{{item.id}}" data-path="{{item.path}}" bind:tap="goResult" bind:action="goResult"
+            cover="{{item.cardCover}}" logo="{{item.cardLogo}}" name="{{item.title}}"
+            city-role="{{item.cardCityRole}}" desc="{{item.cardDescription}}" status="{{item.cardStatus}}"
+            tags="{{item.tags}}" category-name="{{item.cardCategoryName}}" />
+          <cy-club-card wx:elif="{{item.type === 'club'}}" interactive="{{true}}" club="{{item.clubCard}}" cta="查看" aria-label="查看俱乐部：{{item.title}}"
+            data-id="{{item.id}}" data-path="{{item.path}}" bind:tap="goResult" bind:action="goResult" />
+          <view wx:else class="result-card" data-id="{{item.id}}" data-scene-id="{{item.sceneId}}" data-path="{{item.path}}" bindtap="goResult" hover-class="cy-pressed" hover-stay-time="80">
+            <image wx:if="{{item.cover}}" class="result-card__cover" src="{{item.cover}}" mode="aspectFill" />
+            <view wx:else class="result-card__cover result-card__cover--fallback">
+              <cy-icon name="{{item.icon}}" size="40" />
+            </view>
+            <view class="result-card__body">
+              <view class="result-card__type">{{item.typeLabel}}</view>
+              <view class="result-card__title ep1">{{item.title}}</view>
+              <view class="result-card__detail ep1">{{item.detail}}</view>
+              <view class="result-card__tags" wx:if="{{item.tags.length}}">
+                <text wx:for="{{item.tags}}" wx:key="*this" class="result-card__tag">{{item}}</text>
+              </view>
+            </view>
+            <cy-icon class="result-card__arrow" name="arrow-right" size="24" />
+          </view>
+        </block>
+      </view>
+    </view>
+  </view>
+</view>
+</view>

@@ -1,0 +1,570 @@
+/* 页根 flex column:让 cy-error 的 fill(flex:1)吃满"标题下方到屏幕底部"的剩余空间,
+   不设置的话组件只能退化到 min-height:60vh 兜底,不是真正的剩余空间居中(2026-07-31 复核)。
+   direction:column 只改变本页顶层几个直接子节点(nav-bar/page-title/各状态区块)的排布,
+   不影响它们内部沿用的 float 布局。 */
+page { display: flex; flex-direction: column; min-height: 100vh; }
+/* cy-error 是 styleIsolation:isolated 组件,:host 自带 display:block(优先级高于普通标签选择器),
+   页面侧的 flex:1 必须用 !important 才能压过组件自身的 :host 规则(2026-07-31 批2 实测坐实)。 */
+cy-error, cy-empty.page-terminal { flex: 1; display: flex !important; flex-direction: column !important; min-height: 0; }
+
+/* 配送地址样式 - 与地址页面保持一致 */
+/* 2026-08-04 三改:灰卡(--cy-color-bg-elevated #18151F)带紫调,大面积铺开就发紫,
+   按用户拍板全部去掉 —— 内容直接落页面黑底,分组只靠节标题 + 留白。 */
+.address-info, .address-empty {
+  margin: 0 var(--cy-page-x);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.address-info {
+  padding: 0;
+}
+
+
+.address-empty .dz_li_left_txt {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-label);
+  margin-top:var(--cy-legacy-10);
+}
+
+
+/* 配送地址标题(节标题:36rpx/700/左对齐,节间距 space-4) */
+/* 节标题(参考 Revolut Business account 的 Statements/Documents):
+   在灰卡【外面】,和页大标题「确认报名」之间留足距离 —— 原来两个标题贴在一起,
+   一眼分不清哪个是页名哪个是节名。 */
+.set {
+  overflow: hidden;
+  /* 首个节标题:标题移进导航栏后,这里是正文第一块,上间距按内容区起始留,
+     不再是"跟大标题拉开距离"那档。 */
+  margin: var(--cy-space-4) var(--cy-page-x) var(--cy-space-3) var(--cy-page-x);
+}
+
+.set_left {
+  float: left;
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+  height: 40rpx;
+  line-height: 40rpx;
+}
+
+.set_right {
+  width: 40rpx;
+  height: 40rpx;
+  float: right;
+  /* cy-icon 以 currentColor 取色 */
+  color: var(--cy-color-text-tertiary);
+}
+
+
+/* 地址显示区域 */
+.dz_li_left {
+  overflow: hidden;
+  margin:0;
+}
+
+.dz_li_left_name {
+  overflow: hidden;
+  margin-bottom:var(--cy-space-1-5);
+}
+
+.dz_li_left_name text {
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  margin-right:var(--cy-space-4);
+}
+
+.dz_li_left_name text {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-secondary);
+}
+
+
+/* 地址选择弹窗 */
+/* 2026-09-02:原 1000/1001 越过整条 token 档(sheet 800 < modal 900 < toast 950 < celebrate 990)。
+   地址选择是底部弹层 = sheet 档。⚠️ 同页的结果面板(cy-result-sheet → cy-sheet)现在
+   也读 --cy-z-sheet,与本层同档;两者不会同屏(选地址在报名前,结果面板在支付后)。 */
+.address-popup .popup-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--cy-z-sheet);
+}
+
+.address-popup .popup-content {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-lg) var(--cy-radius-lg) 0 0;
+  max-height: 80vh;
+  z-index: calc(var(--cy-z-sheet) + 1);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+
+
+
+.popup-list {
+  flex: 1;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.address-item {
+  overflow: hidden;
+  border-bottom: 1rpx solid var(--cy-color-border-strong);
+  padding:var(--cy-space-3-5);
+  position: relative;
+}
+
+.address-item.active {
+  background-color: var(--cy-color-bg-page);
+  padding:var(--cy-space-3-5);
+}
+
+.address-item-content {
+  overflow: hidden;
+  width: 550rpx;
+}
+
+.address-item-header {
+  overflow: hidden;
+  margin-bottom:var(--cy-space-1-5);
+}
+
+.address-name {
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  margin-right:var(--cy-space-4);
+}
+
+.address-phone {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-secondary);
+  margin-right:var(--cy-legacy-10);
+}
+
+
+.check-icon {
+  position: absolute;
+  right: 30rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cy-color-text-primary);
+}
+
+.empty-address {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding:var(--cy-space-6) 0;
+}
+
+.empty-text {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-tertiary);
+  margin-bottom:var(--cy-space-4);
+}
+
+.popup-footer {
+  display: flex;
+  padding:var(--cy-space-3-5) 0 var(--cy-space-6) 0;
+  /*border-top: 1rpx solid var(--cy-color-border-strong);*/
+  gap:var(--cy-space-2-5);
+}
+
+.manage-btn, .confirm-btn {
+  flex: 1;
+  height: var(--cy-btn-h);
+  line-height: var(--cy-btn-h);
+  border-radius: var(--cy-radius-lg);
+  font-size: var(--cy-type-body);
+  font-weight: bold;
+  border: none;
+}
+
+
+.confirm-btn {
+  background: #151B23;
+  color: var(--cy-color-text-inverse);
+}
+
+/* 统一节标题(参考 Revolut Business account 的 Statements / Documents):
+   一律在灰卡外面,与上一张卡拉开 space-7,和卡片之间只留 space-3。
+   .set_left / .setbox_tit 是历史类名,同款样式,别再新造第四种。 */
+/* 卡片去掉后,节与节之间只剩留白在分组 —— 上间距就是唯一的分隔,不能再收窄 */
+.sec-title {
+  margin: var(--cy-space-7) var(--cy-page-x) var(--cy-space-4) var(--cy-page-x);
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+  line-height: 40rpx;
+}
+
+/* 原有活动信息样式保持 */
+.setbox {
+  margin: var(--cy-space-7) var(--cy-page-x) 0 var(--cy-page-x);
+  overflow: hidden;
+}
+
+/* .setbox_tit / .set_left 与 .sec-title 同款,只是历史类名不同 */
+.setbox_tit {
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+  line-height: 40rpx;
+  margin-bottom: var(--cy-space-4);
+}
+
+.setbox_lb {
+  overflow: hidden;
+}
+
+.setbox_lb_li {
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.setbox_lb_li_top {
+  overflow: hidden;
+}
+
+.setbox_lb_li_top_tu {
+  width: 160rpx;
+  height: 120rpx;
+  border-radius: var(--cy-radius-sm);
+  float: left;
+  overflow: hidden;
+}
+
+.setbox_lb_li_top_tu image {
+  width: 160rpx;
+  height: 120rpx;
+  vertical-align: top;
+}
+
+.activity-poster-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: var(--cy-color-bg-elevated);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+}
+
+.setbox_lb_li_top_con {
+  margin: 0 0 0 192rpx; /* ds-ok: 对齐左侧 160rpx 缩略图(float:left)+32rpx 间隙的实际宽度,不是通用间距 */
+  overflow: hidden;
+}
+
+.setbox_lb_li_top_con_time {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-primary);
+}
+
+.setbox_lb_li_top_con_name {
+  font-size: var(--cy-type-card-title);
+  font-weight: bold;
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin: 0 0 var(--cy-space-1-5) 0;
+}
+
+/* 标题挪到最上后,时间/地点降为次级信息,不再和标题抢同一档。
+   ⚠️ 这两条必须写在各自的规则里:曾经把 dz 并进上面的合并规则,结果被下面这条
+   同特异性、更靠后的 color: primary 覆盖回去,改了等于没改。 */
+.setbox_lb_li_top_con_time {
+  color: var(--cy-color-text-secondary);
+}
+
+.setbox_lb_li_top_con_dz {
+  font-size: var(--cy-type-caption);
+  line-height: 24rpx;
+  color: var(--cy-color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setbox_lb_li_top_con_dz .d_location {
+  vertical-align: top;
+  margin-right:var(--cy-legacy-6);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* 费用明细块。2026-08-04 按 Airbnb 结算/取消预订页重排:
+   原来是 elevated 圆角卡片浮在页面上,和上面的活动信息卡叠成两块"漂着的方块"。
+   参考图的分区靠【整宽粗分隔带】,不靠卡片 —— 内容一路顶到页边,区与区之间
+   压一条 16rpx 的实色带。少一层容器,金额和标题的左右对齐关系才立得住。 */
+/* 2026-08-04 二改:上一版用整宽粗分隔带分区(Airbnb 范式),用户看过 Revolut Business
+   的参考图后改口要【灰卡分组】—— 节标题在卡外,内容装进深灰圆角卡。分隔带那版已回收。 */
+.setly {
+  margin: 0 var(--cy-page-x);
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 行改 flex:原来靠 float 左右分栏,右侧还叠着 span+radio,浮动一多就互相挤。
+   2026-08-04:逐行横线全部去掉(参考 Shopify 的 Payment 区)——五行里画四条线,
+   读起来是"四个被切开的格子"而不是"一组费用"。改成靠行距和字色分层,
+   行高从 space-2 提到 space-3,少了线更需要呼吸。 */
+.setly_li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3) 0;
+}
+
+/* 总计行 = 参考图里「Your refund / $201.54」那一组:小灰标签在上、超大金额在下,
+   左对齐堆叠,不再是"标题左、金额右"的普通明细行。它是全页唯一的视觉落点,
+   靠字号压住而不是靠颜色喊。 */
+.setly_li--total {
+  display: block;
+  padding-top: var(--cy-space-4);
+}
+
+.setly_li--total .setly_li_left {
+  font-size: var(--cy-type-label);
+  font-weight: 400;
+  color: var(--cy-color-text-secondary);
+}
+
+.setly_li--total .setly_li_right {
+  display: block;
+  margin-top: var(--cy-space-1-5);
+}
+
+.setly_li--total .setly_li_right text {
+  font-size: var(--cy-type-display);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.setly_li_left {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+  flex: none;
+}
+
+.setly_li_left text {
+  font-size: var(--cy-type-caption);
+}
+
+.setly_li_right {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+/* 2026-08-04:金额原来整列涂 status-danger(报警红) —— 参考的 Airbnb 结算/取消页是
+   纯黑白关系,红只留给真正的错误。这里全部回收:
+   应付金额走主文字色,减免项(-¥…)降一档到次级色,靠"减号+弱化"表达而不是靠颜色喊。 */
+.setly_li_right text {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-body);
+}
+
+.setly_li_right_span {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-body);
+}
+
+.club-benefit-text {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-caption);
+}
+
+.bmbottom,
+.bmbottom-spacer {
+  height: calc(200rpx + var(--baoming-action-extra, 0rpx) + env(safe-area-inset-bottom)); /* §2.5 吸底条延展避让 home indicator */
+}
+
+.bmbottom {
+  width: 100%;
+  overflow: hidden;
+  background: var(--cy-color-bg-page);
+  position: fixed;
+  bottom: 0;
+}
+
+.submit-inline-error {
+  display: block;
+  margin: var(--cy-space-2) 32rpx 0;
+}
+
+
+/* 拍板 2026-09-16 #10:商家闭店时贴在报名底栏里的提示条。 */
+.bm-closed {
+  margin: var(--cy-space-2-5) 32rpx 0 32rpx;
+  padding: 16rpx 24rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-status-warning-soft);
+  color: var(--cy-color-status-warning);
+  font-size: var(--cy-font-label);
+  text-align: center;
+}
+
+.bmbottom_box {
+  margin:var(--cy-space-2-5) 32rpx 16rpx 32rpx;
+  display: flex;
+  align-items: flex-start;
+}
+
+/* 单独同意使用微信原生 icon 的 success/circle 状态；白色背板只承接 success 的透明镂空勾。 */
+.bmbottom_box_gx {
+  flex: none;
+  background: var(--cy-comp-success-mark-fg);
+  border-radius: 50%;
+}
+
+.bmbottom_box_txt {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-primary);
+  margin-left:var(--cy-space-1-5);
+  line-height: var(--cy-leading-normal);
+}
+
+/* 父级 .setly_li_right 已改 flex 且 align-items:center ⇒ 不再需要 float/margin-top 手动对齐 */
+.radio {
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  position: relative;
+  border: 4rpx solid var(--cy-color-border-strong);
+  border-radius: 30rpx;
+  flex: none;
+}
+
+.radio text {
+  width: var(--cy-legacy-18);
+  height: var(--cy-legacy-18);
+  background: var(--cy-color-text-primary);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.flex-cc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* 报名/支付成功弹层已换成共享的 cy-result-sheet(2026-09-05),
+   本页自绘的 .paysuc-* 一整段随之删除 —— 当初不用 cy-sheet 的理由
+   「它没有退场动画」已经过期,那边后来挂上了 exitMotion(250)。 */
+
+/* 已报名提示条:状态优先于提示 —— 这件事以前只有 toast 说一次,现在留在界面上 */
+.bm-signed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--cy-space-3) var(--cy-space-4) 0;
+  padding: var(--cy-space-3) var(--cy-space-4);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-status-success-soft);
+}
+.bm-signed__text {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-status-success);
+  font-weight: 600;
+}
+/* 操作文字用蓝不用绿:绿是状态色,蓝才是「可点」 */
+.bm-signed__link {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-status-info);
+}
+
+/* 稿 206:374 成功终帧里的摘要卡:买的哪场 / 几点在哪儿 / 什么票付了多少 */
+.paysuc__card {
+  margin-top: var(--cy-space-4);
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card);
+  text-align: left;
+}
+.paysuc__card-n {
+  display: block;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.paysuc__card-w,
+.paysuc__card-l {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* ===== 稿 576:1255 / 576:1274:付款那一刻的三样事实 ===== */
+
+/* 转圈档的 48px 加载环(稿 576:1163)。不引组件:这里只需要一个环,
+   而 cy-loading-mask 是整屏遮罩,套在已经是弹层的这一层里会盖住自己。 */
+.paysuc__spin {
+  width: 96rpx;
+  height: 96rpx;
+  margin: 0 auto var(--cy-space-4) auto;
+  border-radius: 50%;
+  border: 6rpx solid var(--cy-color-border-subtle);
+  border-top-color: var(--cy-color-text-primary);
+  animation: paysuc-spin 900ms linear infinite;
+}
+@keyframes paysuc-spin { to { transform: rotate(360deg); } }
+/* 关了动效就不转:一个静止的环仍然读得出「在等」,而持续旋转对前庭敏感的人是负担。 */
+.cy-motion-reduced .paysuc__spin,
+.paysuc-layer--reduced .paysuc__spin { animation: none; }
+
+/* 稿 576:1283:金额在这句话里是加粗主文本色,其余半句是次要色。 */
+.paysuc__amount {
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+
+/* 稿 576:1289 那行 13px meta。稿面是金色 #F2D87A —— 本仓对应 warning 档,
+   它在深浅两域都已经调过对比度,不另起一个色。 */
+.paysuc__stamp {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-color-status-warning);
+}
+
+/* 稿 576:1291:药丸 px24 py14 r15,底色比面板高一档。 */
+.paysuc__pill {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--cy-space-5);
+  padding: 28rpx 48rpx;
+  border-radius: var(--cy-radius-lg);   /* 稿 r15=30rpx,取最近的一档 32rpx */
+  background: var(--cy-bg-card);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-color-text-secondary);
+}
+.paysuc__pill-b {
+  margin-left: 6rpx;
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}

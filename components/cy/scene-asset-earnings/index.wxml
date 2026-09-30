@@ -1,0 +1,25 @@
+<wxs src="../../../utils/wxs/money.wxs" module="money" />
+<view class="ae">
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="amount" count="{{1}}" />
+  <view wx:elif="{{state === 'error'}}" class="ae-fill cy-fade-in" aria-role="alert">
+    <cy-error fill="{{true}}" size="lg" title="收益没加载出来" sub="网络可能不稳定，收益数据还在" retry="重试" bind:retry="refresh" />
+  </view>
+  <block wx:else>
+    <view class="ae-hero">
+      <view class="ae-card">
+        <text class="ae-card__label">账户收益</text>
+        <text class="ae-card__amount">{{money.amount(balanceDisplay || balance)}}</text>
+      </view>
+      <cy-funds-stages />
+      <view class="ae-actions">
+        <view class="ae-action" bindtap="openIncomeDetail" aria-role="button" aria-label="查看账户收益明细" hover-class="cy-pressed" hover-stay-time="80">明细</view>
+        <view class="ae-action" bindtap="openWithdraw" aria-role="button" aria-label="打开提现表单" hover-class="cy-pressed" hover-stay-time="80">提现</view>
+        <view class="ae-action" bindtap="openWithdrawHistory" aria-role="button" aria-label="打开提现记录弹窗" hover-class="cy-pressed" hover-stay-time="80">提现记录</view>
+      </view>
+    </view>
+    <view class="ae-section">
+      <cy-cell title="邀请记录" description="查看被邀请人、状态与奖励" bind:tap="openInvite" />
+    </view>
+    <cy-empty class="ae-fill" wx:if="{{balance === '0.00'}}" fill="{{true}}" size="lg" kind="empty" title="还没有收益" sub="创作收益与主办分润到账后都会显示在这里" cta="去发布路线" bind:cta="goPublish" />
+  </block>
+</view>

@@ -1,0 +1,11 @@
+<!-- 深链兼容壳：站内入口走 sceneStack，本页只服务分享/外部直达。 -->
+<view class="detail activity-shell {{isMerchantViewer ? 'theme-merchant' : 'theme-dark'}}" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar plain custom-back bind:back="goBack" />
+  <cy-page-title title="活动详情" safe-top="{{false}}" />
+  <view class="activity-shell__body">
+    <cy-scene-play-activity-detail id="activityDetail" activity-id="{{id}}" bind:loaded="onSceneLoaded" bind:close="goBack" />
+  </view>
+</view>

@@ -1,0 +1,136 @@
+<!-- 漫游地图 · 附近的队伍(地图组队 P 方案,Figma txQoyVyKb3aQdFCnc8qmhj 590:1014 · P1–P6)
+     地图只做展示层:没有开局入口;顶部白条「附近的队伍 · N 支在招募」;
+     底部只剩「范围」「我的队伍」两枚角控件,开任何半屏时收起(9-08 裁决)。 -->
+<view class="nb theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar title="" overlay pill tint="dark" custom-back bind:back="goBack" />
+
+  <free-map id="fmap" class="nb-map" scene="explore" center="{{center}}" scale="{{scale}}"
+            map-markers="{{markers}}" map-circles="{{circles}}" show-controls="{{false}}"
+            subkey="{{fmSubkey}}" layer-style="{{fmLayerStyle}}"
+            accessibility-label="附近的队伍地图"
+            bind:markertap="onMarkerTap" bind:regionchange="onRegionChange" />
+  <!-- marker 图标离屏画布(头像 marker 108 / 远距点 28) -->
+  <canvas type="2d" id="teamcv" class="nb-cv"></canvas>
+
+  <!-- P1 顶部条(稿 591:1017):只有左计数。
+       2026-09-15 合拢收尾:稿 591:1019 画了个「筛选」,但整份稿没有任何筛选维度(玩法/时间/有票)
+       的定义,接过来时只能把它接到 openRange 上 —— 那就是底部「范围」角控件已经在做的事,
+       一个动作两个入口、名字还不一样。要么等产品定筛选维度再做真的,要么现在不留半成品。删。 -->
+  <view class="mt-top" style="top:{{hudTop}}px;">
+    <text class="mt-top__t" aria-role="text">{{headerText}}</text>
+  </view>
+
+  <view class="nb-load-error" wx:if="{{loadError}}" style="top:{{hudTop + 56}}px;">
+    <cy-error title="附近的队伍没能读到" sub="地图还在，队伍这次没读到" retry="重试" bind:retry="retryNearby" />
+  </view>
+
+  <!-- P1 角控件(稿 591:1020 / 591:1022)。开卡片时收起。 -->
+  <view class="mt-corners" wx:if="{{!sheet}}" style="bottom:{{safeBottom + 26}}px;">
+    <view class="mt-corner" bindtap="openRange" aria-role="button" aria-label="{{rangeText}}" hover-class="cy-pressed" hover-stay-time="80">{{rangeText}}</view>
+    <view class="mt-corner" bindtap="openMyTeams" aria-role="button" aria-label="{{myTeamsText}}" hover-class="cy-pressed" hover-stay-time="80">{{myTeamsText}}</view>
+  </view>
+
+  <!-- P2 / P3 / P4 / 被拒 / 已加入:队伍卡(稿 593:1017 · 594:1030 · 594:1060) -->
+  <block wx:if="{{sheet === 'team' && current}}">
+  <view class="pdim {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" bindtap="closeSheet" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="psheet psheet--half {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" catchtap="noop">
+    <view class="psheet__grab"></view>
+    <view class="psheet__x" catchtap="closeSheet" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><view class="psheet__x-i"></view></view>
+    <view class="pbody">
+      <text class="ph1">{{current.heading}}</text>
+      <text class="psub">{{current.sub}}</text>
+      <view class="mt-members">
+        <view class="avs" wx:if="{{current.faces.length}}">
+          <view class="avs__i" wx:for="{{current.faces}}" wx:key="*this"><cy-avatar size="sm" src="{{item}}" bordered /></view>
+        </view>
+        <text class="mt-members__t">{{current.membersLine}}</text>
+      </view>
+      <view class="mt-notice mt-notice--{{current.card.notice.tone}}" wx:if="{{current.card.notice}}" aria-role="text">{{current.card.notice.text}}</view>
+      <view class="mt-btn mt-btn--w {{busy ? 'is-busy' : ''}}" wx:if="{{current.card.primary}}" bindtap="onCardPrimary" aria-role="button" aria-label="{{current.card.primary.text}}" hover-class="cy-pressed" hover-stay-time="80">{{current.card.primary.text}}</view>
+      <view class="mt-btn mt-btn--s {{busy ? 'is-busy' : ''}}" wx:if="{{current.card.secondary}}" bindtap="onCardSecondary" aria-role="button" aria-label="{{current.card.secondary.text}}" hover-class="cy-pressed" hover-stay-time="80">{{current.card.secondary.text}}</view>
+      <text class="mt-foot" wx:if="{{current.card.foot}}">{{current.card.foot}}</text>
+    </view>
+  </view>
+  </block>
+
+  <!-- P5 队长审批(稿 594:1090) -->
+  <block wx:if="{{sheet === 'leader' && current}}">
+  <view class="pdim {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" bindtap="closeSheet" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="psheet psheet--half {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" catchtap="noop">
+    <view class="psheet__grab"></view>
+    <view class="psheet__x" catchtap="closeSheet" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><view class="psheet__x-i"></view></view>
+    <view class="pbody">
+      <!-- 稿 594:1090 写「我的队伍 · 外滩夜行 周五场」——「外滩夜行 周五场」是**场次名**不是队名。
+           current.heading 就是 activityName(拿不到才退回队名),别用 current.name:
+           那一档兜底是「玩家队伍」,标题会变成「我的队伍 · 玩家队伍」。 -->
+      <text class="ph1">我的队伍 · {{current.heading}}</text>
+      <text class="psub">{{leaderSub}}</text>
+      <text class="mt-label">申请加入({{applicants.length}})</text>
+      <view class="mt-app" wx:for="{{applicants}}" wx:key="memberId">
+        <cy-avatar size="md" src="{{item.avatar}}" name="{{item.name}}" />
+        <view class="mt-app__body"><text class="mt-app__n">{{item.name}}</text><text class="mt-app__s">{{item.sub}}</text><text wx:if="{{item.messageText}}" class="mt-app__msg">{{item.messageText}}</text></view>
+        <view class="mt-app__acts">
+          <view class="mt-sbtn mt-sbtn--s {{busy ? 'is-busy' : ''}}" data-id="{{item.memberId}}" data-ok="false" bindtap="onHandle" aria-role="button" aria-label="拒绝 {{item.name}}" hover-class="cy-pressed" hover-stay-time="80">拒绝</view>
+          <view class="mt-sbtn mt-sbtn--w {{busy ? 'is-busy' : ''}}" data-id="{{item.memberId}}" data-ok="true" bindtap="onHandle" aria-role="button" aria-label="同意 {{item.name}}" hover-class="cy-pressed" hover-stay-time="80">同意</view>
+        </view>
+      </view>
+      <text class="mt-foot" wx:if="{{!applicants.length}}">现在没有待处理的申请</text>
+      <view class="mt-notice mt-notice--plain" aria-role="text">{{leaderFoot}}</view>
+    </view>
+  </view>
+  </block>
+
+  <!-- P6 我的队伍(稿 595:1015):已加入 / 申请中 / 队长未同意 -->
+  <block wx:if="{{sheet === 'mine'}}">
+  <view class="pdim {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" bindtap="closeSheet" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="psheet psheet--half {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" catchtap="noop">
+    <view class="psheet__grab"></view>
+    <view class="psheet__x" catchtap="closeSheet" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><view class="psheet__x-i"></view></view>
+    <view class="pbody">
+      <text class="ph1">我的队伍</text>
+      <text class="psub">只显示你已加入或申请过的队伍</text>
+      <view class="mt-row" wx:for="{{myRows}}" wx:key="key">
+        <view class="mt-row__body">
+          <text class="mt-row__n">{{item.name}}</text>
+          <view class="mt-row__meta"><text class="mt-row__s">{{item.sub}}</text><text class="mt-badge mt-badge--{{item.tone}}">{{item.badge}}</text></view>
+        </view>
+        <view class="mt-sbtn mt-sbtn--{{item.action.kind === 'primary' ? 'w' : 's'}} {{busy ? 'is-busy' : ''}}" data-index="{{index}}" bindtap="onMyRowAction" aria-role="button" aria-label="{{item.action.text}}" hover-class="cy-pressed" hover-stay-time="80">{{item.action.text}}</view>
+      </view>
+      <text class="mt-foot" wx:if="{{!myLoading && !myRows.length}}">还没有加入或申请过队伍,在地图上点一支看看</text>
+    </view>
+  </view>
+  </block>
+
+  <!-- 主题半屏(原型 topicSheet / h-topic) -->
+  <block wx:if="{{sheet === 'topic' && topic}}">
+  <view class="pdim {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" bindtap="closeSheet" aria-role="button" aria-label="关闭主题" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <scroll-view class="tstrip {{sheetIn ? 'is-in' : ''}}" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{topic.pics.length}}">
+    <image class="tstrip__i" wx:for="{{topic.pics}}" wx:key="*this" src="{{item}}" mode="aspectFill" />
+  </scroll-view>
+  <view class="psheet psheet--half {{sheetIn ? 'is-in' : ''}} {{reducedMotion ? 'is-reduced' : ''}}" catchtap="noop">
+    <view class="psheet__grab"></view>
+    <view class="psheet__x" catchtap="closeSheet" aria-role="button" aria-label="关闭主题" hover-class="cy-pressed" hover-stay-time="80"><view class="psheet__x-i"></view></view>
+    <view class="pbody">
+      <view class="trow">
+        <text class="ptag ptag--{{topic.tone}}">{{topic.tag}}</text>
+        <text class="pmini">{{topic.eyebrow}}</text>
+      </view>
+      <text class="ph1 ph1--tight">{{topic.title}}</text>
+      <text class="psub">{{topic.desc}}</text>
+      <view class="btnrow">
+        <view class="btn2 btn2--w" bindtap="openTopicPage" aria-role="button" aria-label="查看详情" hover-class="cy-pressed" hover-stay-time="80">查看详情</view>
+      </view>
+    </view>
+  </view>
+  </block>
+
+  <cy-option-sheet show="{{rangeSheetShow}}" title="范围" items="{{rangeItems}}" default-index="{{rangeIndex}}"
+    bind:select="onRangePick" bind:cancel="closeRange" />
+
+  <!-- 失败半屏合同(cy-result-sheet kind=fail):按钮 ≤2,并排小按钮 -->
+  <cy-result-sheet show="{{resultSheet.show}}" kind="{{resultSheet.kind}}" title="{{resultSheet.title}}"
+    why="{{resultSheet.why}}" primary-text="{{resultSheet.primaryText}}" secondary-text="{{resultSheet.secondaryText}}"
+    bind:primary="onResultPrimary" bind:secondary="onResultClose" bind:close="onResultClose" />
+</view>

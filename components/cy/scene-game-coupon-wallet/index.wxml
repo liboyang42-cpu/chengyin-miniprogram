@@ -1,0 +1,13 @@
+<view class="wallet-body">
+  <view class="wallet-tabs"><view wx:for="{{tabs}}" wx:key="*this" class="wallet-tab {{tab === index ? 'wallet-tab--on' : ''}}" hover-class="wallet-tab--press" hover-stay-time="60" bindtap="selectTab" data-tab="{{index}}">{{item}}</view></view>
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="card" count="3" />
+  <cy-error class="cy-fade-in" wx:elif="{{state === 'error'}}" fill title="优惠券暂时没能打开" sub="{{errorMsg}}" retry="重试" bind:retry="retry" />
+  <cy-empty class="cy-fade-in" wx:elif="{{state === 'empty' || !items.length}}" fill size="lg" title="{{tab === 0 ? '这里还没有优惠券' : '当前筛选暂无优惠券'}}" sub="{{tab === 0 ? '完成探索或活动任务后，领取的券会出现在这里。' : '切换其他状态查看优惠券。'}}" />
+  <view wx:else class="wallet-list cy-fade-in">
+    <view wx:for="{{items}}" wx:key="id" class="wallet-card {{item._isUsable ? 'wallet-card--usable' : ''}}" bindtap="openCode" data-item="{{item}}" aria-role="{{item._canView ? 'button' : 'group'}}" aria-label="{{item._canView ? (item._isUsable ? '出示' : '查看') : ''}}{{item._name}}，{{item._statusText}}" hover-class="{{item._canView ? 'cy-pressed' : 'none'}}" hover-stay-time="80">
+      <view class="wallet-card__head"><text class="wallet-card__name">{{item._name}}</text><cy-badge type="status" variant="{{item._statusVariant}}" label="{{item._statusText}}" /></view>
+      <text wx:if="{{item._description}}" class="wallet-card__desc">{{item._description}}</text>
+      <view class="wallet-card__foot"><text>{{item._dateText}}</text><view wx:if="{{item._canView}}" class="wallet-card__action"><text>{{item._isUsable ? '出示核销码' : '查看可用时间'}}</text><cy-icon name="arrow-right" size="24" /></view></view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,1067 @@
+<view class="theme-dark {{reducedMotion ? 'cy-motion-reduced' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page club-page">
+  <!-- 2026-09-18 ✕统一裁决:团核销码弹层显示时整条导航(返回+分享+设置)退场,
+       它们本就被弹层遮罩压住,留着就是与✕并存的双出口 -->
+  <cy-nav-bar custom-back bind:back="goBack" wx:if="{{!(groupCodeVisible && groupCodeState !== 'selecting')}}">
+    <!-- 分享从资料区那条整宽按钮收成导航图标(2026-08-26):它是一次性动作,不值一整行。 -->
+    <view slot="actions" class="cover-nav-acts">
+      <!-- CU-C-61:分享只能走原生 <button open-type="share"> —— view + bindtap 打不开转发面板,
+           只会 toast 一句「点右上角分享给好友」,用户点了也只是被指回胶囊,等于没有分享。 -->
+      <button class="cover-nav-act" open-type="share" aria-label="分享俱乐部" wx:if="{{club}}" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon class="cover-nav-ico" name="share" size="36" />
+      </button>
+      <view class="cover-nav-act" bindtap="onSettings" aria-role="button" aria-label="打开设置" wx:if="{{club && (club.isOwner || canUseManageTab)}}" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon class="cover-nav-ico" name="settings" size="36" />
+      </view>
+    </view>
+  </cy-nav-bar>
+  <view class="club-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <!-- 不存在/加载失败 -->
+  <view wx:if="{{notFound}}" class="empty error-state" aria-role="alert" aria-live="polite">
+    <view class="empty-tit">俱乐部暂时无法打开</view>
+    <view class="empty-sub">可能是网络波动、俱乐部已下架，或创建后的数据还在同步。你可以重试，或回管理台查看自己的俱乐部。</view>
+    <view class="error-actions">
+      <view class="error-primary" bindtap="onRetry" aria-role="button" aria-label="重新加载俱乐部" hover-class="cy-pressed" hover-stay-time="80">重新加载</view>
+      <view class="error-secondary" bindtap="goManage" aria-role="button" aria-label="返回俱乐部管理" hover-class="cy-pressed" hover-stay-time="80">回管理台</view>
+    </view>
+  </view>
+
+  <cy-skeleton wx:elif="{{!detailLoaded}}" type="detail" loading-label="正在加载俱乐部详情" />
+
+  <block wx:elif="{{club}}">
+    <!-- 封面 Hero + Logo(完整露出,不被裁切) -->
+    <view class="cover-wrap">
+      <view class="cover-bg">
+        <image wx:if="{{club.cover}}" class="cover-img" src="{{club.cover}}" mode="aspectFill" lazy-load="true" />
+        <view wx:else class="cover-fallback" aria-role="img" aria-label="{{club.name}} 使用默认封面">
+          <image class="cover-fallback-art" src="/pages/club/images/club_cover_default.png" mode="aspectFill" lazy-load="true" />
+        </view>
+      </view>
+      <view class="profile-logo-wrap">
+        <image class="profile-logo" src="{{club.logo || '/images/d_logo.png'}}" mode="aspectFit" lazy-load="true" />
+      </view>
+    </view>
+
+    <!-- 俱乐部资料区。2026-08-26 压缩:名字与元信息并成一栏、挪到 logo 右侧,
+         主按钮收进同一行 —— Hero 从 400rpx 降到 240rpx,首屏多露一条帖子。 -->
+    <view class="profile">
+      <view class="profile-id">
+        <view class="profile-id-main">
+          <view class="profile-name">{{club.name}}</view>
+          <view class="profile-meta">
+            <view class="profile-meta-chip">
+              <cy-icon class="profile-meta-ico" name="tab-explore" size="38" />
+              <text class="profile-meta-text">{{club.clubTypeText}}</text>
+            </view>
+            <view class="profile-meta-chip">
+              <cy-icon class="profile-meta-ico" name="tab-club" size="38" />
+              <text class="profile-meta-text">{{club.memberCountText}}</text>
+            </view>
+            <view class="profile-meta-chip">
+              <cy-icon class="profile-meta-ico" name="{{club.joinPolicy == 1 ? 'lock' : 'check'}}" size="38" />
+              <text class="profile-meta-text">{{club.joinPolicyText}}加入</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 身份行右侧唯一主按钮。★ owner 这里**不再放经营动作**:
+             邀约标的永远是某一个项目,俱乐部有多个活动时头部按钮说不清邀的是哪个。
+             阶段式 primary(ownerPrimaryLabel/onOwnerPrimary)整体挪进「管理」tab 的
+             NOW 卡 —— 卡片能带阶段上下文(见 CU-C-89:承接阶段不点名单个项目,只说全团)。 -->
+        <view class="profile-cta" wx:if="{{!club.isJoined && !club.isOwner && !isMerchantViewer}}">
+          <view wx:if="{{club.myJoinStatus === 0}}" class="join-btn join-btn--pending">等待审核</view>
+          <view wx:else class="join-btn cy-btn cy-btn--primary" bindtap="onJoin" hover-class="cy-pressed" hover-stay-time="80">{{club.joinPolicy == 1 && club.myJoinStatus === 2 ? '重新申请加入' : '加入俱乐部'}}</view>
+        </view>
+        <!-- 2026-09-09 按稿删「进入群聊」:稿 N1b 47:2 / N3 20:137 的头部到 meta 行就结束。
+             群聊本身没删,IM 页在会话列表、名片、合作列表三处仍有入口。 -->
+        <!-- 商家看俱乐部主页 → 发起俱乐部合作(§17.2,coop/invite 类型1) -->
+        <view class="profile-cta" wx:elif="{{isMerchantViewer}}">
+          <view class="join-btn cy-btn cy-btn--primary" bindtap="goClubCoop" hover-class="cy-pressed" hover-stay-time="80">发起合作</view>
+        </view>
+      </view>
+
+      <!-- 2026-09-09 按稿删:头部原来还挂着「邀请成员」「管理项目」两条文字链,
+           稿 N1b 47:2 / N3 20:137 都没有,而且两条都是重复的 ——
+           邀请成员在概览 tab 的成员分节右侧已经有一个,管理项目就是「管理」那个 tab 本身。
+           「退出俱乐部」留着:全仓只有这一个入口,删了成员就没路退。 -->
+      <view class="profile-links" wx:if="{{club.isJoined && !club.isOwner}}">
+        <text class="profile-link" bindtap="onQuit" aria-role="button" aria-label="退出俱乐部" hover-class="cy-pressed" hover-stay-time="80">退出俱乐部</text>
+      </view>
+    </view>
+
+    <!-- 同页视图：owner 多第四个「管理」，但默认仍由身份落帖子/概览。 -->
+    <cy-tabs class="club-view-tabs" tabs="{{clubTabs}}" active="{{activeTab}}" bind:change="switchTab" />
+
+    <view class="feed-divider"></view>
+
+    <!-- 帖子流(默认展示) -->
+    <view class="feed feed--plain" wx:if="{{activeTab === 'posts'}}">
+      <!-- 收起态:一条 pill,点开才展开输入区。原来 textarea + 图片行常驻,
+           没发帖的人也要为它让出约 340rpx —— 首屏第一条帖子被挤到折线以下。 -->
+      <view class="post-composer-collapsed" wx:if="{{canSeeMembers && (club.memberPostAllowed != 0 || club.isOwner || club.viewerIsAdmin || canModerateContent) && !composerOpen}}" bindtap="openComposer"
+            aria-role="button" aria-label="发布俱乐部动态" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-avatar class="post-composer-me" size="80" src="{{myAvatar || '/images/d_profile.png'}}" name="我" />
+        <view class="post-composer-col">
+          <text class="post-composer-who">{{myNickname || '城瘾玩家'}}</text>
+          <text class="post-composer-ph">有什么新鲜好玩的分享吗？</text>
+          <view class="post-composer-tools">
+            <cy-icon class="post-composer-ico" name="image" size="44" />
+            <cy-icon class="post-composer-ico" name="pin" size="44" />
+            <cy-icon class="post-composer-ico" name="flag" size="44" />
+          </view>
+        </view>
+      </view>
+      <view class="post-composer" wx:if="{{canSeeMembers && (club.memberPostAllowed != 0 || club.isOwner || club.viewerIsAdmin || canModerateContent) && composerOpen}}">
+        <textarea class="post-input" value="{{postText}}" bindinput="onPostText" maxlength="300" focus
+                  placeholder="分享俱乐部路线、战报或公告…" placeholder-class="post-ph" />
+        <view class="post-imgrow">
+          <view class="post-thumb" wx:for="{{postImages}}" wx:key="*this">
+            <image class="post-thumb-img" src="{{item}}" mode="aspectFill" />
+            <view class="post-thumb-del" catchtap="onRemovePostImage" data-index="{{index}}" aria-role="button" aria-label="删除发帖图片 {{index + 1}}" hover-class="cy-pressed" hover-stay-time="80"><cy-icon class="post-thumb-del__glyph" name="close-sm" size="28" /></view>
+          </view>
+          <view class="post-addimg" wx:if="{{postImages.length < 9}}" bindtap="onPickPostImage" aria-role="button" aria-label="添加发帖图片" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="image" size="40" /></view>
+          <view class="post-cancel" bindtap="closeComposer" aria-role="button" aria-label="收起发帖" hover-class="cy-pressed" hover-stay-time="80">收起</view>
+          <view class="post-send {{posting ? 'disabled' : ''}}" bindtap="onPostSubmit" aria-role="button" aria-label="发布俱乐部动态" aria-disabled="{{posting}}" hover-class="{{posting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">发布</view>
+        </view>
+        <!-- 稿 N1b 47:2 的漫游卡与模板卡:帖子可以带上一次游玩记录。选中后卡片形态由
+             引用类型派生,不用作者自己选样式。 -->
+        <view class="post-ref" wx:if="{{postRef}}">
+          <cy-icon class="post-ref-ico" name="route" size="32" />
+          <text class="post-ref-name">{{postRef.name}}</text>
+          <view class="post-ref-del" catchtap="onClearPostRef" aria-role="button" aria-label="不带这条游玩记录" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="28" /></view>
+        </view>
+        <view wx:else class="post-ref-add" catchtap="openPostRefPicker" aria-role="button" aria-label="带上一次游玩记录" hover-class="cy-pressed" hover-stay-time="80">
+          <cy-icon name="route" size="32" /><text>带上一次游玩记录</text>
+        </view>
+
+        <view class="post-kind-toggle {{postAsAnnouncement ? 'on' : ''}}" wx:if="{{canModerateContent}}" bindtap="onToggleAnnouncement" aria-role="switch" aria-checked="{{postAsAnnouncement}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text>{{postAsAnnouncement ? '作为公告发布' : '普通动态'}}</text>
+          <text>{{postAsAnnouncement ? '已开启' : '设为公告'}}</text>
+        </view>
+      </view>
+
+      <block wx:if="{{posts.length}}">
+        <view id="club-post-{{item.id}}" class="club-post-anchor" wx:for="{{posts}}" wx:key="id">
+          <cy-post-card post="{{item}}" index="{{index}}" interactive-actions interactive-user interactive-media show-share
+            accessibility-label="查看{{item.memberNickname || '城瘾玩家'}}的动态"
+            bind:detail="onPostDetail" bind:user="onPostUser" bind:preview="onPreviewImage"
+            bind:like="onLikePost" bind:comment="onToggleComments" bind:playdetail="onPostReference" bind:play="onPostReferencePlay">
+            <view slot="moderation" class="post-moderation">
+              <view class="post-moderation__action" wx:if="{{item.authorMemberId == myMemberId || (canModerateContent && item.type == 2)}}" catchtap="onEditPost" data-id="{{item.id}}" aria-role="button" aria-label="编辑动态" hover-class="cy-pressed" hover-stay-time="80">编辑</view>
+              <view class="post-moderation__action" wx:if="{{canModerateContent && item.type == 2}}" catchtap="onTogglePin" data-id="{{item.id}}" aria-role="button" aria-label="{{item.isPinned ? '取消置顶公告' : '置顶公告'}}" hover-class="cy-pressed" hover-stay-time="80">{{item.isPinned ? '取消置顶' : '置顶'}}</view>
+              <view class="post-moderation__action" wx:if="{{item.version > 0}}" catchtap="onViewPostHistory" data-id="{{item.id}}" aria-role="button" aria-label="查看动态编辑历史" hover-class="cy-pressed" hover-stay-time="80">历史</view>
+              <view class="post-moderation__action" wx:if="{{canModerateContent || item.authorMemberId == myMemberId}}" catchtap="onDeletePost" data-id="{{item.id}}" aria-role="button" aria-label="删除动态" hover-class="cy-pressed" hover-stay-time="80">删除</view>
+              <!-- CU-C-52:自己的帖子不给举报入口 —— 编辑/删除都有作者条件,只这一行漏了,
+                   点下去会走完「举报 → 确认 → 已举报」,作者举报自己没有任何用途。
+                   口径与成员行 :337 的成员举报一致(绝不报自己)。 -->
+              <view class="post-moderation__action" wx:if="{{item.authorMemberId != myMemberId}}" catchtap="onReportPost" data-id="{{item.id}}" aria-role="button" aria-label="举报动态" hover-class="cy-pressed" hover-stay-time="80">举报</view>
+            </view>
+          </cy-post-card>
+          <view class="comments" wx:if="{{openCommentPost === item.id}}">
+            <view class="comment" wx:for="{{comments}}" wx:for-item="cm" wx:key="id">
+              <text class="comment-name">{{cm.nickname || '城瘾玩家'}}：</text>
+              <text class="comment-text">{{cm.content}}</text>
+              <text wx:if="{{canModerateContent || cm.memberId == myMemberId}}" catchtap="onDeleteComment" data-id="{{cm.id}}" class="comment-mod" aria-role="button" aria-label="删除评论" hover-class="cy-pressed" hover-stay-time="80">删除</text>
+              <!-- CU-C-138:本人评论不给举报 —— 上面动态 :162、成员 :337 都有作者闸,只有这一行漏了,
+                   点下去走完「举报 → 确认 → 已举报」,给自己开一张无意义审核单。删除入口保留。 -->
+              <text wx:if="{{cm.memberId != myMemberId}}" catchtap="onReportComment" data-id="{{cm.id}}" class="comment-mod" aria-role="button" aria-label="举报评论" hover-class="cy-pressed" hover-stay-time="80">举报</text>
+            </view>
+            <cy-empty wx:if="{{!comments.length}}" size="sm" title="还没有评论，来抢沙发" />
+            <view class="comment-bar" wx:if="{{canSeeMembers}}">
+              <input class="comment-input" value="{{commentText}}" bindinput="onCommentInput" placeholder="写评论…" placeholder-class="post-ph" confirm-type="send" bindconfirm="onCommentSubmit" />
+              <view class="comment-send {{commenting ? 'disabled' : ''}}" catchtap="onCommentSubmit" aria-role="button" aria-label="发送评论" aria-disabled="{{commenting}}" hover-class="{{commenting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">发送</view>
+            </view>
+          </view>
+        </view>
+      </block>
+      <!-- E-09:失败不能渲染成「还没有帖子」——错误态给重试,空态只在成功且真的为空时出 -->
+      <cy-error wx:elif="{{postsError}}" size="sm" title="帖子没能加载出来" sub="{{postsError}}" retry="重试" bind:retry="loadPosts" />
+      <cy-empty wx:elif="{{postsLoaded}}" title="还没有帖子" sub="{{canSeeMembers ? '发布第一条帖子吧' : '加入俱乐部后可发布'}}" />
+    </view>
+
+    <!-- 活动(城市路线) -->
+    <view class="feed feed--plain" wx:elif="{{activeTab === 'events'}}">
+      <cy-tabs class="event-view-tabs" variant="fill" wide="{{true}}" tabs="{{eventViewTabs}}" active="{{eventView}}" bind:change="onEventViewChange" />
+      <block wx:if="{{eventView === 'list'}}">
+      <!-- 活动卡 / Event card(Figma 281:360):343×123,封面 91×99 r12 左右 pad12,
+           右列 gap6 四行 —— 状态 chip / 名称 14 Bold / 开始时间 12 / 类别 chip。
+           出示团码 / 举报活动 是稿没画但现码有的治理入口,保留在卡内右列末尾。 -->
+      <template name="clubEventCard">
+        <view class="ev-card" data-id="{{item.id}}" bindtap="goTopic" hover-class="cy-pressed" hover-stay-time="80">
+          <!-- 稿 N2 20:52:封面通栏,状态胶囊叠在封面左上;下面标题、日期地点、三列数字块。 -->
+          <view class="ev-coverslot">
+            <image class="ev-cover" src="{{item.imgUrl || '/images/route_free_cover.png'}}" mode="aspectFill" lazy-load="true" />
+            <view class="ev-status ev-status--{{item.statusTone}}">{{item.statusText}}</view>
+          </view>
+          <view class="ev-body">
+            <view class="ev-name">{{item.name}}</view>
+            <view class="ev-time">{{item.timeText || item.dateText}} · {{item.addressName || '城瘾'}} · {{item.categoryText}}</view>
+            <!-- 三列只出真算得出来的:某一格为空就整格不出,不用 0 冒充 -->
+            <view class="ev-stats" wx:if="{{item.signupText || item.stationText || item.mileageText}}">
+              <view class="ev-stat" wx:if="{{item.signupText}}">
+                <text class="ev-stat-num">{{item.signupText}}</text><text class="ev-stat-label">已报名</text>
+              </view>
+              <view class="ev-stat" wx:if="{{item.stationText}}">
+                <text class="ev-stat-num">{{item.stationText}}</text><text class="ev-stat-label">站点</text>
+              </view>
+              <view class="ev-stat" wx:if="{{item.mileageText}}">
+                <text class="ev-stat-num">{{item.mileageText}}</text><text class="ev-stat-label">路线</text>
+              </view>
+            </view>
+            <view class="ev-acts">
+              <view wx:if="{{canManage}}" class="event-group-code" catchtap="showGroupCode" data-id="{{item.id}}" data-name="{{item.name}}" aria-role="button" aria-label="出示 {{item.name}} 团码" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">出示团码</view>
+              <!-- CU-C-149:本人创建的项目不给「举报活动」—— 举报走完全程只会给自己开一张无意义工单。
+                   动态行 :160、成员行 :337 早就有这个作者闸,只有这一行漏了。后端同判据兜直调。 -->
+              <view wx:if="{{canReport}}" class="event-report" catchtap="reportTopicActivity" data-id="{{item.id}}"
+                aria-role="button" aria-label="举报 {{item.name || '该项目'}} 下的具体活动" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">举报活动</view>
+            </view>
+          </view>
+        </view>
+      </template>
+
+      <block wx:if="{{topicState !== 'error' && topicsLoaded}}">
+        <!-- 段头 · 即将举行(282:622) -->
+        <view class="ev-sec-head">
+          <text class="ev-sec-tit">即将举行</text>
+          <view class="ev-sec-rule"></view>
+          <text wx:if="{{club.isOwner || canManageActivities}}" class="ev-sec-link" catchtap="onCreateTeam"
+            aria-role="button" aria-label="发布主题" hover-class="cy-pressed" hover-stay-time="80">发布<cy-icon class="ev-sec-link-ico" name="plus" size="26" /></text>
+        </view>
+        <block wx:if="{{upcomingTopics.length}}">
+          <template wx:for="{{upcomingTopics}}" wx:key="id" is="clubEventCard"
+            data="{{item: item, canManage: club.isOwner || club.viewerIsAdmin || canCheckInEvents, canReport: canSeeMembers && item.memberId != myMemberId}}" />
+        </block>
+        <!-- 空态(282:478):卡容器内标题 + 说明 + 主按钮 + 归属提示 -->
+        <cy-empty wx:else class="ev-empty" title="还没有城市路线" sub="{{club.isOwner || canManageActivities ? '发布城市定向或自由探索，让成员开始报名。发布后会自动绑定「' + club.name + '」，成员在这里报名。' : '主理人还没发布城市路线，先加入等通知。'}}" cta="{{club.isOwner || canManageActivities ? '发布主题' : ''}}" bind:cta="onCreateTeam" />
+
+        <!-- 段头 · 已结束(282:660):没有已结束的场次就整段不出,不留空标题 -->
+        <block wx:if="{{endedTopics.length}}">
+          <view class="ev-sec-head ev-sec-head--second">
+            <text class="ev-sec-tit">已结束</text>
+            <view class="ev-sec-rule"></view>
+          </view>
+          <template wx:for="{{endedTopics}}" wx:key="id" is="clubEventCard"
+            data="{{item: item, canManage: club.isOwner || club.viewerIsAdmin || canCheckInEvents, canReport: canSeeMembers && item.memberId != myMemberId}}" />
+        </block>
+      </block>
+      <cy-error wx:elif="{{topicState === 'error'}}" title="活动列表加载失败" retry="重新加载" bind:retry="loadTopics" />
+      </block>
+      <view wx:elif="{{eventView === 'calendar'}}" class="event-calendar">
+        <view class="event-calendar-head">
+          <view class="event-calendar-shift" data-delta="-1" catchtap="onShiftEventMonth" aria-role="button" aria-label="上一个月" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="28" /></view>
+          <view class="event-calendar-title">{{eventCalendarTitle}}</view>
+          <view class="event-calendar-shift" data-delta="1" catchtap="onShiftEventMonth" aria-role="button" aria-label="下一个月" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="arrow-right" size="28" /></view>
+        </view>
+        <view class="event-calendar-week">
+          <text wx:for="{{eventWeekdays}}" wx:key="*this">{{item}}</text>
+        </view>
+        <view class="event-calendar-grid">
+          <view class="event-calendar-day {{day.inMonth ? '' : 'is-outside'}} {{day.events.length ? 'has-event' : ''}}"
+            wx:for="{{eventCalendarCells}}" wx:for-item="day" wx:key="key">
+            <text class="event-calendar-number">{{day.day}}</text>
+            <view class="event-calendar-item" wx:for="{{day.events}}" wx:for-item="event" wx:key="id"
+              bindtap="goTopic" data-id="{{event.id}}" aria-role="button" aria-label="打开活动 {{event.name || '未命名活动'}}" hover-class="cy-pressed" hover-stay-time="80">
+              {{event.name || '活动'}}
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{topicState === 'error'}}" class="overview-empty">活动日期加载失败，请切回列表重试</view>
+        <cy-empty wx:elif="{{topicsLoaded && !eventCalendarHasEvents}}" size="sm" title="本月暂无活动" sub="左右切换查看其他月份" />
+      </view>
+    </view>
+
+    <!-- 概览 -->
+    <!-- 概览(Figma N3 20:137 / N5 24:175 / N6 24:314)。
+         页边 16 · 区块 16 · 简介直接铺开(全局规约:标题下不要小标题,原「俱乐部简介」小标题已撤)。
+         N3(主理人/管理员) MembersHead 多一个「邀请成员 ›」;N5(普通会员)只有标题+分隔线;
+         N6(未加入)成员条与榜单整块换成 Locked 卡 —— 三态靠角色分,不是逐像素抄同一版。 -->
+    <view class="feed feed--plain ov" wx:elif="{{activeTab === 'overview'}}">
+      <view class="ov-intro">{{club.description || '暂无简介'}}</view>
+
+      <!-- Facts 三宫格(23:4):主理人 / 等级 / 所在城市 —— 原来是三个上下堆叠的 label+text 区块 -->
+      <view class="ov-facts">
+        <view class="ov-fact">
+          <text class="ov-fact-value">{{club.leaderName || '—'}}</text>
+          <text class="ov-fact-label">主理人</text>
+        </view>
+        <view class="ov-fact">
+          <text class="ov-fact-value">{{club.levelText || '—'}}</text>
+          <text class="ov-fact-label">等级</text>
+        </view>
+        <view class="ov-fact">
+          <text class="ov-fact-value">{{club.city || club.address || '—'}}</text>
+          <text class="ov-fact-label">所在城市</text>
+        </view>
+      </view>
+
+      <!-- MembersHead(23:14)。「邀请成员 ›」只给主理人/管理员:照 N3 无条件铺开,
+           会把邀请入口开给无角色的普通成员(N5 稿里这一行只有标题+分隔线)。 -->
+      <view class="ov-head">
+        <text class="ov-head-tit">成员 · {{club.memberCount || 0}}</text>
+        <view class="ov-head-rule"></view>
+        <!-- CU-C-61:邀请成员 = 把俱乐部转发给好友,同样只能靠原生转发按钮。 -->
+        <button wx:if="{{club.isOwner || club.viewerIsAdmin}}" class="ov-head-link" open-type="share"
+          aria-label="邀请成员" hover-class="cy-pressed" hover-stay-time="80">邀请成员<cy-icon class="ov-head-link-ico" name="slide-arrow" size="22" /></button>
+      </view>
+
+      <block wx:if="{{canSeeMembers}}">
+        <!-- 横向头像条(23:18):4 位真人 + 第 5 位「+N」溢出位 -->
+        <view class="ov-strip" wx:if="{{memberStrip.length}}">
+          <view class="ov-strip-item" wx:for="{{memberStrip}}" wx:key="key"
+            catchtap="{{item.memberId ? 'goMemberProfile' : ''}}" data-member-id="{{item.memberId}}"
+            aria-role="{{item.memberId ? 'button' : ''}}" aria-label="{{item.memberId ? '打开成员主页' : ''}}" hover-class="{{item.memberId ? 'cy-pressed' : 'none'}}" hover-stay-time="80">
+            <image class="ov-strip-avatar" wx:if="{{item.avatar}}" src="{{item.avatar}}" mode="aspectFill" lazy-load="true" />
+            <!-- 稿 23:35「+38」位:椭圆里是空的,「+38」只出现在下方名字位(23:37)。
+                 圈里再写一遍会变成上下两个 +38。 -->
+            <view class="ov-strip-avatar" wx:else></view>
+            <text class="ov-strip-name">{{item.name}}</text>
+            <text class="ov-strip-role ov-strip-role--{{item.roleTone}}" wx:if="{{item.role}}">{{item.role}}</text>
+          </view>
+        </view>
+      </block>
+      <!-- Locked(25:2):未加入时成员名单不铺开 -->
+      <view wx:else class="ov-locked">
+        <text class="ov-locked-tit">加入后可看成员名单</text>
+        <text class="ov-locked-sub">{{club.joinPolicy == 1 ? '主理人开启了入会审批，通过后即可查看。' : '加入俱乐部后即可查看。'}}</text>
+      </view>
+
+      <!-- 成员管理列表:Figma 没画,但逐人举报 / 角色 / 团码入口都挂在这里,保留。 -->
+      <view class="overview-section" wx:if="{{club.isOwner || canManageActivities || canOperateEvents || canCheckInEvents || canManageRoles || hasEventScope}}">
+        <view wx:if="{{club.viewerIdentityUnavailable}}" class="admin-tools-notice">成员身份暂时无法确认，管理员工具暂不可用。</view>
+        <view wx:if="{{clubAccessState === 'error'}}" class="admin-tools-notice">角色权限暂时无法确认，内容治理入口已安全关闭。</view>
+        <block wx:if="{{canSeeMembers}}">
+          <view wx:if="{{club.viewerIsAdmin && (membersState === 'business-error' || membersState === 'network-error')}}" class="admin-tools-notice">管理员工具暂不可用：成员身份加载失败，重新加载后恢复内容治理与团码入口。</view>
+          <cy-skeleton wx:if="{{membersState === 'loading'}}" type="list" count="2" />
+          <cy-error class="cy-fade-in" wx:elif="{{membersState === 'business-error'}}" title="成员列表加载失败" sub="俱乐部成员数据暂时不可用" retry="重新加载" bind:retry="loadMembers" />
+          <cy-error wx:elif="{{membersState === 'network-error'}}" title="网络连接失败" sub="检查网络后重新加载成员列表" retry="重新加载" bind:retry="loadMembers" />
+          <block wx:elif="{{membersState === 'ready'}}">
+            <view class="member" wx:for="{{members}}" wx:key="id">
+              <cy-avatar class="member-avatar" size="72" src="{{item.avatar || '/images/d_profile.png'}}" name="{{item.nickname || '城瘾玩家'}}" clickable="{{true}}" catchtap="goMemberProfile" data-member-id="{{item.memberId}}" aria-role="button" aria-label="打开成员主页" hover-class="cy-pressed" hover-stay-time="80" />
+              <view class="member-info" catchtap="goMemberProfile" data-member-id="{{item.memberId}}" hover-class="cy-pressed" hover-stay-time="80">
+                <view class="member-name">{{item.nickname || '城瘾玩家'}}<text wx:if="{{item.isOwner}}" class="member-owner">群主</text><text wx:elif="{{item.role == 1}}" class="member-admin">管理员</text></view>
+                <view class="member-meta"><text wx:if="{{item.levelId != null && item.levelId > 0}}">Lv.{{item.levelId}} · </text><text>公开资料</text><cy-icon class="member-meta-arrow" name="arrow-right" size="20" /><text wx:if="{{item.isOwner}}"> · 创建俱乐部</text><text wx:elif="{{item.joinTime}}"> · 加入 {{item.joinTime}}</text></view>
+              </view>
+              <view class="member-report" wx:if="{{item.memberId != myMemberId}}" catchtap="reportClubMember" data-member-id="{{item.memberId}}" data-nickname="{{item.nickname || ''}}" aria-role="button" aria-label="向平台举报 {{item.nickname || '该成员'}}" hover-class="cy-pressed" hover-stay-time="80">举报</view>
+            </view>
+            <cy-empty wx:if="{{members.length === 0}}" size="sm" title="暂无成员" />
+          </block>
+        </block>
+        <cy-empty wx:else size="sm" title="加入俱乐部后可查看成员" />
+      </view>
+
+      <!-- LbHead(23:39):稿把三档排序从 chip tabs 收成右侧一个「综合 ▾」 -->
+      <view class="ov-head">
+        <text class="ov-head-tit">本团贡献榜 · 本周</text>
+        <view class="ov-head-rule"></view>
+        <text wx:if="{{canSeeMembers}}" class="ov-head-link" catchtap="onRankSortTap"
+          aria-role="button" aria-label="切换榜单排序，当前 {{leaderboardSortLabel}}" hover-class="cy-pressed" hover-stay-time="80">{{leaderboardSortLabel}}<cy-icon class="ov-head-caret" name="slide-arrow" size="22" /></text>
+      </view>
+
+      <block wx:if="{{canSeeMembers}}">
+        <view class="ov-lb" wx:if="{{leaderboard.length}}">
+          <block wx:for="{{leaderboard}}" wx:key="memberId">
+            <view class="ov-lb-gap" wx:if="{{item.gap}}">⋯ 中间 {{item.hiddenCount || 0}} 人</view>
+            <view wx:else class="ov-lb-row {{item.isMe ? 'is-me' : ''}}" catchtap="goMemberProfile" data-member-id="{{item.memberId}}"
+              aria-role="button" aria-label="打开成员主页" hover-class="cy-pressed" hover-stay-time="80">
+              <text class="ov-lb-rank {{item.rank <= 3 ? 'is-top' : ''}}">{{item.rank}}</text>
+              <cy-avatar class="ov-lb-avatar" size="64" src="{{item.avatar || '/images/d_profile.png'}}" name="{{item.nickname || '城瘾玩家'}}" />
+              <view class="ov-lb-main">
+                <view class="ov-lb-namerow">
+                  <text class="ov-lb-name">{{item.isMe ? '你' : (item.nickname || '城瘾玩家')}}</text>
+                  <text class="ov-lb-me" wx:if="{{item.isMe}}">我</text>
+                </view>
+                <text class="ov-lb-meta">{{item.clearCount || 0}} 场 · {{item.mileageText}} · 用时 {{item.durationText}}</text>
+              </view>
+              <text class="ov-lb-pts">{{item.primaryText}}</text>
+            </view>
+          </block>
+        </view>
+        <!-- .overview-empty 本身没有横向外边距(它平时长在有 padding 的 .overview-section 里),
+             榜单这一处是 feed 直系子节点,不补页边就会贴到屏幕左沿。 -->
+        <!-- E-09:失败 ≠「还没有人通关」 -->
+        <cy-error class="ov-lb-empty" wx:elif="{{leaderboardError}}" size="sm" title="榜单没能加载出来" sub="{{leaderboardError}}" retry="重试" bind:retry="loadLeaderboard" />
+        <cy-empty class="ov-lb-empty" wx:elif="{{leaderboardLoaded}}" title="{{leaderboardEmptyTitle}}" sub="办场活动让成员动起来" />
+        <view class="ov-lb-note" wx:if="{{leaderboard.length}}">榜单每周一 0 点重置。</view>
+      </block>
+      <!-- Locked(25:5) -->
+      <view wx:else class="ov-locked">
+        <text class="ov-locked-tit">加入后可看贡献榜</text>
+        <text class="ov-locked-sub">看看自己在这一团里排第几。</text>
+      </view>
+
+      <!-- 治理与安全:Figma 没画,但封禁申诉/举报俱乐部只有这一个入口,保留。 -->
+      <view class="overview-section governance-help-entry">
+        <view class="overview-section-tit">治理与安全</view>
+        <view class="overview-text">如果你被本俱乐部限期封禁，可向平台提交事实与申诉理由；俱乐部管理者不能裁决。</view>
+        <view class="governance-actions">
+          <view class="governance-action" bindtap="goClubAppeal" aria-role="button" aria-label="进入俱乐部封禁申诉" hover-class="cy-pressed" hover-stay-time="80">封禁申诉</view>
+          <view wx:if="{{canSeeMembers}}" class="governance-action governance-action--warning" catchtap="reportClub"
+            aria-role="button" aria-label="向平台举报本俱乐部" hover-class="cy-pressed" hover-stay-time="80">举报俱乐部</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 管理保持「现在要做 / 项目 / 经营折叠」三块；授权角色复用同一 IA。 -->
+    <view class="feed feed--plain manage-feed" wx:elif="{{activeTab === 'manage' && (club.isOwner || canUseManageTab)}}">
+      <!-- 快捷动作行(Figma 78:5423):五个高频动作提到 tab 顶,不用先翻到齿轮弹窗。
+           ⚠️ 图层名与可见文案不一致(如 action/编辑俱乐部详情 显示「出示二维码」),以可见文案为准。
+           必须留在 owner-cta 区之外:那一段有「同一时刻恰好一个 primary」的契约。 -->
+      <view class="quick-acts">
+        <!-- CU-C-60:这个圆钮的图标/文案/图层名一直写着「扫码核销」,手势却只跳场次编排页 ——
+             现在接真扫码,复用全站唯一的扫码路由(utils/verification-scan)。
+             「活动运营」仍有入口:设置弹窗 cset-row 那一条。 -->
+        <view class="quick-act" wx:if="{{club.isOwner || club.viewerIsAdmin || canManageActivities}}" catchtap="onClubScan"
+              aria-role="button" aria-label="扫码核销" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="quick-act-circle"><cy-icon name="scan" size="48" /></view>
+          <text class="quick-act-label">扫码</text>
+        </view>
+        <view class="quick-act" wx:if="{{club.isOwner || club.viewerIsAdmin || canCheckInEvents}}" catchtap="onClubGroupCode"
+              aria-role="button" aria-label="出示二维码" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="quick-act-circle"><cy-icon name="qr" size="48" /></view>
+          <text class="quick-act-label">出示二维码</text>
+        </view>
+        <button class="quick-act" open-type="share" aria-label="分享俱乐部" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="quick-act-circle"><cy-icon name="share" size="48" /></view>
+          <text class="quick-act-label">分享</text>
+        </button>
+        <view class="quick-act" wx:if="{{club.isOwner}}" catchtap="goClubFinance"
+              aria-role="button" aria-label="结算与分润" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="quick-act-circle"><cy-icon name="finance" size="48" /></view>
+          <text class="quick-act-label">结算</text>
+        </view>
+        <!-- CU-C-97:同屏页签已有一个「管理」(栏目切换),圆钮再叫「管理」会让用户以为是一回事。
+             它打开的是设置半屏,文案与既有的 aria-label「打开俱乐部设置」对齐。 -->
+        <view class="quick-act" catchtap="onSettings" aria-role="button" aria-label="打开俱乐部设置" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="quick-act-circle"><cy-icon name="more" size="48" /></view>
+          <text class="quick-act-label">设置</text>
+        </view>
+      </view>
+      <!-- 2026-08-26:管理 tab 收敛成三块 —— ① 现在要做 ② 项目 ③ 经营折叠。
+           治理(入会申请/成员管理/报名名册/项目工具/解散)整体挪进右上角齿轮的设置弹窗。 -->
+      <!-- 阶段式唯一 primary。2026-08-26 从头部搬到这里 —— 头部按钮没有项目上下文,
+           俱乐部有多个活动时说不清邀的是哪个。契约见 club-ui-true-defects-contract。 -->
+      <!-- owner-cta-start -->
+      <view wx:if="{{club.isOwner || club.viewerIsAdmin}}" class="manage-now manage-now--{{ownerStage}}">
+        <view class="manage-now-kicker">
+          <view class="manage-now-dot"></view>
+          <text>现在要做</text>
+        </view>
+        <view class="manage-now-title">{{ownerPrimaryLabel}}</view>
+        <view class="manage-now-hint">{{ownerStageHint}}</view>
+        <!-- 带队进度:默认折叠成一行摘要,展开看自己走到哪一站(参考 Revolut 208)。 -->
+        <cy-timeline wx:if="{{leadTimelineNodes.length}}" class="manage-now-timeline"
+          nodes="{{leadTimelineNodes}}" summary="{{leadTimelineSummary}}"
+          collapsible expanded="{{leadTimelineOpen}}" bind:toggle="onLeadTimelineToggle" />
+        <!-- 管理员没有经营动作:邀商家 / 发布主题 / 开一场都是主理人的事。
+             说明已经并进 ownerStageHint 的 admin 文案,这里不再重复一段。 -->
+        <view class="manage-now-acts" wx:if="{{club.isOwner}}">
+          <view class="manage-now-btn cy-btn cy-btn--primary {{ownerStage === 'loading' ? 'disabled' : ''}}" bindtap="onOwnerPrimary"
+                aria-role="button" aria-disabled="{{ownerStage === 'loading'}}" aria-label="{{ownerPrimaryLabel}}"
+                hover-class="{{ownerStage === 'loading' ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{ownerPrimaryLabel}}</view>
+          <view wx:if="{{club.isOwner}}" class="manage-now-btn manage-now-btn--minor cy-btn cy-btn--ghost" bindtap="onOpenClubSession"
+                aria-role="button" aria-label="开一场" hover-class="cy-pressed" hover-stay-time="80">开一场</view>
+        </view>
+      </view>
+      <!-- owner-cta-end -->
+
+      <view class="overview-section club-stats-section" wx:if="{{club.isOwner}}">
+        <view class="overview-section-tit">成员与活动概况</view>
+        <cy-skeleton wx:if="{{clubStatsState === 'loading'}}" type="list" count="2" />
+        <cy-error wx:elif="{{clubStatsState === 'error'}}" title="数据看板加载失败" sub="{{clubStatsError}}" retry="重新加载" bind:retry="loadClubStats" />
+        <block wx:elif="{{clubStatsState === 'ready'}}">
+          <view class="club-stats-grid">
+            <view class="club-stat"><text class="club-stat-value">{{clubStats.topicCount}}</text><text class="club-stat-label">项目</text></view>
+            <view class="club-stat"><text class="club-stat-value">{{clubStats.participants}}</text><text class="club-stat-label">游玩人次</text></view>
+            <view class="club-stat"><text class="club-stat-value">{{clubStats.completed}}</text><text class="club-stat-label">完成人次</text></view>
+            <view class="club-stat"><text class="club-stat-value">{{clubStats.overallRateText}}</text><text class="club-stat-label">完成率</text></view>
+          </view>
+          <!-- CU-C-51:「项目」只数本团自办主题(不含承接来的项目),两个「人次」数的是节点游玩人数
+               而不是报名人数 —— 不写清范围就会跟下方项目卡上的「N 人报名」当成同一回事。 -->
+          <view class="club-stats-note">仅统计本俱乐部自办项目，不含承接来的项目；游玩人次 = 到过节点的去重玩家，完成率 = 完成人次 ÷ 游玩人次。</view>
+          <view class="club-stats-topics" wx:if="{{clubStats.topics.length}}">
+            <view class="club-stats-topic" wx:for="{{clubStats.topics}}" wx:key="topicId">
+              <text class="club-stats-topic-name">{{item.name}}</text>
+              <text class="club-stats-topic-meta">{{item.completed}} / {{item.participants}} · {{item.completionRateText}}</text>
+            </view>
+          </view>
+          <cy-empty wx:else size="sm" title="还没有可统计的项目数据" />
+        </block>
+      </view>
+
+      <view class="overview-section">
+        <view class="manage-group">
+        <cy-skeleton wx:if="{{topicState === 'loading'}}" type="list" count="2" />
+        <cy-error class="cy-fade-in" wx:elif="{{topicState === 'error'}}" title="项目列表加载失败" retry="重新加载" bind:retry="loadTopics" />
+        <view wx:elif="{{manageTopics.length}}" class="manage-project-list">
+          <view class="manage-project" wx:for="{{manageTopics}}" wx:key="id" data-id="{{item.id}}" bindtap="goManageTopic" hover-class="cy-pressed" hover-stay-time="80">
+            <image class="manage-project-cover" src="{{item.imgUrl || '/images/route_free_cover.png'}}" mode="aspectFill" lazy-load="true" />
+            <view class="manage-project-main">
+              <view class="manage-project-name">{{item.name || '未命名项目'}}</view>
+              <view class="manage-project-meta">{{item.dateText || '时间待定'}} · {{item.signupCount || 0}} 人报名</view>
+            </view>
+            <view wx:if="{{club.isOwner && item.id && item.gameModuleEnabled}}" class="manage-project-director"
+              catchtap="goGameDirector" data-topic-id="{{item.id}}" data-game-module-enabled="{{item.gameModuleEnabled}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">活动导演台</view>
+            <view wx:elif="{{club.viewerIsAdmin && item.id && item.gameModuleEnabled}}" class="manage-project-director"
+              catchtap="goGameDirector" data-topic-id="{{item.id}}" data-game-module-enabled="{{item.gameModuleEnabled}}" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">活动导演台</view>
+            <view wx:if="{{club.isOwner || club.viewerIsAdmin || canManageActivities || canOperateEvents || hasEventScope}}" class="manage-project-director"
+              catchtap="openActivityTools" data-id="{{item.id}}" aria-role="button" aria-label="打开 {{item.name || '该项目'}} 的场次工具" hover-class="cy-pressed" hover-stay-time="80" hover-stop-propagation="true">场次工具</view>
+            <cy-icon class="manage-chevron" name="arrow-right" size="28" />
+          </view>
+        </view>
+        <cy-empty wx:elif="{{club.isOwner || canManageActivities}}" title="还没有项目" sub="发布一个主题，再从项目内对接商家与玩家" cta="发布主题" bind:cta="onCreateTeam" />
+        <cy-empty wx:else title="没有你运营的项目" sub="主理人把项目分配给成员后，这里会列出你能管理的项目" />
+          <view wx:if="{{club.isOwner || canManageActivities}}" class="manage-add-row" catchtap="onCreateTeam" aria-role="button" aria-label="发布主题" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon class="manage-add-sign" name="plus" size="32" /><text>发布主题</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="overview-section" wx:if="{{club.isOwner}}">
+        <view class="manage-fold-row" catchtap="toggleManageSection" data-key="editions"
+              aria-role="button" aria-expanded="{{openManageSection === 'editions'}}" aria-label="自由探索期次"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <view class="manage-fold-main">
+            <text class="manage-fold-title">自由探索期次</text>
+            <text class="manage-fold-sub">开售并绑定本俱乐部的期次会出现在这里，可带票分享</text>
+          </view>
+          <cy-icon class="manage-fold-chevron {{openManageSection === 'editions' ? 'open' : ''}}" name="arrow-right" size="28" />
+        </view>
+        <view class="manage-fold-panel" wx:if="{{openManageSection === 'editions'}}">
+        <cy-skeleton wx:if="{{shareEditionState === 'loading'}}" type="list" count="1" />
+        <cy-error class="cy-fade-in" wx:elif="{{shareEditionState === 'error'}}" title="期次加载失败" retry="重新加载" bind:retry="loadShareEditions" />
+        <view wx:elif="{{shareEditions.length}}" class="manage-project-list">
+          <view class="manage-project" wx:for="{{shareEditions}}" wx:key="topicId">
+            <view class="manage-project-main">
+              <view class="manage-project-name">{{item.topicName || ('期次 #' + item.topicId)}}</view>
+              <view class="manage-project-meta">{{item.dateText || '时间待定'}} · 执行俱乐部期次</view>
+            </view>
+            <button class="manage-project-share" open-type="share" data-topic-id="{{item.topicId}}"
+              catchtap="stopShareBubble">带票分享</button>
+          </view>
+        </view>
+        <cy-empty wx:else title="还没有可分享的自由探索期次" sub="期次开售并绑定本俱乐部后会出现在这里" />
+        </view>
+      </view>
+
+      <view class="overview-section" id="manage-merchants-section" wx:if="{{club.isOwner}}">
+        <view class="manage-fold-row" catchtap="toggleManageSection" data-key="merchants"
+              aria-role="button" aria-expanded="{{openManageSection === 'merchants'}}" aria-label="可对接商家"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <view class="manage-fold-main">
+            <text class="manage-fold-title">可对接商家</text>
+            <text class="manage-fold-sub">按承接能力搜索；发起合作在项目里做</text>
+          </view>
+          <cy-icon class="manage-fold-chevron {{openManageSection === 'merchants' ? 'open' : ''}}" name="arrow-right" size="28" />
+        </view>
+        <view class="manage-fold-panel" wx:if="{{openManageSection === 'merchants'}}">
+          <view class="cset-panel-act" catchtap="goCoopList" aria-role="button" aria-label="查看我的合作" hover-class="cy-pressed" hover-stay-time="80"><text>我的合作</text><cy-icon name="arrow-right" size="24" /></view>
+        <cy-search class="merchant-search" value="{{merchantKeyword}}" bind:input="onMerchantKeyword"
+          placeholder="搜商家名 / 承接能力 / 地区" />
+        <!-- 2026-08-20 重设计:俱乐部找场地卡(venue 变体,承接档案四件套);
+             /api/club/merchants 回全量实体,只含 coopOpen=1 的商家。
+             稿 8:24 删掉了卡上按钮:动作 = 整卡点进商家主页,主页底部有「发起合作」承接 -->
+        <cy-merchant-card class="mcard" wx:for="{{merchants}}" wx:key="id"
+          variant="venue"
+          interactive="{{true}}"
+          data-memberid="{{item.memberId}}" data-name="{{item.name || item.merchantName}}"
+          bind:tap="goMerchantProfile"
+          cover="{{item.coverImage}}"
+          logo="{{item.logo || item.imgUrl}}"
+          name="{{item.name || item.merchantName || '商家'}}"
+          city-role="{{item.cityRole || ''}}"
+          status="{{item.businessStatus == 0 ? 'closed' : 'open'}}"
+          capacity="{{item.capacity}}"
+          available-time="{{item.availableTime}}"
+          charge-type="{{item.chargeType}}"
+          suit-types="{{item.suitActivityTypes}}"
+          coop-open="{{item.coopOpen}}"  aria-role="button" aria-label="打开商家主页"/>
+        <!-- E-09:失败 ≠「还没有开放对接的商家」。
+             CU-C-42:这里原来用 sm 紧凑档 —— 标题被压成 22rpx/字重500/低对比灰字,
+             作为「筛完之后没有结果」的可见结局太轻,跟上面的搜索框不在一个量级。
+             回到默认档(标题 28rpx/600/正文色)。 -->
+        <cy-error wx:if="{{merchantsError}}" size="sm" title="商家列表没能加载出来" sub="{{merchantsError}}" retry="重试" bind:retry="loadMerchants" />
+        <cy-empty wx:elif="{{merchantsLoaded && !merchants.length}}" title="{{merchantKeyword ? '没有匹配的商家，换个关键词试试' : '还没有开放对接的商家'}}" />
+        </view>
+      </view>
+
+      <!-- Figma「管理员 管理页面」B2 可对接的活动。数据是合作池:商家把主题「开放给俱乐部承接」
+           后落在这里。2026-09-15 合作池 tab 收编:这里就地申请带队;申请记录/撤回在协作邀请「我发出的」。 -->
+      <view class="overview-section" wx:if="{{club.isOwner}}">
+        <view class="manage-fold-row" catchtap="toggleManageSection" data-key="coop-pool"
+              aria-role="button" aria-expanded="{{openManageSection === 'coop-pool'}}" aria-label="可对接的活动"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <view class="manage-fold-main">
+            <text class="manage-fold-title">可对接的活动</text>
+            <text class="manage-fold-sub">商家开放给俱乐部承接的主题；申请后在「我发出的」查看</text>
+          </view>
+          <cy-icon class="manage-fold-chevron {{openManageSection === 'coop-pool' ? 'open' : ''}}" name="arrow-right" size="28" />
+        </view>
+        <view class="manage-fold-panel" wx:if="{{openManageSection === 'coop-pool'}}">
+          <cy-skeleton wx:if="{{coopPoolState === 'loading'}}" type="list" count="2" />
+          <cy-empty wx:elif="{{coopPoolState === 'permission'}}" size="sm" kind="no-permission"
+                    title="暂不能看可对接的活动" sub="{{coopPoolError}}" />
+          <cy-error wx:elif="{{coopPoolState === 'error'}}" title="合作池没加载出来" sub="{{coopPoolError}}"
+                    retry="重试" bind:retry="retryCoopPool" />
+          <block wx:elif="{{coopPoolState === 'ready'}}">
+            <cy-empty wx:if="{{!coopPool.length}}" size="sm" title="暂无开放承接的主题"
+                      sub="商家把主题「开放给俱乐部承接」后会出现在这里。" />
+            <view class="pool-card {{item.state === 'taken' ? 'is-dim' : ''}}" wx:for="{{coopPool}}" wx:key="topicId">
+              <view class="pool-card-top">
+                <text class="pool-card-name">{{item.name}}</text>
+                <text class="pool-card-state">{{item.stateText}}</text>
+              </view>
+              <text wx:if="{{item.merchantNick}}" class="pool-card-meta">{{item.merchantNick}} 发布</text>
+              <text wx:if="{{item.subtitle}}" class="pool-card-meta">{{item.subtitle}}</text>
+              <view class="pool-card-foot">
+                <text wx:if="{{item.deadlineText}}" class="pool-card-deadline">{{item.deadlineText}}</text>
+                <!-- 就地提交申请(确认框里可带留言);已申请/已回邀约的去「我发出的」看记录 -->
+                <view wx:if="{{item.canApply}}" class="pool-card-cta" catchtap="applyCoopPool"
+                      data-topicid="{{item.topicId}}" data-name="{{item.name}}" aria-role="button"
+                      aria-label="申请带队 {{item.name}}" aria-disabled="{{!!coopApplyPendingId}}"
+                      hover-class="{{coopApplyPendingId ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+                  <text>{{coopApplyPendingId === item.topicId + '' ? '提交中…' : '申请带队'}}</text>
+                </view>
+                <view wx:elif="{{item.applyId}}" class="pool-card-cta" catchtap="goCoopSent" aria-role="button"
+                      aria-label="在我发出的查看 {{item.name}} 的申请" hover-class="cy-pressed" hover-stay-time="80">
+                  <text>查看申请</text><cy-icon name="arrow-right" size="24" />
+                </view>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <view class="overview-section" wx:if="{{club.isOwner}}">
+        <view class="manage-fold-row" catchtap="toggleManageSection" data-key="received"
+              aria-role="button" aria-expanded="{{openManageSection === 'received'}}" aria-label="收到的合作邀约"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <view class="manage-fold-main">
+            <text class="manage-fold-title">收到的合作邀约</text>
+            <text class="manage-fold-sub">商家发来的邀约与回应状态</text>
+          </view>
+          <cy-icon class="manage-fold-chevron {{openManageSection === 'received' ? 'open' : ''}}" name="arrow-right" size="28" />
+        </view>
+        <view class="manage-fold-panel" wx:if="{{openManageSection === 'received'}}">
+        <cy-skeleton wx:if="{{messageState === 'loading'}}" type="list" count="2" />
+        <cy-error class="cy-fade-in" wx:elif="{{messageState === 'error'}}" title="合作消息加载失败" retry="重新加载" bind:retry="reloadMessages" />
+        <view wx:elif="{{messages.length}}" class="manage-message-list">
+          <!-- CU-C-53:收到的邀约原来是纯静态摘要,待确认的那几条没有去处理的地方,
+               只能绕到「可对接商家 → 我的合作」 —— 整行接到同一个收件箱。
+               不在行内直接接受/拒绝:接受/拒绝只在收件箱里做。 -->
+          <view class="manage-message" wx:for="{{messages}}" wx:key="id" catchtap="goCoopList"
+                aria-role="button" aria-label="去收件箱处理{{item.partnerName || '这条'}}的合作邀约"
+                hover-class="cy-pressed" hover-stay-time="80">
+            <view class="manage-message-main"><text class="manage-message-title">{{item.statusText}}</text><text class="manage-message-sub">{{item.partnerName}}</text></view>
+            <text class="manage-message-time">{{item.timeText}}</text>
+            <cy-icon class="manage-chevron" name="arrow-right" size="28" />
+          </view>
+        </view>
+        <cy-empty wx:else title="暂无合作邀约" sub="收到的邀约会显示在这里" />
+        </view>
+      </view>
+
+      <view class="overview-section" id="manage-invite-section" wx:if="{{club.isOwner}}">
+        <view class="manage-fold-row" catchtap="toggleManageSection" data-key="sent"
+              aria-role="button" aria-expanded="{{openManageSection === 'sent'}}" aria-label="我发出的邀约"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <view class="manage-fold-main">
+            <text class="manage-fold-title">我发出的邀约</text>
+            <text class="manage-fold-sub">发出后对方的回应与过期状态</text>
+          </view>
+          <cy-icon class="manage-fold-chevron {{openManageSection === 'sent' ? 'open' : ''}}" name="arrow-right" size="28" />
+        </view>
+        <view class="manage-fold-panel" wx:if="{{openManageSection === 'sent'}}">
+        <cy-skeleton wx:if="{{inviteFeedbackState === 'loading'}}" type="list" count="2" />
+        <cy-error class="cy-fade-in" wx:elif="{{inviteFeedbackState === 'error'}}" title="邀约反馈加载失败" retry="重新加载" bind:retry="reloadInviteFeedback" />
+        <view wx:elif="{{sentInvites.length}}" class="manage-invite-list">
+          <view class="manage-invite" wx:for="{{sentInvites}}" wx:key="id" bindtap="goCooperation" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="manage-invite-main">
+              <text class="manage-invite-partner">{{item.partnerName}}</text>
+              <text class="manage-invite-topic">{{item.topicText}}</text>
+              <text class="manage-invite-time" wx:if="{{item.timeText}}">发出于 {{item.timeText}}</text>
+            </view>
+            <text class="manage-invite-status manage-invite-status--{{item.statusClass}}">{{item.statusText}}</text>
+          </view>
+        </view>
+        <cy-empty wx:else title="还没有发出邀约" sub="发出后，对方的回应和过期状态会显示在这里" />
+        </view>
+      </view>
+
+    </view>
+  </block>
+
+  <!-- 多团主理人选团(承接原 club/index switchClub) -->
+  <!-- ⚙ 俱乐部设置(2026-08-26)。管理 tab 只留经营,治理与低频工具全在这里。
+       「成员管理」「项目工具」在弹窗内二级展开 —— DS 规定 sheet 不嵌 sheet。 -->
+  <!-- 「带上一次游玩记录」选择器。列表直接吃 /api/registration/my-joined —— 我参与过的
+       主题与活动本来就在那儿,不为这个选择器另开一条查询。 -->
+  <cy-sheet show="{{postRefPickerShow}}" title="带上一次游玩记录" handle closable maskClosable bind:close="closePostRefPicker">
+    <view class="post-ref-pick">
+      <cy-skeleton wx:if="{{postRefState === 'loading'}}" type="list" count="3" />
+      <cy-error wx:elif="{{postRefState === 'error'}}" title="游玩记录没有加载出来" sub="{{postRefErrorText}}" retry="重新加载" bind:retry="loadPostRefOptions" />
+      <block wx:elif="{{postRefState === 'ready'}}">
+        <view class="post-ref-opt" wx:for="{{postRefOptions}}" wx:key="key"
+              data-index="{{index}}" catchtap="onPickPostRef"
+              aria-role="button" aria-label="带上 {{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="post-ref-opt-main">
+            <text class="post-ref-opt-name">{{item.name}}</text>
+            <text class="post-ref-opt-sub">{{item.subText}}</text>
+          </view>
+          <cy-icon class="post-ref-opt-arrow" name="slide-arrow" size="28" />
+        </view>
+        <cy-empty wx:if="{{postRefOptions.length === 0}}" size="sm" title="还没有可以带的记录" sub="报名并参加过一次之后，这里会列出来" />
+      </block>
+    </view>
+  </cy-sheet>
+
+  <cy-sheet show="{{settingsShow}}" title="俱乐部设置" handle closable maskClosable bind:close="closeSettings">
+    <view class="cset">
+      <text class="cset-group" wx:if="{{club.isOwner || club.viewerIsAdmin || canManageActivities || canOperateEvents || hasEventScope}}">客户与项目</text>
+      <view class="cset-row" wx:if="{{club.isOwner || club.viewerIsAdmin}}" catchtap="goCustomers" aria-role="button" aria-label="查看客户" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <view class="cset-titlerow">
+            <text class="cset-title">查看客户</text>
+            <text wx:if="{{customerCountText}}" class="cset-count">{{customerCountText}}</text>
+          </view>
+          <text class="cset-sub">本俱乐部所有购票客户，含未到店与已退款</text>
+        </view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+
+      <view class="cset-row" wx:if="{{club.isOwner || club.viewerIsAdmin}}" catchtap="goEnroll" aria-role="button" aria-label="报名名册" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <!-- 稿 M 268:223 这一行右侧有「3 个团」。topicCount 后端一直在算(/api/club/detail
+               里按 club_id 数的经典定向团),只是从来没渲染过。 -->
+          <view class="cset-titlerow">
+            <text class="cset-title">报名名册</text>
+            <text wx:if="{{club.topicCount > 0}}" class="cset-count">{{club.topicCount || 0}} 个团</text>
+          </view>
+          <text class="cset-sub">{{club.isOwner ? '看谁买了票，可对未核销的清退退款' : '看谁买了票，清退退款仅主理人可操作'}}</text>
+        </view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+
+      <view class="cset-row" wx:if="{{club.isOwner || canManageActivities}}" bindtap="goEventOps" aria-role="button" aria-label="活动运营" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main"><text class="cset-title">活动运营</text><text class="cset-sub">场次、签到、出勤更正与取消</text></view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+
+      <view class="cset-row" wx:if="{{club.isOwner || club.viewerIsAdmin || canManageActivities || canOperateEvents || hasEventScope}}" catchtap="toggleSettingsPanel" data-key="tools"
+            aria-role="button" aria-expanded="{{settingsPanel === 'tools'}}" aria-label="项目工具" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <text class="cset-title">项目工具</text>
+          <text class="cset-sub">AI 策划 · 开一场</text>
+        </view>
+        <cy-icon class="cset-chevron {{settingsPanel === 'tools' ? 'open' : ''}}" name="arrow-right" size="28" />
+      </view>
+      <view class="cset-panel" wx:if="{{settingsPanel === 'tools'}}">
+        <view class="manage-tools">
+          <view class="manage-tool" wx:if="{{club.isOwner}}" catchtap="onCreateTeam" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="route" size="40" /><text>发布主题</text></view>
+          <view class="manage-tool" wx:if="{{club.isOwner}}" catchtap="onOpenClubSession" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="flag" size="40" /><text>开一场</text></view>
+          <!-- 2026-08-25：四类工时自报已整条退役（线下无法核实）。
+               2026-09-09：质量证据页按用户裁决整页删除,这里的入口一并撤走。
+               ⚠️ 它原来是 Q 结算的唯一入口 —— 现在没有任何地方能交质量证据了,
+               Q 会不会因此结不出钱,要产品那边确认。 -->
+          <view class="manage-tool" catchtap="onClubAiOpen" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="star" size="40" /><text>AI 策划</text></view>
+        </view>
+      </view>
+      <text class="cset-group" wx:if="{{club.isOwner || club.viewerIsAdmin || canApproveMembers || canReadMembers || canManageMembers || canManageRoles || canSendNotify}}">成员与权限</text>
+      <view class="cset-row" wx:if="{{club.isOwner || canApproveMembers}}" catchtap="goJoinRequests" aria-role="button" aria-label="入会申请" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <view class="cset-titlerow">
+            <view wx:if="{{club.pendingJoinRequestCount > 0}}" class="cset-dot"></view>
+            <text class="cset-title">入会申请</text>
+            <text wx:if="{{club.pendingJoinRequestCount > 0}}" class="cset-count">{{club.pendingJoinRequestCount}}</text>
+          </view>
+          <text class="cset-sub">通过或拒绝想加入的玩家</text>
+        </view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+
+      <!-- CU-C-116:这一行的可见条件是 canReadMembers 也算,而下面三个动作按钮按 canManage* 隐藏。
+           副文案照旧写「设管理员、移除成员、邀请新成员」= 只读身份进门就被承诺做不到的操作。
+           口径与 :799 的成员操作区逐字相同,入口说明随权限一起分档。 -->
+      <view class="cset-row" wx:if="{{club.isOwner || canReadMembers || canManageMembers || canManageRoles}}" catchtap="toggleSettingsPanel" data-key="members"
+            aria-role="button" aria-expanded="{{settingsPanel === 'members'}}" aria-label="{{club.isOwner || club.viewerIsAdmin || canManageMembers || canManageRoles ? '成员管理' : '查看成员'}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <view class="cset-titlerow"><text class="cset-title">{{club.isOwner || club.viewerIsAdmin || canManageMembers || canManageRoles ? '成员管理' : '成员'}}</text><text class="cset-count">{{club.memberCount || 0}}</text></view>
+          <text class="cset-sub">{{club.isOwner || club.viewerIsAdmin || canManageMembers || canManageRoles ? '设管理员、移除成员、邀请新成员' : '查看成员名单，点成员进公开主页'}}</text>
+        </view>
+        <cy-icon class="cset-chevron {{settingsPanel === 'members' ? 'open' : ''}}" name="arrow-right" size="28" />
+      </view>
+      <view class="cset-panel" wx:if="{{settingsPanel === 'members'}}">
+        <button wx:if="{{club.isOwner || club.viewerIsAdmin}}" class="cset-panel-act" open-type="share" aria-label="邀请成员" hover-class="cy-pressed" hover-stay-time="80"><text>邀请成员</text><cy-icon name="arrow-right" size="24" /></button>
+        <cy-skeleton wx:if="{{membersState === 'loading'}}" type="list" count="2" />
+        <cy-error class="cy-fade-in" wx:elif="{{membersState === 'business-error'}}" title="成员列表加载失败" sub="俱乐部成员数据暂时不可用" retry="重新加载" bind:retry="loadMembers" />
+        <cy-error wx:elif="{{membersState === 'network-error'}}" title="网络连接失败" sub="检查网络后重新加载成员列表" retry="重新加载" bind:retry="loadMembers" />
+        <block wx:elif="{{membersState === 'ready'}}">
+          <view class="member member--managed" wx:for="{{members}}" wx:key="id">
+            <cy-avatar class="member-avatar" size="72" src="{{item.avatar || '/images/d_profile.png'}}" name="{{item.nickname || '城瘾玩家'}}" clickable="{{true}}" catchtap="goMemberProfile" data-member-id="{{item.memberId}}" aria-role="button" aria-label="打开成员主页" hover-class="cy-pressed" hover-stay-time="80" />
+            <view class="member-info" catchtap="goMemberProfile" data-member-id="{{item.memberId}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="member-name">{{item.nickname || '城瘾玩家'}}<text wx:if="{{item.isOwner}}" class="member-owner">群主</text><text wx:elif="{{item.role == 1}}" class="member-admin">管理员</text></view>
+              <view class="member-meta"><text wx:if="{{item.levelId != null && item.levelId > 0}}">Lv.{{item.levelId}} · </text><text>公开资料</text><cy-icon class="member-meta-arrow" name="arrow-right" size="20" /><text wx:if="{{item.isOwner}}"> · 创建俱乐部</text><text wx:elif="{{item.joinTime}}"> · 加入 {{item.joinTime}}</text></view>
+            </view>
+            <view class="member-actions" wx:if="{{item.memberId != club.memberId && (club.isOwner || club.viewerIsAdmin || canManageRoles || canManageMembers)}}">
+              <view class="member-role-btn" wx:if="{{club.isOwner || canManageRoles}}" catchtap="goMemberRoles" data-member-id="{{item.memberId}}" aria-role="button" aria-label="管理 {{item.nickname || '该成员'}} 的权限" hover-class="cy-pressed" hover-stay-time="80">权限</view>
+              <view class="member-governance-btn" wx:if="{{club.isOwner || club.viewerIsAdmin || canManageMembers}}" catchtap="goMemberGovernance" data-member-id="{{item.memberId}}" aria-role="button" aria-label="临时封禁 {{item.nickname || '该成员'}}" hover-class="cy-pressed" hover-stay-time="80">临时封禁</view>
+              <view class="member-remove" wx:if="{{(club.isOwner || canManageMembers || (club.viewerIsAdmin && item.role != 1)) && item.memberId !== club.memberId}}" catchtap="removeMember" data-member-id="{{item.memberId}}" data-member-name="{{item.nickname || '这位成员'}}" aria-role="button" aria-label="移除 {{item.nickname || '该成员'}}" hover-class="cy-pressed" hover-stay-time="80">移除</view>
+            </view>
+          </view>
+          <cy-empty wx:if="{{members.length === 0}}" size="sm" title="暂无成员" />
+        </block>
+      </view>
+
+      <!-- 客户 = 按**人**聚合(这个人来过几次、能打标签写备注);下面的报名名册是按**团**聚合(能清退退款)。
+           两条入口并列,别合并 —— 它们回答的不是同一个问题。 -->
+      <view class="cset-row" wx:if="{{club.isOwner || canManageRoles}}" bindtap="goClubRoles" aria-role="button" aria-label="角色与权限" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <view class="cset-titlerow">
+            <text class="cset-title">角色与权限</text>
+            <text wx:if="{{delegatedRoleCount > 0}}" class="cset-count">{{delegatedRoleCount}} 已委派</text>
+          </view>
+          <text class="cset-sub">按职责分配俱乐部与活动权限</text>
+        </view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+      <view class="cset-row" wx:if="{{club.isOwner || club.viewerIsAdmin || canManageMembers}}" catchtap="goClubGovernance" aria-role="button" aria-label="成员治理" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main"><text class="cset-title">成员治理</text><text class="cset-sub">临时封禁、解禁与治理记录</text></view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+      <view class="cset-row" wx:if="{{club.isOwner || canSendNotify}}" catchtap="goClubNotify" aria-role="button" aria-label="通知成员" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main"><text class="cset-title">通知成员</text><text class="cset-sub">发送俱乐部与活动通知</text></view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+      <!-- 稿 M 268:223「开放设置」。稿上四个开关,这里三个 ——
+           「加入需审批」写的是同一列 club.join_policy,编辑资料里已经有一个写入口,不摆第二个。
+           三个开关的真闸都在后端:公开可见在 /api/club/list 与 /detail,发帖在 /post/create,
+           承接在商家池那条查询上。这里只是入口。 -->
+      <text class="cset-group" wx:if="{{club.isOwner}}">开放设置</text>
+      <view class="cset-row" wx:if="{{club.isOwner}}" catchtap="togglePublicVisible" aria-role="switch"
+            aria-checked="{{club.publicVisible != 0}}" aria-label="俱乐部公开可见"
+            aria-disabled="{{openSettingSaving ? true : false}}" hover-class="{{openSettingSaving ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        <view class="cset-main">
+          <text class="cset-title">俱乐部公开可见</text>
+          <text class="cset-sub">关掉后只有成员能搜到和打开</text>
+        </view>
+        <text class="cset-switch">{{openSettingSaving === 'publicVisible' ? '保存中…' : (club.publicVisible != 0 ? '已开启' : '已关闭')}}</text>
+      </view>
+      <cy-inline-error wx:if="{{openSettingErrorKey === 'publicVisible'}}" class="cset-inline-error" kind="data"
+                       title="开关没有保存成功" sub="{{openSettingErrorText}}" action="重试" bind:action="togglePublicVisible" />
+
+      <view class="cset-row" wx:if="{{club.isOwner}}" catchtap="toggleMerchantCoop" aria-role="switch"
+            aria-checked="{{club.merchantUndertakeOpen != 0}}" aria-label="开放商家承接"
+            aria-disabled="{{openSettingSaving ? true : false}}" hover-class="{{openSettingSaving ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        <view class="cset-main">
+          <text class="cset-title">开放商家承接</text>
+          <text class="cset-sub">关掉后本俱乐部的主题不进商家可承接列表</text>
+        </view>
+        <text class="cset-switch">{{openSettingSaving === 'merchantCoop' ? '保存中…' : (club.merchantUndertakeOpen != 0 ? '已开启' : '已关闭')}}</text>
+      </view>
+      <cy-inline-error wx:if="{{openSettingErrorKey === 'merchantCoop'}}" class="cset-inline-error" kind="data"
+                       title="开关没有保存成功" sub="{{openSettingErrorText}}" action="重试" bind:action="toggleMerchantCoop" />
+
+      <view class="cset-row" wx:if="{{club.isOwner}}" catchtap="toggleMemberPost" aria-role="switch"
+            aria-checked="{{club.memberPostAllowed != 0}}" aria-label="允许成员发帖"
+            aria-disabled="{{openSettingSaving ? true : false}}" hover-class="{{openSettingSaving ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        <view class="cset-main">
+          <text class="cset-title">允许成员发帖</text>
+          <text class="cset-sub">关掉后只有管理员能在俱乐部发帖</text>
+        </view>
+        <text class="cset-switch">{{openSettingSaving === 'memberPost' ? '保存中…' : (club.memberPostAllowed != 0 ? '已开启' : '已关闭')}}</text>
+      </view>
+      <cy-inline-error wx:if="{{openSettingErrorKey === 'memberPost'}}" class="cset-inline-error" kind="data"
+                       title="开关没有保存成功" sub="{{openSettingErrorText}}" action="重试" bind:action="toggleMemberPost" />
+
+      <text class="cset-group" wx:if="{{club.isOwner}}">经营</text>
+      <view class="cset-row" wx:if="{{club.isOwner}}" catchtap="goClubFinance" aria-role="button" aria-label="俱乐部分润" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <view class="cset-titlerow">
+            <text class="cset-title">俱乐部分润</text>
+            <text wx:if="{{settledAmountText}}" class="cset-count">{{settledAmountText}}</text>
+          </view>
+          <text class="cset-sub">已入账、待结算与提现</text>
+        </view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+
+      <text class="cset-group" wx:if="{{club.isOwner || club.viewerIsAdmin}}">俱乐部资料</text>
+      <view class="cset-row" wx:if="{{club.isOwner || club.viewerIsAdmin}}" catchtap="openClubEdit" aria-role="button" aria-label="编辑资料" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cset-main">
+          <text class="cset-title">编辑资料</text>
+          <text class="cset-sub">名称、封面、介绍、会员经营配置</text>
+        </view>
+        <cy-icon class="cset-chevron" name="arrow-right" size="28" />
+      </view>
+
+    </view>
+  </cy-sheet>
+
+
+  <cy-sheet show="{{ownerPickerShow}}" title="选择要管理的俱乐部" bind:close="closeOwnerPicker">
+    <view class="owner-picker-item" wx:for="{{ownerClubs}}" wx:key="id" data-id="{{item.id}}" catchtap="onPickOwnerClub" hover-class="cy-pressed" hover-stay-time="80">{{item.name || item.clubName || ('俱乐部 ' + item.id)}}</view>
+  </cy-sheet>
+
+  <!-- CU-C-106:panel 只挡住了遮罩与拖拽关闭,右上 ✕ 走的是 close —— 原来 closePostEdit
+       无条件清空正文,写到一半关掉就没了。有改动时面板只发 requestclose,由本页问一句。 -->
+  <cy-sheet show="{{postEditShow}}" title="编辑动态" maskClosable="{{false}}" dirty="{{postEditDirty}}" bind:close="closePostEdit" bind:requestclose="requestClosePostEdit">
+    <view class="post-edit-sheet">
+      <textarea class="post-edit-input" value="{{postEditText}}" bindinput="onPostEditText" maxlength="300" auto-height placeholder="输入动态内容" />
+      <view class="post-edit-note">保存后会保留公开编辑历史；原图片保持不变。</view>
+      <view class="post-edit-submit {{postEditSubmitting ? 'disabled' : ''}}" bindtap="submitPostEdit" aria-role="button" aria-disabled="{{postEditSubmitting}}" hover-class="{{postEditSubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{postEditSubmitting ? '保存中…' : '保存修改'}}</view>
+    </view>
+  </cy-sheet>
+  <cy-modal show="{{postEditDiscardConfirm}}" title="放弃未保存的修改？" content="关闭后，这次改写的正文不会生效，原动态保持原样。" confirm-text="放弃修改" cancel-text="继续编辑" danger bind:confirm="confirmDiscardPostEdit" bind:cancel="cancelDiscardPostEdit" />
+
+  <cy-sheet show="{{postHistoryShow}}" title="编辑历史" bind:close="closePostHistory">
+    <view class="post-history-sheet">
+      <view class="post-history-state" wx:if="{{postHistoryState === 'loading'}}">正在读取…</view>
+      <view class="post-history-state" wx:elif="{{postHistoryState === 'error'}}">历史读取失败，请关闭后重试</view>
+      <view class="post-history-row" wx:for="{{postHistoryRows}}" wx:key="id">
+        <view class="post-history-meta">{{item.versionText}} · {{item.timeText}}</view>
+        <view class="post-history-content">{{item.content || '（仅图片动态）'}}</view>
+      </view>
+      <cy-empty wx:if="{{postHistoryState === 'ready' && !postHistoryRows.length}}" size="sm" title="暂无编辑记录" />
+    </view>
+  </cy-sheet>
+
+  <!-- AI 策划活动(主理人限定,/api/ai/club/design) -->
+  <cy-sheet show="{{aiSheetShow}}" title="AI 策划活动" bind:close="onClubAiClose">
+    <view class="ai-plan">
+      <view class="ai-plan-hint">说说你想办一场什么样的活动,AI 会给出主题骨架、可对接商家和宣传文案。</view>
+
+      <view class="ai-plan-chips">
+        <view class="ai-plan-chip" wx:for="{{aiIdeaChips}}" wx:key="*this" data-c="{{item}}" catchtap="onClubAiChip" hover-class="cy-pressed" hover-stay-time="80">{{item}}</view>
+      </view>
+
+      <textarea class="ai-plan-idea" value="{{aiIdea}}" bindinput="onClubAiIdea" maxlength="200"
+                disabled="{{aiState === 'generating'}}"
+                placeholder="一句话描述想法,如“静安 情侣 夜间 Citywalk 90分钟”" placeholder-class="ai-plan-ph" />
+
+      <view class="ai-plan-row">
+        <input class="ai-plan-input" value="{{aiClubStyle}}" bindinput="onClubAiStyle" maxlength="20"
+               disabled="{{aiState === 'generating'}}"
+               placeholder="俱乐部风格(选填)" placeholder-class="ai-plan-ph" />
+        <input class="ai-plan-input ai-plan-input--sm" value="{{aiDurationMin}}" bindinput="onClubAiDuration" type="number" maxlength="4"
+               disabled="{{aiState === 'generating'}}"
+               placeholder="时长(分钟)" placeholder-class="ai-plan-ph" />
+      </view>
+
+      <!-- 动作区 -->
+      <view class="ai-plan-acts">
+        <block wx:if="{{aiState === 'generating'}}">
+          <view class="ai-plan-gen ai-plan-gen--busy">生成中…</view>
+          <view class="ai-plan-ghost" catchtap="onClubAiCancel" hover-class="cy-pressed" hover-stay-time="80">取消</view>
+        </block>
+        <block wx:elif="{{aiState === 'error'}}">
+          <view class="ai-plan-gen" wx:if="{{aiCanRetry}}" catchtap="onClubAiGenerate" hover-class="cy-pressed" hover-stay-time="80">重试</view>
+        </block>
+        <block wx:else>
+          <view class="ai-plan-gen" catchtap="onClubAiGenerate" hover-class="cy-pressed" hover-stay-time="80">{{aiState === 'done' ? '换一版' : '生成方案'}}</view>
+        </block>
+      </view>
+      <cy-inline-error class="ai-plan-err" wx:if="{{aiState === 'error'}}" kind="data"
+        title="方案没能生成" sub="{{aiErrorText}}" />
+
+      <!-- 结果 -->
+      <block wx:if="{{aiState === 'done' && aiPlan}}">
+        <view class="ai-plan-res">
+          <view class="ai-plan-tit">{{aiPlan.title || '未命名方案'}}</view>
+          <view class="ai-plan-sub" wx:if="{{aiPlan.subtitle}}">{{aiPlan.subtitle}}</view>
+          <view class="ai-plan-tags" wx:if="{{aiPlan.tags.length}}">
+            <text class="ai-plan-tag" wx:for="{{aiPlan.tags}}" wx:key="*this">{{item}}</text>
+            <text class="ai-plan-tag" wx:if="{{aiPlan.estDurationMin}}">约 {{ aiPlan.estDurationMin === 0 ? 0 : (aiPlan.estDurationMin || '--') }} 分钟</text>
+          </view>
+          <view class="ai-plan-text" wx:if="{{aiPlan.storyline}}">{{aiPlan.storyline}}</view>
+          <view class="ai-plan-fit" wx:if="{{aiPlan.fitReason}}">为什么适合:{{aiPlan.fitReason}}</view>
+
+          <view class="ai-plan-lbl" wx:if="{{aiPlan.nodes.length}}">路线节点 · {{aiPlan.nodes.length}}</view>
+          <view class="ai-plan-node" wx:for="{{aiPlan.nodes}}" wx:key="order">
+            <text class="ai-plan-node-no">{{index + 1}}</text>
+            <view class="ai-plan-node-body">
+              <view class="ai-plan-node-name">{{item.merchantName || ('节点' + (index + 1))}}</view>
+              <view class="ai-plan-node-addr" wx:if="{{item.address}}">{{item.address}}</view>
+            </view>
+          </view>
+
+          <view class="ai-plan-lbl" wx:if="{{aiPlan.risks.length}}">风险提示</view>
+          <view class="ai-plan-risk" wx:for="{{aiPlan.risks}}" wx:key="*this">· {{item}}</view>
+
+          <view class="ai-plan-lbl" wx:if="{{aiMerchantSuggestions.length}}">可对接商家建议</view>
+          <view class="ai-plan-msug" wx:for="{{aiMerchantSuggestions}}" wx:key="*this">· {{item}}</view>
+
+          <block wx:if="{{aiPromoCopy}}">
+            <view class="ai-plan-lbl">宣传文案<text class="ai-plan-copy" catchtap="onClubAiCopy" hover-class="cy-pressed" hover-stay-time="80">复制</text></view>
+            <view class="ai-plan-promo">{{aiPromoCopy}}</view>
+          </block>
+        </view>
+
+        <!-- 合规:AI 生成内容来源标注 -->
+        <view class="ai-plan-source">AI 生成内容,请核对后再发布</view>
+        <view class="ai-plan-adopt" catchtap="onClubAiAdopt" hover-class="cy-pressed" hover-stay-time="80">用这个方案去发布</view>
+        <view class="ai-plan-adopt-note">采用后仍需手动补齐封面图和活动分类才能发布。</view>
+      </block>
+    </view>
+  </cy-sheet>
+
+  <!-- 团核销码:选场次用 cy-sheet(半屏清单),出码用 cy-qr-voucher(码卡本身已是独立浮层)——
+       两者互斥展示,从不同时叠加,不在 sheet 里再嵌一层弹窗 -->
+  <cy-sheet show="{{groupCodeVisible && groupCodeState === 'selecting'}}" title="选择场次" bind:close="onCloseGroupCode">
+    <view class="gc-hint">团码只登记当前场次，不能跨场次使用</view>
+    <view class="gc-item" wx:for="{{groupCodeActivityOptions}}" wx:key="id" bindtap="onGroupCodeSelectActivity" data-id="{{item.id}}" data-name="{{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+      <text>{{item.name}}</text><cy-icon name="arrow-right" size="28" />
+    </view>
+  </cy-sheet>
+  <cy-sheet show="{{directorActivityPickerShow}}" title="选择导演场次" bind:close="closeDirectorActivityPicker">
+    <view class="gc-hint">只能进入当前俱乐部项目下的活动场次</view>
+    <view class="gc-item" wx:for="{{directorActivityOptions}}" wx:key="id"
+      bindtap="onDirectorActivitySelect" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+      <text>{{item.name}}</text>
+    </view>
+  </cy-sheet>
+  <cy-sheet show="{{choiceSheetShow}}" title="{{choiceSheetTitle}}" bind:close="closeChoiceSheet">
+    <view class="gc-hint" wx:if="{{choiceSheetHint}}">{{choiceSheetHint}}</view>
+    <view class="gc-item" wx:for="{{choiceSheetItems}}" wx:key="key"
+      bindtap="onChoiceSheetSelect" data-key="{{item.key}}" hover-class="cy-pressed" hover-stay-time="80"
+      aria-role="button" aria-label="{{item.label}}">
+      <text>{{item.label}}</text>
+      <cy-icon name="arrow-right" size="28" />
+    </view>
+  </cy-sheet>
+  <cy-qr-voucher wx:if="{{groupCodeVisible && groupCodeState !== 'selecting'}}"
+    show="{{true}}"
+    state="{{groupCodeState}}"
+    qr="{{groupCodeQrUrl}}"
+    code="{{groupCodeCode}}"
+    title="{{groupCodeTitle}} · 团核销码"
+    desc="仅限本场次合作商家扫码，登记本团接待"
+    countdown="{{groupCodeState === 'ready' ? groupCodeCountdown + 's 后自动刷新' : ''}}"
+    errorText="{{groupCodeErrMsg || '出码失败'}}"
+    maskClosable="{{false}}"
+    bind:close="onCloseGroupCode"
+    bind:retry="onGroupCodeRetry"
+  />
+
+  <view class="safe-bottom"></view>
+</view>
+
+<!-- 俱乐部编辑 = 三级 ⇒ 页内弹窗,由管理页托管;可写表单 ⇒ 遮罩不可关,走 dirty 闸。 -->
+<view class="club-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'club-edit'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" dirty="{{sceneDirty}}" mask-closable="{{false}}" bind:requestclose="requestSceneClose" bind:back="requestSceneClose">
+    <cy-scene-club-edit club-id="{{sceneCurrent.params.clubId}}" theme="{{sceneCurrent.theme}}" bind:back="closeScene" bind:saved="onClubEdited" bind:dissolved="onClubDissolved" bind:transferowner="goClubGovernance" bind:dirtychange="onSceneDirtyChange" />
+  </cy-scene-sheet>
+</view>
+<cy-modal show="{{sceneConfirm}}" title="放弃未保存的修改？" content="关闭后，本次修改不会保存。" confirm-text="放弃修改" cancel-text="继续编辑" danger bind:confirm="confirmSceneDiscard" bind:cancel="cancelSceneDiscard" />
+</view>
+
+<!-- 隐私授权闸(真弹窗):页内组件,不压页面栈。app.js 在需要授权时调本页 showPrivacyGate()。
+     2026-09-24 CU-C-60:未挂它的话,快捷扫码一旦触发隐私授权会把整页盖成白屏。 -->
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />
+
+<!-- 危险动作三段式确认:文案来自 utils/danger-actions.js,页面只给 key -->
+<cy-danger-confirm id="dcPost" bind:confirm="onConfirmDeletePost" />
+<cy-danger-confirm id="dcComment" bind:confirm="onConfirmDeleteComment" />
+<cy-danger-confirm id="dcQuit" bind:confirm="onConfirmQuit" bind:alt="onQuitAlt" />
+<cy-danger-confirm id="dcMember" bind:confirm="onConfirmRemoveMember" />

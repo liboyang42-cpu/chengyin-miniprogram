@@ -1,0 +1,59 @@
+/* cy-ai-score-card · AI 参考分(Figma v5.1,node 47:319)
+ *
+ * 稿里这张卡是紫描边(#8c5cff)。我最初把它改成了信息蓝,理由是"去色相 + 可点走蓝"——
+ * 那是**过度套用**:那条铁律管的是可点击文字与 brand 选中态,而这里的紫是卡片装饰,
+ * 卡本身还刻意不可点。2026-08-27 用户指出"游戏可以是不同颜色的"后改回稿的紫,
+ * 走 --cy-color-playkit-ai。 */
+.asc {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  box-sizing: border-box;
+  border: 3rpx solid var(--cy-color-playkit-ai);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-play-surface-subtle);
+}
+.asc__left {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.asc__score {
+  font-family: var(--cy-font-numeric);
+  font-size: 88rpx;                /* ds-ok 分数主视觉,稿 47:321 的 44px */
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--cy-color-playkit-ai);
+}
+.asc__label {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-micro);
+  letter-spacing: 2rpx;
+  color: var(--cy-color-text-tertiary);
+}
+.asc__rule {
+  flex: none;
+  width: 2rpx;
+  height: 140rpx;
+  background: var(--cy-color-play-accent-soft);
+}
+.asc__right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1);
+}
+.asc__comment {
+  font-size: var(--cy-type-label);
+  line-height: 1.7;
+  color: var(--cy-color-text-secondary);
+}
+.asc__note {
+  font-size: var(--cy-type-micro);
+  letter-spacing: 1rpx;
+  color: var(--cy-color-text-tertiary);
+}

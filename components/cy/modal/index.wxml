@@ -1,0 +1,46 @@
+<view class="mo {{compact ? 'mo--compact' : ''}} {{reducedMotion ? 'mo--reduced-motion' : ''}} {{_closing ? 'mo--closing' : ''}}" wx:if="{{_render}}">
+  <view class="mo__mask" bindtap="onMask" aria-role="button" aria-label="关闭当前面板" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="mo__card">
+    <!-- 统一右上角 X(用户规则:各类弹层关闭一律放右上角,底部按钮继续各自动作语义)。
+         ✕ 走 cancel 这条出口 = 「放弃这次弹窗」，不替用户按下任何带业务后果的确认键;
+         请求在途(loading)时整颗不出,和底部按钮一起锁住,不给半路退出。 -->
+    <view class="mo__close" wx:if="{{!loading}}" bindtap="onClose" data-testid="modal-close"
+          aria-role="button" aria-label="{{title ? '关闭' + title : '关闭当前弹窗'}}"
+          hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+    <view class="mo__title" wx:if="{{title}}">{{title}}</view>
+    <view class="mo__content">
+      <text wx:if="{{content}}">{{content}}</text>
+      <slot wx:else></slot>
+    </view>
+    <!-- 后果清单(照 Revolut 185 / Threads 78):一行一个 icon + 一句人话,讲会发生什么。
+         没传 consequences 时整块不渲染,老调用点行为不变。 -->
+    <view class="mo__consq" wx:if="{{consequences.length}}">
+      <view class="mo__consq-row" wx:for="{{consequences}}" wx:key="text">
+        <cy-icon class="mo__consq-icon" name="{{item.icon || 'info'}}" size="36" />
+        <text class="mo__consq-text">{{item.text}}</text>
+      </view>
+    </view>
+    <!-- 2026-09-18 用户定:全站弹窗按钮不再纵向排列,一律「取消左 / 确认右」横排。
+         stacked(危险确认)只改变替代方案的摆法:更轻的替代方案独占上方一行、解释跟在下方,
+         主行仍是并排两颗;取消键从 45% 透明白的 ghost 提回 secondary 填充(原来看不清)。 -->
+    <view class="mo__btns">
+      <view class="mo__alt-col" wx:if="{{stacked && altText}}">
+        <view class="mo__btn mo__btn--alt mo__btn--secondary" bindtap="onAlt"
+              aria-role="button" aria-label="{{altText}}" hover-class="cy-pressed" hover-stay-time="80">{{altText}}</view>
+        <view class="mo__alt-hint" wx:if="{{altHint}}">{{altHint}}</view>
+      </view>
+      <view class="mo__btn-row">
+        <view class="mo__btn mo__btn--cancel mo__btn--secondary" wx:if="{{showCancel}}"
+              bindtap="onCancel" aria-role="button" aria-label="{{cancelText}}"
+              hover-class="cy-pressed" hover-stay-time="80">{{cancelText}}</view>
+        <view class="mo__btn mo__btn--act {{danger ? 'mo__btn--danger' : 'mo__btn--primary'}} {{loading ? 'is-loading' : ''}}"
+              bindtap="onConfirm" aria-role="button" aria-label="{{confirmText}}"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <!-- 按钮内 loading(照 Locals 64):文字换成转圈,不改按钮尺寸,避免布局跳动 -->
+          <view wx:if="{{loading}}" class="mo__spinner" aria-role="img" aria-label="处理中"></view>
+          <text wx:else>{{confirmText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

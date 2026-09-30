@@ -1,0 +1,54 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-reaction · 变色就点(原型真源:模板编辑页 v2 · playkit react)
+ * 等待态是红、变色态是绿、抢跑单独一态 —— 照 Human Benchmark 的读法,
+ * 那是这类玩法里唯一被大量人验证过的配色约定,不自己发明。 */
+.rx {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28rpx;                             /* ds-ok 原型 14px */
+  padding: 112rpx 52rpx 68rpx;            /* ds-ok 原型 56px 26px 34px */
+  text-align: center;
+  transition: background var(--cy-dur-fast) linear;
+  background: #c5372f;                                 /* ds-ok 原型 .rx,等待期就是红的 */
+}
+/* 颜色本身就是规则,所以这三档是玩法信号色不是界面色 */
+.rx--wait  { background: #c5372f; }                    /* ds-ok 原型 .rx */
+.rx--go    { background: #22c55e; }                    /* ds-ok 原型 .rx.go */
+.rx--early { background: #1b1b22; }                    /* ds-ok */
+.rx--done  { background: #0f172a; }                    /* ds-ok 原型 .rx.done */
+/* 按下去要有回应,但只减淡、不动颜色:红/绿本身承载着「能不能点」这条规则,
+   按一下把颜色改了等于把规则也改了。60ms 是「有回应」的下限,不拖慢反应测量。 */
+.rx--press { opacity: .96; }
+
+.rx__big {
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-play-display-3xl);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -6.7rpx;                /* ds-ok 原型 -.04em */
+  color: #fff;                            /* ds-ok */
+}
+.rx__k {
+  font-size: var(--cy-type-label);
+  font-weight: 800;
+  letter-spacing: 7.2rpx;                 /* ds-ok 原型 .3em = 3.6px */
+  color: #FFF;                            /* ds-ok */
+  opacity: .68;
+}
+.rx__sub {
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  max-width: 22em;                        /* ds-ok 原型 22ch:一行读不完就换行,不铺满整屏宽 */
+  color: #FFF;                            /* ds-ok */
+  opacity: .82;
+}
+.rx--idle .rx__big, .rx--done .rx__big { color: #fff; }   /* ds-ok 四档底色都是深的 */
+
+/* ⚠️ 原型这一屏**没有轮次点**:整屏只有眉标、大字、一行小字三样东西。
+   这一下要测的是反应,屏上多一个会动的东西,眼睛就会分给它。
+   还剩几轮由那行小字说(「毫秒 · 点一下进入下一轮」)。 */

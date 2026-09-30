@@ -1,0 +1,4 @@
+<!-- 3D 徽章转台:手写 WebGL(与勋章墙同源姿势),零 xr-frame 依赖 —— ENGINE_WASM/draco 500 就此消失 -->
+<canvas type="webgl" id="pincv" class="pincv"
+        bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd"
+        aria-role="img" aria-label="可拖动旋转的 3D 徽章"></canvas>

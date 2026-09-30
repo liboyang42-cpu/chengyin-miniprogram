@@ -1,0 +1,1457 @@
+@charset "UTF-8";
+@import "../styles/photo-grid.wxss";
+
+/* ===========================================================
+ * 创建节点玩法 · 关卡编辑器(玻璃拟态)
+ * 视觉照设计稿 城市解谜玩法创建.dc.html;单位 rpx(设计 px ≈ ×2)
+ * 主蓝 var(--cy-brand) / 主橙 var(--cy-color-status-warning) / 成功绿 var(--cy-success) / 危险 var(--cy-danger)
+ *   ⚠️ 「主蓝」「主橙」两种语义曾一起写成 --cy-brand。2026-08-01 去紫后两者都渲染成
+ *   中性色,重合不可见;2026-08-09 创建域改回稿配色后 brand 变回主蓝,橙的那几处
+ *   (必填星号 / 核心徽章 / 奖励模块图标)会跟着变蓝 —— 已按稿分回 status-warning。
+ * =========================================================== */
+
+/* 暗色底 + 白微光(去紫色化:原紫/蓝双色光改中性白光,呼应黑白基调) */
+page {
+  background:
+    radial-gradient(circle at 14% 6%, rgba(255,255,255,.05) 0, rgba(255,255,255,0) 52%), /* ds-ok: 装饰性微光,非语义色 */
+    radial-gradient(circle at 96% 92%, rgba(255,255,255,.04) 0, rgba(255,255,255,0) 52%), /* ds-ok: 装饰性微光,非语义色 */
+    var(--cy-bg-page);
+}
+
+.cg {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.cg-nav-back image { width: var(--cy-space-2-5); height: 25rpx; }
+/* ============ 滚动容器 ============ */
+/* 标题和导航占正常布局高度，滚动视口从标题下方开始，滚动后也不会穿过标题。 */
+.cg-nav-spacer,
+.cg > cy-page-title { flex: none; }
+.cg-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  height: 0;
+  width: 100%;
+  box-sizing: border-box;
+  /* fill 用 backwards 不用 both：both 会常驻 100% 帧的 transform，给 fixed 后代（cy-sheet）建 containing block 把弹层裁进本页容器 */
+  animation: cg-rise var(--cy-motion-slow) var(--cy-ease-out) var(--cy-motion-fast) backwards;
+}
+.cg-scroll-pad { height: 220rpx; }
+
+@keyframes cg-rise {
+  0% { opacity: 0; transform: translateY(16rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 通用 */
+.cg-ph { color: var(--cy-text-secondary); }
+.req { color: var(--cy-color-status-warning); }
+.cg-caret { color: var(--cy-text-secondary); font-size: var(--cy-font-label); transform: rotate(-90deg); } /* back(‹)转成向下 ∨:图标集没有 chevron-down,同 club/event-ops 先例 */
+.cg-inline-error { display: block; margin-top: var(--cy-space-1-5); }
+.cg-inline-error--banner { margin-right: var(--cy-space-4); margin-left: var(--cy-space-4); }
+
+/* 标题输入 */
+.cg-titlebox { padding: var(--cy-space-3-5) var(--cy-space-4) 0; }
+.cg-title-input {
+  width: 100%; box-sizing: border-box;
+  height: 96rpx;
+  line-height: 96rpx;
+  /* 去掉下划线:这是玩法名称输入框,原来那条 4rpx 底边让它看着像个被划线的标题 */
+  border: none;
+  background: transparent;
+  padding: 0 var(--cy-space-1);
+  text-align: left;
+  font-size: var(--cy-font-title); font-weight: 700; color: var(--cy-text-title);
+}
+/* 校验失败与行内提示同语义：输入区深红底，不能只靠一条细下划线。 */
+.cg-title-input.err {
+  border: 2rpx solid var(--cy-color-status-danger);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-status-danger-soft);
+}
+
+/* ============ 玻璃卡片 ============ */
+.cg-card {
+  margin: var(--cy-space-3-5) var(--cy-space-4) 0;
+  --cy-comp-card-radius: var(--cy-radius-sm);
+  --cy-comp-card-pad: var(--cy-space-1-5) var(--cy-space-4) var(--cy-space-3-5);
+}
+.cg-card-head {
+  display: flex; align-items: center; gap: var(--cy-space-2);
+  padding: var(--cy-space-3-5) 0 var(--cy-space-2-5);
+}
+.cg-bar { width: 8rpx; height: 30rpx; border-radius: 4rpx; background: var(--cy-brand); }
+.cg-card-tit { font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title); }
+
+.cg-field { padding: var(--cy-space-2-5) 0; }
+.cg-divider { border-top: 1rpx solid var(--cy-border-card); }
+.cg-label { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); margin-bottom: 16rpx; }
+.cg-row-between { display: flex; align-items: center; justify-content: space-between; }
+.cg-count { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+.cg-two { display: flex; gap: var(--cy-space-3-5); }
+.cg-col { flex: 1; min-width: 0; }
+
+/* 输入 / 文本域 */
+.cg-input,
+.cg-textarea,
+.cg-cfg-input,
+.cg-cfg-textarea {
+  width: 100%; box-sizing: border-box;
+  border: 1rpx solid var(--cy-border-card);
+  background: var(--cy-bg-card-2);
+  border-radius: var(--cy-radius-md);
+  padding: var(--cy-legacy-22) var(--cy-legacy-26);
+  font-size: var(--cy-font-body); color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+}
+/* 单行输入固定 88rpx,与相邻的 .cg-pick 下拉等高(高度只给 input,textarea 走 .sm/.lg) */
+.cg-input,
+.cg-cfg-input { height: var(--cy-btn-h); line-height: var(--cy-btn-h); padding: 0 var(--cy-legacy-26); }
+.cg-textarea.sm,
+.cg-cfg-textarea { height: 128rpx; min-height: 128rpx; }
+.cg-textarea.lg { height: 168rpx; }
+.cg-input.err,
+.cg-textarea.err {
+  border: 2rpx solid var(--cy-color-status-danger);
+  background: var(--cy-color-status-danger-soft);
+}
+
+/* 下拉伪选择(底部 sheet) */
+.cg-pick {
+  width: 100%; box-sizing: border-box;
+  border: 1rpx solid var(--cy-border-card);
+  background: var(--cy-bg-card-2);
+  border-radius: var(--cy-radius-md);
+  height: 88rpx;
+  padding: 0 var(--cy-space-3-5);
+  font-size: var(--cy-font-body); color: var(--cy-text-title);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cg-pick.empty { color: var(--cy-text-secondary); }
+.cg-pick.err { border-color: var(--cy-danger); background: var(--cy-danger-soft); }
+
+/* 封面 */
+.cg-cover {
+  position: relative; width: 100%; height: 300rpx;
+  border-radius: var(--cy-radius-md); overflow: hidden;
+}
+.cg-cover-img { width: 100%; height: 100%; }
+.cg-cover-del {
+  position: absolute; top: var(--cy-legacy-18); right: var(--cy-legacy-18);
+  width: var(--cy-btn-h); height: var(--cy-btn-h);
+}
+.cg-cover-del__glyph {
+  position: absolute; top: 0; right: 0;
+  width: 52rpx; height: 52rpx; border-radius: 50%;
+  background: rgba(15,25,45,.55); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-body);
+}
+.cg-cover-empty {
+  width: 100%; height: 208rpx; box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  border: 3rpx dashed var(--cy-border-line);
+  background: var(--cy-bg-card);
+  display: flex; align-items: center; justify-content: center; gap: var(--cy-space-2-5);
+}
+.cg-cover-ico {
+  width: var(--cy-space-7); height: var(--cy-space-7); border-radius: 22rpx; /* ds-ok */
+  background: var(--cy-bg-card-2);
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-title);
+}
+.cg-cover-t1 { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-body); }
+.cg-cover-t2 { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-4); }
+
+/* 类别 chips */
+.cg-chips { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); }
+.cg-chip {
+  min-height: var(--cy-btn-h); box-sizing: border-box;
+  display: flex; align-items: center; gap: var(--cy-space-1-5);
+/* 软底上的文字用 -strong 档:基色压在 brand-soft 上要过 AA,创建域 brand 已改中性灰 */
+  background: var(--cy-brand-soft); border: 1rpx solid var(--cy-border-line); color: var(--cy-color-brand-strong);
+  font-size: var(--cy-font-label); font-weight: 600;
+  padding: var(--cy-legacy-14) var(--cy-space-2-5) var(--cy-legacy-14) var(--cy-space-3); border-radius: 22rpx; /* ds-ok */
+}
+.cg-chip-x {
+  width: var(--cy-btn-h); height: var(--cy-btn-h); margin: calc(var(--cy-legacy-14) * -1) calc(var(--cy-space-2-5) * -1) calc(var(--cy-legacy-14) * -1) 0;
+  color: var(--cy-text-secondary); font-size: var(--cy-font-body); line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-chip-add {
+  min-height: var(--cy-btn-h); box-sizing: border-box;
+  display: flex; align-items: center; gap: var(--cy-space-1);
+  border: 3rpx dashed var(--cy-border-line); color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label); font-weight: 600;
+  padding: var(--cy-legacy-14) var(--cy-space-3); border-radius: 22rpx; /* ds-ok */
+}
+
+/* ============ 模块区标题 ============ */
+.cg-modsec { margin: var(--cy-legacy-36) var(--cy-space-4) 0; }
+.cg-modsec-tit { font-size: var(--cy-font-subtitle); font-weight: 800; color: var(--cy-text-title); }
+.cg-modsec-sub { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-4); }
+
+/* 可叠加玩法与主玩法共用配置面板。 */
+.cg-advanced { margin-top: var(--cy-space-4); }
+.cg-adv-section { margin-top: var(--cy-space-3); }
+/* 开关打开后长出来的那一格(幸运档位 / 放宽方式),与开关行拉开一点 */
+.cg-adv-reveal { display: block; margin-top: var(--cy-space-2-5); }
+/* 「＋ 添加」后面紧跟下一组的标题时,标题会贴在虚线框上 —— 拉开一段 */
+.cg-adv-add + .cg-cfg-label, .cg-adv-add + .cg-adv-section { margin-top: var(--cy-space-4); }
+.cg-adv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cy-space-2); margin-top: var(--cy-space-2); }
+.cg-adv-repeat { margin-top: var(--cy-space-2); padding: var(--cy-space-2-5); border-radius: var(--cy-radius-md); background: var(--cy-bg-card-2); display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.cg-adv-repeat-head { display: flex; align-items: center; justify-content: space-between; color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 700; }
+/* 删除 = 图标,与类别 ✕、封面 ✕ 同一个 close-sm;负外边距把 44px 命中区收进行高,行不被撑高 */
+.cg-adv-del { width: var(--cy-btn-h); height: var(--cy-btn-h); margin: calc(var(--cy-space-2) * -1) calc(var(--cy-space-2) * -1) calc(var(--cy-space-2) * -1) 0; display: flex; align-items: center; justify-content: center; color: var(--cy-text-secondary); }
+.cg-adv-add { margin-top: var(--cy-space-2); min-height: var(--cy-btn-h); border: 2rpx dashed var(--cy-border-line); border-radius: var(--cy-radius-md); display: flex; align-items: center; justify-content: center; color: var(--cy-color-brand-strong); font-size: var(--cy-font-label); font-weight: 700; }
+.cg-adv-options { margin-top: var(--cy-space-2); }
+/* 显形档 3D 模型上传:整行,上下多留一档间距(用户 9-23:间距大一点、左右对齐) */
+.cg-model { margin: var(--cy-space-3) 0; }
+.cg-model--done { position: relative; border-style: solid; }
+.cg-model-x {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  width: var(--cy-btn-h); height: var(--cy-btn-h);
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-outcome-fields { margin-top: var(--cy-space-2); padding: var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-bg-card); }
+.cg-outcome-contract { display:flex; flex-direction:column; gap:var(--cy-space-2); }
+.cg-outcome-row { display:flex; align-items:center; justify-content:space-between; gap:var(--cy-space-2); padding:var(--cy-space-2); border:1rpx solid var(--cy-border-line); border-radius:var(--cy-radius-md); }
+.cg-outcome-code { display:block; color:var(--cy-text-title); font-family:var(--cy-font-numeric); font-weight:700; }
+.cg-outcome-trigger { display:block; margin-top:4rpx; color:var(--cy-color-text-tertiary); font-size:var(--cy-type-micro); }
+.cg-outcome-label { color:var(--cy-text-secondary); font-size:var(--cy-font-label); }
+.cg-rw-line.compact { padding-top: var(--cy-space-2); }
+
+/* ============ 模块卡片 ============ */
+.cg-mod {
+  margin: var(--cy-space-3) var(--cy-space-4) 0;
+  --cy-comp-card-radius: var(--cy-radius-sm);
+  --cy-comp-card-pad: 0;
+  border-radius: var(--cy-radius-sm);
+  overflow: hidden;
+}
+
+.cg-mod-head {
+  display: flex; align-items: center; gap: var(--cy-space-2-5);
+  padding: var(--cy-space-3-5) var(--cy-space-4);
+/* 2026-08-20 用户点名删掉板块头下的分隔线(--cy-border-line 在本页快照里是浅灰) */
+}
+.cg-mod-head--blue {
+  background: linear-gradient(135deg, rgba(234,241,255,.55), rgba(243,247,255,.3));
+}
+.cg-mod-head--orange {
+  background: linear-gradient(135deg, rgba(255,241,234,.55), rgba(255,247,243,.3));
+}
+.cg-mod-ico {
+  width: 68rpx; height: 68rpx; border-radius: 20rpx; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-body); font-weight: 800; color: #fff;
+}
+.cg-mod-ico--blue { background: var(--cy-brand); }
+.cg-mod-ico--orange { background: var(--cy-color-status-warning); }
+.cg-mod-ico--purple { background: var(--cy-brand-soft); color: var(--cy-accent-strong); }
+.cg-mod-ico--green { background: var(--cy-bg-card-2); color: var(--cy-success); }
+.cg-mod-meta { flex: 1; min-width: 0; }
+.cg-mod-name {
+  font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title);
+  display: flex; align-items: center; gap: var(--cy-space-1-5);
+}
+.cg-mod-desc { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-4); }
+.cg-mod-del {
+  width: var(--cy-btn-h); height: var(--cy-btn-h); flex: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-mod-del__glyph {
+  width: 52rpx; height: 52rpx; border-radius: 50%;
+  background: var(--cy-bg-card-2); color: var(--cy-text-secondary);
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-body);
+}
+.cg-tag { font-size: var(--cy-font-caption); font-weight: 700; color: #fff; padding: var(--cy-legacy-4) var(--cy-space-1-5); border-radius: 10rpx; } /* ds-ok */
+.cg-tag--core { background: var(--cy-color-status-warning); }
+.cg-tag--rec { background: var(--cy-brand); }
+
+.cg-mod-body { padding: var(--cy-space-3-5) var(--cy-space-4) var(--cy-space-4); }
+.cg-mod-body.pad { padding: var(--cy-space-1-5) var(--cy-space-4) var(--cy-space-3-5); }
+
+/* —— 完成方式 tiles —— */
+.cg-tiles { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.cg-tile {
+  display: flex; align-items: center; gap: var(--cy-legacy-22);
+  padding: var(--cy-legacy-22) var(--cy-space-3);
+  border-radius: 28rpx;
+  border: 3rpx solid var(--cy-bg-card-2); background: var(--cy-bg-card);
+  transition: transform var(--cy-motion-press) var(--cy-ease-out), border-color var(--cy-motion-fast) var(--cy-ease-out), background var(--cy-motion-fast) var(--cy-ease-out);
+}
+.cg-tile--pressed { transform: scale(.98); }
+.cg-tile.on { border-color: var(--cy-brand); background: var(--cy-brand-soft); animation: cg-tile-select var(--cy-motion-standard) var(--cy-ease-spring) both; }
+.cg-tile-ico {
+  width: 76rpx; height: 76rpx; border-radius: 22rpx; flex: none;
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-title);
+  color: var(--cy-text-title);
+}
+.cg-tile-meta { flex: 1; min-width: 0; }
+.cg-tile-label { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.cg-tile-sub { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: 2rpx; } /* ds-ok: 2rpx 像素级微调 */
+.cg-radio {
+  width: 40rpx; height: 40rpx; border-radius: 50%; flex: none; box-sizing: border-box;
+  border: 4rpx solid var(--cy-border-line); background: var(--cy-bg-card-2);
+}
+.cg-radio.on { border: 12rpx solid var(--cy-brand); }
+
+/* —— 配置面板 —— */
+.cg-cfg {
+  margin-top: var(--cy-space-3-5);
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-pad: var(--cy-space-3-5);
+}
+.cg-cfg-label { font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-body); margin-bottom: var(--cy-legacy-14); }
+.cg-cfg-input { margin-bottom: 24rpx; }
+/* 输入框永远比它所在的面低一档:白卡上是灰底,灰色子卡(.cg-adv-repeat)上回到白底 */
+.cg-adv-repeat .cg-cfg-input,
+.cg-adv-repeat .cg-input,
+.cg-adv-repeat .cg-textarea,
+.cg-adv-repeat .cg-pick { background: var(--cy-bg-card); }
+.cg-cfg-input.flat { margin-bottom: 0; flex: 1; min-width: 0; }
+.cg-cfg-hint {
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-14);
+  line-height: 1.6;                      /* ds-ok 照原型 模板编辑页v2 的 .hint */
+}
+/* 段中间的提示(后面还跟着别的字段):补上与输入框同样的下间距,不然下一个标签贴着提示 */
+.cg-cfg-hint--gap { margin-bottom: var(--cy-space-3); }
+.cg-cfg-add {
+  min-height: var(--cy-btn-h); display: flex; align-items: center;
+  margin-top: var(--cy-space-2-5); font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-info);
+}
+/* 选项问答 */
+.cg-choice-list { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.cg-choice-li { display: flex; align-items: center; gap: var(--cy-legacy-18); }
+.cg-choice-radio {
+  width: var(--cy-btn-h); height: var(--cy-btn-h); flex: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-choice-radio__glyph {
+  width: 60rpx; height: 60rpx; border-radius: 18rpx; /* ds-ok: 保留原 30px 视觉圆钮，仅外层 owner 扩到 44px */
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-label); font-weight: 700;
+  background: var(--cy-bg-card-2); color: var(--cy-text-secondary);
+}
+.cg-choice-radio.on .cg-choice-radio__glyph { background: var(--cy-success); color: var(--cy-color-text-inverse); }
+.cg-choice-del {
+  width: var(--cy-btn-h); height: var(--cy-btn-h); flex: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-choice-del__glyph {
+  width: 44rpx; height: 44rpx; color: var(--cy-text-secondary); font-size: var(--cy-font-body);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* 选项媒体:挂在选项行下面一条,与选项文本框左对齐(缩进 = 圆圈宽 + gap) */
+.cg-choice-item { display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.cg-opt-media {
+  display: flex; align-items: center; gap: var(--cy-space-2);
+  padding-left: calc(60rpx + var(--cy-legacy-18));
+}
+.cg-opt-thumb-hit {
+  width: var(--cy-btn-h); height: var(--cy-btn-h); flex: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-opt-thumb { width: 72rpx; height: 72rpx; border-radius: var(--cy-radius-sm); }
+.cg-opt-chip {
+  min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center;
+}
+.cg-opt-chip__visual {
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2); color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+.cg-opt-chip.on .cg-opt-chip__visual { color: var(--cy-success); }
+.cg-opt-chip--clear { color: var(--cy-color-text-tertiary); }
+
+/* 题干附件:两个等宽格子,配了显示内容,没配是一个加号占位 */
+.cg-qmedia { display: flex; gap: var(--cy-space-2); }
+/* 只放一个槽时别撑满整行:下面的 flex:1 是给「配图 + 音频」两个槽并排设计的,
+ * 单槽套上去就是一整行 160rpx 高的灰块,压过它上下所有单行输入。 */
+.cg-qmedia--one .cg-qmedia-slot, .cg-qmedia--one .cg-qmedia-add { flex: 0 0 240rpx; }
+.cg-qmedia-slot, .cg-qmedia-add {
+  position: relative; flex: 1; min-width: 0; height: 160rpx;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--cy-space-1);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2); color: var(--cy-text-secondary);
+}
+.cg-qmedia-img { width: 100%; height: 100%; border-radius: var(--cy-radius-md); }
+.cg-qmedia-t { font-size: var(--cy-font-caption); }
+.cg-qmedia-x {
+  position: absolute; right: var(--cy-space-1); top: var(--cy-space-1);
+  width: var(--cy-btn-h); height: var(--cy-btn-h);
+}
+.cg-qmedia-x__glyph {
+  position: absolute; top: 0; right: 0;
+  width: 44rpx; height: 44rpx; border-radius: var(--cy-radius-pill);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-bg-card); color: var(--cy-text-secondary); font-size: var(--cy-font-caption);
+}
+
+/* 拍照审核开关行 / hint 开关行 */
+.cg-sw-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 24rpx;
+}
+.cg-sw-label { font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-body); }
+
+/* hint 区块 */
+.cg-hint-wrap {
+  margin-top: var(--cy-space-3-5);
+  border-top: 2rpx dashed var(--cy-border-line);
+  padding-top: var(--cy-space-3-5);
+}
+.cg-hint-head { display: flex; align-items: center; gap: var(--cy-space-2); }
+.cg-hint-emoji {
+  width: 40rpx; height: 40rpx; border-radius: 14rpx;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-brand-soft); color: var(--cy-color-brand-strong); /* 同上:软底上改用 -strong 档 */
+  font-size: var(--cy-font-caption); font-weight: 800;
+}
+.cg-hint-fields { margin-top: 24rpx; display: flex; flex-direction: column; }
+.cg-hint-fields .cg-cfg-input:last-child { margin-bottom: 0; }
+
+/* —— 奖励行 —— */
+.cg-rw-row { padding: var(--cy-space-3) 0; border-bottom: 1rpx solid var(--cy-border-card); }
+.cg-rw-row.last { border-bottom: none; }
+.cg-rw-line { display: flex; align-items: center; gap: var(--cy-legacy-22); }
+.cg-rw-ico {
+  width: var(--cy-legacy-72); height: var(--cy-legacy-72); border-radius: 20rpx; flex: none; /* ds-ok */
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-title);
+}
+.cg-rw-meta { flex: 1; min-width: 0; }
+.cg-rw-name { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.cg-rw-sub { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: 2rpx; } /* ds-ok: 2rpx 像素级微调 */
+.cg-rw-cfg {
+  margin-top: 24rpx;
+  --cy-comp-card-radius: var(--cy-radius-md);
+  --cy-comp-card-pad: var(--cy-space-3);
+  /* fill=backwards 同 .cg-scroll：both 常驻 transform 会裁掉卡片内 cy-reward-selector 的 fixed 弹层 */
+  animation: cg-reveal var(--cy-motion-standard) var(--cy-ease-out) backwards;
+}
+.cg-coupon-sel .ph { color: var(--cy-text-secondary); }
+
+/* 勋章 */
+.cg-medal { display: flex; gap: var(--cy-legacy-22); align-items: center; }
+.cg-medal-up {
+  width: 108rpx; height: 108rpx; border-radius: var(--cy-radius-md); flex: none;
+  background: var(--cy-bg-card-2); border: 3rpx dashed var(--cy-border-line); color: var(--cy-text-secondary);
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-display);
+  overflow: hidden;
+}
+.cg-medal-img { width: 100%; height: 100%; }
+.cg-medal-clear {
+  min-width: var(--cy-btn-h); min-height: var(--cy-btn-h); flex: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary);
+}
+.cg-medal-tip { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); margin-top: var(--cy-space-1-5); }
+
+/* —— 剧情节点 —— */
+.cg-beat {
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-pad: var(--cy-space-3);
+  margin-bottom: var(--cy-space-3);
+}
+.cg-beat-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--cy-legacy-18); }
+.cg-beat-tag { display: flex; align-items: center; gap: var(--cy-legacy-14); font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-secondary); }
+.cg-beat-no {
+  width: var(--cy-legacy-36); height: var(--cy-legacy-36); border-radius: 50%;
+  background: var(--cy-brand-soft); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-beat-del {
+  min-width: var(--cy-btn-h); min-height: var(--cy-btn-h);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary);
+}
+.cg-beat-text {
+  width: 100%; box-sizing: border-box;
+  border: 3rpx solid var(--cy-border-line); background: var(--cy-bg-card); border-radius: 22rpx;
+  padding: var(--cy-legacy-22) var(--cy-legacy-26); font-size: var(--cy-font-body); color: var(--cy-text-title);
+  height: 152rpx; margin-bottom: var(--cy-legacy-18);
+}
+.cg-beat-row { display: flex; gap: var(--cy-legacy-18); align-items: stretch; }
+.cg-beat-tagin {
+  flex: 1; min-width: 0; box-sizing: border-box;
+  border: 3rpx solid var(--cy-border-line); background: var(--cy-bg-card); border-radius: 22rpx;
+  padding: var(--cy-space-2-5) var(--cy-space-3); font-size: var(--cy-font-body); color: var(--cy-text-title);
+}
+.cg-beat-img.add { border: 3rpx dashed var(--cy-border-line); background: var(--cy-bg-card-2); color: var(--cy-text-secondary); font-size: var(--cy-font-title); }
+.cg-beat-img.has { position: relative; overflow: hidden; background: var(--cy-bg-card-2); }
+.cg-beat-add {
+  text-align: center;
+  border: 3rpx dashed var(--cy-border-line); border-radius: var(--cy-radius-md);
+  padding: var(--cy-space-3); color: var(--cy-text-secondary); font-size: var(--cy-font-body); font-weight: 600;
+}
+
+/* —— 语音 —— */
+.cg-audio {
+  --cy-comp-card-radius: var(--cy-radius-md);
+  --cy-comp-card-pad: var(--cy-space-3) var(--cy-space-3-5);
+}
+.cg-audio__inner { display: flex; align-items: center; gap: var(--cy-space-3); }
+.cg-audio-play {
+  width: var(--cy-btn-h); height: var(--cy-btn-h); border-radius: 50%; flex: none;
+  background: var(--cy-success); color: #fff; font-size: var(--cy-font-body);
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-audio-meta { flex: 1; min-width: 0; }
+.cg-audio-name { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.cg-audio-del {
+  min-width: var(--cy-btn-h); min-height: var(--cy-btn-h); flex: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary);
+}
+.cg-audio-empty {
+  width: 100%; height: 128rpx; box-sizing: border-box;
+  border-radius: var(--cy-radius-md); border: 3rpx dashed var(--cy-success); background: var(--cy-bg-card-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-success); font-size: var(--cy-font-body); font-weight: 600;
+}
+
+/* 空态 */
+.cg-empty {
+  margin: var(--cy-space-3) var(--cy-space-4) 0;
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-pad: var(--cy-space-5) var(--cy-space-3-5);
+  text-align: center;
+}
+/* 添加模块行 */
+.cg-addmod {
+  margin: var(--cy-space-3) var(--cy-space-4) 0;
+  background: var(--cy-bg-card); border: 3rpx dashed var(--cy-border-line);
+  border-radius: var(--cy-radius-lg); padding: var(--cy-space-3-5);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-info); font-size: var(--cy-font-body); font-weight: 700;
+  transition: transform var(--cy-motion-press) var(--cy-ease-out), background var(--cy-motion-fast) var(--cy-ease-out);
+}
+.cg-addmod--pressed { transform: scale(.985); background: var(--cy-bg-card-2); }
+
+/* ============ 编辑态底部栏 ============ */
+.cg-bottombar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  padding: var(--cy-space-3) var(--cy-space-4) calc(24rpx + env(safe-area-inset-bottom));
+  background: var(--cy-bg-card);
+  backdrop-filter: blur(60rpx) saturate(190%);
+  border-top: 1rpx solid var(--cy-border-card);
+  box-shadow: 0 -16rpx 60rpx rgba(31,70,140,.08);
+}
+
+.cg-load-state {
+  box-sizing: border-box;
+  min-height: 520rpx;
+  padding: var(--cy-space-5) var(--cy-page-x);
+}
+
+.cg-load-state__hint {
+  margin-top: var(--cy-space-3);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+  text-align: center;
+}
+
+/* 2026-09-18 UI-22:底栏是预览层 flex 列的最后一格,不再 fixed 盖在滚动区上 ——
+   原来摘要 + 按钮 ~440rpx 高,滚动区只垫了 400rpx,「开始任务」一类主键被压在摘要底下。
+   margin-top:auto 让玩法壳在场(没有滚动区)时它照样落在底部。 */
+.cg-pv-submit {
+  flex: none;
+  margin-top: auto;
+  position: relative;
+  z-index: 20;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--cy-color-bg-surface);
+}
+
+.cg-pv-submit .cg-pv-bottombar {
+  position: static;
+}
+
+.cg-pv-submit > cy-inline-error {
+  display: block;
+  padding: var(--cy-space-3) var(--cy-page-x) var(--cy-space-1);
+}
+.cg-publish-summary {
+  margin: var(--cy-space-2) var(--cy-page-x) 0;
+  padding: var(--cy-space-2) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+.cg-publish-summary__title { color: var(--cy-color-text-primary); font-size: var(--cy-type-label); font-weight: 700; }
+.cg-publish-summary__text,
+.cg-publish-summary__visibility { margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.cg-publish-summary__visibility { color: var(--cy-color-status-warning); }
+.cg-preview .cg-scroll-pad { height: var(--cy-space-6); }
+/* ============ 预览态(深色底) ============ */
+.cg-preview {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #000000, #162959);
+}
+/* 翻页条 + 步骤标签:滚动区之上的固定头,188rpx 是顶部安全区 + 返回键的预留高度 */
+.cg-pv-head { flex: none; padding-top: calc(env(safe-area-inset-top) + 188rpx); } /* ds-ok: 188rpx 是预览态顶部安全区+返回键预留高度 */
+.cg-pv-scroll { flex: 1; min-height: 0; box-sizing: border-box; }
+.cg-pv-pager {
+  position: relative; z-index: 3;
+  display: flex; align-items: center; justify-content: center; gap: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(16rpx);
+}
+.cg-pv-arrow {
+  width: var(--cy-btn-h); height: var(--cy-btn-h); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-display); color: #fff;
+  background: rgba(255,255,255,.12);
+}
+.cg-pv-arrow.disabled { color: rgba(255,255,255,.3); }
+.cg-pv-dots { display: flex; gap: var(--cy-space-1-5); }
+.cg-pv-dot { width: var(--cy-legacy-14); height: var(--cy-legacy-14); border-radius: 8rpx; background: rgba(255,255,255,.35); transition: width var(--cy-motion-standard) var(--cy-ease-out), background var(--cy-motion-fast) var(--cy-ease-out); } /* ds-ok */
+.cg-pv-dot.on { width: 40rpx; background: #fff; }
+
+.cg-pv-body { padding: var(--cy-space-2) var(--cy-legacy-36) 0; }
+.cg-pv-step { font-size: var(--cy-font-label); color: #8fa6d8; text-align: center; padding-bottom: var(--cy-space-3); } /* ds-ok */
+.cg-pv-panel { animation: cg-pv-panel-in var(--cy-motion-slow) var(--cy-ease-out) both; }
+
+/* 到达 */
+.cg-pv-cover {
+  width: 100%; height: 376rpx; border-radius: 40rpx; overflow: hidden;
+  position: relative; background: #33405f;
+  box-shadow: 0 16rpx 60rpx rgba(0,0,0,.3);
+}
+.cg-pv-cover-img { width: 100%; height: 100%; }
+/* 没配封面图:不再用一块压暗纱托一张不存在的图(灰块压标题),标题直接落在卡面上、贴底 */
+.cg-pv-cover--noimg { height: auto; min-height: 240rpx; display: flex; align-items: flex-end; } /* ds-ok: 无图封面的最小高 */
+.cg-pv-cover--noimg .cg-pv-cover-mask { position: static; flex: 1; background: none; }
+.cg-pv-cover-mask {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: var(--cy-space-4);
+  /* 2026-09-02 去墨蓝:原 rgba(10,18,38,.85) 是 #0A1226 的墨蓝纱。封面压字的纱本就有 DS 档
+     (--cy-comp-cover-scrim,底 .82 起手、55% 处 .28、到顶透明),直接读它,别再自调一条。
+     ⚠️ 本页是创建域,真正生效的是下面那条 .theme-topic-editor 覆写;改这条是为了组件在
+     别的域渲染时不落回墨蓝。 */
+  background: var(--cy-comp-cover-scrim);
+}
+.cg-pv-badge {
+  display: inline-block;
+  background: var(--cy-brand); color: #fff; /* ds-ok: 紫底白字徽章,#fff 是恒定前景色不随主题翻转 */
+  font-size: var(--cy-font-caption); font-weight: 600; padding: var(--cy-space-1) var(--cy-legacy-18); border-radius: var(--cy-radius-sm); margin-bottom: 16rpx;
+}
+.cg-pv-cover-tit { font-size: var(--cy-font-page-title); font-weight: 800; color: #fff; } /* ds-ok: hero 图遮罩上恒白字,预览态深色场景既有色 */
+.cg-pv-card {
+  margin-top: var(--cy-space-4);
+  --cy-comp-card-bg: rgba(255,255,255,.58); /* ds-ok: 深色玩法预览舞台上的既有玻璃卡,非页面主题卡 */
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-pad: var(--cy-space-4);
+}
+.cg-pv-desc { font-size: var(--cy-font-body); color: var(--cy-color-text-secondary); line-height: 1.6; }
+.cg-pv-meta { display: flex; gap: var(--cy-space-3-5); margin-top: var(--cy-space-3-5); padding-top: var(--cy-space-3-5); border-top: 1rpx solid #f0f2f6; } /* ds-ok */
+.cg-pv-meta-k { font-size: var(--cy-font-caption); color: #9aa4b2; }
+.cg-pv-meta-v { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-color-text-primary); margin-top: var(--cy-legacy-4); }
+
+/* 剧情时间流 */
+.cg-pv-beat { padding: var(--cy-space-6) var(--cy-space-1-5); }
+.cg-pv-beat-tag { display: flex; align-items: center; gap: var(--cy-space-2-5); font-size: var(--cy-font-caption); letter-spacing: 4rpx; color: #6b86c2; font-weight: 600; margin-bottom: var(--cy-space-3-5); } /* ds-ok */
+.cg-pv-beat-line { width: var(--cy-legacy-36); height: 2rpx; background: #3a4a73; } /* ds-ok */
+.cg-pv-beat-img { width: 100%; height: 340rpx; border-radius: 28rpx; margin-bottom: var(--cy-legacy-36); overflow: hidden; background: #222c47; } /* ds-ok */
+.cg-pv-beat-img-pic { width: 100%; height: 100%; }
+.cg-pv-beat-text { font-size: var(--cy-font-title); line-height: 1.95; color: #e8eefb; }
+
+/* 点位任务 */
+.cg-pv-ch-head { display: flex; align-items: center; gap: var(--cy-space-2); margin-bottom: var(--cy-space-3-5); }
+.cg-pv-ch-ico {
+  width: 60rpx; height: 60rpx; border-radius: 18rpx;
+  background: #eaf1ff; display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-body);
+}
+.cg-pv-ch-label { font-size: var(--cy-font-label); font-weight: 700; color: var(--cy-brand); }
+.cg-pv-ch-tit { font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-color-text-primary); line-height: 1.5; }
+.cg-pv-ch-body { margin-top: var(--cy-space-4); }
+.cg-pv-answer {
+  width: 100%; box-sizing: border-box;
+  border: 3rpx solid #e6eaf0; background: rgba(255,255,255,.45);
+  border-radius: var(--cy-radius-md); padding: var(--cy-legacy-26) var(--cy-space-3-5); font-size: var(--cy-font-body);
+}
+.cg-pv-answer.err { border-color: #f5455c; }
+.cg-pv-choices { display: flex; flex-direction: column; gap: var(--cy-space-2-5); }
+.cg-pv-choice {
+  border: 3rpx solid #e6eaf0; background: #fff; border-radius: var(--cy-radius-md);
+  padding: var(--cy-legacy-26) var(--cy-space-3-5); font-size: var(--cy-font-body); color: #2a3346; /* ds-ok */
+}
+.cg-pv-choice.on { border-color: var(--cy-brand); background: var(--cy-brand-soft); }
+.cg-pv-choice-l { font-weight: 700; color: var(--cy-brand); margin-right: 16rpx; }
+.cg-pv-photo {
+  height: 240rpx; border-radius: 28rpx; border: 3rpx dashed #cdd5e0;
+  background: rgba(255,255,255,.45);
+  display: flex; align-items: center; justify-content: center;
+  color: #9aa4b2; font-size: var(--cy-font-body); font-weight: 600;
+}
+.cg-pv-scan {
+  height: 240rpx; border-radius: 28rpx; background: rgba(255,255,255,.45);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-secondary); font-size: var(--cy-font-body); font-weight: 600;
+}
+.cg-pv-gps {
+  height: 240rpx; border-radius: 28rpx;
+  background: linear-gradient(135deg, rgba(234,241,255,.55), rgba(243,247,255,.3));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--cy-space-1-5);
+  color: var(--cy-brand); font-size: var(--cy-font-body); font-weight: 600;
+}
+.cg-pv-gps-ico { font-size: var(--cy-font-display-xl); }
+.cg-pv-none { color: #9aa4b2; font-size: var(--cy-font-body); }
+.cg-pv-wrong {
+  margin-top: 24rpx; background: #fff4f5; border: 1rpx solid #ffd4da; border-radius: 20rpx;
+  padding: var(--cy-space-2-5) var(--cy-legacy-26); font-size: var(--cy-font-label); color: #f5455c; /* ds-ok */
+}
+.cg-pv-usehint {
+  min-height: var(--cy-btn-h); margin-top: 24rpx;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; font-size: var(--cy-font-body); color: #ffd089; /* ds-ok: 深色沉浸预览舞台的既有提示色 */
+}
+.cg-pv-hint {
+  margin-top: var(--cy-space-2-5);
+  background: rgba(253,243,223,.16); border: 1rpx solid rgba(255,208,137,.4);
+  border-radius: var(--cy-radius-md); padding: var(--cy-space-3) var(--cy-space-3-5); font-size: var(--cy-font-body); color: #ffe1b0; /* ds-ok */
+}
+
+/* 完成 */
+.cg-pv-complete { text-align: center; padding-top: var(--cy-space-6); }
+.cg-pv-check {
+  width: 192rpx; height: 192rpx; border-radius: 50%;
+  background: #16a36a; color: #fff; font-size: 96rpx; /* ds-ok: 完成态大对勾装饰图标,远超字号量表是刻意的视觉焦点,非文字 */
+  display: flex; align-items: center; justify-content: center; margin: 0 auto;
+  box-shadow: 0 20rpx 60rpx rgba(22,163,106,.45);
+}
+.cg-pv-complete-t1 { font-size: var(--cy-font-page-title); font-weight: 800; color: #fff; margin-top: var(--cy-space-5); } /* ds-ok: 预览态深色完成页恒白字 */
+.cg-pv-complete-t2 { font-size: var(--cy-font-body); color: #9fb3dd; margin-top: 16rpx; }
+
+/* 奖励 */
+.cg-pv-reward-tit { text-align: center; font-size: var(--cy-font-display); font-weight: 800; color: #fff; margin: var(--cy-space-1-5) 0 var(--cy-legacy-36); } /* ds-ok */
+.cg-pv-coupon { --cy-comp-card-bg: var(--cy-color-bg-surface); --cy-comp-card-radius: var(--cy-radius-lg); --cy-comp-card-pad: 0; overflow: hidden; margin-bottom: var(--cy-space-3); }
+.cg-pv-coupon__inner { display: flex; }
+.cg-pv-coupon-l { width: 180rpx; background: linear-gradient(135deg, var(--cy-brand), var(--cy-accent-strong)); display: flex; align-items: center; justify-content: center; font-size: var(--cy-type-data-xl); }
+.cg-pv-coupon-r { flex: 1; padding: var(--cy-space-3-5) var(--cy-space-4); }
+.cg-pv-coupon-name { font-size: var(--cy-font-subtitle); font-weight: 800; color: var(--cy-color-text-primary); }
+.cg-pv-coupon-sub { font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary); margin-top: var(--cy-space-1); }
+.cg-pv-medal { --cy-comp-card-bg: var(--cy-color-bg-surface); --cy-comp-card-radius: var(--cy-radius-lg); --cy-comp-card-pad: var(--cy-space-4); text-align: center; margin-bottom: var(--cy-space-3); }
+.cg-pv-medal-ico {
+  width: 144rpx; height: 144rpx; border-radius: 50%; overflow: hidden;
+  background: linear-gradient(135deg, #ffd86b, #ffb74d);
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-type-data-xl); margin: 0 auto;
+  box-shadow: 0 8rpx 28rpx rgba(255,183,77,.4);
+}
+.cg-pv-medal-img { width: 100%; height: 100%; }
+.cg-pv-medal-name { font-size: var(--cy-font-subtitle); font-weight: 800; color: var(--cy-color-text-primary); margin-top: 24rpx; }
+.cg-pv-medal-sub { font-size: var(--cy-font-label); color: #9aa4b2; margin-top: var(--cy-legacy-6); } /* ds-ok */
+.cg-pv-rwtext {
+  --cy-comp-card-bg: var(--cy-color-state-pressed);
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-pad: var(--cy-space-4);
+  text-align: center;
+  font-size: var(--cy-font-body); color: #e8eefb; line-height: 1.6;
+}
+.cg-pv-norw {
+  --cy-comp-card-bg: rgba(255,255,255,.08); /* ds-ok: 深色玩法预览舞台的低强调空态,无对应 8% overlay token */
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-pad: var(--cy-space-5);
+  text-align: center; color: #9fb3dd; font-size: var(--cy-font-body); /* ds-ok: 预览态深色场景既有次要文字色 */
+}
+
+@keyframes cg-pv-panel-in {
+  0% { opacity: 0; transform: translateY(20rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes cg-tile-select {
+  0% { transform: scale(.98); }
+  70% { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
+@keyframes cg-reveal {
+  0% { opacity: 0; transform: translateY(-12rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* 预览态底部栏 */
+.cg-pv-bottombar {
+  display: flex; gap: var(--cy-space-2-5); z-index: 6;
+  padding: var(--cy-space-3) var(--cy-space-4) calc(24rpx + env(safe-area-inset-bottom));
+  background: rgba(255,255,255,.6);
+  backdrop-filter: blur(60rpx) saturate(190%);
+  border-top: 1rpx solid rgba(255,255,255,.55);
+}
+/* ============ 通用遮罩 / sheet ============ */
+.cg-mask { position: fixed; inset: 0; z-index: 95; background: rgba(15,25,45,.26); }
+.cg-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 96;
+  background: var(--cy-bg-card);
+  backdrop-filter: blur(80rpx) saturate(200%);
+  border-radius: var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0; border-top: 1rpx solid var(--cy-border-card);
+  padding: var(--cy-space-4) var(--cy-space-4) calc(var(--cy-space-4) + env(safe-area-inset-bottom));
+  max-height: 78vh; overflow-y: auto;
+}
+.cg-sheet.picker { padding-left: 0; padding-right: 0; }
+.cg-sheet-bar { width: 76rpx; height: 8rpx; border-radius: 4rpx; background: var(--cy-border-line); margin: 0 auto var(--cy-space-3-5); } /* ds-ok */
+.cg-sheet-tit { font-size: var(--cy-font-title); font-weight: 800; color: var(--cy-text-title); margin-bottom: var(--cy-legacy-6); }
+.cg-sheet-tit.center { text-align: center; font-size: var(--cy-font-subtitle); font-weight: 700; margin-bottom: 16rpx; }
+.cg-sheet-sub { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-bottom: var(--cy-space-3-5); }
+.cg-sheet-list { display: flex; flex-direction: column; gap: var(--cy-space-2-5); }
+.cg-sheet-card {
+  display: flex; align-items: center; gap: var(--cy-legacy-26);
+  padding: var(--cy-space-3-5);
+  border-radius: var(--cy-radius-lg); background: var(--cy-bg-card); border: 1rpx solid var(--cy-border-card);
+  transition: transform var(--cy-motion-press) var(--cy-ease-out);
+}
+.cg-sheet-card--pressed { transform: scale(.985); }
+
+.cg--reduced-motion .cg-scroll,
+.cg--reduced-motion .cg-tile.on,
+.cg--reduced-motion .cg-rw-cfg,
+.cg--reduced-motion .cg-pv-panel { animation: none !important; }
+.cg--reduced-motion .cg-tile,
+.cg--reduced-motion .cg-addmod,
+.cg--reduced-motion .cg-pv-dot,
+.cg--reduced-motion .cg-sheet-card { transition: none !important; }
+.cg-sheet-ico {
+  width: 88rpx; height: 88rpx; border-radius: var(--cy-radius-md); flex: none;
+  display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-display);
+}
+.cg-sheet-meta { flex: 1; min-width: 0; }
+.cg-sheet-name { font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); display: flex; align-items: center; gap: var(--cy-space-1-5); }
+.cg-sheet-desc { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-6); }
+.cg-sheet-plus { font-size: var(--cy-font-page-title); color: var(--cy-text-secondary); }
+.cg-sheet-allin { text-align: center; color: var(--cy-text-secondary); font-size: var(--cy-font-body); padding: var(--cy-space-5) 0; }
+
+/* picker 列表 */
+.cg-picker-list { }
+.cg-picker-li {
+  padding: var(--cy-space-4) var(--cy-space-5); font-size: var(--cy-font-subtitle); color: var(--cy-text-title);
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1rpx solid var(--cy-border-card);
+}
+.cg-picker-li.on { color: var(--cy-brand); font-weight: 600; }
+.cg-picker-tick { color: var(--cy-brand); font-weight: 700; }
+
+.cg-coupon-pop.show { transform: translateY(0); }
+.cg-coupon-search image { width: var(--cy-space-3-5); height: var(--cy-space-3-5); }
+.cg-coupon-search input { flex: 1; height: 76rpx; font-size: var(--cy-font-label); }
+.cg-coupon-card.sel { border-color: var(--cy-brand); background: var(--cy-brand-soft); }
+.cg-coupon-card-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: var(--cy-legacy-18); border-bottom: 2rpx dashed var(--cy-border-line);
+}
+.cg-coupon-card-tit { font-size: var(--cy-font-body); font-weight: bold; color: var(--cy-text-title); }
+.cg-coupon-card-time { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cg-coupon-card-body { display: flex; align-items: center; justify-content: space-between; margin-top: var(--cy-space-2-5); }
+.cg-coupon-card-l { flex: 1; min-width: 0; margin-right: var(--cy-space-2-5); }
+.cg-coupon-card-name { font-size: var(--cy-font-body); font-weight: bold; color: var(--cy-text-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cg-coupon-card-desc { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-space-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cg-coupon-card-r { width: 160rpx; flex: none; text-align: center; }
+.cg-coupon-card-type { font-size: var(--cy-font-label); color: var(--cy-text-body); margin-bottom: var(--cy-space-1-5); }
+/* 主题创建域（含玩家视角预览）：浅底白卡 + 稿的彩色强调，见 style/tokens.wxss 同名块。 */
+.theme-topic-editor {
+  /* 这页仍有历史 alias 用法；显式桥接到本页语义主题，避免从 page{} 继承暗色值。
+   * ★实测发现桥接到 --cy-color-* 的间接引用未生效(卡片/输入框仍渲染成 page{} 暗色默认值),
+   * 这里对表面/文本/描边 token 补一层本页字面值兜底,不再依赖跨文件 var() 链条。
+   * ⚠️ 这是快照,值必须与 style/tokens.wxss 的 .theme-topic-editor 逐字同步,
+   *    否则本页会停在旧配色而全站其它创建页已换 —— 契约测试逐条比对两边。 */
+  --cy-color-bg-page: #F3F4F4; /* ds-ok: 真值层兜底,与 style/tokens.wxss 的 .theme-topic-editor 同值,非装饰硬编码 */
+  --cy-color-bg-surface: #FFFFFF; /* ds-ok: 同上 */
+  --cy-color-bg-surface-subtle: #EEEEEE; /* ds-ok: 同上 */
+  --cy-color-text-primary: #000000; /* ds-ok: 同上 */
+  --cy-color-text-secondary: #404040; /* ds-ok: 同上 */
+  --cy-color-text-tertiary: #6B6B6B; /* ds-ok: 同上 */
+  --cy-color-border-subtle:     #E8E8E8; /* ds-ok: 同上 */
+  --cy-color-border-strong:     #DBDBDB; /* ds-ok: 同上 */
+  /* PR #539 迁移后的 isolated cy-card 不能沿用暗色 page{} 中已求值的组件钩子。 */
+  --cy-comp-card-bg: var(--cy-color-bg-surface);
+  --cy-color-brand: #33363C; /* ds-ok: 同上 */
+  --cy-color-brand-strong: #000000; /* ds-ok: 同上 */
+  --cy-color-brand-soft: #EAEBEE; /* ds-ok: 同上 */
+  --cy-color-status-danger: #D2263C; /* ds-ok: 同上 */
+  --cy-color-status-danger-soft: #FFF4F5; /* ds-ok: 同上 */
+  --cy-color-status-info: #2F6DF0; /* ds-ok: 同上 */
+  --cy-color-status-success: #0C7A50; /* ds-ok: 同上 */
+  --cy-color-status-warning: #B85C10; /* ds-ok: 同上 */
+  --cy-bg-page: var(--cy-color-bg-page);
+  --cy-bg-card: var(--cy-color-bg-surface);
+  --cy-bg-card-2: var(--cy-color-bg-surface-subtle);
+  --cy-border-card: var(--cy-color-border-subtle);
+  --cy-border-line: var(--cy-color-border-strong);
+  --cy-brand: var(--cy-color-brand);
+  --cy-brand-soft: var(--cy-color-brand-soft);
+  --cy-accent-strong: var(--cy-color-brand-strong);
+  --cy-danger: var(--cy-color-status-danger);
+  --cy-danger-soft: var(--cy-color-status-danger-soft);
+  --cy-info: var(--cy-color-status-info);
+  --cy-success: var(--cy-color-status-success);
+  --cy-text-title: var(--cy-color-text-primary);
+  --cy-text-body: var(--cy-color-text-secondary);
+  --cy-text-secondary: var(--cy-color-text-tertiary);
+}
+
+.theme-topic-editor.cg,
+.theme-topic-editor .cg-scroll {
+  background: var(--cy-color-bg-page);
+}
+
+.theme-topic-editor .cg-topbar,
+.theme-topic-editor .cg-bottombar,
+.theme-topic-editor .cg-sheet {
+  background: var(--cy-color-bg-surface);
+  border-color: var(--cy-color-border-subtle);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+/* ★实测发现:.cg-input/.cg-textarea/.cg-pick 只吃 --cy-bg-card 别名桥接,
+ * 在这页没有像上面 .cg-card 一样直读 --cy-color-* 真值,渲染成 page{} 暗色默认值
+ * (黑底黑字看不清)。同上面的写法,直接读真值,不吃别名桥接。 */
+.theme-topic-editor .cg-input,
+.theme-topic-editor .cg-textarea,
+.theme-topic-editor .cg-pick {
+  background: var(--cy-color-bg-surface-subtle);
+  border-color: var(--cy-color-border-subtle);
+  color: var(--cy-color-text-primary);
+}
+/* 同「字段比所在的面低一档」那条:落在灰色子卡里的字段反过来用白底 */
+.theme-topic-editor .cg-adv-repeat .cg-input,
+.theme-topic-editor .cg-adv-repeat .cg-textarea,
+.theme-topic-editor .cg-adv-repeat .cg-pick,
+.theme-topic-editor .cg-adv-repeat .cg-cfg-input {
+  background: var(--cy-color-bg-surface);
+}
+.theme-topic-editor .cg-pick.empty { color: var(--cy-color-text-tertiary); }
+
+.theme-topic-editor .cg-sheet {
+  border-radius: var(--cy-radius-sm);
+}
+
+/* 2026-08-09:模块头渐变与四色模块图标的压平覆盖已删除 —— 基础规则里稿的
+ * 蓝/橙渐变头、蓝/橙/紫软底/绿图标本来就在,压平后四个模块长得一模一样,
+ * 「完成方式 / 奖励 / 故事 / 音频」失去了靠颜色区分的能力。
+ * ⚠️ --purple 会落到 brand-soft(浅蓝)而不是稿的 #7A6FB0:去紫相是另一条仍生效的拍板。 */
+
+.theme-topic-editor .cg-sheet-ico,
+.theme-topic-editor .cg-rw-ico,
+.theme-topic-editor .cg-cover-ico {
+  background: var(--cy-color-bg-surface-subtle) !important;
+  color: var(--cy-color-text-primary);
+}
+
+/* tile 的图标底与选中底照稿(docs/design/城市解谜游戏创建.dc.html):
+   图标底是浅蓝 #EAF1FF、选中底 #EEF3FF + 蓝边,不是灰。压成灰之后整张卡只剩一个灰度,
+   选没选中要盯着右边那个点才看得出来。稿里每种方式各有一个色相,这里按去色拍板统一收到蓝。 */
+.theme-topic-editor .cg-tile-ico {
+  background: var(--cy-color-status-info-soft) !important;
+  color: var(--cy-color-status-info-strong);
+}
+
+.theme-topic-editor .cg-tile.on,
+.theme-topic-editor .cg-coupon-card.sel {
+  background: var(--cy-color-brand-soft);
+  border-color: var(--cy-color-selection);
+  color: var(--cy-color-text-primary);
+}
+
+.theme-topic-editor .cg-radio.on { border-color: var(--cy-color-selection); }
+
+/* 2026-09-11 换稿:真源从旧的「城市解谜游戏创建.dc.html」(蓝色玻璃)换成
+   原型「模板编辑页 v2」(黑白灰,主色 #0F0F12)。页面上原先走主蓝的那几处
+   —— 章节竖条、添加模块、配置里的「添加一项」、选择器选中项 —— 一律收到黑。 */
+.theme-topic-editor .cg-bar,
+.theme-topic-editor .cg-tag--core,
+.theme-topic-editor .cg-tag--rec {
+  box-shadow: none;
+}
+.theme-topic-editor .cg-bar { background: var(--cy-color-action-primary-bg); }
+
+.theme-topic-editor .cg-cfg-add,
+.theme-topic-editor .cg-addmod {
+  color: var(--cy-color-text-secondary);
+}
+.theme-topic-editor .cg-picker-li.on,
+.theme-topic-editor .cg-picker-tick {
+  color: var(--cy-color-action-primary-bg);
+}
+
+.theme-topic-editor .cg-mask { background: var(--cy-color-overlay); }
+
+.theme-topic-editor .cg-preview,
+.theme-topic-editor .cg-pv-pager,
+.theme-topic-editor .cg-pv-bottombar {
+  background: var(--cy-color-bg-page);
+  border-color: var(--cy-color-border-subtle);
+  backdrop-filter: none;
+}
+
+.theme-topic-editor .cg-pv-arrow,
+.theme-topic-editor .cg-pv-choice,
+.theme-topic-editor .cg-pv-answer,
+.theme-topic-editor .cg-pv-photo,
+.theme-topic-editor .cg-pv-scan,
+.theme-topic-editor .cg-pv-gps,
+.theme-topic-editor .cg-pv-wrong,
+.theme-topic-editor .cg-pv-hint {
+  background: var(--cy-color-bg-surface);
+  border-color: var(--cy-color-border-subtle);
+  color: var(--cy-color-text-primary);
+  box-shadow: none;
+}
+
+.theme-topic-editor .cg-pv-card,
+.theme-topic-editor .cg-pv-coupon,
+.theme-topic-editor .cg-pv-medal,
+.theme-topic-editor .cg-pv-rwtext,
+.theme-topic-editor .cg-pv-norw {
+  color: var(--cy-color-text-primary);
+}
+
+.theme-topic-editor .cg-pv-arrow,
+.theme-topic-editor .cg-pv-choice,
+.theme-topic-editor .cg-pv-answer,
+.theme-topic-editor .cg-pv-photo,
+.theme-topic-editor .cg-pv-scan,
+.theme-topic-editor .cg-pv-gps,
+.theme-topic-editor .cg-pv-wrong,
+.theme-topic-editor .cg-pv-hint {
+  border-style: solid;
+}
+
+.theme-topic-editor .cg-pv-dot,
+.theme-topic-editor .cg-pv-beat-line,
+.theme-topic-editor .cg-pv-cover {
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.theme-topic-editor .cg-pv-dot.on,
+.theme-topic-editor .cg-pv-check,
+.theme-topic-editor .cg-pv-coupon-l,
+.theme-topic-editor .cg-pv-medal-ico,
+.theme-topic-editor .cg-pv-badge {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  box-shadow: none;
+}
+
+.theme-topic-editor .cg-pv-cover-mask {
+  background: var(--cy-color-overlay);
+}
+.theme-topic-editor .cg-pv-cover--noimg .cg-pv-cover-mask { background: none; }
+/* 有封面图时标题压在暗纱上:必须反白,跟随上面那条 text-primary 会变成黑字压灰纱 */
+.theme-topic-editor .cg-pv-cover--img .cg-pv-cover-tit { color: var(--cy-color-text-inverse); }
+
+.theme-topic-editor .cg-pv-step,
+.theme-topic-editor .cg-pv-beat-tag,
+.theme-topic-editor .cg-pv-meta-k,
+.theme-topic-editor .cg-pv-none,
+.theme-topic-editor .cg-pv-complete-t2,
+.theme-topic-editor .cg-pv-coupon-sub,
+.theme-topic-editor .cg-pv-medal-sub,
+.theme-topic-editor .cg-pv-usehint {
+  color: var(--cy-color-text-tertiary);
+}
+
+.theme-topic-editor .cg-pv-cover-tit,
+.theme-topic-editor .cg-pv-complete-t1,
+.theme-topic-editor .cg-pv-reward-tit,
+.theme-topic-editor .cg-pv-desc,
+.theme-topic-editor .cg-pv-meta-v,
+.theme-topic-editor .cg-pv-ch-tit,
+.theme-topic-editor .cg-pv-choice,
+.theme-topic-editor .cg-pv-coupon-name,
+.theme-topic-editor .cg-pv-medal-name,
+.theme-topic-editor .cg-pv-rwtext,
+.theme-topic-editor .cg-pv-norw,
+.theme-topic-editor .cg-pv-beat-text {
+  color: var(--cy-color-text-primary);
+}
+
+.theme-topic-editor .cg-pv-ch-ico,
+.theme-topic-editor .cg-pv-choice.on {
+  background: var(--cy-color-bg-surface-subtle);
+  border-color: var(--cy-color-selection);
+}
+
+.theme-topic-editor .cg-pv-ch-label,
+.theme-topic-editor .cg-pv-choice-l {
+  color: var(--cy-color-selection);
+}
+
+.cg-pref-json{ min-height:360rpx; font-family:var(--cy-font-numeric); font-size:var(--cy-type-caption); line-height:1.55; }
+.cg-pref-branch{ margin-top:var(--cy-space-2); padding:var(--cy-space-3); border:1rpx solid var(--cy-border-line); border-radius:var(--cy-radius-md); background:var(--cy-color-bg-page); }
+.cg-pref-branch__code{ color:var(--cy-color-text-tertiary); font-size:var(--cy-type-micro); font-family:var(--cy-font-numeric); letter-spacing:2rpx; }
+.cg-pref-branch__title{ margin-top:var(--cy-space-1); color:var(--cy-color-text-primary); font-size:var(--cy-type-body); font-weight:700; }
+.cg-pref-branch__body,.cg-pref-branch__next{ margin-top:var(--cy-space-1); color:var(--cy-color-text-secondary); font-size:var(--cy-type-caption); line-height:1.5; }
+.cg-pv-pref{ display:flex; flex-direction:column; gap:var(--cy-space-2); }
+.cg-pv-pref__branch{ display:flex; justify-content:space-between; gap:var(--cy-space-2); padding:var(--cy-space-2-5); border:1rpx solid var(--cy-border-line); border-radius:var(--cy-radius-md); color:var(--cy-text-body); }
+
+/* 猜图的「设为正确答案」:与选项问答那一行同一套读法(圆圈 + 一句话),
+   只是它挂在每张图下面,所以要一条上间距把它和图片地址分开。 */
+.cg-adv-correct { margin-top: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+/* 勾选态用微信原生 icon(success / circle),不自己拿 CSS 画圆和勾 */
+
+/* 每段玩法开关打开后的配置体:和开关那一行之间留一档,二十段统一,别各留各的 */
+.cg-adv-body { margin-top: var(--cy-space-3); }
+
+/* 问答的「怎么答」与扫码的「回什么」:三选一,复用「完成方式」那组 tile(.cg-tiles/.cg-tile) */
+.cg-qa-modes { margin-bottom: var(--cy-space-3); }
+
+/* ===== 玩法模块:选一个玩法 =====
+   照原型「模板编辑页 v2」(scratchpad/editor.html):空槽是虚线框,选中是一张描黑边的卡,
+   下面接这个玩法自己的配置面板。原型的主色是黑,本域 CTA 也已拍板纯黑,两边同一支。 */
+/* 下面这一组尺寸/颜色是在浏览器里量原型(editor.html)得到的,换算 1px = 2rpx:
+   空槽 1px dashed #D6D6DC · r14 · padding 22 · 底 #F6F6F8;
+   已选卡 1px #0F0F12 再加一圈同色 ring(合起来 2px 的黑边);
+   配置面板 #F6F6F8 + 1px #E7E7EB · r12 · padding 14;
+   sheet 两颗按钮 padding 6/13 · 12.5px · 高 33。 */
+.cg-gpick-empty {
+  border: 2rpx dashed var(--cy-color-border-subtle); border-radius: 28rpx;  /* ds-ok 照原型量的圆角(14px / 11px) */
+  padding: 44rpx var(--cy-space-3); text-align: center; /* ds-ok: 照原型 22px */
+  background: var(--cy-color-bg-page);
+}
+.cg-gpick-empty__t1 {
+  display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1);
+  font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-color-text-secondary);
+}
+.cg-gpick-empty__t2 { font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary); margin-top: var(--cy-space-1); }
+
+.cg-gpick {
+  display: flex; align-items: center; gap: var(--cy-space-2-5);
+  padding: var(--cy-space-2-5); border-radius: 28rpx;  /* ds-ok 照原型量的圆角(14px / 11px) */
+  border: 2rpx solid var(--cy-color-action-primary-bg); background: var(--cy-color-bg-surface);
+  /* 原型是 1px 描边再套一圈 1px 同色 ring —— 只画一条的话这张卡在白卡上压不住 */
+  box-shadow: 0 0 0 2rpx var(--cy-color-action-primary-bg);
+}
+.cg-gpick__ico {
+  width: 72rpx; height: 72rpx; border-radius: 22rpx; flex: none;  /* ds-ok 照原型量的圆角(11px) */
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+}
+.cg-gpick__meta { flex: 1; min-width: 0; }
+.cg-gpick__label {
+  font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-color-text-primary);
+  display: flex; align-items: center; gap: var(--cy-space-1);
+}
+.cg-gpick__sub { font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary); margin-top: 2rpx; } /* ds-ok: 2rpx 像素级微调 */
+.cg-gpick__swap {
+  flex: none; min-height: 62rpx; display: flex; align-items: center;
+  padding: 0 var(--cy-space-2-5); border-radius: var(--cy-radius-pill);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  font-size: var(--cy-font-caption); color: var(--cy-color-text-secondary);
+}
+.cg-tag--topic { background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-secondary); }
+
+/* 选中玩法的配置面板 */
+.cg-gcfg {
+  margin-top: var(--cy-space-3); padding: 28rpx; /* ds-ok: 照原型 14px */
+  border: 1rpx solid var(--cy-color-border-subtle); border-radius: 24rpx;  /* ds-ok 照原型量的圆角(12px) */
+  background: var(--cy-color-bg-page);
+}
+.cg-gcfg .cg-input, .cg-gcfg .cg-textarea,
+.cg-gcfg .cg-cfg-input, .cg-gcfg .cg-cfg-textarea { background: var(--cy-color-bg-surface); }
+
+/* 所有玩法与高级修饰共用字段节奏；重复项用 gap，避免叠加输入框的下外边距。 */
+.cg-gcfg > .cg-adv-body { margin-top: 0; }
+.cg-gcfg .cg-pick { background: var(--cy-color-bg-surface); padding: 0 var(--cy-legacy-26); }
+.cg-gcfg cy-dropdown, .cg-advanced cy-dropdown { display: block; margin-bottom: var(--cy-space-3); }
+.cg-gcfg .cg-cfg-textarea, .cg-advanced .cg-cfg-textarea { margin-bottom: var(--cy-space-3); }
+.cg-adv-grid { margin-bottom: var(--cy-space-3); align-items: stretch; }
+.cg-adv-grid > view { display: flex; flex-direction: column; min-width: 0; }
+.cg-adv-grid > view > .cg-cfg-label { flex: 1; }
+.cg-adv-grid .cg-cfg-input, .cg-adv-grid cy-dropdown,
+.cg-adv-repeat > .cg-cfg-input, .cg-adv-repeat > .cg-cfg-textarea,
+.cg-adv-repeat cy-dropdown, .cg-adv-repeat > .cg-cfg-label { margin-bottom: 0; }
+.cg-adv-grid .cg-adv-add { margin-top: 0; box-sizing: border-box; }
+.cg-adv-repeat .cg-adv-repeat { border: 1rpx solid var(--cy-color-border-subtle); }
+.cg-gcfg .cg-cfg-hint { margin-bottom: var(--cy-space-3); }
+.cg-gcfg > .cg-cfg-hint:last-child,
+.cg-gcfg > .cg-adv-body > .cg-cfg-hint:last-child { margin-bottom: 0; }
+.cg-gcfg .cg-rw-line, .cg-gcfg .cg-sw-row {
+  min-height: var(--cy-btn-h); justify-content: space-between;
+  padding: var(--cy-space-2) 0; margin: 0 0 var(--cy-space-2);
+  gap: var(--cy-space-3); box-sizing: border-box;
+}
+.cg-gcfg .cg-rw-name, .cg-gcfg .cg-sw-label {
+  flex: 1; min-width: 0; font-size: var(--cy-font-label);
+  font-weight: 600; color: var(--cy-text-body);
+}
+.cg-gcfg cy-switch, .cg-advanced cy-switch { flex: none; }
+.cg-adv-correct { min-height: var(--cy-btn-h); font-size: var(--cy-font-label); }
+
+/* ===== 选择玩法 sheet ===== */
+.cg-gsheet { display: flex; flex-direction: column; max-height: 80vh; }
+.cg-gsheet-head { border-bottom: 1rpx solid var(--cy-color-border-subtle); padding-bottom: var(--cy-space-2); }
+.cg-gsheet-titrow { display: flex; align-items: flex-start; gap: var(--cy-space-2-5); }
+.cg-gsheet-titbox { flex: 1; min-width: 0; }
+.cg-gsheet-x {
+  flex: none; width: 88rpx; height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-secondary); /* ✕纯字形无圆底(2026-09-18 终裁) */
+}
+.cg-gsheet-scroll { flex: 1; min-height: 0; }
+.cg-gsheet-group {
+  font-size: var(--cy-font-caption); font-weight: 700; letter-spacing: 2rpx; /* ds-ok: 字距微调 */
+  color: var(--cy-color-text-tertiary); margin: var(--cy-space-3) 0 var(--cy-space-1);
+}
+.cg-gsheet-card {
+  display: flex; align-items: center; gap: var(--cy-space-2-5);
+  padding: var(--cy-space-2) var(--cy-space-1-5); border-radius: 24rpx; margin-top: 4rpx; /* ds-ok */
+}
+.cg-gsheet-card.cur { background: var(--cy-color-bg-surface-subtle); }
+.cg-gsheet-ico {
+  width: 72rpx; height: 72rpx; border-radius: 22rpx; flex: none;  /* ds-ok 照原型量的圆角(11px) */
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-secondary);
+}
+.cg-gsheet-card.cur .cg-gsheet-ico {
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+}
+.cg-gsheet-meta { flex: 1; min-width: 0; }
+.cg-gsheet-name {
+  font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-color-text-primary);
+  display: flex; align-items: center; gap: var(--cy-space-1);
+}
+.cg-gsheet-sub { font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary); margin-top: 2rpx; } /* ds-ok: 2rpx 像素级微调 */
+.cg-gsheet-btns { display: flex; gap: var(--cy-space-1-5); flex: none; }
+.cg-gsheet-btn {
+  min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center;
+  padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-label); font-weight: 600; white-space: nowrap;
+}
+.cg-gsheet-btn.ghost {
+  border: 1rpx solid var(--cy-color-border-subtle);
+  color: var(--cy-color-text-secondary); background: var(--cy-color-bg-surface);
+}
+.cg-gsheet-btn.solid {
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+}
+
+/* 核心模块(玩法)的头:原型里图标底和「核心」标签都是纯黑,不是蓝/橙 */
+.theme-topic-editor .cg-mod--blue .cg-mod-ico--blue {
+  background: var(--cy-color-action-primary-bg) !important;
+  color: var(--cy-color-action-primary-fg) !important;
+}
+.theme-topic-editor .cg-tag--core {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+}
+/* sheet 里那两颗按钮照原型:小一号的胶囊(原型 6px/13px · 12.5px 字),
+   不是和输入框一样高的大圆钮。行高 56rpx,点击区靠整行,不靠按钮本身撑到 88rpx。 */
+.cg-gsheet-btn {
+  min-height: 66rpx; padding: 0 26rpx; min-width: 0; /* ds-ok: 照原型 6/13px */
+  font-size: var(--cy-font-caption);
+}
+
+/* 模块头照原型是白的。原来那两条淡蓝/淡橙渐变,叠在白卡上整块读成偏蓝。 */
+.theme-topic-editor .cg-mod-head--blue,
+.theme-topic-editor .cg-mod-head--orange { background: none; }
+
+/* 玩法屏是深色的,它上面那条(安全区 + 翻页器)不能是白的 ——
+   一白一黑两截读成「游戏卡在一个白框里」。玩法在场时整屏收到玩法域的底色。 */
+.theme-topic-editor .cg-preview--kit,
+.theme-topic-editor .cg-preview--kit .cg-pv-pager,
+.theme-topic-editor .cg-preview--kit .cg-pv-bottombar {
+  background: var(--cy-color-play-surface-base);
+  border-color: transparent;
+}
+.cg-preview--kit .cg-pv-step,
+.cg-preview--kit .cg-pv-arrow { color: var(--cy-color-text-inverse); }
+.cg-preview--kit .cg-pv-dot { background: rgba(255,255,255,.28); } /* ds-ok: 深底上的弱点,无对应 token */
+.cg-preview--kit .cg-pv-dot.on { background: var(--cy-color-text-inverse); }
+/* 玩法屏自己有安全区,外面那 188rpx 的留白会把它整块往下推 */
+.cg-preview--kit .cg-pv-scroll { padding-top: env(safe-area-inset-top); }
+
+/* 玩法在场时的翻页条:浮在玩法屏上方靠底,别占玩法自己的版面。
+   玩法屏的主按钮在离底 26px 的位置(原型实测),所以这条再往上让一截。 */
+.cg-pv-float {
+  position: absolute; left: 0; right: 0; z-index: 5;
+  bottom: calc(env(safe-area-inset-bottom) + 200rpx);
+  display: flex; align-items: center; justify-content: center; gap: var(--cy-space-3);
+  pointer-events: none;
+}
+.cg-pv-float .cg-pv-arrow, .cg-pv-float .cg-pv-dots { pointer-events: auto; }
+
+/* ===== 找东西:在图上点出目标 ===== */
+.cg-ho-scene {
+  position: relative; width: 100%; height: 360rpx; margin-top: var(--cy-space-1);
+  border-radius: 24rpx; overflow: hidden;  /* ds-ok 照原型量的圆角(12px) */
+  background: var(--cy-color-bg-surface-subtle);
+  border: 1rpx solid var(--cy-color-border-subtle);
+}
+.cg-ho-img { width: 100%; height: 100%; }
+.cg-ho-ph {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary);
+}
+.cg-ho-pin {
+  position: absolute; width: 44rpx; height: 44rpx; margin: -22rpx 0 0 -22rpx;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: var(--cy-font-caption); font-weight: 700;
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+  box-shadow: 0 0 0 4rpx rgba(255, 255, 255, .85);   /* ds-ok: 深浅图上都要看得见的描边 */
+}
+.cg-ho-pin.is-arming { background: var(--cy-color-status-info); }
+.cg-ho-row { display: flex; align-items: center; gap: var(--cy-space-2); margin-top: var(--cy-space-1); }
+.cg-ho-mark {
+  min-height: 62rpx; display: flex; align-items: center; padding: 0 var(--cy-space-2-5);
+  border-radius: var(--cy-radius-pill); border: 1rpx solid var(--cy-color-border-subtle);
+  font-size: var(--cy-font-caption); color: var(--cy-color-text-secondary);
+  background: var(--cy-color-bg-surface);
+}
+.cg-ho-mark.is-on {
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+  border-color: transparent;
+}
+.cg-ho-state { font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+
+/* 「按这份配置试玩」:挂在玩法配置下面,没选玩法时整条不出现 */
+.cg-try {
+  margin-top: var(--cy-space-3);
+  min-height: var(--cy-btn-h);
+  display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1);
+  border: 2rpx dashed var(--cy-color-border-subtle); border-radius: 24rpx;  /* ds-ok 照原型量的圆角(12px) */
+  font-size: var(--cy-font-label); font-weight: 600;
+  color: var(--cy-color-text-secondary); background: var(--cy-color-bg-surface);
+}
+
+/* 选择玩法半屏的分类快捷条(原型 .sheet-nav) */
+.cg-gsheet-nav { white-space: nowrap; padding: var(--cy-space-2) 0 var(--cy-space-1); }
+.cg-gsheet-navi {
+  display: inline-flex; align-items: center; min-height: 56rpx;
+  padding: 0 26rpx; margin-right: var(--cy-space-1-5);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-caption); font-weight: 600;
+  color: var(--cy-color-text-secondary); background: var(--cy-color-bg-surface-subtle);
+}
+.cg-gsheet-navi.is-on {
+  background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+}
+.cg-ho-scene--press { opacity: .92; }
+
+/* ===== 模板信息 / 玩法规则:逐值照原型「模板编辑页 v2」 ===== */
+
+/* 卡头右侧那句小字(原型 .card-note) */
+.cg-card-note {
+  margin-left: auto;
+  font-size: 24rpx;                        /* ds-ok 原型 12px */
+  color: var(--cy-color-text-tertiary);
+}
+/* 「一句话」「选填」「可多选」这类跟在标签后的弱提示(原型 .opt) */
+.cg-opt {
+  font-size: 24rpx;                        /* ds-ok 原型 12px */
+  font-weight: 400;
+  color: var(--cy-color-text-tertiary);
+}
+
+/* 同步到模板广场:一条分隔线之上的开关行(原型 .sq-row) */
+.cg-sq-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  margin-top: var(--cy-space-4);
+  padding-top: var(--cy-space-3);
+  border-top: 2rpx solid var(--cy-color-border-subtle);
+}
+.cg-sq-meta { flex: 1; min-width: 0; }
+.cg-sq-name { font-size: var(--cy-type-body); font-weight: 700; }
+.cg-sq-sub {
+  margin-top: 4rpx;
+  font-size: 24rpx;                        /* ds-ok 原型 12px */
+  color: var(--cy-color-text-tertiary);
+}
+
+/* 玩法规则:序号画在输入框**外面**(原型 .step-no / .step-field) */
+.cg-steps { display: flex; flex-direction: column; gap: 20rpx; }  /* ds-ok 原型 10px */
+.cg-step { display: flex; gap: 20rpx; align-items: flex-start; }  /* ds-ok */
+.cg-step-no {
+  flex: none;
+  width: 44rpx; height: 44rpx;             /* ds-ok 原型 22px */
+  margin-top: 22rpx;                       /* ds-ok 原型 11px:与输入框首行对齐 */
+  border-radius: 50%;
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-size: 23rpx;                        /* ds-ok 原型 11.5px */
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.cg-step-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;                              /* ds-ok 原型 8px */
+  background: var(--cy-color-bg-surface);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-sm);
+  padding: 20rpx 22rpx;                    /* ds-ok 原型 10px 11px */
+  box-sizing: border-box;
+}
+.cg-step-ta {
+  flex: 1;
+  min-width: 0;
+  min-height: 44rpx;                       /* ds-ok 原型 22px */
+  font-size: var(--cy-type-body);
+  line-height: 1.55;                       /* ds-ok 原型同值 */
+  color: var(--cy-color-text-primary);
+}
+.cg-step-del { flex: none; color: var(--cy-color-text-tertiary); line-height: 44rpx; }
+/* ＋ 添加一步:虚线框,左边让开序号那一列,与输入框左边缘对齐(原型 margin-left:32px) */
+.cg-step-add {
+  margin-top: 20rpx;                       /* ds-ok 原型 10px */
+  margin-left: 64rpx;                      /* ds-ok 原型 32px */
+  padding: 22rpx;                          /* ds-ok 原型 11px */
+  border: 2rpx dashed var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-sm);
+  text-align: center;
+  font-size: 27rpx;                        /* ds-ok 原型 13.5px */
+  color: var(--cy-color-text-secondary);
+}
+
+/* ===== 封面 + 名字:同一张卡(原型 .hero / .hero-cover / .hero-body) ===== */
+.cg-hero {
+  margin: var(--cy-space-3) var(--cy-page-x) 0;
+  border-radius: var(--cy-radius-sm);
+  overflow: hidden;
+  /* 和同页 cy-card 同一个底 —— raised 在日间是 #E6E6E6(灰),
+     用它会让这张卡比下面「模板信息」那张暗一档,看着像两种卡 */
+  background: var(--cy-comp-card-bg);
+  box-shadow: var(--cy-shadow-card);
+}
+/* 空态是**整卡宽的 1:1 大方块**,斜纹占位 —— 原型 .hero-cover 同值 */
+.cg-hero-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  background: repeating-linear-gradient(135deg,
+              #f0f0f3 0 24rpx, #ebebef 24rpx 48rpx);   /* ds-ok 逐值照原型 12px/24px 斜纹 */
+  color: var(--cy-color-text-tertiary);
+}
+.cg-hero-cover--picked { background: none; }
+.cg-hero-img { width: 100%; height: 100%; }
+.cg-hero-plus {
+  width: 84rpx; height: 84rpx;                          /* ds-ok 原型 42px */
+  border-radius: 50%;
+  background: var(--cy-color-bg-raised);
+  box-shadow: var(--cy-shadow-card);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-secondary);
+}
+.cg-hero-c1 {
+  font-size: 27rpx;                                     /* ds-ok 原型 13.5px */
+  font-weight: 600;
+  color: var(--cy-color-text-secondary);
+}
+.cg-hero-c2 { font-size: 23rpx; }                       /* ds-ok 原型 11.5px */
+.cg-hero-body { padding: var(--cy-space-4); }           /* ds-ok 原型 16px */

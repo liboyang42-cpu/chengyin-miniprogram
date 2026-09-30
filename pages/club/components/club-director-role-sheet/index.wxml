@@ -1,0 +1,23 @@
+<cy-scene-sheet show="{{show}}" variant="half" title="{{title}}" closable maskClosable bind:close="onClose">
+  <view class="cdrs__body">
+    <text class="cdrs__section-title">{{memberSectionTitle}}</text>
+    <cy-club-director-row-list rows="{{members}}" surface="raised" selectable bind:rowtap="onMemberTap" />
+
+    <text class="cdrs__section-title" wx:if="{{roleOptions.length}}">{{roleSectionTitle}}</text>
+    <cy-club-director-chip-group options="{{roleOptions}}" value="{{selectedRoleCode}}" bind:change="onRoleChange" />
+
+    <block wx:if="{{takeovers.length}}">
+      <text class="cdrs__section-title">{{takeoverSectionTitle}}</text>
+      <cy-club-director-row-list rows="{{takeovers}}" surface="raised" selectable bind:rowtap="onTakeoverTap" />
+    </block>
+
+    <slot></slot>
+
+    <view
+      class="cdrs__primary {{confirmDisabled ? 'is-disabled' : ''}}"
+      bindtap="onConfirmTap"
+      aria-role="button" aria-label="{{confirmText}}"
+      hover-class="cy-pressed" hover-stay-time="80"
+    >{{confirmText}}</view>
+  </view>
+</cy-scene-sheet>

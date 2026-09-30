@@ -1,0 +1,101 @@
+@import '../../style/merchant-light-scope.wxss';
+
+.mylike-shell { min-height: 100vh; background: var(--cy-color-bg-page); }
+.mylike {
+  padding-bottom: var(--cy-space-4);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.mylike .tablist {
+  padding: 0 var(--cy-page-x);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.title-nav-spacer { flex: none; }
+.c1-page-title { display: block; }
+.favorite-tabs { display: block; margin: 0 var(--cy-page-x) var(--cy-space-3); }
+.favorite-list { gap: var(--cy-space-3); }
+.favorite-refreshing { min-height: var(--cy-btn-h); display: flex; align-items: center; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.favorite-end { padding: var(--cy-space-3) 0; text-align: center; color: var(--cy-color-text-tertiary); font-size: var(--cy-font-label); }
+.favorite-list cy-inline-error { display: block; }
+.favorite-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-elevated);
+}
+.favorite-card__cover { display: block; width: 100%; height: 100%; }
+/* CU-M-141：封面上的名称与类型层，与首页 feed 长方卡（components/cy/feed-play-card）同源。
+   黑纱不能走主题 token：浅色档翻成白纱后，压在亮照片上的白字会全糊。 */
+.favorite-card__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .55) 55%, rgba(0, 0, 0, .92) 100%); /* ds-ok: 压在照片上的黑纱，恒黑不随主题翻转 */
+}
+.favorite-card__body {
+  position: absolute;
+  left: var(--cy-space-3);
+  right: calc(var(--cy-space-2) * 2 + var(--cy-btn-h) * 2); /* 让开右下角两枚操作按钮的占位 */
+  bottom: var(--cy-space-2);
+  height: var(--cy-btn-h);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  pointer-events: none; /* 让开封面本体的整卡点击 */
+}
+.favorite-card__title {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: var(--cy-leading-tight);
+  color: #ffffff; /* ds-ok: 标题压在图片上恒用白字 */
+}
+.favorite-card__type {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-label);
+  color: rgba(255, 255, 255, .82); /* ds-ok: 图上次级说明 */
+}
+.favorite-card__actions {
+  position: absolute;
+  right: var(--cy-space-2);
+  bottom: var(--cy-space-2);
+  display: flex;
+  gap: var(--cy-space-2);
+}
+.favorite-card__actions button {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.favorite-card__actions button::after { border: none; }
+.favorite-card__action-visual {
+  width: var(--cy-btn-h-sm);
+  height: var(--cy-btn-h-sm);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.favorite-card__actions image { width: var(--cy-space-4); height: var(--cy-space-4); }
+.favorite-card__action-heart { color: var(--cy-color-text-primary); }

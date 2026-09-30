@@ -1,0 +1,48 @@
+<view class="mp">
+
+  <cy-skeleton wx:if="{{!loaded}}" type="amount" count="{{1}}" />
+  <cy-skeleton wx:if="{{!loaded}}" type="card" count="{{2}}" />
+
+  <!-- 入账口径以服务端 myIncomeArrived 为准；已结算不等于已入账。 -->
+  <block wx:elif="{{!loadErr}}">
+    <cy-stat-card class="stat-grid" items="{{statItems}}" columns="{{1}}" />
+    <!-- 9-16 晚拍板第 5 条 + 9-17 总控:余额三段只给主体本人,员工不显示(isOwner 由 /api/coop/finance 判定) -->
+    <cy-funds-stages wx:if="{{isOwner}}" />
+    <!-- 调整的原因(Figma G2):说清这笔扣减是哪个主题、为什么扣 -->
+    <text class="adjust-reason" wx:if="{{adjustReason}}">{{adjustReason}}</text>
+    <view class="withdraw-entry">
+      <cy-btn variant="{{canWithdraw ? 'primary' : 'secondary'}}" disabled="{{!canWithdraw}}" aria-disabled="{{!canWithdraw}}" aria-label="{{canWithdraw ? '联系平台客服提现' : (withdrawState === 'unknown' ? '联系平台客服提现，已入账金额待确认' : '联系平台客服提现，还没有已入账分润')}}" bind:tap="goWithdraw">联系平台客服提现</cy-btn>
+      <text class="withdraw-reason" wx:if="{{withdrawState === 'unknown'}}">已入账金额待确认</text>
+      <text class="withdraw-reason" wx:elif="{{withdrawState === 'zero'}}">还没有已入账分润</text>
+    </view>
+
+    <block wx:if="{{topics.length}}">
+      <view class="sec-title cy-h2">各主题结算</view>
+      <view class="fc-list">
+        <view class="fc-card" wx:for="{{topics}}" wx:key="topicId" bindtap="goSettlementDetail" data-id="{{item.topicId}}" hover-class="fc-card--tap" aria-role="button" aria-label="查看{{item.topicName}}的结算详情">
+          <view class="fc-main">
+            <view class="fc-top">
+              <text class="fc-name ep1">{{item.topicName}}</text>
+              <text class="fc-income" wx:if="{{item.settled && item.incomeText != null}}">{{'¥' + item.incomeText}}</text>
+              <text class="fc-income" wx:else>—</text>
+            </view>
+            <view class="fc-bottom">
+              <view class="fc-state-copy">
+                <text class="fc-arrived-date">{{item.statusText}}</text>
+                <text class="fc-meta ep1">{{item.merchantStatus || '结算信息待补充'}}</text>
+              </view>
+              <cy-badge class="fc-settled-badge" type="status" variant="{{item.settled ? 'success' : item.badgeVariant}}" label="{{item.settled ? '已结算' : item.statusText}}" />
+            </view>
+          </view>
+          <cy-icon class="fc-arrow" name="arrow-right" size="32" />
+        </view>
+      </view>
+      <view class="fc-explainer">已结算不等于已入账：已结算表示金额完成核算，已入账表示款项已进入个人账户。</view>
+    </block>
+    <cy-empty size="lg" style="flex:1;min-height:0;" kind="empty" wx:else fill title="还没有合作结算" />
+  </block>
+
+  <view wx:else class="err-wrap" aria-role="alert">
+    <cy-error size="lg" style="flex:1;min-height:0;" icon="/images/no_data.svg" fill title="分润数据没加载出来" sub="网络可能不稳定，你的分润记录还在" retry="重试" bind:retry="onRetry" />
+  </view>
+</view>

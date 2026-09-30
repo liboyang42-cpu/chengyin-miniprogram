@@ -1,0 +1,50 @@
+<wxs src="../../utils/wxs/money.wxs" module="money" />
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="tixian-page">
+  <cy-nav-bar />
+  <cy-page-title title="提现申请" />
+  <view class="tixian-content">
+    <view class="tx-history-entry" bindtap="openWithdrawHistory" aria-role="button" aria-label="打开提现记录弹窗" hover-class="cy-pressed" hover-stay-time="80">
+      <text>提现记录</text><cy-icon name="arrow-right" size="24" />
+    </view>
+    <view class="txyr">
+      <!-- 余额取不到时说「未知」，不说「0」：后者是关于用户资产的错误事实陈述 -->
+      <view class="txyr_left" wx:if="{{balanceErr}}" aria-role="alert">可提现余额<text class="txyr_unknown">暂时取不到</text></view>
+      <cy-skeleton wx:elif="{{!balanceLoaded}}" type="amount" count="{{1}}" />
+      <view class="txyr_left" wx:else>可提现余额<text>{{money.amount(balanceText)}}</text></view>
+      <view class="txyr_right" wx:if="{{balanceErr}}" bindtap="getUserData" aria-role="button" aria-label="重新加载可提现余额" hover-class="cy-pressed" hover-stay-time="80">重试</view>
+    </view>
+    <!-- 9-16 晚拍板第 5 条:还没到可提现的钱如实分段(待结算 / 客诉期中 X月X日可提现 / 客诉处理中) -->
+    <cy-funds-stages class="tx-stages" show-withdrawable="{{false}}" />
+
+    <!-- 2026-09-16:银行卡表单退役(2026-09-15 收款模型定稿 §3:平台不打款,提现一律走客服线下处理)。
+         姓名/银行名称/银行账号/手机号是敏感个人信息,页面不再采集,也不再要单独同意;
+         整页只留一个客服入口。后端 /api/withdrawal/* 与共享校验工具不动。 -->
+    <view class="txcon">
+      <view class="txcon_ly">
+        <view class="txcon_ly_name">提现方式</view>
+        <view class="txcon_ly_inp">
+          <text class="tx-cs-note">联系平台客服,由客服协助线下处理</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="tx-bottom">
+      <view class="txtpis">
+        <view class="txtpis_tit">提现说明</view>
+        <view class="txtpis_txt">提现已改为客服协助线下处理,请添加平台客服微信核对。</view>
+      </view>
+      <view class="tx-cta">
+        <cy-btn variant="primary" bindtap="saveData">联系客服提现</cy-btn>
+      </view>
+    </view>
+  </view>
+</view>
+
+<cy-sheet show="{{withdrawHistorySheet}}" title="提现记录" bind:close="closeWithdrawHistory">
+  <cy-scene-member-withdraw-history id="withdrawHistory" />
+</cy-sheet>
+</view>

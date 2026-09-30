@@ -1,0 +1,55 @@
+/* 顶部输入地址 —— 逐条照原型 .searchbar / .addrbar / .addrlist / .dim 抄。
+ * 原型 390px 机身 → 750rpx,1px = 1.923rpx。颜色一律原值。
+ *
+ * 收起态 .searchbar:白 · 高 44px · 圆角 12px · 左右 16px · padding 0 12px · gap 8px
+ *   字 14px 700 #111 · 图标 #8A8A8E · 投影 0 6px 20px rgba(0,0,0,.35)
+ * 展开态 .addrbar:输入 15px、光标 #22C55E、占位 #8A8A8E;右侧「取消」#22C55E 13px 700
+ * 结果 .addrlist:白 · 圆角 14px · top 152px · 最高 420px · 投影 0 18px 40px rgba(0,0,0,.45)
+ *   行 padding 13/14px gap 10px,行间 1px #EFF0F2,按下 #F4F5F7
+ *   标题 14px 700 #111 · 副标 11px #8A8A8E 上 2px
+ * 压暗层 .dim:62% 黑
+ */
+.mas{ position:absolute; left:31rpx; right:31rpx; z-index:32; } /* ds-ok 原型 left/right 16px */
+.mas--entry{ left:44rpx; right:auto; width:546rpx; } /* ds-ok Figma 11:4 search x=23,width=284 */
+.mas--entry.mas--open{ left:31rpx; right:31rpx; width:auto; }
+
+/* ── 收起态 ───────────────────────────────────────────────── */
+.searchbar{ position:relative; z-index:34; display:flex; align-items:center; gap:15rpx;
+  height:85rpx; padding:0 23rpx; box-sizing:border-box; /* ds-ok 原型 44px / 0 12px */
+  background:#FFFFFF; border-radius:23rpx; /* ds-ok 原型 #fff / 12px */
+  color:#111111; font-size:27rpx; font-weight:600; /* ds-ok 原型 14px 600 */
+  box-shadow:0 12rpx 38rpx rgba(0,0,0,.35); } /* ds-ok 原型 0 6px 20px */
+.searchbar__ic{ flex:none; color:#8A8A8E; } /* ds-ok 原型 .searchbar svg */
+.searchbar__t{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.searchbar__f{ flex:none; margin-left:auto; color:#8A8A8E; } /* ds-ok 原型 .searchbar .f */
+.searchbar--entry{ height:96rpx; padding:0 31rpx; border-radius:48rpx; } /* ds-ok 入口沿用微信现有白色搜索框，只取 Figma 11:4 的 284×50 pill 几何 */
+
+/* ── 展开态 ───────────────────────────────────────────────── */
+/* 原型 .dim 铺满整机;组件挂在 .mas 里,所以用 fixed 铺到屏幕 */
+.dim{ position:fixed; left:0; top:0; right:0; bottom:0; z-index:20;
+  background:rgba(0,0,0,.62); } /* ds-ok 原型 .dim */
+.addrbar{ z-index:34; } /* ds-ok 原型 .addrbar z-index:32,组件内相对提高一档 */
+.addrbar__in{ flex:1; min-width:0; font-size:29rpx; color:#111111; /* ds-ok 原型 15px */
+  caret-color:#22C55E; } /* ds-ok 原型 caret-color */
+.addrbar__ph{ color:#8A8A8E; } /* ds-ok 原型 ::placeholder */
+.addrbar__c{ flex:none; margin-left:auto; color:#22C55E; font-size:25rpx; font-weight:700; } /* ds-ok 原型 .addrbar__c */
+
+.addrlist{ position:relative; z-index:34; margin-top:23rpx; box-sizing:border-box;
+  max-height:808rpx; background:#FFFFFF; border-radius:27rpx; /* ds-ok 原型 420px / #fff / 14px */
+  box-shadow:0 35rpx 77rpx rgba(0,0,0,.45); } /* ds-ok 原型 0 18px 40px */
+.addrrow{ display:flex; align-items:center; gap:19rpx; padding:25rpx 27rpx; /* ds-ok 原型 10px / 13px 14px */
+  border-top:2rpx solid #EFF0F2; } /* ds-ok 原型 1px #EFF0F2 */
+.addrrow:first-child{ border-top:0; }
+.addrrow--pressed{ background:#F4F5F7; } /* ds-ok 原型 .addrrow:active */
+/* 原型 ADDRPIN 是 19px 的水滴针;这里用图标库的实心针,颜色由 JS 按四类结果给 */
+.addrrow__pin{ flex:none; display:flex; align-items:center; justify-content:center; }
+.addrrow__copy{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.addrrow__t{ font-size:27rpx; font-weight:700; color:#111111; /* ds-ok 原型 14px 700 */
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.addrrow__s{ margin-top:4rpx; font-size:21rpx; color:#8A8A8E; /* ds-ok 原型 11px / 上 2px */
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.addrlist__none{ display:block; padding:42rpx 27rpx; text-align:center;
+  font-size:25rpx; color:#8A8A8E; } /* ds-ok 原型 .addrlist.is-empty::after 22px 14px / 13px */
+
+/* isolated 组件里全局按压类进不来,补一份 */
+.cy-pressed{ opacity:.88; }

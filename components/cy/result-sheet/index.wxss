@@ -1,0 +1,235 @@
+/* cy-result-sheet · 结果面板内容层。壳(遮罩/上滑/退场/安全区/主题 role)在 cy-sheet。
+ * 色一律走语义 token:徽章 = status-success / result-fail-badge(稿色 #F94D5C),转圈 = 本主题的 brand accent。
+ * 稿子给的 11 个 feedback/* 只有浅色档,直接落值等于深色态没做 —— 故映射到既有语义层。 */
+:host { display: block; }
+
+/* ── 壳:稿 356-5220(2026-09-15 对稿)──────────────────────────────
+ * 面板 #141414 / 圆角 28,抓手 38×5 实色、上 12 下 45,通过 cy-sheet 的变量钩子给(带回退,其它 sheet 不受影响)。
+ * 内距不走钩子:.sh__panel 的 padding 形状被 post-drafts-fullscreen-contract 逐项钉住(post-drafts 复制了减法)。
+ *   左右仍是 --cy-page-x 16px(稿 18,差 2px,原因条 336 居中不受影响);下 30 = 壳 12 + 本层 18(见 .rs)。
+ * ⚠️ 三态共用这一套,不只 fail:loading → success/fail 是**同一张面板换内容**
+ *   (2026-09-06 用户裁决三态同高),壳要是按 kind 切,面板会在收到结果那一刻变色、抓手跳位。
+ *   success / loading 的内容层(徽章动效、勾、转圈)不动。 */
+.rs-shell {
+  --cy-comp-sheet-bg: var(--cy-color-bg-surface-subtle);          /* 夜端 #141416 ≈ 稿 #141414 */
+  --cy-comp-sheet-radius: var(--cy-comp-result-fail-panel-radius);
+  --cy-comp-sheet-handle-w: 76rpx;                                 /* ds-ok 稿 38px */
+  --cy-comp-sheet-handle-h: 10rpx;                                 /* ds-ok 稿 5px */
+  --cy-comp-sheet-handle-bg: var(--cy-color-sheet-handle);
+  --cy-comp-sheet-handle-mt: 24rpx;                                /* ds-ok 稿上 12px */
+  --cy-comp-sheet-handle-mb: 90rpx;                                /* ds-ok 稿抓手下 45px */
+}
+
+.rs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  /* 抓手下 45px 由 .rs-shell 钩子给到壳上;面板底壳已有 24rpx,再补 36rpx = 稿下 30px。 */
+  padding: 0 0 36rpx;   /* ds-ok 稿下 30px − 壳 12px */
+  /* 2026-09-06 用户裁决:「支付过程中的弹窗高度和支付成功/失败的高度需要是一样的」。
+   * loading → success/fail 是**同一张面板换内容**,面板跟着内容改高度会跳一下,
+   * 把「一件事的两拍」看成「两个弹窗」。所以给个地板,三态都不低于失败态的高度。
+   * 444rpx = 上下 padding 96(space-6 + space-4)+ 徽章 96 + copy 上距 24 + copy 126
+   *        + 原因卡上距 32(space-4)+ 原因卡 70 = 348 内容 + 96 内边距。
+   * ⚠️ 是 min-height 不是 height:内容更多(meta/pill/两行原因)照样往上长,
+   *    只是不再往下缩 —— 地板消灭常见那一跳,长内容仍能撑开。
+   * ⚠️ box-sizing 必须是 border-box:本仓没有全局 border-box,默认 content-box 下
+   *    min-height 只管内容盒,会再加 96rpx 内边距变成 540rpx —— 三态仍同高,但底下
+   *    平白多出 48px 空。实测才看得见,读代码看不出来。 */
+  box-sizing: border-box;
+  /* 2026-09-15 按 356-5220 重算:徽章 96 + 下距 48 + 标题 ~44 + 原因条上距 156 + 原因条 104 = 448 */
+  min-height: 448rpx;
+}
+
+/* ── 徽章 48×48(96rpx):花边圆 + 白色 glyph ─────────────────────── */
+.rs__badge {
+  position: relative;
+  width: 96rpx;
+  height: 96rpx;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-comp-result-mark-fg);   /* glyph 色,子层继承 */
+}
+/* 花边圆走 cy-icon 的 CSS-mask 通道(background-color: currentColor),随主题不随位图 */
+.rs__scallop { position: absolute; left: 0; top: 0; }
+/* 徽章从很小弹到原大(稿 seed→grow→overshoot→settle)。只有成功态播 ——
+   失败那一下不该有"庆祝"的节奏。 */
+.rs--success .rs__scallop { animation: rs-pop var(--cy-motion-celebrate) var(--cy-ease-out) both; }
+
+/* 涟漪:一圈描边扩开就淡掉,和 creation-success 的 cs-ring 同形制 */
+.rs__ring {
+  position: absolute;
+  /* 比徽章大一圈才看得出是"扩开",与徽章同尺寸的话两者几乎重合 */
+  left: -16rpx; top: -16rpx;
+  width: 128rpx; height: 128rpx;
+  box-sizing: border-box;
+  border: 4rpx solid var(--cy-color-status-success);
+  border-radius: 50%;
+  animation: rs-ring var(--cy-motion-celebrate) linear both;
+}
+
+/* 粒子:八颗点向外飘。位置沿用 creation-success 的八向布点思路,
+   靠 --i 决定各自的方向角,不为每颗单写一条规则。 */
+/* ⚠️ 缩放挂在**容器**上:八颗点各自只写一个静态方向偏移,容器一放大它们就一起向外飞。
+   把动画挂在点上、keyframes 里又不写 transform 的话,点会原地淡入淡出 —— 那不是迸发。 */
+.rs__spark {
+  position: absolute; left: 0; top: 0; width: 96rpx; height: 96rpx;
+  animation: rs-spark var(--cy-motion-celebrate) var(--cy-ease-out) both;
+}
+.rs__spark-dot {
+  position: absolute;
+  left: 44rpx; top: 44rpx;
+  width: 8rpx; height: 8rpx;
+  border-radius: 50%;
+  background: var(--cy-color-status-success);
+}
+/* ⚠️ 半径必须大于徽章半径(徽章 96rpx ⇒ 半径 48rpx)。第一版写的是 40rpx,
+   八颗绿点全落在绿徽章**里面**,动画在播但肉眼等于没有 —— 中途帧实拍才看出来,
+   定格帧和门禁都发现不了。 */
+.rs__spark-dot:nth-child(1) { transform: translate(0, -62rpx); }
+.rs__spark-dot:nth-child(2) { transform: translate(44rpx, -44rpx); }
+.rs__spark-dot:nth-child(3) { transform: translate(62rpx, 0); }
+.rs__spark-dot:nth-child(4) { transform: translate(44rpx, 44rpx); }
+.rs__spark-dot:nth-child(5) { transform: translate(0, 62rpx); }
+.rs__spark-dot:nth-child(6) { transform: translate(-44rpx, 44rpx); }
+.rs__spark-dot:nth-child(7) { transform: translate(-62rpx, 0); }
+.rs__spark-dot:nth-child(8) { transform: translate(-44rpx, -44rpx); }
+.rs--success .rs__scallop { color: var(--cy-color-status-success); }
+.rs--fail .rs__scallop { color: var(--cy-color-result-fail-badge); }
+
+/* ── 勾:两根条按笔顺画出来 ────────────────────────────────────────
+ * 旋转挂在 .rs__arm(每根角度不同),缩放挂在里面的 .rs__bar —— 这样两根共用
+ * 同一组 keyframes(只 scaleX),不必为每个角度各写一组。
+ * 只动 transform,不碰 width/height:布局属性动画每帧触发 layout+paint,
+ * 而且 motion-property-ratchet 是「只减不增」的棘轮。 */
+.rs__check { position: absolute; left: 0; top: 0; width: 96rpx; height: 96rpx; }
+.rs__arm { position: absolute; height: 8rpx; }
+.rs__arm--a { left: 26rpx; top: 45rpx; width: 20rpx; transform: rotate(45deg); transform-origin: 0 50%; }
+.rs__arm--b { left: 40rpx; top: 59rpx; width: 42rpx; transform: rotate(-45deg); transform-origin: 0 50%; }
+.rs__bar {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--cy-radius-pill);
+  background: currentColor;
+  transform-origin: 0 50%;
+  animation: rs-draw var(--cy-motion-fast) var(--cy-ease-out) both;
+}
+.rs__arm--b .rs__bar { animation-duration: var(--cy-motion-standard); animation-delay: var(--cy-motion-fast); }
+
+/* ── 感叹号 ──────────────────────────────────────────────────────── */
+.rs__bang { position: absolute; left: 0; top: 0; width: 96rpx; height: 96rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.rs__bang-dot { width: 12rpx; height: 12rpx; border-radius: var(--cy-radius-pill); background: currentColor; }   /* 稿 r3 */
+.rs__bang-stem { width: 12rpx; height: 28rpx; margin-top: 10rpx; border-radius: var(--cy-radius-pill); background: currentColor; }   /* 稿 6×14,点底 18 → 条顶 23 */
+
+/* ── loading:与 cy-btn / cy-empty / cy-modal 同形制的环,转速走同一个入口 ── */
+.rs--loading .rs__badge { border-radius: 50%; background: var(--cy-color-bg-surface-subtle); }
+.rs__spinner {
+  width: 64rpx;
+  height: 64rpx;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 9rpx solid var(--cy-color-border-subtle);   /* 稿:描边 4.5px */
+  border-top-color: var(--cy-comp-result-spinner);   /* 稿:活动弧是品牌紫,两档同色 */
+  animation: rs-spin var(--cy-motion-spinner-cycle) linear infinite;
+}
+/* 转圈不停(停下来会读成「卡死」),减动效只放慢 —— 与 cy-modal 同处理 */
+.rs--reduced-motion .rs__spinner { animation-duration: 2400ms; }
+/* 勾是真位移(scaleX),减动效直接到位:.rs__bar 的基态就是画完的样子 */
+.rs--reduced-motion .rs__bar { animation: none; }
+/* 徽章弹跳同理直接到位;涟漪与粒子在 wxml 里就按 !reducedMotion 条件渲染,
+   压根不进 DOM(同 cy-celebrate 的做法),所以这里只需要关掉弹跳。 */
+.rs--reduced-motion .rs__scallop { animation: none; }
+/* 涟漪与粒子其实在 wxml 里就按 !reducedMotion 条件渲染、压根不进 DOM,这两条是**第二道**。
+   写它不是为了糊弄检查器:reduced-motion-coverage 是静态读 WXSS 的,看不见 wx:if,
+   而把本文件登记进它的 WXML_GUARDED 白名单会让整份文件跳过检查 ——
+   连带放过上面 .rs__bar / .rs__scallop 那两条真需要 WXSS 兜底的。两行比那个便宜。 */
+.rs--reduced-motion .rs__ring,
+.rs--reduced-motion .rs__spark { animation: none; }
+
+/* ── 文案组 ──────────────────────────────────────────────────────── */
+.rs__copy { margin-top: var(--cy-space-3); display: flex; flex-direction: column; gap: var(--cy-space-4); }
+.rs__title { font-size: var(--cy-type-card-title); font-weight: 700; color: var(--cy-color-text-primary); }
+/* 失败态标题 / 徽章下距按 356-5220;success / loading 的文案组不在这张稿里,保持原样 */
+.rs--fail .rs__copy { margin-top: var(--cy-comp-result-fail-badge-gap); }
+.rs--fail .rs__title {
+  font-size: var(--cy-comp-result-fail-title-size);
+  letter-spacing: var(--cy-comp-result-fail-title-tracking);
+}
+.rs__sub { font-size: var(--cy-type-body); line-height: 1.62; color: var(--cy-color-text-secondary); }
+.rs__meta { display: flex; align-items: center; justify-content: center; gap: var(--cy-space-1); color: var(--cy-color-status-warning); }
+.rs__meta-ico { flex: none; }
+.rs__meta-text { font-size: var(--cy-type-label); font-weight: 500; }
+
+/* ── 失败态原因行 ────────────────────────────────────────────────
+ * 原稿是「为什么会这样」窄卡叠在原因宽卡上、负 14 叠压。2026-09-05 用户裁决:
+ * 那张标签卡删掉 —— 标题已经说了发生什么,再拿一整张卡说「为什么会这样」是废话。
+ * 于是叠压和为让位加的上内边距一并去掉,只剩原因本身一张卡。 */
+.rs__reason {
+  /* 稿 356-5220:336×52 居中条,底 #262626、圆角 15、13.5px 白字。
+     高是地板不是死值:两行原因照样撑开,不截字。 */
+  box-sizing: border-box;
+  width: 672rpx;
+  max-width: 100%;
+  min-height: var(--cy-comp-result-fail-reason-h);
+  margin-top: var(--cy-comp-result-fail-reason-gap);
+  padding: var(--cy-space-2) var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-comp-result-fail-reason-radius);
+  background: var(--cy-comp-sheet-role-card);                      /* 夜端 #242424 ≈ 稿 #262626 */
+  font-size: var(--cy-comp-result-fail-reason-size);
+  line-height: 1.6;
+  color: var(--cy-color-text-primary);
+}
+
+/* ── 可选同意行(2026-09-17 拍板第 40 条 A)──────────────────────── */
+.rs__consent {
+  width: 100%;
+  margin-top: var(--cy-space-5);
+  box-sizing: border-box;
+  padding: var(--cy-space-1) var(--cy-space-2) 0;
+  text-align: left;
+}
+.rs__consent-state { margin-top: var(--cy-space-1); font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.rs__consent-ok { margin-top: var(--cy-space-1); font-size: var(--cy-type-label); color: var(--cy-color-status-success); }
+.rs__consent-err {
+  margin-top: var(--cy-space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+.rs__consent-err-text { flex: 1; font-size: var(--cy-type-label); color: var(--cy-color-status-danger); }
+.rs__consent-err-act { flex: none; font-size: var(--cy-type-label); font-weight: 600; color: var(--cy-color-brand); padding: var(--cy-space-1) var(--cy-space-2); }
+/* 组件是 styleIsolation:isolated,全局 .cy-pressed 进不来 —— 按压反馈必须在本文件里定义 */
+.rs__press { opacity: .7; }
+
+/* ── pill:一条中性事实,不是可点的东西 ─────────────────────────── */
+.rs__pill {
+  margin-top: var(--cy-space-5);
+  padding: var(--cy-space-2) var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface-subtle);
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--cy-color-text-secondary);
+}
+
+/* ── actions:并排等分两颗,次要在左(稿 2:27)。有它就不自愈,见 index.js ── */
+.rs__actions {
+  margin-top: var(--cy-space-5);
+  width: 100%;
+  display: flex;
+  gap: var(--cy-space-2-5);
+}
+/* cy-btn 是 isolated 组件,宽度只能从宿主节点给 */
+.rs__act { flex: 1; min-width: 0; }
+
+@keyframes rs-pop { 0% { opacity: 0; transform: scale(.24); } 28% { opacity: 1; transform: scale(1.12); } 40%, 100% { opacity: 1; transform: scale(1); } }
+@keyframes rs-ring { 0%, 18% { opacity: 0; transform: scale(.4); } 32% { opacity: .62; transform: scale(1); } 52%, 100% { opacity: 0; transform: scale(1.22); } }
+@keyframes rs-spark { 0%, 22% { opacity: 0; transform: scale(.4); } 36% { opacity: 1; transform: scale(1.18); } 64%, 100% { opacity: 0; transform: scale(1.32); } }
+@keyframes rs-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rs-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

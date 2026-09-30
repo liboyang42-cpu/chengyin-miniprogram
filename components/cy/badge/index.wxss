@@ -1,0 +1,53 @@
+:host { display: inline-flex; }
+
+.bd {
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-pill);
+}
+.bd--overlay { position: absolute; z-index: 1; }
+
+/* ---- count 数字角标 ---- */
+.bd--count {
+  min-width: 32rpx; height: 32rpx; padding: 0 8rpx;
+  border: 2rpx solid var(--cy-color-bg-surface);
+}
+.bd--count.bd--overlay { top: -8rpx; right: -8rpx; }
+.bd__count { font-size: var(--cy-type-micro); font-weight: 600; line-height: 1; color: var(--cy-comp-oncover-fg); }
+.bd--count.bd--rare .bd__count { color: var(--cy-color-text-inverse); }
+
+/* ---- dot 圆点 ---- */
+.bd--dot { width: 16rpx; height: 16rpx; border: 2rpx solid var(--cy-color-bg-surface); }
+.bd--dot.bd--overlay { top: 0; right: 0; }
+
+/* count / dot 底色随 variant */
+.bd--count.bd--neutral, .bd--dot.bd--neutral { background: var(--cy-color-text-tertiary); }
+.bd--count.bd--info,    .bd--dot.bd--info    { background: var(--cy-color-status-info); }
+.bd--count.bd--success, .bd--dot.bd--success { background: var(--cy-color-status-success); }
+.bd--count.bd--warning, .bd--dot.bd--warning { background: var(--cy-color-status-warning); }
+.bd--count.bd--danger,  .bd--dot.bd--danger  { background: var(--cy-color-status-danger); }
+.bd--count.bd--rare,    .bd--dot.bd--rare    { background: var(--cy-color-rare); }
+
+/* ---- status 内联胶囊 ----
+   2026-09-01:照手册 Foundations「软底无描边 + 前置 24rpx 图标,图标必须在左」重做。
+   改之前是中性底(bg-elevated)+ 1rpx 描边,而且 30 处调用里只有 1 处传了 icon,
+   其余 29 处退化成 bd__dot 色点 —— 正是 Do not use 页明令禁的形态。
+   几何也一并对齐:高 44→40rpx、左右内距 16→18rpx(原来吃的是 space-2=16rpx)。 */
+.bd--status {
+  height: 40rpx; padding: 0 18rpx; gap: 8rpx;   /* ds-ok: 18rpx 是手册给的胶囊内距,量表无此档 */
+}
+/* color: inherit —— 文字跟着 .bd--<variant> 的 color 走,和图标同色。
+   写死 text-primary 会让「图标是蓝的、字是白的」,看着就是没做完;而且整套 R1 状态色
+   本来就是**为了压在自己的软底上达标**才调的(见 .theme-topic-editor 里「软底上 4.78」
+   那几条注释),白字等于把那轮工作作废。迁移前 cy-tag 也是整块彩字,这样才不改观感。 */
+.bd__label { font-size: var(--cy-type-label); font-weight: 500; line-height: 1; color: inherit; }
+/* 前景 + 软底成对出现:六支同一条构造规则(自己的色 + 该色的低透明版),
+   neutral 与 rare 的软底 token 是本次新增,五个作用域各写了一份。 */
+.bd--status.bd--neutral { color: var(--cy-color-text-tertiary);   background: var(--cy-color-status-neutral-soft); }
+.bd--status.bd--info    { color: var(--cy-color-status-info);     background: var(--cy-color-status-info-soft); }
+.bd--status.bd--success { color: var(--cy-color-status-success);  background: var(--cy-color-status-success-soft); }
+.bd--status.bd--warning { color: var(--cy-color-status-warning);  background: var(--cy-color-status-warning-soft); }
+.bd--status.bd--danger  { color: var(--cy-color-status-danger);   background: var(--cy-color-status-danger-soft); }
+.bd--status.bd--rare    { color: var(--cy-color-rare-fg);         background: var(--cy-color-rare-soft); }
+
+.bd--disabled { opacity: .4; }

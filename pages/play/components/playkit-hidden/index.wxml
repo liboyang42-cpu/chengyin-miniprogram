@@ -1,0 +1,32 @@
+<cy-play-stage id="cy-play-stage" skin="hidden" show="{{show}}" back-label="退出"
+               limit-seconds="{{limitSeconds}}" tries="{{maxTries}}"
+               bind:back="onClose" bind:verdict="onVerdict">
+  <view class="g-col hd {{reducedMotion ? 'hd--reduced' : ''}}">
+    <view class="hd__q">{{title}}</view>
+
+    <view class="hd__scene" bindtap="onTapScene"
+          hover-class="hd__scene--press" hover-stay-time="60"
+          aria-role="button" aria-label="在图上点中藏起来的目标">
+      <image class="hd__img" wx:if="{{imageUrl}}" src="{{imageUrl}}" mode="aspectFill" />
+      <!-- 商家还没传图时画「这儿有一张图」。什么都不画的话整块是纯黑,
+           读起来像加载失败,而这一屏的全部内容就是那张图。 -->
+      <view class="hd__ph" wx:else>
+        <view class="hd__ph-frame"><view class="hd__ph-sun"></view><view class="hd__ph-hill"></view></view>
+        <view class="hd__ph-t">这里会是你上传的那张图</view>
+      </view>
+      <!-- 命中的点留在图上,没命中的一圈涟漪就散了 —— 找过哪儿要看得见 -->
+      <view class="hd__dot" wx:for="{{hits}}" wx:key="id"
+            style="left:{{item.x}}%;top:{{item.y}}%"></view>
+      <view class="hd__miss" wx:if="{{miss}}" style="left:{{miss.x}}%;top:{{miss.y}}%"></view>
+      <!-- 提示只泛一个象限,不指出具体位置 —— 指出来这一关就没了 -->
+      <view class="hd__quad {{quad ? 'is-on' : ''}}" wx:if="{{quad}}" style="{{quad}}"></view>
+    </view>
+
+    <!-- 待找清单:玩家要知道自己在找什么。label 是有意下发的,坐标不是 -->
+    <view class="hd__chips">
+      <view class="hd__chip {{item.found ? 'is-found' : ''}}" wx:for="{{targets}}" wx:key="id">{{item.label}}</view>
+    </view>
+    <view class="hd__prog">{{foundCount}} / {{total}}</view>
+    <view class="hd__foot">点一下你觉得藏着的地方。</view>
+  </view>
+</cy-play-stage>

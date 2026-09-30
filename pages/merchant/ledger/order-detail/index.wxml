@@ -1,0 +1,64 @@
+<view class="order-detail theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="canReadVerifyRecords" />
+  <cy-nav-bar custom-back bind:back="onNavBack" />
+  <view class="order-detail__spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="核销详情" safe-top="{{false}}" flush="{{true}}" />
+  <block wx:if="{{detail}}">
+    <cy-progress-status class="order-detail__refresh" wx:if="{{loadState === 'refreshing'}}"
+      title="正在更新核销详情" sub="现有详情仍可查看" />
+    <cy-inline-error class="order-detail__refresh" wx:elif="{{loadState === 'stale-error'}}"
+      kind="{{errorKind}}" title="核销详情没有更新" sub="{{errorText}}"
+      action="重试" bind:action="retryLoad" />
+    <!-- 卡1:hero(唯一大数字)+ 记录信息并进来。原「记录信息」只有一两行,单开一卡是纯浪费。 -->
+    <view class="fin-hero order-summary" aria-role="region"
+      aria-label="{{detail.canReadFinance ? detail.title + '，我的收入 ' + (detail.amountDisplay || detail.amountFallback) + '，' + detail.stateText : detail.title + '，' + detail.stateText}}">
+      <text class="fin-hero__lab">{{detail.canReadFinance ? detail.title + ' · 我的收入' : detail.title}}</text>
+      <block wx:if="{{detail.canReadFinance}}">
+        <text class="fin-hero__amt" wx:if="{{detail.amountText != null}}">{{detail.amountDisplay}}</text>
+        <text class="fin-hero__amt fin-hero__amt--mute" wx:else>{{detail.amountFallback}}</text>
+      </block>
+      <!-- stateText 为空时 cy-badge 只剩一个孤零零的状态点(2026-08-19 E12 实拍:金额下面一个空圆点)。
+           同区块其余 fin-kv 行都带 wx:if,这一行漏了。没有状态就不画这个 chip。 -->
+      <view class="fin-hero__chips" wx:if="{{detail.stateText}}"><cy-badge type="status" variant="{{detail.stateVariant}}" label="{{detail.stateText}}" /></view>
+      <view class="fin-kv"><text class="fin-kv__k">核销门店</text><text class="fin-kv__v">{{detail.storeName || '门店信息待补充'}}</text></view>
+      <view class="fin-kv" wx:if="{{detail.accrualRuleText}}"><text class="fin-kv__k">计提规则</text><text class="fin-kv__v">{{detail.accrualRuleText}}</text></view>
+      <view class="fin-kv" wx:if="{{detail.occurredAtText}}"><text class="fin-kv__k">核销时间</text><text class="fin-kv__v">{{detail.occurredAtText}}</text></view>
+      <view class="fin-kv" wx:if="{{detail.refundText}}"><text class="fin-kv__k">退款状态</text><text class="fin-kv__v">{{detail.refundText}}</text></view>
+      <view class="fin-kv ledger-detail-action" wx:if="{{detail.canReadFinance && detail.settlementRoute === 'COOP_ORDER'}}"
+        aria-role="button" aria-label="前往我的资产查看个人账户" bindtap="goAssets"
+        hover-class="ledger-detail-action--press" hover-stay-time="80">
+        <text class="fin-kv__k">结算去向</text><view class="fin-kv__v fin-kv__v--link"><text>个人账户 · 去我的资产</text><cy-icon name="arrow-right" size="24" /></view>
+      </view>
+    </view>
+
+    <!-- 卡2:结算进度与事件记录本是同一件事的两个视图,合成一条竖向 timeline。
+         节点=进度,节点下小字=真实发生过的事件时间;未来节点不给日期(附录 C:禁「预计打款日期」假承诺)。 -->
+    <view class="fin-group" wx:if="{{detail.canReadFinance && detail.timeline.length}}">
+      <view class="fin-group__title">结算进度</view>
+      <view class="fin-card fin-card--pad">
+        <view class="fin-tl order-timeline" aria-role="list" aria-label="结算进度">
+          <view class="fin-tl__step fin-tl__step--{{item.state}}" wx:for="{{detail.timeline}}" wx:key="label"
+            aria-role="listitem" aria-label="{{item.label}}，{{item.state === 'done' ? '已完成' : (item.state === 'now' ? '进行中' : '待处理')}}{{item.at ? '，' + item.at : ''}}">
+            <view class="fin-tl__a">{{item.label}}</view>
+            <view class="fin-tl__b" wx:if="{{item.at}}">{{item.at}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+  <block wx:elif="{{loadState === 'loading'}}">
+    <cy-skeleton type="amount" count="{{1}}" />
+    <cy-skeleton type="card" count="{{1}}" />
+  </block>
+  <cy-empty class="order-detail__state" wx:elif="{{loadState === 'missing-param'}}" kind="missing-param"
+    size="lg" fill title="缺少核销记录标识" sub="请返回核销记录列表重新进入"
+    cta="返回上一页" bind:cta="onNavBack" />
+  <cy-empty class="order-detail__state" wx:elif="{{loadState === 'missing-record'}}" kind="empty"
+    size="lg" fill title="核销记录不可见" sub="这条记录可能已撤回或不属于当前账号"
+    cta="返回核销列表" bind:cta="onNavBack" />
+  <cy-error class="order-detail__state cy-fade-in" wx:else size="lg" fill
+    title="核销详情没加载出来" sub="{{errorText}}" retry="重试" bind:retry="retryLoad" auto-back />
+</view>

@@ -1,0 +1,43 @@
+<cy-date-sheet show="{{show}}" title="{{title}}" confirm-text="完成" bind:cancel="onCancel" bind:confirm="onConfirm">
+  <view class="ctr {{reducedMotion ? 'ctr--reduced-motion' : ''}}">
+    <!-- 时长:全仓 5 处时段选择原来一处都不显示「这段有多长」,
+         而 play/celebrate 还写着「120—210 分钟」的约束没人算 -->
+    <view class="ctr__badge-row">
+      <view class="ctr__badge {{_ok ? '' : 'ctr__badge--bad'}}">{{_spanText || '选择时段'}}</view>
+    </view>
+
+    <!-- 两块调节器各管一头。原生 picker-view 的滚轮外观不跟主题走(白色渐变遮罩 +
+         浅色指示条),在纯黑页上是硬伤;改成自绘的 减—数值—加,深色由 token 决定。 -->
+    <view class="ctr__dial" data-which="start"
+          bindtouchstart="onDragStart" bindtouchmove="onDragMove" bindtouchend="onDragEnd" bindtouchcancel="onDragEnd">
+      <text class="ctr__unit">开始</text>
+      <view class="ctr__row">
+        <view class="ctr__step ctr__step--minus" data-which="start" data-dir="-1" catchtap="onStep"
+              hover-class="ctr__step--press" hover-stay-time="80"
+              aria-role="button" aria-label="开始时间减 {{minuteStep || 5}} 分钟"></view>
+        <text class="ctr__value">{{_startText}}</text>
+        <view class="ctr__step ctr__step--plus" data-which="start" data-dir="1" catchtap="onStep"
+              hover-class="ctr__step--press" hover-stay-time="80"
+              aria-role="button" aria-label="开始时间加 {{minuteStep || 5}} 分钟"></view>
+      </view>
+      <text class="ctr__slide">左右滑动调整</text>
+    </view>
+
+    <view class="ctr__dial" data-which="end"
+          bindtouchstart="onDragStart" bindtouchmove="onDragMove" bindtouchend="onDragEnd" bindtouchcancel="onDragEnd">
+      <text class="ctr__unit">结束</text>
+      <view class="ctr__row">
+        <view class="ctr__step ctr__step--minus" data-which="end" data-dir="-1" catchtap="onStep"
+              hover-class="ctr__step--press" hover-stay-time="80"
+              aria-role="button" aria-label="结束时间减 {{minuteStep || 5}} 分钟"></view>
+        <text class="ctr__value">{{_endText}}</text>
+        <view class="ctr__step ctr__step--plus" data-which="end" data-dir="1" catchtap="onStep"
+              hover-class="ctr__step--press" hover-stay-time="80"
+              aria-role="button" aria-label="结束时间加 {{minuteStep || 5}} 分钟"></view>
+      </view>
+      <text class="ctr__slide">左右滑动调整</text>
+    </view>
+
+    <view class="ctr__hint {{_hint ? 'ctr__hint--on' : ''}}" aria-role="alert">{{_hint}}</view>
+  </view>
+</cy-date-sheet>

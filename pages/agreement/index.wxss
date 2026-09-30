@@ -1,0 +1,18 @@
+/* 左右统一 --cy-page-x(原 40rpx 让正文比 cy-page-title 内缩 8rpx);
+   标题区 → 第一个区块的 space-5 由 cy-page-title 统一承担。 */
+.agr-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 0 var(--cy-page-x) var(--cy-space-7);
+  color: var(--cy-text-title);
+}
+
+/* 卡片收编 cy-card:原自绘卡是「描边 + 实底」双外沿(DS §3.5 起层二选一) */
+
+.agr-meta { display: block; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.agr-meta--footer { margin-top: var(--cy-space-6); }
+.agr-intro { display: block; color: var(--cy-text-body); font-size: var(--cy-font-body); line-height: var(--cy-leading-loose); }
+
+.agr-section { margin-top: var(--cy-space-5); }
+.agr-h { display: block; font-size: var(--cy-font-subtitle); font-weight: 600; }
+.agr-p { display: block; margin-top: var(--cy-space-2); color: var(--cy-text-body); font-size: var(--cy-font-body); line-height: var(--cy-leading-loose); }

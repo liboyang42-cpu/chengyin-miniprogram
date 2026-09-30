@@ -1,0 +1,170 @@
+@charset "UTF-8";
+@import '../../style/picker-wheel.wxss';
+.search2 .sousuo {
+  gap: var(--cy-space-3);
+}
+
+.search2 .sousuo__field {
+  flex: 1;
+  min-width: 0;
+}
+
+.search2 .hot-keys {
+  margin: var(--cy-space-6) 0;
+}
+
+.search2 .hot-keys .cont .li {
+  font-size: var(--cy-font-label);
+  min-height: 88rpx;
+  margin: 0 var(--cy-space-2-5) var(--cy-space-2-5) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  border: 1rpx solid var(--cy-border-line);
+}
+
+.search2 .type-list .li {
+  width: 50%;
+}
+
+/* 用户定(2026-08-05):返回下面紧接标题，不留空档。原本这里补 --cy-space-5 一档呼吸，
+   注释引的「规范 §3.5」章节号对不上（那节是卡片/列表），无规范依据。 */
+.c1-page-title {
+  display: block;
+}
+
+.search2 .type-list .li .item {
+  margin: var(--cy-space-1-5);
+  background: var(--cy-bg-card);
+  padding: var(--cy-legacy-10);
+  border-radius: var(--cy-radius-sm);
+  font-size: var(--cy-font-label);
+  font-weight: bold;
+}
+
+/* UI-13:类别图标从后端占位图换成 cy-icon(iconName 由 utils/category-icon.js 映射),
+   图标盒保持原 68×72rpx 槽位,glyph 居中。 */
+.search2 .type-list .li .item .icon {
+  width: 68rpx;
+  height: var(--cy-legacy-72);
+  flex-shrink: 0;
+  margin-right: var(--cy-space-2-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-primary);
+}
+
+.search-actions { margin-top: var(--cy-space-5); }
+.search-actions__map { width: 100%; }
+
+/* 筛选(§11:Modal 走共享组件 cy-sheet,原 .screen/.pop-cont 私有弹层已删,对齐 pages/searchmap 同款) */
+.riqi {
+  min-height: 64rpx;
+  background: var(--cy-color-bg-page);
+  border-radius: var(--cy-radius-sm);
+  padding: 0 var(--cy-space-1);
+  box-sizing: border-box;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-primary);
+  gap: var(--cy-space-2);
+}
+.riqi .text-style1 { margin: 0 var(--cy-space-1); color: var(--cy-color-text-tertiary); }
+.riqi .text-style2 { color: var(--cy-color-text-primary); }
+
+.dl { margin-bottom: var(--cy-space-6); }
+.dl .dt { font-weight: bold; margin-bottom: var(--cy-space-5); color: var(--cy-color-text-primary); }
+/* 选项行:选中态 = 勾图标出现 + 文字提亮,不只靠颜色(DS §11) */
+.dl .cont .dd {
+  font-size: var(--cy-type-card-title);
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--cy-color-text-tertiary);
+}
+.dl .cont .dd.active { color: var(--cy-color-text-primary); font-weight: 600; }
+.dl .cont .dd .ck { color: var(--cy-color-text-primary); flex: none; }
+
+.dl.dl2 .price .li { width: 46%; }
+.dl.dl2 .price .li .tit { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.dl.dl2 .price .li .cont {
+  margin-top: var(--cy-space-2);
+  width: 100%;
+  height: 86rpx;
+  border-radius: var(--cy-radius-md);
+  border: 2rpx solid var(--cy-color-border-strong);
+}
+.dl.dl2 .price .li .cont input {
+  width: 100%;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+  text-align: center;
+  height: 86rpx;
+  line-height: 86rpx;
+}
+.price-range-tip{ margin-top: var(--cy-space-2); font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+
+.form-btn {
+  display: flex;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-4) 0 0;
+  box-sizing: border-box;
+}
+.form-btn > .form-btn__item { flex: 1; }  /* WXSS 不支持 `*` 通配符(整包编译阻断);标签名选择器官方亦不建议 → 用 class */
+
+/* 双向滑块:轨道用 surface-subtle 底,已选区间/手柄改中性黑白,不用紫色 */
+.slider-container {
+  position: relative;
+  width: 95%;
+  height: 60rpx;
+  margin-top: var(--cy-space-2);
+  padding: 0 var(--cy-space-1);
+  box-sizing: border-box;
+}
+.slider-track {
+  position: absolute;
+  width: 100%;
+  height: 16rpx;
+  background-color: var(--cy-color-bg-surface-subtle);
+  top: 27rpx;
+  border-radius: var(--cy-radius-pill);
+}
+.slider-range {
+  position: absolute;
+  height: 16rpx;
+  background-color: var(--cy-color-text-primary);
+  border-radius: var(--cy-radius-pill);
+  top: 27rpx;
+  z-index: 1;
+}
+.slider-handle {
+  position: absolute;
+  width: 30rpx;
+  height: 30rpx;
+  background-color: var(--cy-color-bg-surface);
+  border: 10rpx solid var(--cy-color-text-primary);
+  border-radius: 50%;
+  top: var(--cy-legacy-10);
+  z-index: 2;
+}
+
+/* 搜索历史「清空」:次级动作,不抢主搜索的视觉权重 */
+.history-clear {
+  font-size: var(--cy-font-label);
+  font-weight: 400;
+  color: var(--cy-color-text-tertiary);
+}
+
+.date-picker-view { height: 560rpx; }
+.date-picker-item {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+}

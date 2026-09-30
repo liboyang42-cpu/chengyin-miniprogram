@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.npc-avatar,
+.npc-avatar-media {
+  width: 100%;
+  height: 100%;
+}
+.npc-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+  background: var(--cy-color-bg-surface-subtle);
+}

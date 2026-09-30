@@ -1,0 +1,39 @@
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出"
+               bind:back="onClose">
+  <view class="g-col cf {{reducedMotion ? 'cf--reduced' : ''}}">
+    <view class="cf__prompt">{{prompt}}</view>
+
+    <!-- 每条上面是文字、下面一个分段控件:点它属于哪一类 -->
+    <view class="cf__list">
+      <!-- 回执只有整体对错:判错时**不**逐条标红(服务端不给逐张对错,
+           整列红等于假装知道是哪张分错了),只留整体提示条并让人继续分 -->
+      <view class="cf__row {{verdict === 'ok' ? 'is-right' : ''}}"
+            wx:for="{{rows}}" wx:key="id" wx:for-index="ri">
+        <view class="cf__head">
+          <view class="cf__label">{{item.label}}</view>
+          <!-- 整体通过才出对错小圆:那意味着每张都放对了。
+               ⚠️ 用「对」而不是 ✓ —— 全仓图标门禁禁字符伪图标,且读屏器念不出对勾 -->
+          <view class="cf__tail" wx:if="{{item.bin && verdict === 'ok'}}">对</view>
+        </view>
+        <view class="cf__seg">
+          <view class="cf__seg-b {{item.bin === bin.id ? (verdict === 'ok' ? 'is-good' : 'is-on') : ''}}"
+                wx:for="{{bins}}" wx:for-item="bin" wx:for-index="bi" wx:key="id"
+                data-i="{{ri}}" data-b="{{bin.id}}" bindtap="onPickBin"
+                aria-role="button" aria-label="把这一条分到「{{bin.label}}」"
+                hover-class="cf__press" hover-stay-time="80">{{bin.label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 还差几条要说出来:按钮灰着却不讲原因,人只会以为坏了 -->
+    <view class="cf__foot" wx:if="{{placed < total}}">还有 {{total - placed}} 条没分 · 分完才能提交</view>
+    <view class="cf__fb {{verdict === 'ok' ? 'is-ok' : 'is-no'}}" wx:if="{{verdict}}">
+      {{verdict === 'ok' ? '分好了 · 这一题过了' : '还有分错的地方 · 这次不扣生命'}}
+    </view>
+  </view>
+
+  <view class="g-btn {{placed >= total && total > 0 ? '' : 'g-btn--disabled'}}" bindtap="onSubmit"
+        aria-role="button" aria-label="提交分好的结果" hover-class="g-btn--press" hover-stay-time="80">
+    提交
+  </view>
+</cy-play-stage>

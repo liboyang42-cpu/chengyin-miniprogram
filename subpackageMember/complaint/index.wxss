@@ -1,0 +1,33 @@
+page { background: var(--cy-bg-page); }
+/* 顶距交还 cy-page-title(自带 safeTop):页面容器再补顶部内距 = 让位两次 */
+.cp-page { min-height: 100vh; display: flex; flex-direction: column; color: var(--cy-text-title); }
+.cp-content { flex: 1; min-height: 0; display: flex; flex-direction: column; box-sizing: border-box; padding: 0 var(--cy-page-x) var(--cy-space-7); }
+.cp-form { width: 100%; }
+/* D25/D26:小标题与值同在灰色分组容器内,空/已填两态遵循深色输入 token。 */
+.cp-field { margin-bottom: var(--cy-space-3); padding: var(--cy-space-3) var(--cy-space-4); border-radius: var(--cy-radius-md); background: var(--cy-color-input-bg-empty); }
+.cp-field--filled { background: var(--cy-color-input-bg-filled); }
+.cp-label { display: block; font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-bottom: var(--cy-space-1); }
+/* 必填星号:红色 + 星号字形双通道,不是「只靠颜色」(WCAG 1.4.1),保留 */
+.cp-req { color: var(--cy-danger); margin-left: var(--cy-legacy-6); }
+.cp-picker { display: flex; align-items: center; justify-content: space-between; min-height: 64rpx; font-size: var(--cy-font-body); color: var(--cy-color-input-text); }
+.cp-picker--ph { color: var(--cy-color-input-placeholder); }
+.cp-picker--pressed { background: var(--cy-color-state-pressed); }
+.cp-picker-icon { flex: none; color: var(--cy-color-input-placeholder); }
+.cp-textarea { width: 100%; box-sizing: border-box; min-height: 200rpx; padding: var(--cy-space-1) 0 0; font-size: var(--cy-font-body); color: var(--cy-color-input-text); line-height: var(--cy-leading-normal); }
+.cp-input { width: 100%; box-sizing: border-box; height: 64rpx; font-size: var(--cy-font-body); color: var(--cy-color-input-text); }
+.cp-ph { color: var(--cy-color-input-placeholder); }
+
+.cp-sheet-option {
+  min-height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+}
+.cp-sheet-option--on { background: var(--cy-bg-card-2); font-weight: 600; }
+.cp-sheet-option--pressed { background: var(--cy-color-state-pressed); }
+.cp-submit-error { margin-top: var(--cy-space-4); margin-bottom: var(--cy-space-2); }
+.cp-submit { display: block; margin-top: var(--cy-space-4); }
+.cp-submit--after-error { margin-top: 0; }

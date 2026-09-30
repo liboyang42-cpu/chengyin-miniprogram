@@ -1,0 +1,11 @@
+<cy-scene-sheet show="{{show}}" variant="half" title="发布什么？" closable
+  mask-closable="{{true}}" bind:close="onClose">
+  <view class="cps-opt" wx:for="{{options}}" wx:key="key" data-key="{{item.key}}"
+    bindtap="onChoose" aria-role="button" aria-label="{{item.title}}" hover-class="cy-pressed" hover-stay-time="80">
+    <view class="cps-opt__icon"><cy-icon name="{{item.icon}}" size="44" /></view>
+    <view class="cps-opt__text">
+      <text class="cps-opt__title">{{item.title}}</text>
+      <text class="cps-opt__desc">{{item.desc}}</text>
+    </view>
+  </view>
+</cy-scene-sheet>

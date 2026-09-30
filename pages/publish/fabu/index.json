@@ -1,0 +1,27 @@
+{
+  "usingComponents": {
+    "cy-privacy-gate": "/components/cy/privacy-gate/index",
+    "cy-card": "/components/cy/card/index",
+    "cy-date-sheet": "/components/cy/date-sheet/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-reward-selector": "/pages/publish/components/reward-selector/index",
+    "cy-category-sheet": "/components/cy/category-sheet/index",
+    "cy-switch": "/components/cy/switch/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-dropdown": "/components/cy/dropdown/index",
+    "cy-date-field": "/components/cy/date-field/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-field": "/components/cy/field/index",
+    "cy-consent-check": "/components/cy/consent-check/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-result-sheet": "/components/cy/result-sheet/index"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black"
+}

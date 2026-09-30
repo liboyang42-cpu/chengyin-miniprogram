@@ -1,0 +1,6 @@
+@import '../../../style/merchant-light-scope.wxss';
+
+page { background: var(--cy-color-bg-page); }
+.detail { min-height: 100vh; background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.activity-shell { box-sizing: border-box; }
+.activity-shell__body { min-height: 0; padding: 0 var(--cy-page-x) var(--cy-space-5); }

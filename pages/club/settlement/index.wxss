@@ -1,0 +1,32 @@
+/* ⚠️ 2026-09-02 截图对稿:Figma G2 画板 375 宽,稿上的 px 写进 wxss 一律 ×2。
+   上一版把稿值直接当 rpx 写(页边 16px→写成 16rpx),卡片几乎贴到屏幕边。页边统一用 --cy-page-x。 */
+page { background: var(--cy-bg-page); }
+.page { min-height: 100vh; background: var(--cy-bg-page); color: var(--cy-color-text-primary); padding-bottom: var(--cy-space-8); }
+.section { margin: var(--cy-space-4) var(--cy-page-x) 0; }
+.section-title { display: block; margin-bottom: var(--cy-space-2-5); color: var(--cy-color-text-secondary); font-size: var(--cy-font-label); }
+
+.settled-card { padding: var(--cy-space-4); border-radius: var(--cy-radius-md); background: var(--cy-bg-elevated); }
+.settled-label { display: block; color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.settled-amount { display: block; margin-top: var(--cy-space-2-5); color: var(--cy-color-text-primary); font-size: var(--cy-type-data-xl); font-weight: 800; font-family: var(--cy-font-numeric); }
+
+
+button.withdraw-btn { width: 100%; box-sizing: border-box; height: var(--cy-btn-h); margin-top: var(--cy-space-4); border: 0; border-radius: var(--cy-radius-pill); background: var(--cy-color-text-primary); color: var(--cy-color-bg-surface); font-size: var(--cy-font-body); font-weight: 800; line-height: var(--cy-btn-h); }
+button.withdraw-btn::after { border: 0; }
+/* CU-C-92:可提现为 0 或余额未取到时主按钮不再冒充主行动(次级面 + 次级前景),
+   原生 button[disabled] 默认样式被显式盖掉,不靠透明度。 */
+button.withdraw-btn[disabled] { background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-secondary); opacity: 1; }
+.withdraw-hint { display: block; margin-top: var(--cy-space-2); color: var(--cy-color-text-tertiary); font-size: var(--cy-font-micro); text-align: center; }
+
+.topic-row { padding: var(--cy-space-4); border-radius: var(--cy-radius-md); background: var(--cy-bg-elevated); }
+.topic-row + .topic-row { margin-top: var(--cy-space-3); }
+.topic-row-head { display: flex; align-items: center; justify-content: space-between; }
+.topic-row-name { color: var(--cy-color-text-primary); font-size: var(--cy-font-subtitle); font-weight: 800; }
+.topic-row-amount { color: var(--cy-color-text-primary); font-size: var(--cy-font-subtitle); font-weight: 800; font-family: var(--cy-font-numeric); }
+.topic-row-body { display: flex; align-items: center; margin-top: var(--cy-space-2-5); }
+.topic-row-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.topic-row-meta-line { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-micro); }
+.topic-row-chip { flex-shrink: 0; margin-right: var(--cy-space-1-5); padding: 0 var(--cy-space-1-5); height: 44rpx; line-height: 44rpx; border-radius: var(--cy-radius-pill); color: var(--cy-color-text-tertiary); font-size: var(--cy-font-micro); font-weight: 700; }
+.topic-row-chip--settled { background: var(--cy-color-status-success-soft); color: var(--cy-color-status-success); }
+.topic-row-arrow { flex-shrink: 0; color: var(--cy-color-text-tertiary); }
+
+.footnote { display: block; margin-top: var(--cy-space-4); color: var(--cy-color-text-tertiary); font-size: var(--cy-font-micro); line-height: 1.5; }

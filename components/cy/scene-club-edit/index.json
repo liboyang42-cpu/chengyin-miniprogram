@@ -1,0 +1,15 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-switch": "/components/cy/switch/index"
+  },
+  "styleIsolation": "isolated"
+}

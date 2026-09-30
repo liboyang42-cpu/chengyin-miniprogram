@@ -1,0 +1,8 @@
+<page-meta page-style="{{ fontScaleStyle }}"></page-meta>
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-profile id="profile" viewer="self" />
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />
+</view>

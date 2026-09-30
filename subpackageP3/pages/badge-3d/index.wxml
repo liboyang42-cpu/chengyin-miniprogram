@@ -1,0 +1,26 @@
+<!-- 徽章双样式详情:enamel=手写 WebGL 转台 / glow=勋章墙波点引擎单枚;不支持时退静态图,不留黑屏 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="b3">
+  <view class="b3__head" style="padding-top:{{actionTop}}px">
+    <view class="b3__back" bindtap="goBack" aria-role="button" aria-label="返回" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="44" /></view>
+    <text class="b3__title">徽章</text>
+    <view class="b3__back b3__back--ghost"></view>
+  </view>
+  <view class="b3__stage">
+    <image class="b3__fallback" wx:if="{{renderState !== 'ready'}}" src="{{fallbackSrc}}" mode="aspectFit" aria-role="img" aria-label="{{name}}静态预览" />
+    <!-- 双样式分流:enamel=3D珐琅转台;glow=二维发光大卡(与勋章墙同族观感,CSS 光环) -->
+    <block wx:if="{{style=='enamel'}}">
+      <xr-badge wx:if="{{!unsupported}}" id="xr" class="b3__xr {{renderState === 'ready' ? '' : 'b3__xr--loading'}}" src="{{src}}"
+                reduced="{{reducedMotion}}" bind:unsupported="onUnsupported" bind:loaded="onLoaded" bind:xready="onXrReady" />
+    </block>
+    <!-- glow=勋章墙同一台波点引擎渲染单枚(用户裁决:不是 CSS 光圈,是那种波点) -->
+    <canvas wx:elif="{{!unsupported}}" type="webgl" id="glowcv" class="b3__xr {{renderState === 'ready' ? '' : 'b3__xr--loading'}}"></canvas>
+  </view>
+  <view class="b3__name">{{name}}</view>
+  <view class="b3__sub" wx:if="{{sub}}">{{sub}}</view>
+  <view class="b3__hint" aria-live="polite">{{renderState === 'loading' ? (style === 'glow' ? '正在准备发光徽章…' : '正在准备 3D 徽章…') : (renderState === 'fallback' ? '当前环境显示静态徽章预览' : (style === 'glow' ? '' : '拖动可旋转查看'))}}</view>
+</view>
+</view>

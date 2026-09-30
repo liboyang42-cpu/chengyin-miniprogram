@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-play-stage": "/pages/play/components/play-stage/index"
+  }
+}

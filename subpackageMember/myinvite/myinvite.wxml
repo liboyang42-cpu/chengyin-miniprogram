@@ -1,0 +1,13 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="myinvite-page">
+  <cy-nav-bar custom-back bind:back="onClose" />
+  <cy-page-title title="邀请记录" />
+  <!-- 同提现记录 / 收益明细：独立路由不再套常驻半屏，正文落到标题下方。 -->
+  <view class="myinvite-page-body">
+    <cy-scene-member-invite-history id="inviteHistory" />
+  </view>
+</view>
+</view>

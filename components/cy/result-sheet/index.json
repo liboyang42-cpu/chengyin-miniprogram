@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-consent-check": "/components/cy/consent-check/index"
+  }
+}

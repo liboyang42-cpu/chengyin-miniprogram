@@ -1,0 +1,97 @@
+/* cy-cell · 列表行(DS §3.11)
+ * 单行 96rpx / 双行 128rpx,左右 padding 32rpx,整行可点(≥88rpx 触控区)。
+ * 只读 --cy-color-* 语义 token,浅/深主题自动适配;箭头复用 cy-icon。 */
+:host { display: block; }
+
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-comp-cell-gap, var(--cy-space-3));
+  min-height: var(--cy-comp-cell-min-h);
+  padding: 0 var(--cy-comp-cell-pad-x);
+  box-sizing: border-box;
+}
+.cell--twoline { min-height: 128rpx; }
+
+.cell__icon {
+  width: 44rpx;
+  height: 44rpx;
+  flex-shrink: 0;
+}
+/* tint=mono:把深色线性图标统一染成前景色描边(暗底页图标可见且风格一致) */
+.cell--tint-mono .cell__icon { filter: brightness(0) invert(1); }
+
+.cell__body { flex: var(--cy-comp-cell-label-flex, 1); min-width: var(--cy-comp-cell-label-width, 0); }
+.cell__title {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+  line-height: var(--cy-leading-tight);
+}
+.cell__desc {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+  line-height: var(--cy-leading-tight);
+  white-space: normal;
+  word-break: break-word;
+}
+
+.cell__value {
+  text-align: var(--cy-comp-cell-value-align, left);
+  flex-shrink: 0;
+  max-width: var(--cy-comp-cell-value-max, 40%);
+  flex: var(--cy-comp-cell-value-flex, none);
+  min-width:0;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cell__chevron {
+  flex-shrink: 0;
+  margin-right: var(--cy-legacy-4);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* —— 状态 —— */
+.cell--press { background: var(--cy-comp-cell-press-bg); }
+
+.cell--disabled .cell__title { color: var(--cy-color-text-disabled); }
+.cell--disabled .cell__desc,
+.cell--disabled .cell__value { color: var(--cy-color-text-disabled); }
+.cell--disabled .cell__icon { opacity: .4; }
+.cell--disabled .cell__chevron { color: var(--cy-color-text-disabled); }
+
+.cell--danger .cell__title { color: var(--cy-color-status-danger); }
+
+/* open-type 透明 button:覆盖整行,视觉零存在 */
+.cell__open {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  opacity: 0;
+}
+.cell__open::after { border: none; }
+
+/* 左右缩进走变量:组件是 styleIsolation:isolated,外部类选择器进不来(改了也静默不生效),
+   但 CSS 变量能继承 —— 分组卡场景要两端各缩一格时,由外部设 --cy-comp-cell-hairline-* 即可。
+   默认值 = 原行为(左对文字起点、右到边),不改任何既有页面。 */
+.cell__hairline {
+  position: absolute;
+  left: var(--cy-comp-cell-hairline-left, var(--cy-space-4));
+  right: var(--cy-comp-cell-hairline-right, 0);
+  bottom: 0;
+  height: 1px;
+  background: var(--cy-color-border-subtle);
+}
+
+.cell__required{color:var(--cy-color-status-danger);}

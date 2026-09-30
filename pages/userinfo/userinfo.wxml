@@ -1,0 +1,17 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-profile wx:if="{{!missingUser}}" id="profile" viewer="other" user-id="{{userId}}" initial-tab="{{initialTab}}"
+  topic-id="{{topicId}}" topic-name="{{topicName}}" operation-scope="{{operationScope}}" preview-self="{{previewSelf}}" />
+<view wx:else class="userinfo-missing">
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <cy-page-title title="个人主页" />
+  <view class="userinfo-missing__body">
+    <cy-empty kind="missing-param" fill="{{true}}" size="lg"
+      title="这个主页链接不完整" sub="链接里没有用户信息，暂时无法打开个人主页。"
+      cta="回到我的主页" bind:cta="goMemberHome" />
+  </view>
+</view>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

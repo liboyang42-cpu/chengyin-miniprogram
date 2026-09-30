@@ -1,0 +1,29 @@
+<view class="om-page {{isMerchantViewer ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar />
+  <cy-page-title title="我发布的" />
+  <scroll-view scroll-y class="om-scroll">
+    <cy-skeleton wx:if="{{loading && !hasLoaded}}" type="list" count="3" />
+    <cy-error class="cy-fade-in" wx:elif="{{error && !hasLoaded}}" fill size="lg" title="发布记录加载失败" sub="{{error}}" bind:retry="fetch" auto-back />
+    <block wx:else>
+      <view wx:if="{{refreshing}}" class="om-sync" aria-role="status" aria-live="polite">正在更新发布记录…</view>
+      <view class="om-sec">我发起的活动 · {{events.length}}</view>
+      <cy-empty wx:if="{{!events.length}}" title="还没发过活动" sub="从官方活动页发起后，会在这里查看进度。" />
+      <view wx:for="{{events}}" wx:key="id" class="om-card" data-id="{{item.id}}" bindtap="openEvent" hover-class="om-card--pressed" aria-role="button" aria-label="查看{{item._title}}详情，{{item._st}}">
+        <view class="om-row"><text class="om-t">{{item._title}}</text><cy-badge type="status" variant="neutral" label="{{item._st}}" /></view>
+        <text class="om-sub">{{item._city}}{{item._category ? ' · ' + item._category : ''}}</text>
+      </view>
+
+      <view class="om-sec">我发的通知 · {{broadcasts.length}}</view>
+      <cy-empty wx:if="{{!broadcasts.length}}" title="还没发过通知" sub="发出官方通知后，会在这里查看对象与触达人数。" />
+      <view wx:for="{{broadcasts}}" wx:key="id" class="om-card">
+        <view class="om-row"><text class="om-t">{{item._title}}</text><cy-badge type="status" variant="neutral" label="{{item._st}}" /></view>
+        <text class="om-sub">{{item._mode}} · 发给 {{item._aud}} · {{item._city}}</text>
+        <view class="om-stat"><text class="om-reach">{{item._reach}}</text></view>
+      </view>
+      <view class="om-bottom"></view>
+    </block>
+  </scroll-view>
+</view>

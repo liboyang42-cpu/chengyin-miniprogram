@@ -1,0 +1,153 @@
+<view class="theme-dark {{reducedMotion ? 'cy-motion-reduced' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="cc-page {{introMode ? 'cc-page--intro' : ''}}" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar back custom-back bind:back="onBack">
+    <view slot="actions" class="cc-navright">
+      <text class="cc-stepcount" wx:if="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode}}">{{step}} / 4</text>
+    </view>
+  </cy-nav-bar>
+
+  <cy-state-shell class="cc-state" wx:if="{{bootstrapState === 'checking' || bootstrapState === 'redirecting'}}"
+    kind="loading" size="lg" fill
+    title="{{bootstrapState === 'redirecting' ? '正在前往主理人申请' : '正在确认创建资格'}}"
+    sub="{{bootstrapState === 'redirecting' ? '即将打开申请页' : '同时检查主理人身份与可用名额'}}" />
+  <cy-state-shell class="cc-state" wx:elif="{{bootstrapState === 'error'}}"
+    kind="{{bootstrapErrorKind}}" size="lg" fill title="创建资格未确认" sub="{{bootstrapError}}"
+    primary="重新检查" secondary="返回上一页" bind:primary="retryBootstrap" bind:secondary="onClose" auto-back custom-back bind:back="onClose" />
+  <cy-state-shell class="cc-state" wx:elif="{{bootstrapState === 'no-permission'}}"
+    kind="no-permission" size="lg" fill title="请先成为俱乐部主理人"
+    sub="申请通过后即可创建与管理俱乐部" primary="前往申请" secondary="返回上一页"
+    bind:primary="goApply" bind:secondary="onClose" />
+  <cy-state-shell class="cc-state" wx:elif="{{bootstrapState === 'limit'}}"
+    kind="empty" size="lg" fill title="已达创建上限"
+    sub="每位主理人最多创建 2 个俱乐部" primary="管理我的俱乐部" secondary="返回上一页"
+    bind:primary="goManageClub" bind:secondary="onClose" />
+  <cy-empty class="cc-state" wx:elif="{{submitState === 'success'}}" kind="success" size="lg" fill
+    title="俱乐部已创建" sub="{{submissionReceipt.name}} · {{submissionReceipt.city}}"
+    cta="进入俱乐部管理" bind:cta="goCreatedClub" />
+
+  <!-- ===== 开场屏(四步之前,Figma G0) ===== -->
+  <view class="intro {{morphing ? 'intro--out' : 'cy-rise-in'}}"
+        wx:if="{{bootstrapState === 'ready' && submitState !== 'success' && (introMode || morphing)}}">
+    <view class="intro__eyebrow">建一个俱乐部</view>
+    <view class="intro__title">给你的人
+一个固定的落脚点</view>
+    <view class="intro__sub">四步，大约两分钟。</view>
+    <view class="intro__points">
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>类型 · 方向 · 资料 · 城市，一步一问</text></view>
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>填完立刻可用，不用等审核</text></view>
+      <view class="intro__point"><view class="intro__dot" aria-hidden="true"></view><text>每位主理人最多建 2 个俱乐部</text></view>
+    </view>
+    <view class="intro-cta"><cy-btn variant="primary" accessibilityLabel="开始创建" bindtap="startForm">开始创建</cy-btn></view>
+    <view class="intro__fine">类型决定俱乐部的主分类与标签，之后可改。</view>
+  </view>
+
+  <!-- 开场胶囊 → 进度条:共享元素形变,几何与约束见 utils/wizard-morph.js -->
+  <view class="morph" wx:if="{{morph}}" aria-hidden="true"
+        style="left:{{morph.x}}px; top:{{morph.y}}px; width:{{morph.w}}px; height:{{morph.h}}px;
+               transform: translate({{morphRun ? morph.dx : 0}}px, {{morphRun ? morph.dy : 0}}px)
+                          scale({{morphRun ? morph.sx : 1}}, {{morphRun ? morph.sy : 1}});
+               border-radius: {{morphRun ? 3 : 999}}px;">
+    <view class="morph__track" style="opacity:{{morphRun ? 1 : 0}}"></view>
+    <view class="morph__fill" style="transform: scaleX({{morphRun ? morph.fx : 1}})"></view>
+  </view>
+
+  <!-- Strava 向导：细分段先交代当前位置，再进入本步问题。 -->
+  <view class="cc-progress {{morphing ? 'prog--ghost' : ''}}" wx:if="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode}}"
+        aria-role="status" aria-live="polite" aria-label="第{{step}}步，共4步">
+    <view class="cc-seg {{step > index ? 'done' : (step === index + 1 ? 'active' : '')}}"
+          wx:for="{{dots}}" wx:key="*this" aria-hidden="true"></view>
+  </view>
+
+  <view class="cc-head {{stepIn ? 'cy-rise-in' : ''}}" wx:if="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode}}">
+    <view class="cc-eyebrow">建一个俱乐部</view>
+    <view class="cc-q cy-h1">{{step === 1 ? '选择你的俱乐部类型' : (step === 2 ? '哪些最符合你的活动方向?' : (step === 3 ? '完善俱乐部资料' : '你的俱乐部在哪座城市?'))}}</view>
+    <view class="cc-legend" wx:if="{{step === 3 || step === 4}}">标 <text class="cc-req" aria-hidden="true">*</text> 的是必填</view>
+  </view>
+
+  <!-- 步骤1:俱乐部类型(单选大类) -->
+  <view wx:if="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode && step === 1}}" class="cc-body cy-rise-in">
+    <view class="cc-opt {{clubType === item.val ? 'sel' : ''}}"
+          wx:for="{{typeOptions}}" wx:key="val" bindtap="pickType" data-val="{{item.val}}"
+          aria-role="radio" aria-checked="{{clubType === item.val}}" aria-label="{{item.val}}，{{item.sub}}" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="cc-opt-body">
+        <view class="cc-opt-t">{{item.val}}</view>
+        <view class="cc-opt-s" wx:if="{{item.sub}}">{{item.sub}}</view>
+      </view>
+      <view class="cc-radio {{clubType === item.val ? 'on' : ''}}"></view>
+    </view>
+  </view>
+
+  <!-- 步骤2:活动方向(多选≤3) -->
+  <view wx:elif="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode && step === 2}}" class="cc-body cy-rise-in">
+    <view class="cc-chips">
+      <!-- ⚠️ 选中判定走 JS 预算好的 item.on。WXML 表达式不支持方法调用,
+           原来的 activityPrefs.indexOf(item) >= 0 恒假,选中态从来没渲染过。 -->
+      <view class="cc-chip {{item.on ? 'on' : ''}}"
+            wx:for="{{dirList}}" wx:key="val" bindtap="toggleDir" data-val="{{item.val}}"
+            aria-role="checkbox" aria-checked="{{!!item.on}}" aria-label="{{item.val}}" hover-class="cy-pressed" hover-stay-time="80">{{item.val}}</view>
+    </view>
+    <view class="cc-count" aria-live="polite">已选 {{activityPrefs.length}} / 3</view>
+  </view>
+
+  <!-- 步骤3:资料(名称/Logo/封面/简介) -->
+  <view wx:elif="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode && step === 3}}" class="cc-body cy-rise-in">
+    <view class="cc-imgs">
+      <view class="cc-cover" bindtap="chooseCover" aria-role="button" aria-label="选择俱乐部封面" hover-class="cy-pressed" hover-stay-time="80">
+        <image wx:if="{{cover}}" src="{{cover}}" mode="aspectFill" lazy-load="true" />
+        <view wx:else class="cc-ph" aria-hidden="true">
+          <cy-icon name="plus" size="32" />
+          <text>封面 · 16:9 横图</text>
+        </view>
+      </view>
+      <view class="cc-logo" bindtap="chooseLogo" aria-role="button" aria-label="选择俱乐部Logo" hover-class="cy-pressed" hover-stay-time="80">
+        <image wx:if="{{logo}}" src="{{logo}}" mode="aspectFill" lazy-load="true" />
+        <view wx:else class="cc-ph-sm" aria-hidden="true">
+          <cy-icon name="plus" size="28" />
+          <text>Logo 1:1</text>
+        </view>
+      </view>
+    </view>
+    <!-- Logo 用 position:absolute; bottom:-36rpx 挂在封面下沿会探出容器往下伸,
+         用一个独立的定高占位块把下面的字段顶开,否则标签会被 Logo 压住(实测踩过)。 -->
+    <view style="height:100rpx"></view>
+    <view class="cc-field">
+      <text class="cc-field-label">俱乐部名称<text class="cc-req" aria-hidden="true">*</text></text>
+      <input class="cc-input cc-input--field {{name ? 'is-filled' : ''}}" aria-label="俱乐部名称，必填" placeholder="给你的俱乐部起个名字" value="{{name}}" data-field="name" bindinput="onInput" maxlength="30" disabled="{{submitting}}" />
+    </view>
+    <view class="cc-field">
+      <text class="cc-field-label">一句话介绍(选填)</text>
+      <textarea class="cc-textarea cc-input--field {{description ? 'is-filled' : ''}}" aria-label="一句话介绍，选填" placeholder="用一句话说清你的俱乐部是做什么的" value="{{description}}" data-field="description" bindinput="onInput" maxlength="200" disabled="{{submitting}}" />
+    </view>
+  </view>
+
+  <!-- 步骤4:城市(必填)+ 关键词 + 风格 -->
+  <view wx:elif="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode && step === 4}}" class="cc-body cy-rise-in">
+    <view class="cc-field">
+      <text class="cc-field-label">城市<text class="cc-req" aria-hidden="true">*</text></text>
+      <input class="cc-input cc-input--field {{city ? 'is-filled' : ''}}" aria-label="所在城市，必填" placeholder="如 上海" value="{{city}}" data-field="city" bindinput="onInput" maxlength="20" disabled="{{submitting}}" />
+    </view>
+    <view class="cc-field">
+      <text class="cc-field-label">核心关键词(选填)</text>
+      <input class="cc-input cc-input--field {{keywords ? 'is-filled' : ''}}" aria-label="核心关键词，选填" placeholder="逗号分隔,如 徒步,摄影" value="{{keywords}}" data-field="keywords" bindinput="onInput" maxlength="60" disabled="{{submitting}}" />
+    </view>
+    <view class="cc-field">
+      <text class="cc-field-label">风格/调性(选填)</text>
+      <input class="cc-input cc-input--field {{style ? 'is-filled' : ''}}" aria-label="风格或调性，选填" placeholder="如 沉浸剧情" value="{{style}}" data-field="style" bindinput="onInput" maxlength="30" disabled="{{submitting}}" />
+    </view>
+  </view>
+
+  <cy-inline-error class="cc-alert" wx:if="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode && submitError}}"
+    kind="{{submitErrorKind}}" title="创建没有完成" sub="{{submitError}}"
+    action="重试" bind:action="retrySubmit" />
+
+  <!-- 底部 CTA -->
+  <view class="cc-bottom" wx:if="{{bootstrapState === 'ready' && submitState !== 'success' && !introMode}}">
+    <cy-btn variant="primary" loading="{{submitting}}"
+      disabled="{{!canNext || submitting}}" accessibilityLabel="{{step < 4 ? '下一步' : '创建俱乐部'}}"
+      bindtap="onNext">{{step < 4 ? '下一步' : (submitting ? '创建中…' : '创建俱乐部')}}</cy-btn>
+  </view>
+</view>
+</view>

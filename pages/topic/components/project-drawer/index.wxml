@@ -1,0 +1,30 @@
+<!-- 顶部落下的大面板:从 hero 下方一直盖到屏幕底,浅灰底、顶部大圆角。
+     不是「白卡 + 卡外黑条」——面板内部才是「粗黑大标题 + 白卡列表」的分组。
+     黑色主动作固定在面板底部,不随内容滚。 -->
+<block wx:if="{{ show }}">
+<!-- 面板下方的黑色半透明遮罩(带虚化):面板不铺到屏幕底,底下露出来的页面要压暗 -->
+<view class="dw-mask" bindtap="onClose" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"></view>
+<view class="dw {{customerMode ? 'dw--customer' : ''}}">
+  <!-- 旧抽屉保留原有堆叠装饰；客户名单按 Figma 25:125 不显示。 -->
+  <view class="dw-stack" wx:if="{{!customerMode}}"></view>
+  <view class="dw-head">
+    <view class="dw-head-text">
+      <text class="dw-title">{{ title }}</text>
+      <!-- 稿 468:*:标题下那句「这一套为什么长这样」。没传就整行不出,不留空位。 -->
+      <text class="dw-sub" wx:if="{{ subtitle }}">{{ subtitle }}</text>
+    </view>
+    <view class="dw-close" catchtap="onClose" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+  </view>
+
+  <scroll-view class="dw-scroll" scroll-y>
+    <slot></slot>
+    <view class="dw-scroll-pad"></view>
+  </scroll-view>
+
+  <view class="dw-cta" wx:if="{{ actions.length }}">
+    <view class="dw-btn {{ item.ghost ? 'dw-btn--ghost' : '' }}"
+          wx:for="{{ actions }}" wx:key="key"
+          data-key="{{ item.key }}" catchtap="onAction" hover-class="cy-pressed" hover-stay-time="80">{{ item.label }}</view>
+  </view>
+</view>
+</block>

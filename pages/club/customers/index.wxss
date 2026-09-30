@@ -1,0 +1,74 @@
+/* K1 客户 · 列表(暗)· Figma s7SEFaoJ3GQUIxJhdqcFUb node 141:90
+   色/字/角一律走 token;Figma 页边 20px 按本仓 --cy-page-x(16px)对齐,与其他俱乐部页一致。 */
+page { background: var(--cy-color-bg-page); }   /* 顶栏与铺满层同色，避免固定导航下缘出色带(custom-nav-page-surface 契约) */
+.page { min-height: 100vh; padding-bottom: var(--cy-space-5); display: flex; flex-direction: column; }
+cy-empty, cy-error { display: flex !important; flex: 1 !important; min-height: 0; }
+
+/* 统计行:随筛选变化的数据,不是标题下的小标题 */
+.cus-count {
+  padding: 0 var(--cy-page-x);
+  font-size: var(--cy-font-label);
+  color: var(--cy-color-text-placeholder);
+}
+
+/* 筛选 chip 排:选中 = 星白底深墨字;未选 = bg-interactive 上只能配 text-primary */
+.cus-chips { margin-top: var(--cy-space-4); }
+.cus-chiprow { display: flex; gap: var(--cy-space-2-5); padding: 0 var(--cy-page-x); white-space: nowrap; }
+.cus-chip {
+  flex-shrink: 0;
+  height: 68rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 28rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-interactive);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+}
+.cus-chip--on { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+
+.cus-search { display: block; padding: 0 var(--cy-page-x); margin-top: var(--cy-space-3); }
+
+/* 列表行 */
+.cus-list { padding: 0 var(--cy-page-x); margin-top: var(--cy-space-4); }
+.cus-row { display: flex; align-items: flex-start; }
+.cus-ava { flex-shrink: 0; margin-top: var(--cy-space-1); }
+.cus-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  margin-left: var(--cy-space-3);
+  padding: var(--cy-space-1) 0 var(--cy-space-3);
+  border-bottom: 2rpx solid var(--cy-color-border-subtle);
+}
+.cus-row:last-child .cus-body { border-bottom: none; }
+.cus-main { flex: 1; min-width: 0; }
+.cus-nameline { display: flex; align-items: center; gap: var(--cy-space-1-5); }
+.cus-name {
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cus-remarktag {
+  flex-shrink: 0;
+  padding: 2rpx 10rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-micro);
+}
+.cus-meta, .cus-sub {
+  display: block;
+  margin-top: var(--cy-space-1-5);
+  font-size: var(--cy-font-label);
+  color: var(--cy-color-text-placeholder);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cus-chevron { flex-shrink: 0; margin: var(--cy-space-2-5) 0 0 var(--cy-space-2); color: var(--cy-color-text-placeholder); }

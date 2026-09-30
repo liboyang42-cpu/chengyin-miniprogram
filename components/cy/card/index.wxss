@@ -1,0 +1,23 @@
+:host { display: block; }
+
+.cy-card {
+  background: var(--cy-comp-card-bg);
+  border-radius: var(--cy-comp-card-radius);
+  padding: var(--cy-comp-card-pad);
+  /* 2026-08-05 去掉 `border: 1rpx solid`(规范真源 §5:只填充无描边)。
+     边界改由填充明度差表达 —— 卡片底提到 elevated 一档,与页面底差 11.4%。
+
+     ⚠️ 下面这行 box-shadow **不是描边,是起层**,保留:
+     暗端是顶缘 1rpx inset 高光(光从上方来的物理暗示),浅端是投影。两段固定写死、
+     不做主题判断,用不上的那一档由主题块置成 transparent / 零阴影
+     (见 tokens.wxss --cy-comp-card-highlight / --cy-comp-card-shadow-day)。
+     §5 禁的是「用一圈线画出边界」,不禁「用光影表达层级」。 */
+  box-shadow: inset 0 1rpx 0 0 var(--cy-comp-card-highlight), var(--cy-comp-card-shadow-day);
+}
+
+.cy-card--flat {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;   /* flat 是「嵌套时消隐容器」,高光/投影一并撤掉 */
+}

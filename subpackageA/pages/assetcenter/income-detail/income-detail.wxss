@@ -1,0 +1,13 @@
+page { min-height: 100vh; display: flex; flex-direction: column; }
+/* ★ 背景必须涂在主题根节点上,不能只写 page{}(2026-08-11 重拍实测:整页浅灰 + 浅色标题
+   压浅底,几乎不可见)。同 B54/B55/B56 那一族根因:主题类挂在本页 wxml 的根
+   <view class="theme-dark"> 上,而 page{} 选择器**在主题作用域之外** —— 它取到的是
+   页面级值,本页 onShow 调 merchantTheme.merchantPageShow() 后那是商家浅色。
+   以前有 cy-sheet 和遮罩盖着看不出来,弹层一撤就露出来了。
+   ⚠️ 别在 page{} 里写字面值:那会让本页脱离主题真源,主题一改这里就漂。 */
+.theme-dark { flex: 1; min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+/* 正文从弹层里搬到页上后,原来由 cy-sheet 提供的左右内缩与底部安全区没人给了,页面自己补。
+   flex:1 让列表吃到「标题下方到屏幕底部」的剩余空间(空态的 fill 靠这条)。 */
+.id-page-body { flex: 1; min-height: 0; display: flex; flex-direction: column;
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-4) + env(safe-area-inset-bottom)); }

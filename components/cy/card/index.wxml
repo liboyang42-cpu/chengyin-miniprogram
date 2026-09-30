@@ -1,0 +1,7 @@
+<view class="cy-card {{flat ? 'cy-card--flat' : ''}}"
+      aria-role="{{interactive ? 'button' : ''}}"
+      aria-label="{{interactive ? accessibilityLabel : ''}}"
+      hover-class="{{hoverClass}}"
+      hover-stay-time="{{hoverStayTime}}">
+  <slot></slot>
+</view>

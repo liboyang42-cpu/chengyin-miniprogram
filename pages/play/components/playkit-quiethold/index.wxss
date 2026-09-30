@@ -1,0 +1,57 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-quiethold · 安静挑战(原型真源:模板编辑页 v2 · playkit quiet) */
+.qt {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40rpx;                                                       /* ds-ok 原型 20px */
+  padding: 112rpx 56rpx 68rpx;                                      /* ds-ok 原型 56px 28px 34px */
+  text-align: center;
+  transition: background var(--cy-dur) linear;
+  /* 快到线时整屏透出一点暖色,给人一个收声的机会 —— 
+     只有绿和红的话,人是在毫无预兆的情况下失败的。ds-ok:玩法信号色 */
+  background: linear-gradient(180deg, #0d1512, #050a08);            /* ds-ok */
+}
+.qt--mid { background: linear-gradient(180deg, #1a1408, #0a0805); } /* ds-ok */
+.qt--hot { background: linear-gradient(180deg, #2a0f10, #120607); } /* ds-ok */
+
+.qt__k {
+  font-size: var(--cy-type-label);
+  font-weight: 800;
+  letter-spacing: 7rpx;                                             /* ds-ok 原型 3.6px */
+  color: #e8f0ea;                                                   /* ds-ok */
+  opacity: .68;
+}
+.qt__s {
+  font-size: var(--cy-type-body);
+  line-height: 1.75;
+  max-width: 24em;
+  color: #e8f0ea;                                                   /* ds-ok */
+  opacity: .75;
+}
+/* 按钮跟着内容流,底色是浅绿 —— 照原型 .qtb */
+.qt__b {
+  width: 100%;
+  height: 104rpx;                                                   /* ds-ok 原型 52px */
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 52rpx;                                             /* ds-ok 原型 26px */
+  background: #e8f0ea;                                              /* ds-ok */
+  color: #0d1512;                                                   /* ds-ok */
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+}
+.qt__b--press { opacity: .88; }
+.qt__b--busy { opacity: .55; }
+.qt__n {
+  font-size: var(--cy-play-display-3xl);
+  line-height: 1;
+  letter-spacing: -5rpx;                                            /* ds-ok 原型 -2.46px */
+  color: #3ecf8e;                                                   /* ds-ok 绿档 */
+  transition: color var(--cy-dur-fast) linear;
+}
+.qt--mid .qt__n { color: #d9a327; }                                 /* ds-ok 黄档 */
+.qt--hot .qt__n { color: #e0464c; }                                 /* ds-ok 红档 */

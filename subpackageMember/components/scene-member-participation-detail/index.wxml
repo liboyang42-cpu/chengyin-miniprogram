@@ -1,0 +1,139 @@
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+<!-- R1-C04:标题原为「我的参与」,与列表页 mycanyu 的大标题逐字相同 —— 点进详情后顶部
+     没有任何变化,用户失去层级反馈。改为「参与详情」(沿用 infomationdetail 的同一先例)。 -->
+<view class="mci">
+
+<!-- R1-C04:本页此前既没有 loading 也没有 error —— 接口失败只弹一个 toast(一闪就没),
+     页面把整套骨架连着空值一起渲染出来(基线截图 033:空标题 + 空白药丸 + 空封面)。
+     补三态互斥;后端文案原样透传,不吞错误。fill=在标题下方到屏幕底部的剩余空间里居中
+     (2026-07-31 总控根因修复,不是整屏居中也不是贴顶)。 -->
+<cy-empty wx:if="{{loadState === 'loading'}}" kind="loading" title="参与详情加载中" fill class="cy-fill-state" size="lg" />
+<!-- 缺参 ≠ 加载失败：缺参走 missing-param（info 图标 + 返回），真错误才走 cy-error。
+     R2 动作槽：缺 id 给「返回参与列表」，有 id 给「重试」，标签与行为一一对应。 -->
+<cy-empty wx:elif="{{loadState === 'missing-param'}}" kind="missing-param" title="缺少参与记录" sub="请返回列表重新进入" cta="返回参与列表" bind:cta="onErrorAction" fill class="cy-fill-state" size="lg" />
+<cy-error wx:elif="{{loadState === 'error'}}" title="参与详情没能打开" sub="{{loadErrorText}}" retry="{{errorActionText}}" bind:retry="onErrorAction" fill class="cy-fill-state" size="lg" />
+
+<block wx:else>
+<view class="cyinfotop">
+  <view class="cyinfotop_left">{{displayInfo.topicName}}</view>
+  <view class="cyinfotop_right">
+    <!-- 只在主题开始前3天至主题开始前显示 warning 提醒标签 -->
+    <text class="mci-badge davidhong" wx:if="{{displayInfo.isInThreeDaysRange && displayInfo.remainingDays}}">{{displayInfo.remainingDays}}</text>
+    <!-- 缺日期时 formatDateRange 返回空串,无 wx:if 会渲染出一块无字的白色实底(基线截图 033) -->
+    <text class="mci-badge davidhei" wx:elif="{{displayInfo.formatDateRange}}">{{displayInfo.formatDateRange}}</text>
+  </view>
+</view>
+
+<cy-card class="cyinfobox">
+  <view class="cyinfobox_tw">
+    <view class="cyinfobox_tw_left" wx:if="{{displayInfo.picUrl}}">
+      <image class="mci-cover" lazy-load="true" src="{{img.first(displayInfo.picUrl)}}" mode="aspectFill" />
+    </view>
+    <view class="cyinfobox_tw_right">
+      <view class="cyinfobox_tw_right_name">
+        <cy-badge wx:if="{{displayInfo.modeText}}" type="status" variant="{{displayInfo.modeVariant}}" label="{{displayInfo.modeText}}" />
+        <cy-badge type="status" variant="{{displayInfo.statusVariant}}" label="{{displayInfo.statusText}}" />
+      </view>
+      <view class="cyinfobox_tw_right_txt" wx:if="{{displayInfo.activityDesc}}">{{displayInfo.activityDesc}}</view>
+    </view>
+  </view>
+
+  <!-- 玩家侧 /api/registration/info 不带 nodeName;没有真值就整行不渲染,
+       不再摆一行只有标签、值为空的占位(基线截图 033 的「最终分配节点」空行)。 -->
+  <view class="cyinfobox_con" wx:if="{{displayInfo.hasNodeName}}">
+    <view class="cyinfobox_con_left">
+      <image class="mci-ico" lazy-load="true" src="/subpackageMember/images/d_cyinfo1.png" mode="widthFix" />最终分配节点
+    </view>
+    <view class="cyinfobox_con_right">
+      <text class="mci-line">{{info.nodeName}}</text>
+    </view>
+  </view>
+
+  <view class="cyinfobox_con" wx:if="{{displayInfo.hasCooperateDate}}">
+    <view class="cyinfobox_con_left">
+      <!-- 这一格装的是商家填的「每日可接待时段」(cms_registration_merchant.cooperate_date),
+           不是场次排期 —— 原来的标签名不副实,玩家会当成这一场的时间表。 -->
+      <image lazy-load="true" src="/subpackageMember/images/d_cyinfo2.png" mode="widthFix" />接待时间
+    </view>
+    <view class="cyinfobox_con_right">
+      <text class="mci-line">{{displayInfo.cooperateDateText}}</text>
+    </view>
+  </view>
+</cy-card>
+
+<view class="cyinfo2k" wx:if="{{displayInfo.showOrderStats}}">
+  <view class="cyinfo2k_box">
+    <view class="cyinfo2k_box_name">待核销</view>
+    <view class="cyinfo2k_box_txt">
+      <text class="mci-num-value">{{displayInfo.pendingOrderText}}</text>
+      <text class="mci-num-unit">人</text>
+    </view>
+  </view>
+  <view class="cyinfo2k_box">
+    <view class="cyinfo2k_box_name">已核销/总订单</view>
+    <view class="cyinfo2k_box_txt">
+      <text class="mci-num-value">{{displayInfo.verifiedOrderText}}/{{displayInfo.totalOrderText}}</text>
+      <text class="mci-num-unit">人</text>
+    </view>
+  </view>
+</view>
+
+<!-- R1-C04:原来只在有 topicImgArr 时才渲染这块,商家没传封面图 = 整块连同"点进去看模板"这个
+     入口一起消失,用户看不到商家配置了什么模板。改成:只要有 templateId 就必须渲染、必须可点,
+     图只是锦上添花,不是这块存不存在的开关。 -->
+<view class="cyinfozt" wx:if="{{info.templateId}}" bindtap="goInfo" hover-class="cyinfozt--press" aria-role="button" aria-label="查看商家模板「{{info.templateName}}」详情">
+  <!-- ⚠️ topicImage 来自 info.topicImgArr —— 名字就写着是**数组**(index.js:199 直接整份赋过来)。
+       直接当 src 绑定会被 WXML 字符串化成 "a.png,b.png" 这种非法路径,图出不来;
+       同文件第 30 行的封面早就用 img.first() 取首图,这一行漏了。
+       2026-08-19 D11 实拍:该位置渲染出一个被拉到 670rpx、糊成一团的日历字形 —— 一个 48rpx
+       的 UI 小图标被当 banner 放大 14 倍,而这里本该是主题横幅。 -->
+  <image class="mci-banner" wx:if="{{img.first(displayInfo.topicImage)}}" lazy-load="true" src="{{img.first(displayInfo.topicImage)}}" mode="widthFix" />
+  <view class="cyinfozt_name {{displayInfo.topicImage ? 'cyinfozt_name--overlay' : ''}}">
+    <text class="cyinfozt_name_txt">{{info.templateName || '查看商家模板'}}</text>
+    <cy-icon name="arrow-right" size="28" />
+  </view>
+</view>
+
+<view class="cyinfobottom_sum" wx:if="{{displayInfo.hasRuleInstructions}}">
+  <view class="cyinfobottom_sum_tu">
+    <image class="mci-avatar" lazy-load="true" src="/subpackageMember/images/d_cyinfo4.png" mode="widthFix" />
+  </view>
+  <view class="cyinfobottom_sum_txt">
+    退出与暂停规则说明： 商家仅可在路线场次开始前3天申请退出。一旦场次启动，鉴于官方统一调度及多方协作的特性，商家不可中途退出或自行暂停。如遇不可抗力等紧急情况，请务必联系客服介入处理。
+  </view>
+</view>
+
+<!-- 固定底栏避让走 token,不再内联字面高度(全局规范 §3.11-2) -->
+<view class="cyinfo-footer-spacer"></view>
+
+<view class="cyinfobottom">
+  <!-- 核验扫码:与上方"待核销/已核销"统计同一开关(info.status==1),让正在核销的节点
+       直接从详情页扫码,不用先跳回商家首页再进扫码入口 -->
+  <view class="cyinfobottom_scan" wx:if="{{displayInfo.showOrderStats}}" bindtap="goScanQR" hover-class="cyinfobottom_scan--press" aria-role="button" aria-label="核验扫码">
+    <text class="cyinfobottom_scan_txt">核验扫码</text>
+  </view>
+  <view class="cyinfobottom_box">
+    <view class="cyinfobottom_box_but" bindtap="goPlay" hover-class="cy-pressed" hover-stay-time="80">开始玩</view>
+    <!-- R1-C04:此处原有一颗品牌紫实底 + 描边的「公告」按钮,是全屏视觉权重最高的元素,
+         但 WXML 上没有任何 bindtap/catchtap —— 点下去什么都不发生,是一颗假按钮。
+         删除同时消掉三条违规:品牌紫当主 CTA(§10-2)、实底+描边双外沿(§3.5)、假按钮。
+         若产品侧确实要做公告入口,应作为新需求带上真实跳转重建。 -->
+
+    <!-- 开始前3天以上：显示取消参与 -->
+    <view class="cyinfobottom_box_but cyinfobottom_box_but--cancel" wx:if="{{displayInfo.canCancel}}" bindtap="cancelParticipation" hover-class="cy-pressed" hover-stay-time="80">取消参与</view>
+
+    <!-- 需修改状态：显示去修改 -->
+    <view class="cyinfobottom_box_but" wx:if="{{displayInfo.needModify}}" bindtap="goModify" hover-class="cy-pressed" hover-stay-time="80">去修改</view>
+
+    <!-- 开始时间小于3天、已开始、已结束：显示联系客服 -->
+    <!-- 使用 open-type="contact" 调用微信客服 -->
+    <!-- open-type="contact" 必须保留原生 button(微信官方 button 文档),故只能就地 token 化,
+         不能收编成 cy-btn。字面色/字号/圆角换 token,高度补到 88rpx 命中区。 -->
+    <button class="cyinfobottom_box_but cyinfobottom_box_but--contact" wx:if="{{displayInfo.showContactService}}" open-type="contact"
+      hover-class="none" bindcontact="handleContact">
+      联系客服
+    </button>
+  </view>
+</view>
+</block>
+</view>

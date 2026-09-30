@@ -1,0 +1,88 @@
+<!-- R1-C04:本页原先是 10 页里唯一用微信原生导航条的一页(index.json 缺 navigationStyle:custom),
+     顶部形态与其余 9 页的「裸 chevron + 左对齐大标题」完全不同。收编到 cy-nav-bar + cy-page-title;
+     卡内原来那个同名的 .cp-title「投诉与建议」随之删除,否则就是同名双标题(全局规范 §3.1)。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="cp-page">
+  <!-- R3-C04:原为裸 <cy-nav-bar />,组件内建 onBack 只在 getCurrentPages().length > 1 时
+       navigateBack ⇒ 直达/reLaunch 进来(栈长 1)时那颗 chevron 看得见、点不动(复拍 10 实证)。
+       改由页面接管,栈长 1 时兜到会员中心(与 mycanyu.js 同一句 switchTab,不自创兜底)。 -->
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <!-- R3-C04:副标题原文 25 字,而这一行只放得下 24 字(内宽 750−2×32 = 686rpx ÷ 28rpx),
+       刚好吃满/溢出 ⇒ 视觉上顶到右边缘。收敛到 19 字;更完整的那句本来就在下面空态副文案里,
+       两处原先是重复的,所以缩短不丢信息。 -->
+  <cy-page-title title="投诉与建议" subtitle="仅限已报名并支付的活动，平台会介入处理" />
+
+  <view class="cp-content">
+    <!-- 三态互斥。首载沿用真实表单结构，避免空态插画切换成四字段表单时整页跳位。 -->
+    <cy-skeleton wx:if="{{loading}}" type="form-section" count="4"
+                 loading-label="正在加载可投诉的活动" />
+
+    <!-- errorMsg 原样透传,不吞后端文案 -->
+    <block wx:elif="{{errorMsg}}">
+      <cy-error fill class="cy-fill-state" size="lg" title="可投诉活动没能加载出来" sub="{{errorMsg}}" bind:retry="onRetry" auto-back />
+    </block>
+
+    <block wx:elif="{{topics.length === 0}}">
+      <cy-empty fill class="cy-fill-state" size="lg" kind="empty" title="暂无可投诉的活动"
+                sub="投诉需针对你已报名并支付的活动；报名并支付后可在这里发起。" />
+    </block>
+
+    <block wx:else>
+      <view class="cp-form">
+      <view class="cp-field {{topicIndex >= 0 ? 'cp-field--filled' : ''}}">
+        <text class="cp-label">投诉活动<text class="cp-req">*</text></text>
+        <view class="cp-picker {{topicIndex < 0 ? 'cp-picker--ph' : ''}}" data-picker="topic"
+              aria-role="button" aria-label="投诉活动，{{topicIndex >= 0 ? topics[topicIndex].name : '请选择'}}"
+              hover-class="cp-picker--pressed" hover-stay-time="80" bindtap="openPickerSheet">
+          <text>{{topicIndex >= 0 ? topics[topicIndex].name : '请选择要投诉的活动'}}</text>
+          <cy-icon class="cp-picker-icon" name="arrow-right" size="32" />
+        </view>
+      </view>
+
+      <view class="cp-field {{typeIndex >= 0 ? 'cp-field--filled' : ''}}">
+        <text class="cp-label">投诉类型</text>
+        <view class="cp-picker {{typeIndex < 0 ? 'cp-picker--ph' : ''}}" data-picker="type"
+              aria-role="button" aria-label="投诉类型，{{typeIndex >= 0 ? types[typeIndex] : '未选择，可选'}}"
+              hover-class="cp-picker--pressed" hover-stay-time="80" bindtap="openPickerSheet">
+          <text>{{typeIndex >= 0 ? types[typeIndex] : '请选择投诉类型（可选）'}}</text>
+          <cy-icon class="cp-picker-icon" name="arrow-right" size="32" />
+        </view>
+      </view>
+
+      <view class="cp-field {{reason ? 'cp-field--filled' : ''}}">
+        <text class="cp-label">投诉内容<text class="cp-req">*</text></text>
+        <textarea class="cp-textarea" aria-label="投诉内容" placeholder="请详细描述遇到的问题…"
+                  placeholder-class="cp-ph" value="{{reason}}" bindinput="onReasonInput" maxlength="500" />
+      </view>
+
+      <view class="cp-field {{contact ? 'cp-field--filled' : ''}}">
+        <text class="cp-label">联系方式</text>
+        <input class="cp-input" aria-label="联系方式" placeholder="手机号/微信（可选，便于客服联系）"
+               placeholder-class="cp-ph" value="{{contact}}" bindinput="onContactInput" maxlength="50" />
+      </view>
+
+        <cy-inline-error wx:if="{{submitError}}" class="cp-submit-error" kind="{{submitErrorKind}}"
+                         title="投诉没有提交" sub="{{submitError}}" action="重试" bind:action="submit" />
+        <cy-btn variant="primary" class="cp-submit {{submitError ? 'cp-submit--after-error' : ''}}"
+                loading="{{submitting}}" disabled="{{!canSubmit}}" bindtap="submit">提交投诉</cy-btn>
+      </view>
+    </block>
+  </view>
+
+  <cy-sheet show="{{pickerSheet === 'topic'}}" title="选择投诉活动" bind:close="closePickerSheet">
+    <view class="cp-sheet-option {{topicIndex === index ? 'cp-sheet-option--on' : ''}}"
+      wx:for="{{topics}}" wx:key="id" data-picker="topic" data-index="{{index}}"
+      aria-role="radio" aria-checked="{{topicIndex === index}}" aria-label="{{item.name}}"
+      hover-class="cp-sheet-option--pressed" hover-stay-time="80" bindtap="selectPickerOption">{{item.name}}</view>
+  </cy-sheet>
+  <cy-sheet show="{{pickerSheet === 'type'}}" title="选择投诉类型" bind:close="closePickerSheet">
+    <view class="cp-sheet-option {{typeIndex === index ? 'cp-sheet-option--on' : ''}}"
+      wx:for="{{types}}" wx:key="*this" data-picker="type" data-index="{{index}}"
+      aria-role="radio" aria-checked="{{typeIndex === index}}" aria-label="{{item}}"
+      hover-class="cp-sheet-option--pressed" hover-stay-time="80" bindtap="selectPickerOption">{{item}}</view>
+  </cy-sheet>
+</view>
+</view>

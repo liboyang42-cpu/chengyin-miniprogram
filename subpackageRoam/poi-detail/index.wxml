@@ -1,0 +1,8 @@
+<!-- 薄壳:只把 poiId 透传给已有的深链宿主组件,由它按注册表挂 cy-scene-roam-poi-detail。
+     标题/返回由 scene-sheet 出,页面不再画第二套 nav 与大标题。 -->
+<view class="theme-dark pd-shell">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-scene-deep-link wx:if="{{ready}}" scene-id="roam-poi-detail" params="{{sceneParams}}" />
+</view>

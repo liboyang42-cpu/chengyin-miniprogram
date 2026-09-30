@@ -1,0 +1,23 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F4F4",
+  "backgroundColorTop": "#F3F4F4",
+  "backgroundColorBottom": "#F3F4F4",
+  "usingComponents": {
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  }
+}

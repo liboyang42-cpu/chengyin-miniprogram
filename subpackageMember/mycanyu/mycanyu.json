@@ -1,0 +1,20 @@
+{
+  "usingComponents": {
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-badge": "/components/cy/badge/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-scene-member-participation-detail": "/subpackageMember/components/scene-member-participation-detail/index",
+    "cy-privacy-gate": "/components/cy/privacy-gate/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true
+}

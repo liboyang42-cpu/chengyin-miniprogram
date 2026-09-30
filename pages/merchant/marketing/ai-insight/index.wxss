@@ -1,0 +1,207 @@
+@import '../../../../style/merchant-light.wxss';
+
+/* 2026-09-18 UI-11:按用户稿 Figma el3kyfRxhlH5i8AvQ6zCqF 1:2。
+   稿里的深靛蓝/淡紫这组色 DS 全局 token 没有,按规范落在页面私有 token 定义层。 */
+.page {
+  min-height: 100vh;
+  background: var(--cy-bg-page);
+
+  --mi-hero-bg:     var(--cy-color-action-primary-bg);
+  --mi-on-hero:     #FFFFFF;                  /* ds-ok 黑 Hero 上的白字(稿 1:6) */
+  --mi-on-hero-dim: rgba(255, 255, 255, .6);  /* ds-ok 稿 1:8 */
+  --mi-hero-pill:   rgba(255, 255, 255, .12); /* ds-ok 稿 1:9 档案胶囊底 */
+  --mi-ink:         #2A2A47; /* ds-ok 稿 深靛:小卡进度/新客段/主题 CTA */
+  --mi-lavender:    #A5A6E8; /* ds-ok 稿 淡紫:价值卡进度/回头客段 */
+  --mi-delta:       #6B6EBF; /* ds-ok 稿 1:38 环比字色 */
+  --mi-seg-off:     #EDEDF2; /* ds-ok 稿 1:36 */
+  --mi-seg-off-2:   #E5E5EB; /* ds-ok 稿 1:53 / 分隔线 1:19 */
+  --mi-value-num:   64rpx;   /* 稿 32px */
+  --mi-metric-num:  52rpx;   /* 稿 26px */
+}
+
+/* ===== Hero(稿 1:3):黑底圆角收底,内含档案胶囊 + 白色价值卡 ===== */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3);
+  padding-left: var(--cy-space-2-5);
+  padding-right: var(--cy-space-2-5);
+  padding-bottom: var(--cy-space-5);
+  border-radius: 0 0 var(--cy-radius-2xl) var(--cy-radius-2xl);
+  background: var(--mi-hero-bg);
+}
+.gen-at {
+  display: block;
+  font-size: var(--cy-font-caption);
+  color: var(--mi-on-hero-dim);
+}
+
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+  min-height: 74rpx;
+  box-sizing: border-box;
+  padding: var(--cy-space-2-5) var(--cy-space-3-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--mi-hero-pill);
+}
+.profile-row-k { flex: none; font-size: var(--cy-font-caption); font-weight: 600; color: var(--mi-on-hero); }
+.profile-row-v { flex: 1; min-width: 0; font-size: var(--cy-font-caption); color: var(--mi-on-hero-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-row-arrow { flex: none; color: var(--mi-on-hero-dim); }
+
+.value-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3-5);
+  padding: 36rpx;
+  border-radius: var(--cy-radius-xl);
+  background: var(--cy-bg-card);
+}
+.value-title { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.value-row { display: flex; align-items: center; }
+.value-cell { flex: 1; display: flex; flex-direction: column; align-items: center; gap: var(--cy-space-1); }
+.value-num { font-size: var(--mi-value-num); font-weight: 700; line-height: 1.15; color: var(--cy-text-title); }
+.value-lbl { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.value-divider { width: 2rpx; height: 60rpx; background: var(--mi-seg-off-2); }
+.value-delta { text-align: center; font-size: var(--cy-font-caption); color: var(--mi-delta); }
+
+/* 分段胶囊进度:价值卡粗淡紫 / 小卡细深靛 */
+.seg-row { display: flex; }
+.seg { flex: 1; }
+.seg-row--value { gap: 10rpx; }
+.seg-row--value .seg { height: 32rpx; border-radius: var(--cy-radius-sm); background: var(--mi-seg-off); }
+.seg-row--value .seg--on { background: var(--mi-lavender); }
+.seg-row--mini { gap: 6rpx; }
+.seg-row--mini .seg { height: 20rpx; border-radius: var(--cy-radius-pill); background: var(--mi-seg-off-2); }
+.seg-row--mini .seg--on { background: var(--mi-ink); }
+
+/* ===== Body(稿 1:4) ===== */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-4) var(--cy-space-4) var(--cy-space-8);
+}
+
+.metric-row { display: flex; gap: var(--cy-space-3); }
+.metric {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-2);
+  padding: var(--cy-space-3-5);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.metric-name { font-size: var(--cy-font-caption); font-weight: 600; color: var(--cy-text-secondary); }
+.metric-num { font-size: var(--mi-metric-num); font-weight: 700; line-height: 1.15; color: var(--cy-text-title); }
+.metric-sub { font-size: var(--cy-font-micro); color: var(--cy-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* CU-M-46/M-84:口径行 —— 不截断(截掉的正是分子分母那句),允许折两行。 */
+.metric-scope { font-size: var(--cy-font-micro); line-height: 1.4; color: var(--cy-text-secondary); }
+
+.split-head { display: flex; justify-content: space-between; }
+.split-k { font-size: var(--cy-font-caption); font-weight: 600; color: var(--cy-text-title); }
+.split-bar {
+  display: flex;
+  margin-top: var(--cy-space-2);
+  height: 20rpx;
+  border-radius: var(--cy-radius-pill);
+  overflow: hidden;
+}
+.split-scope { display: block; margin-top: var(--cy-space-2); font-size: var(--cy-font-micro); line-height: 1.4; color: var(--cy-text-secondary); }
+.split-seg--new { background: var(--mi-ink); }
+.split-seg--ret { flex: 1; background: var(--mi-lavender); }
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--cy-space-1);
+}
+.sec-title { font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); }
+.sec-link { display: flex; align-items: center; gap: 4rpx; min-height: 88rpx; margin: -22rpx 0; /* 88 命中区,负边距不撑高区头 */ font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+
+/* 最近到店玩家(稿 1:78) */
+.visitors { display: flex; flex-direction: column; gap: var(--cy-space-3); }
+.visitor-row { display: flex; align-items: center; gap: var(--cy-space-2-5); }
+.visitor-avatar { width: 72rpx; height: 72rpx; border-radius: var(--cy-radius-pill); background: var(--cy-bg-page); flex: none; }
+.visitor-body { flex: 1; display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
+.visitor-name { font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-title); }
+.visitor-meta { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.visitor-time { flex: none; font-size: var(--cy-font-micro); color: var(--cy-text-secondary); }
+
+/* 推荐主题两列卡(稿 2:5) */
+.tgrid { display: flex; flex-wrap: wrap; gap: var(--cy-space-3); }
+.tcard {
+  width: calc((100% - var(--cy-space-3)) / 2);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+  background: var(--cy-bg-card);
+}
+.tcard-cover { position: relative; height: 184rpx; background: var(--mi-ink); }
+.tcard-img { width: 100%; height: 184rpx; display: block; }
+.tcard-tag {
+  position: absolute; left: var(--cy-space-2); top: var(--cy-space-2);
+  padding: 6rpx var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: rgba(255, 255, 255, .9); /* ds-ok 稿 2:8 */
+  font-size: var(--cy-font-micro); font-weight: 600; color: var(--cy-text-title);
+}
+.tcard-body { flex: 1; display: flex; flex-direction: column; gap: var(--cy-space-1-5); padding: var(--cy-space-2-5) var(--cy-space-3) var(--cy-space-3); }
+.tcard-meta { font-size: var(--cy-font-micro); color: var(--cy-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tcard-name { font-size: var(--cy-font-label); font-weight: 700; color: var(--cy-text-title); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tcard-reason {
+  flex: 1;
+  font-size: var(--cy-font-micro); line-height: 1.4; color: var(--cy-text-secondary);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.tcard-cta {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 54rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--mi-ink);
+  font-size: var(--cy-font-micro); font-weight: 600; color: #FFFFFF; /* ds-ok 深靛底白字(稿 2:14) */
+}
+
+/* 推荐联动商家(稿 3:3) */
+.pcard {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3-5);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.pcard-logo { flex: none; width: 96rpx; height: 96rpx; border-radius: var(--cy-radius-pill); background: var(--mi-ink); }
+.pcard-logo--text { display: flex; align-items: center; justify-content: center; font-size: var(--cy-font-subtitle); font-weight: 700; color: #FFFFFF; /* ds-ok 稿 3:5 */ }
+.pcard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.pcard-head { display: flex; align-items: center; gap: var(--cy-space-2); }
+.pcard-name { flex: 1; min-width: 0; font-size: var(--cy-font-label); font-weight: 700; color: var(--cy-text-title); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcard-meta { flex: none; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.pcard-reason { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.pcard-link { display: flex; align-items: center; gap: 4rpx; font-size: var(--cy-font-caption); font-weight: 600; color: var(--cy-text-title); }
+
+/* 经营解读(稿 4:3) */
+.ai-lowsample { display: block; margin-bottom: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.ai-summary { display: block; font-size: var(--cy-font-label); line-height: 1.6; color: var(--cy-text-title); }
+.ai-op { display: flex; align-items: flex-start; gap: var(--cy-space-2); margin-top: var(--cy-space-2-5); color: var(--cy-text-secondary); }
+.ai-op-txt { flex: 1; font-size: var(--cy-font-caption); line-height: 1.6; color: var(--cy-text-secondary); }
+.ai-card--down { text-align: center; }
+.ai-down-title { display: block; font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); }
+.ai-down-txt { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.ai-down-action {
+  min-height: var(--cy-btn-h);
+  margin-top: var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+}

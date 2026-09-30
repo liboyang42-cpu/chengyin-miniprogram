@@ -1,0 +1,14 @@
+{
+  "usingComponents": {
+    "cy-card": "/components/cy/card/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-scene-member-order-detail": "/components/cy/scene-member-order-detail/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white"
+}

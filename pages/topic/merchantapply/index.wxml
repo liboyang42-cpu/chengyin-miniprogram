@@ -1,0 +1,251 @@
+<wxs src="../../../utils/time-format.wxs" module="tf" />
+<!--
+  商家报名(经典定向)—— 弹窗规范类型 B 旗舰案例。
+  cy-sheet variant="full":steps/current/canBack/footer/dirty 全部真实接线,
+  不是只传个 show 摆样子。dirty 尤其关键——报名表单填一半点遮罩不能静默丢数据。
+-->
+<view class="ma-page theme-merchant {{reducedMotion ? 'cy-motion-reduced' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- 本页把 full sheet 当作常驻页面使用：把露出的状态栏区域并入同一浅色表面，
+       标题色显式继承浅色正文主色；真正的弹层遮罩仍由下方时间选择 sheet 使用。 -->
+  <!-- 稿 133:310 顶栏是「‹ 商家报名」:返回箭头 + 标题,没有 ✕、也没有步骤条。
+       步骤条标的是「填写 → 成功」两步 —— 提交是一下子的事,不是一段旅程,
+       进度条在这里只是把一个单页表单说成了向导。
+       返回与 ✕ 走同一个出口(都要过 dirty 守卫),所以 closable 关掉不丢关闭能力。 -->
+  <cy-sheet
+    show="{{true}}"
+    variant="full"
+    style="--cy-color-overlay:var(--cy-comp-sheet-bg);--cy-text-title:var(--cy-color-text-primary)"
+    nav-title="{{phase === 'success' ? (registrationId ? '修改已保存' : '提交成功') : (registrationId ? '修改报名' : '商家报名')}}"
+    can-back="{{true}}"
+    closable="{{false}}"
+    steps="{{1}}"
+    current="{{0}}"
+    footer="{{true}}"
+    dirty="{{dirty}}"
+    bind:close="onSheetClose"
+    bind:back="onNavBack"
+    bind:requestclose="onSheetRequestClose"
+  >
+    <view class="ma-load" wx:if="{{loadState === 'loading'}}">
+      <cy-skeleton type="form-section" count="{{3}}" />
+    </view>
+
+    <view class="ma-load" wx:elif="{{loadState === 'error'}}">
+      <cy-error fill size="lg" title="报名信息没有加载出来" sub="{{loadError}}"
+        retry="重试" bind:retry="retryLoadRegistration" auto-back />
+    </view>
+
+    <view class="ma-load" wx:elif="{{loadState === 'permission'}}">
+      <cy-error fill size="lg" title="这份报名现在不能修改" sub="{{loadError || '当前状态不能修改'}}"
+        retry="" bind:back="goMore" auto-back custom-back />
+    </view>
+
+    <!-- ===== 阶段一:填写 ===== -->
+    <view class="ma-form" wx:elif="{{loadState === 'ready' && phase === 'form'}}">
+      <view class="ma-sub">城市定向 · 固定时间统一出发,无需自定义模板</view>
+
+      <!-- 稿 133:310 的 436:890「承接标的 · 你报的是哪一站」。
+           ⚠️ 补这块之前,填表阶段整页一个字都没说这是在给哪一站报名 ——
+              路线名/章节/站点只在**提交成功**那一屏才出现,人是填完才知道自己报的是哪。
+           稿上这张卡还有封面、可配合时段与地址,那三样要另拉节点详情;
+           这里只摆 URL 参数真带过来的那三个名字,不编。 -->
+      <view class="ma-target" wx:if="{{topicName || chapterName || nodeName}}">
+        <text class="ma-target-k">承接标的</text>
+        <text class="ma-target-n" wx:if="{{nodeName}}">{{nodeName}}</text>
+        <text class="ma-target-s" wx:if="{{topicName || chapterName}}">{{chapterName ? topicName + ' · ' + chapterName : topicName}}</text>
+      </view>
+
+      <!-- 你的门店:主办方就是靠这三行判断要不要选这一站。数据来自 /api/merchant/info
+           (name / address / businessTime),拿不到就整块不出 —— 不编一个店名。 -->
+      <view class="ma-card ma-shop wizard-card cy-rise-in" wx:if="{{shop.name || shop.address || shop.businessTime}}">
+        <!-- 稿 133:310:左封面右三行。没有图就不出图位,右侧自己铺满 —— 不摆灰方块 -->
+        <view class="ma-shop-row">
+          <image class="ma-shop-cover" wx:if="{{shop.cover}}" src="{{shop.cover}}" mode="aspectFill" />
+          <view class="ma-shop-lines">
+            <text class="ma-shop-time" wx:if="{{shop.businessTime}}">{{shop.businessTime}}</text>
+            <text class="ma-shop-name" wx:if="{{shop.name}}">{{shop.name}}</text>
+            <text class="ma-shop-addr" wx:if="{{shop.address}}">{{shop.address}}</text>
+          </view>
+        </view>
+        <view class="ma-shop-note">
+          <text class="ma-shop-note-t">你的门店</text>
+          <text class="ma-shop-note-s">主办方按这些信息判断要不要选你这一站</text>
+        </view>
+      </view>
+
+      <view class="ma-card wizard-card cy-rise-in">
+        <view class="ma-row" id="field-address" hover-class="ma-row--pressed" hover-stay-time="80" bindtap="choosePoiForNode">
+          <view class="ma-row-tit">承接地点<text class="ma-req">*</text></view>
+          <view class="ma-row-cont {{focusField === 'address' ? 'is-focused' : ''}} {{errors.address ? 'is-error' : ''}} {{address ? 'is-filled' : ''}}">
+            <input class="ma-inp" disabled type="text" placeholder="点击选择承接地点" placeholder-class="ma-ph" value="{{address}}" />
+          </view>
+          <cy-inline-error class="ma-inline-error" wx:if="{{errors.address}}" title="{{errors.address}}" />
+          <text class="ma-hint ma-purpose">选择地点时才会请求定位，用于匹配承接范围与到场导航；拒绝后仍可继续填写其他资料。</text>
+        </view>
+      </view>
+
+      <view class="ma-card wizard-card cy-rise-in" id="field-rule">
+        <view class="ma-row-tit">承接说明<text class="ma-req">*</text></view>
+        <text class="ma-hint">商户填写可用空间、接纳安全条件、拍摄许可、现场可配置物料说明</text>
+        <view class="ma-cont2 {{focusField === 'ruleInstructions' ? 'is-focused' : ''}} {{errors.ruleInstructions ? 'is-error' : ''}} {{ruleInstructions ? 'is-filled' : ''}}">
+          <textarea value="{{ruleInstructions}}" auto-height placeholder="商户填写可用空间、接纳安全条件、拍摄许可、现场可配置物料说明"
+            placeholder-class="ma-ph"
+            bindinput="onRuleInstructionsChange" bindfocus="onFieldFocus" bindblur="onFieldBlur" data-focuskey="ruleInstructions" maxlength="500" />
+          <view class="ma-count">{{ruleInstructions.length}}/500</view>
+        </view>
+        <cy-inline-error class="ma-inline-error" wx:if="{{errors.ruleInstructions}}" title="{{errors.ruleInstructions}}" action="清除" bind:action="clearRuleInstructions" />
+      </view>
+
+      <view class="ma-card wizard-card cy-rise-in" id="field-pic">
+        <view class="ma-row-tit">承接图片<text class="ma-req">*</text></view>
+        <view class="ma-pgrid-head">
+          <text class="ma-hint">建议 5:3 横图 · 至少 1 张,最多 9 张</text>
+        </view>
+        <view class="ma-pgrid">
+          <view class="ma-pgrid-cell" wx:for="{{picUrl.split(',')}}" wx:key="*this" wx:if="{{item}}">
+            <image class="ma-pgrid-img" src="{{item}}" mode="aspectFill" />
+            <view class="ma-pgrid-del" catchtap="removePic" data-imgindex="{{index}}" aria-role="button" aria-label="删除场地照片 {{index + 1}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="ma-pgrid-del__glyph"><cy-icon name="close-sm" size="24" /></view>
+            </view>
+          </view>
+          <view class="ma-pgrid-cell ma-pgrid-add" hover-class="ma-pgrid-add--pressed" hover-stay-time="80" bindtap="uploadPic" aria-role="button" aria-label="添加场地照片">
+            <view class="ma-pgrid-plus"><cy-icon name="plus" size="48" /></view>
+            <text class="ma-pgrid-txt">添加照片</text>
+          </view>
+        </view>
+        <cy-inline-error class="ma-inline-error" wx:if="{{errors.picUrl}}" title="{{errors.picUrl}}" />
+      </view>
+
+      <!-- 可配合的时间:稿 133:310 把这三项收成一组,并给了组说明 ——
+           它们回答的是同一个问题「这一站能接多少团、什么时候接」,散在地点那张卡里读不出这层意思 -->
+      <view class="ma-group-head">
+        <text class="ma-group-t">可配合的时间</text>
+        <text class="ma-group-s">决定这一站能接多少团、什么时候接</text>
+      </view>
+      <view class="ma-card wizard-card cy-rise-in">
+        <view class="ma-row" id="field-date-range" hover-class="ma-row--pressed" hover-stay-time="80" bindtap="openAvailabilityPicker" aria-role="button" aria-label="选择可配合日期区间">
+          <view class="ma-row-tit">可配合日期<text class="ma-req">*</text></view>
+          <view class="ma-row-cont ma-range-cont {{errors.availabilityRange ? 'is-error' : ''}} {{startDate && endDate ? 'is-filled' : ''}}">
+            <text class="{{startDate && endDate ? '' : 'ma-ph'}}">{{startDate && endDate ? startDate + '  至  ' + endDate : '点击选择日期区间'}}</text>
+            <cy-icon name="calendar" size="28" />
+          </view>
+          <cy-inline-error class="ma-inline-error" wx:if="{{errors.availabilityRange}}" title="{{errors.availabilityRange}}" />
+        </view>
+
+        <view class="ma-row" id="field-time" hover-class="ma-row--pressed" hover-stay-time="80" bindtap="handleTimePopup" data-action="open">
+          <!-- 稿(Figma 133:310,2026-09-06 改)把这一项从必填改成选填,值默认取门店营业时间。
+               商家答不出「我每天 18:07 到 21:53 能接待」;逼填只会得到一个随手选的假值,
+               而那个值玩家在「我的参与」里看得见。后端本来就没有非空校验。 -->
+          <view class="ma-row-tit">每日可接待时段<text class="ma-opt">选填</text></view>
+          <view class="ma-row-cont {{errors.cooperateDate ? 'is-error' : (cooperateDate ? 'is-filled' : '')}}">
+            <text class="{{cooperateDate ? '' : 'ma-ph'}}">{{cooperateDate || '点击选择时段'}}</text>
+          </view>
+          <text class="ma-row-hint">默认取门店营业时间 · 只能选到整点或半点，说不准就别改</text>
+          <cy-inline-error class="ma-inline-error" wx:if="{{errors.cooperateDate}}" title="{{errors.cooperateDate}}" />
+        </view>
+
+        <view class="ma-row">
+          <view class="ma-row-tit">限定人数</view>
+          <view class="ma-row-cont {{focusField === 'limitNum' ? 'is-focused' : (limitNum ? 'is-filled' : '')}}">
+            <input class="ma-inp" type="number" placeholder="不填则不限" placeholder-class="ma-ph" value="{{limitNum}}"
+              bindinput="onLimitNumChange" bindfocus="onFieldFocus" bindblur="onFieldBlur" data-focuskey="limitNum" />
+          </view>
+        </view>
+      </view>
+
+      <cy-inline-error wx:if="{{submitError}}" kind="{{submitErrorKind}}"
+        title="报名暂未保存" sub="{{submitError}}" action="重试提交" bind:action="onSubmit" />
+    </view>
+
+    <!-- ===== 阶段二:提交成功 ===== -->
+    <view class="ma-success" wx:elif="{{loadState === 'ready' && phase === 'success'}}">
+      <view class="ma-succ-icon" aria-hidden="true"></view>
+      <view class="ma-succ-title">{{registrationId ? '修改已保存' : '报名已提交'}}</view>
+      <view class="ma-succ-desc ma-succ-desc--long" wx:if="{{registrationId}}">
+        {{registrationWasRejected ? '修改内容已重新提交审核。' : '承接信息已保存。'}}
+        平台会按这份最新内容继续处理，你可以返回报名详情查看当前状态。
+      </view>
+      <!-- 稿 365:957 只有一行短句。原来这里是四行长文,把「等多久」「不一定中标」「去哪看」
+           三件事挤成一段,读完也记不住 ——「不一定中标」那句现在由摘要卡下面那行单独说。 -->
+      <view class="ma-succ-desc" wx:else>主理人审核后就能开始接待，预计 1-3 天</view>
+
+      <!-- 稿 365:957 的摘要卡:你刚报的是哪条路线、哪一章、哪一站。
+           三个名字都由上一页随路由带来;一个都没有就整块不出。 -->
+      <view class="ma-succ-card" wx:if="{{topicName || chapterName || nodeName}}">
+        <text class="ma-succ-card-t" wx:if="{{topicName}}">{{topicName}}</text>
+        <view class="ma-succ-card-meta">
+          <text wx:if="{{chapterName}}">{{chapterName}}</text>
+          <text wx:if="{{nodeName}}">{{nodeName}}</text>
+        </view>
+      </view>
+      <!-- 「报名成功不等于中标」从那段长文里拎出来单独放:它是这一屏唯一需要记住的一句 -->
+      <text class="ma-succ-note">报名成功不等于中标，主理人确认后才算接上这一站</text>
+    </view>
+
+    <!-- ===== 底部固定操作区 ===== -->
+    <view slot="footer" class="ma-footer {{phase === 'form' ? 'ma-footer--form' : ''}} wizard-actions">
+      <!-- 稿 133:310 底部只有一个全宽黑按钮。「取消」删掉:顶栏返回箭头是同一个出口,
+           而且它俩并排会让「取消」看着和「提交」一样重 —— 取消不需要一个按钮位。 -->
+      <block wx:if="{{loadState === 'ready' && phase === 'form'}}">
+        <cy-btn wx:if="{{registrationId}}" variant="primary" disabled="{{!canSubmit}}" loading="{{submitting}}"
+          style="width:100%" bindtap="onEditSubmit" bind:disabledtap="onSubmitDisabledTap" accessibilityLabel="保存商家报名修改">保存修改</cy-btn>
+        <cy-btn wx:else variant="primary" disabled="{{!canSubmit}}" loading="{{submitting}}"
+          style="width:100%" bindtap="onCreateSubmit" bind:disabledtap="onSubmitDisabledTap" accessibilityLabel="提交商家报名">提交报名</cy-btn>
+      </block>
+      <block wx:elif="{{loadState === 'ready' && phase === 'success' && registrationId}}">
+        <cy-btn variant="primary" style="width:100%" bindtap="goProgress">查看承接进度</cy-btn>
+        <cy-btn variant="secondary" style="width:100%;margin-top:16rpx" bindtap="goHome">返回商家首页</cy-btn>
+      </block>
+      <!-- 稿 365:957 只有一个「查看承接进度」。原来第二个「继续报名其他主题」是在
+           假设商家刚报完一站就想再报一站 —— 他此刻要确认的是刚才那一份交上了没有。 -->
+      <block wx:elif="{{loadState === 'ready' && phase === 'success'}}">
+        <cy-btn variant="primary" style="width:100%" bindtap="goProgress">查看承接进度</cy-btn>
+      </block>
+    </view>
+  </cy-sheet>
+
+  <cy-date-range-sheet id="availabilityDateRange" show="{{availabilityPickerShow}}" title="选择可配合日期"
+    value="{{availabilityRange}}" min="{{availabilityMin}}" allow-same-day="{{true}}"
+    bind:cancel="cancelAvailabilityPicker" bind:confirm="confirmAvailabilityPicker" />
+
+  <!-- 时间选择弹框 -->
+  <cy-sheet show="{{timePicker.show}}" title="可配合时间" bind:close="handleTimePopup" data-action="close">
+    <view class="pop-model pop-temp time-picker">
+      <view class="david_tk">
+        <view class="time-picker-content">
+          <view class="time-section">
+            <view class="time-label">开始时间</view>
+            <view class="time-selector">
+              <picker-view class="time-picker-view" value="{{startTimeIndex}}" bindchange="onStartTimeChange">
+                <picker-view-column>
+                  <view wx:for="{{hours}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}时</view>
+                </picker-view-column>
+                <picker-view-column>
+                  <view wx:for="{{minutes}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}分</view>
+                </picker-view-column>
+              </picker-view>
+            </view>
+          </view>
+          <view class="time-separator">至</view>
+          <view class="time-section">
+            <view class="time-label">结束时间</view>
+            <view class="time-selector">
+              <picker-view class="time-picker-view" value="{{endTimeIndex}}" bindchange="onEndTimeChange">
+                <picker-view-column>
+                  <view wx:for="{{hours}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}时</view>
+                </picker-view-column>
+                <picker-view-column>
+                  <view wx:for="{{minutes}}" wx:key="index" class="picker-item">{{tf.pad2(item)}}分</view>
+                </picker-view-column>
+              </picker-view>
+            </view>
+          </view>
+        </view>
+      </view>
+      <cy-btn variant="primary" class="time-picker-confirm" bindtap="handleTimePopup" data-action="confirm">完成</cy-btn>
+    </view>
+  </cy-sheet>
+</view>

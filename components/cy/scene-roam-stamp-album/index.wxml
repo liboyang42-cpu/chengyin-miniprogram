@@ -1,0 +1,28 @@
+<!-- 集邮册 · 照原型 f-sticker 搬:三列方格,每格底部压地名/留言,末尾一格虚线「还没收到」。
+     2026-09-10 用户裁决:漫游四模式不跟小程序 UI 规则走,原来那套「收藏夹合上/展开 + 散落
+     票面」(Figma 220:1388)整个退场。
+     原型没有的三样留着 —— 它是静态稿,没有接口:空/错/加载三态、分页续读、相机入口。 -->
+<view class="album-body">
+  <text class="album-sub" wx:if="{{loaded}}">这座城市里你已经收下的 {{total || 0}} 枚</text>
+
+  <view class="stkgrid" wx:if="{{items.length}}">
+    <view class="stkcell" wx:for="{{items}}" wx:key="id">
+      <image class="stkcell__img" src="{{item.picUrl}}" mode="aspectFill" lazy-load />
+      <text class="stkcell__cap" wx:if="{{item.caption}}">{{item.caption}}</text>
+    </view>
+    <!-- 原型末尾那一格虚线占位:它不是加载态,是「这座城市还有没收到的」 -->
+    <view class="stkcell stkcell--lock" wx:if="{{noMore}}"><text class="stkcell__lock-t">还没收到</text></view>
+  </view>
+
+  <cy-error class="album-state" fill size="lg" wx:if="{{error && !items.length}}" title="集邮册没打开" sub="邮票都还在，只是这次没读到。" retry="重试" bind:retry="retryLoad" />
+  <cy-skeleton wx:elif="{{loading && !items.length}}" type="card" count="2" />
+  <view class="album-empty" wx:elif="{{loaded && total === 0}}"><text class="album-empty__title">还没有邮票</text><text class="album-empty__sub">上街拍一张，城市就进你的册子了</text><view class="album-empty__cta" bindtap="openCamera" aria-role="button" aria-label="打开集邮相机" hover-class="cy-pressed" hover-stay-time="80">打开集邮相机</view></view>
+
+  <text class="album-mini" wx:if="{{items.length}}">每投一张换来的那张，就落在这儿。</text>
+
+  <view class="album-more" wx:if="{{loading && items.length}}">正在读取下一页</view>
+  <view class="album-more album-more--error" wx:elif="{{error && items.length}}" bindtap="retryLoad" aria-role="button" aria-label="重试读取下一页" hover-class="album__press" hover-stay-time="80">这一页没读到 · 点此重试</view>
+  <view class="album-load-more" wx:elif="{{!noMore && items.length}}" bindtap="loadMore" aria-role="button" aria-label="继续读取城市邮票" hover-class="album__press" hover-stay-time="80">继续展开下一页</view>
+
+  <view class="album-fab" bindtap="openCamera" hover-class="album-fab--press" hover-stay-time="60" wx:if="{{total > 0}}" aria-role="button" aria-label="打开集邮相机"><cy-icon name="plus" size="40" /></view>
+</view>

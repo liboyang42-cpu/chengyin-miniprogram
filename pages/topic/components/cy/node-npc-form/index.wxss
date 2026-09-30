@@ -1,0 +1,128 @@
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上。 */
+.cy-pressed { opacity: .88; }
+
+.nnf-subtitle {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-body);
+  margin-bottom: var(--cy-space-4);
+}
+
+.nnf-loading {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+  padding: var(--cy-space-4) 0;
+}
+
+.nnf-field {
+  margin-bottom: var(--cy-space-4);
+}
+
+.nnf-label {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-label);
+  font-weight: 650;
+  margin-bottom: var(--cy-space-2);
+}
+
+.nnf-required,
+.nnf-optional {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+  font-weight: 500;
+  margin-left: var(--cy-space-1);
+}
+
+.nnf-input,
+.nnf-textarea {
+  background: var(--cy-color-input-idle-bg);
+  border: var(--cy-comp-sheet-border-width) solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  box-sizing: border-box;
+  color: var(--cy-color-input-text);
+  font-size: var(--cy-type-body);
+  min-height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-3);
+  width: 100%;
+}
+
+.nnf-input {
+  display: flex;
+  align-items: center;
+}
+
+.nnf-textarea {
+  height: 150rpx;
+  padding: var(--cy-space-3);
+}
+
+.nnf-placeholder {
+  color: var(--cy-color-text-placeholder);
+}
+
+.nnf-avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+}
+
+.nnf-avatar {
+  border: var(--cy-comp-sheet-border-width) solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  height: 108rpx;
+  overflow: hidden;
+  padding: 4rpx;
+  width: 108rpx;
+}
+
+.nnf-avatar.is-on {
+  border-color: var(--cy-color-brand);
+}
+
+.nnf-photo-row {
+  align-items: center;
+  display: flex;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-2);
+}
+
+.nnf-photo-preview {
+  border: var(--cy-comp-sheet-border-width) solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  height: 108rpx;
+  overflow: hidden;
+  width: 108rpx;
+}
+
+.nnf-voice-status {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  margin-bottom: var(--cy-space-2);
+}
+
+.nnf-voice-file {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+  margin-bottom: var(--cy-space-2);
+}
+
+.nnf-actions {
+  display: flex;
+  gap: var(--cy-space-2);
+  justify-content: flex-end;
+  padding-top: var(--cy-space-2);
+}
+
+.nnf-actions--start {
+  justify-content: flex-start;
+}
+
+/* 离屏工作画布:不参与布局,但必须真实渲染(display:none 拿不到 canvas 节点)。
+   尺寸与门店形象页一致(384px=32×12)。 */
+.nnf-work {
+  position: fixed;
+  left: -1000px;
+  top: -1000px;
+  width: 384px;
+  height: 384px;
+}

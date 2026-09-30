@@ -1,0 +1,29 @@
+{
+  "name": "chengyinhub-xcx",
+  "private": true,
+  "scripts": {
+    "preflight:release": "node scripts/preflight-release.js",
+    "verify:wechat-release": "node scripts/wechat-release-contract.js --source-only",
+    "report:mainpkg": "node scripts/mainpkg-size-report.js",
+    "test:unit": "node --test \"tests/unit/**/*.test.js\"",
+    "test:automator": "node tests/automator/login-smoke.js",
+    "test:automator:merchant-ledger": "node tests/automator/merchant-ledger-settlement-smoke.js",
+    "test:automator:ai-entries": "node tests/automator/ai-entries-smoke.js",
+    "test:automator:stamp-camera-crop": "node tests/automator/stamp-camera-crop.js",
+    "lint": "npm run lint:ui && npm run lint:scope",
+    "lint:ui": "node tests/lint/ui-integrity.js --warn-as-error",
+    "lint:ui:selftest": "node tests/lint/ui-integrity.js --selftest --warn-as-error",
+    "lint:scope": "node --expose-internals scripts/js-scope-lint.js",
+    "lint:scope:selftest": "node --expose-internals scripts/js-scope-lint.js --selftest",
+    "lint:requestbody": "node tests/lint/requestbody-contract.js",
+    "lint:danger-confirm": "node scripts/danger-confirm-gate.js",
+    "lint:danger-confirm:selftest": "node scripts/danger-confirm-gate.js --selftest",
+    "lint:sticky-bottom-bar": "node scripts/sticky-bottom-bar-gate.js",
+    "lint:sticky-bottom-bar:selftest": "node scripts/sticky-bottom-bar-gate.js --selftest",
+    "test:dead-ui": "node tests/automator/dead-ui-regression.js",
+    "test:public": "node scripts/test-public.js"
+  },
+  "devDependencies": {
+    "miniprogram-automator": "0.12.1"
+  }
+}

@@ -1,0 +1,370 @@
+/* cy-tabs 组件:封装 style/components.wxss §5.2 的 .cy-tabs 类系统。
+   styleIsolation:isolated,故自带样式副本;--cy-* token 从页面继承(自定义属性穿透组件边界)。
+   variant:''|fill|wide|segmented|chip;sticky:Boolean;强调色 var(--cy-tabs-accent) 可被页面覆盖,
+   兜底是 --cy-text-title(黑白基调),不是 --cy-brand(品牌紫)—— 紫色只做强调,要紫必须显式传
+   --cy-tabs-accent,不能靠不传就吃到默认紫(2026-07-31 全站扫描修复:mylike/myproject/templatedetail
+   三处漏传导致下划线是紫色)。
+   ⚠️ 待废弃(组件统一清单 20260731):不是"整个变体"待废弃,而是 wide/segmented 两个变体、
+   以及默认下划线指示条,内部用了 --cy-legacy-4/--cy-legacy-6/--cy-legacy-72 这三个"legacy"前缀
+   尺寸 token(见下方各自所在行)——这些是历史遗留字面值套壳,应逐步替换成 --cy-space-N 或 --cy-comp-N
+   这类量表值,不必这轮迁移,先标出来。roam/history(ccc 标准参照页)实际用的不是本组件,是页面自绘的
+   `.hs-fp` 筛选药丸(page.js 无 cy-tabs 引用),视觉上最接近的是 chip 变体(个体圆角药丸+反色选中),
+   建议以后把 `.hs-fp` 也收编成 cy-tabs chip,而不是反过来让 cy-tabs 模仿 .hs-fp。 */
+:host {
+  /* 微信自定义组件宿主默认 display:inline;内部根节点是 block,块盒会从内联宿主里逃逸、
+     撑满整行 ⇒ 页面给宿主的左右 margin(如 .cand-tabs 的 var(--cy-page-x))全部失效,
+     表现为 tab 贴屏幕边、和标题对不齐(2026-07-31 用户实测:chip 在 x=0,标题文字在 x=27)。 */
+  display: block;
+}
+.cy-tabs {
+  display: flex;
+  align-items: stretch;
+  height: 88rpx;
+  border-bottom: 2rpx solid var(--cy-border-card);
+}
+.cy-tabs--sticky {
+  position: sticky;
+  top: 0;                            /* 无固定顶栏的页面的默认值;有 cy-nav-bar 的页面由 stickyTop 内联覆盖 */
+  z-index: var(--cy-z-sticky);       /* T9:吸顶低于导航档 —— 同档会盖住 cy-nav-bar */
+  background: var(--cy-bg-page);
+}
+.cy-tabs__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--cy-space-3);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-secondary);
+  transition: color var(--cy-dur-fast) var(--cy-ease);
+}
+.cy-tabs__item--on {
+  color: var(--cy-text-title);
+  font-weight: 700;
+}
+/* fill:item 等宽铺满(member/topic 等全宽 Tab 用)。
+   根节点是 scroll-view(见 wxml),故要把继承自 .cy-tabs 的 display:flex/height 覆盖掉,
+   等宽分配下沉到内层 __track;border-bottom 仍留在根上(整条底线不随内容滚动)。
+   __track 的 min-width:100% ⇒ tab 少时照旧铺满整行,现有 3~4 个 tab 的四处用法零回归;
+   item 的 min-width ⇒ tab 多到装不下时整条横滑,而不是把标签挤成竖排/截断。 */
+.cy-tabs--fill {
+  display: block;
+  height: auto;
+  white-space: nowrap;
+}
+/* width:max-content + min-width:100% 这一对缺一不可(实测得来,不是抄模板):
+   只写 min-width:100% 时轨道是块级元素、宽度恒等于容器,item 溢出但轨道不长 —— scroll-view
+   量不到可滚宽度,视觉上第 N 个 tab 被切掉却滑不动(9 tab 实测:轨道 364px = 容器 364px)。
+   max-content 让轨道长到内容真实宽度(9 tab 实测 918px)才真能横滑;
+   min-width:100% 则保证 tab 少时轨道仍撑满整行,flex:1 照旧等分(3 tab 零回归)。 */
+.cy-tabs--fill .cy-tabs__track {
+  display: flex;
+  align-items: stretch;
+  height: 88rpx;
+  width: max-content;
+  min-width: 100%;
+}
+/* flex-shrink:0 是「不被挤压」的真正机制:basis 取内容宽(标签 + 左右内距),装不下就溢出去横滑,
+   而不是把标签压窄。装得下时 flex-grow:1 照旧等分铺满 —— 现有 3~4 tab 用法逐像素零回归。
+   box-sizing:border-box 必须写:默认 content-box 下 min-width 只管内容盒,内距会加在外面
+   (实测:min-width 150rpx=78px + 内距 25px = 实际 103px,4 个就把 390pt 的行撑爆了)。
+   min-width 只是极短标签的下限兜底,正常标签下不生效。 */
+.cy-tabs--fill .cy-tabs__item {
+  flex: 1 0 auto;
+  box-sizing: border-box;
+  min-width: var(--cy-comp-tabs-fill-min-w);
+}
+/* label:文案独立节点,与角标(badge)是兄弟而非指示器的锚点。
+   align-self:stretch 撑满 item 高度(与角标引入前 item 的实际渲染高度一致),
+   只为让下面 ::after 的 bottom:0 仍锚在 item 底部——不改变可视位置,只改变水平锚点从
+   item(含 badge)中心 → label(纯文案)中心,修复"选中态指示条被角标带偏"。 */
+.cy-tabs__label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+/* 指示条切换动效:M3 Tabs 规范要求位移过渡,但指示条是每 item 各自的 ::after(非共享节点),
+   无法直接做位移补间。改动小、零回归风险的折中:让每个 label 都渲染 ::after(默认透明),
+   切换时靠 opacity 补间;不是真位移,但比"直接消失/出现"更接近连续过渡。 */
+.cy-tabs__item .cy-tabs__label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 72rpx;   /* 2026-07-31 用户定:下划线加长(原 48rpx 偏短) */
+  height: var(--cy-legacy-6);
+  border-radius: 3rpx; /* ds-ok */
+  background: var(--cy-tabs-accent, var(--cy-text-title));
+  opacity: 0;
+  transition: opacity var(--cy-motion-fast) var(--cy-ease);
+}
+.cy-tabs__item--on .cy-tabs__label::after {
+  opacity: 1;
+}
+/* wide:全宽下划线——仍锚定在 item(不是 label),因为要撑满整条 tab 宽度而非文案宽度;
+   与 label 版指示条互斥,各自独立声明(指示器从 label 移出后 item::after 不再继承 base 属性)。 */
+.cy-tabs--wide .cy-tabs__item--on .cy-tabs__label::after {
+  display: none;
+}
+.cy-tabs--wide .cy-tabs__item--on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: var(--cy-legacy-4);
+  border-radius: 3rpx; /* ds-ok */
+  background: var(--cy-tabs-accent, var(--cy-text-title));
+}
+/* segmented 分段:胶囊底,选中实心反色字 */
+.cy-tabs--segmented {
+  height: auto;
+  border-bottom: none;
+  padding: var(--cy-legacy-6);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2);
+}
+.cy-tabs--segmented .cy-tabs__item {
+  height: var(--cy-legacy-72);
+  border-radius: var(--cy-radius-pill);
+}
+/* 选中态原为品牌紫实底,与 DS §2.1"主 CTA 用反色中性,不用品牌紫"的约束冲突,改用同一套
+   反色中性(chip 变体同款 token),不再新起一套选中色。 */
+.cy-tabs--segmented .cy-tabs__item--on {
+  background: var(--cy-tabs-accent, var(--cy-text-title));
+  color: var(--cy-text-inverse);
+}
+.cy-tabs--segmented .cy-tabs__item--on .cy-tabs__label::after { display: none; }
+
+/* chip:每个 item 各自独立药丸(Airbnb Messages 210.png 参照),横向可滑;与 segmented(单胶囊容器内
+   分段)不同——chip 无共享容器底,item 间各留间距。根节点是 scroll-view(见 wxml),故这里要显式把
+   继承自 .cy-tabs 的 display:flex/height:88rpx/border-bottom 都override 掉,换成横向滚动排布:
+   white-space:nowrap + 子项 inline-flex,而非 flex 容器(flex 子项默认可收缩,会把横向溢出压扁成不
+   可横滑的等分布局,这里必须避免)。
+   量图(210.png,1179×2676=3x,1pt=3px):药丸高 120px=40pt=var(--cy-space-7);item 间距 24px=8pt=16rpx
+   (与 --cy-space-2 相同,不是最初估的 12pt)。 */
+/* 右缘渐隐提示"还能横滑":装不下的 chip 被裁到只剩半个字时,没有任何视觉提示会被当成
+   文字截断的 bug 而非"还有更多 tab"(第3批 UI 复查实证)。scroll-view 自身是横向可滚容器,
+   伪元素挂在它上而非内容行,故不随内容滚动,始终贴在可视区右缘。 */
+.cy-tabs--chip {
+  display: block;
+  height: auto;
+  border-bottom: none;
+  white-space: nowrap;
+  position: relative;
+  /* 竖向留出 item 热区外扩量(见 item::after),否则 scroll-view 会把热区裁掉(同 --sm 档警示) */
+  padding: 14rpx 0; /* ds-ok: 与 item 热区外扩量同值,量表无半步 token */
+}
+.cy-tabs--chip::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--cy-space-6);
+  background: linear-gradient(to right, transparent, var(--cy-tabs-fade-bg, var(--cy-bg-page)));
+  pointer-events: none;
+}
+/* 2026-08-20 画板04 筛选行(Figma 7:96)定稿几何:药丸收薄(7px 竖距/14px 横距/13px 档字号),
+   未选 Regular、选中 Medium 反色。原 80rpx 高 + 28rpx 字在玩家/商家两版都显胖。 */
+.cy-tabs--chip .cy-tabs__item {
+  position: relative;
+  display: inline-flex;
+  height: auto;
+  padding: 14rpx var(--cy-space-3-5); /* ds-ok: 竖距 14rpx=稿上 7px,量表无半步 token */
+  margin-right: var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-elevated);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-label);
+  font-weight: 400;
+  vertical-align: top; /* inline-flex 默认按基线对齐,行内会多出下沉间隙,顶部对齐更稳 */
+}
+/* ADA 触达:视觉高约 62rpx,透明 ::after 把命中区撑回 88rpx(与 --sm 档同一手法;
+   外扩量已由容器 padding 预留,不会被 scroll-view 裁掉) */
+.cy-tabs--chip .cy-tabs__item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -14rpx;
+  bottom: -14rpx;
+}
+.cy-tabs--chip .cy-tabs__item:last-child { margin-right: 0; }
+/* 选中态:DS §2.1 强约束——主 CTA 用反色中性(暗底星白/浅底墨黑),不用品牌紫。 */
+.cy-tabs--chip .cy-tabs__item--on {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-weight: 500;
+}
+/* chip 是实心药丸表达选中态,不需要下划线指示条(继承自基类 .cy-tabs__item--on .cy-tabs__label::after) */
+.cy-tabs--chip .cy-tabs__item--on .cy-tabs__label::after { display: none; }
+
+/* sharedSlab:固定短筛选的 opt-in 连续选中块。容器仍是 chip 语义，但四项等分，
+   纯装饰 slab 在文字下方用 transform 连续移动；默认 chip 的横滑/独立药丸完全不变。 */
+.cy-tabs--shared-slab {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  height: 88rpx;
+  padding: 6rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2);
+}
+.cy-tabs--shared-slab::after { display: none; }
+.cy-tabs--shared-slab .cy-tabs__slab {
+  position: absolute;
+  top: 6rpx;
+  bottom: 6rpx;
+  left: 6rpx;
+  z-index: 0;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-action-primary-bg);
+  pointer-events: none;
+  /* ⚠️ 时长被 merchant-ledger-filter-motion-contract 逐字锁在 standard(220)。
+     Emil 频率闸说 tab 这种 100+ 次/天的动作该压到 fast(140),但那条契约把「只用
+     transform/opacity + 读 token」这条原则和「220」这个取值焊在了一起,改时长要连
+     契约一起动 —— 为一个低优先的提速去动契约,不划算。待裁决,见施工单 §3.1⑦。 */
+  transition: transform var(--cy-motion-standard) var(--cy-ease), opacity var(--cy-motion-standard) var(--cy-ease);
+}
+.cy-tabs--shared-slab .cy-tabs__item {
+  z-index: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  height: auto;
+  margin-right: 0;
+  padding: 0 var(--cy-space-1);
+  background: transparent;
+}
+.cy-tabs--shared-slab .cy-tabs__item::after {
+  top: -6rpx;
+  bottom: -6rpx;
+}
+.cy-tabs--shared-slab .cy-tabs__item--on {
+  background: transparent;
+  color: var(--cy-color-action-primary-fg);
+}
+.cy-tabs--reduced-motion .cy-tabs__slab { transition: none; }
+
+/* badge wrapper:可选未读角标(tabs=[{key,label,badge}])。
+   视觉全部由 cy-badge 组件负责(type=count / variant=danger 默认 / max=99 自带),
+   此处只管与 label 的间距 —— 不重复实现 badge,避免制造第 2 套角标样式。 */
+.cy-tabs__badge {
+  display: inline-flex;
+  margin-left: 8rpx;
+}
+
+/* sm：紧凑档(账期/筛选这类二级 tab)。视觉 44rpx，但触达区用透明 ::after 撑回
+   88rpx —— 微信/Apple 的最小可点尺寸，与 cy-btn 的 .btn--sm::after 同一手法。
+   ⚠️ 祖先 overflow:hidden 会裁掉这块热区，用在滚动容器里要留意。 */
+.cy-tabs--sm { height: auto; }
+.cy-tabs--sm .cy-tabs__item {
+  position: relative;
+  height: var(--cy-legacy-44, 44rpx);
+  line-height: var(--cy-legacy-44, 44rpx);
+  font-size: var(--cy-type-label);
+}
+.cy-tabs--sm .cy-tabs__item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc((var(--cy-legacy-44, 44rpx) - 88rpx) / 2);
+  bottom: calc((var(--cy-legacy-44, 44rpx) - 88rpx) / 2);
+}
+
+/* plain:标题下挂 tab 的版式(漫游起始页 3956:12602)。稿上没有整条底线,
+   文字比正文大一档,选中下划线与文案等宽而不是固定 72rpx。 */
+.cy-tabs--plain {
+  height: auto;
+  border-bottom: none;
+}
+.cy-tabs--plain .cy-tabs__item {
+  padding: var(--cy-space-1) var(--cy-space-4) var(--cy-space-2) 0;
+}
+.cy-tabs--plain .cy-tabs__label {
+  font-size: var(--cy-type-card-title);
+}
+/* plain 不画任何指示条:稿上靠字色(白/灰)+字重区分选中,多一条线就多一层视觉噪音 */
+.cy-tabs--plain .cy-tabs__item .cy-tabs__label::after {
+  display: none;
+}
+
+/* hairline=false:只去整条底线,字号/选中指示条一概不动(与 plain 正交,见 index.js 注释) */
+.cy-tabs--noline {
+  border-bottom: none;
+}
+
+/* 按下反馈:tab 切换是全仓最高频的点击之一,原来点下去没有任何即时反馈。
+   只改 opacity,不动尺寸 —— cy-tabs 的 88rpx 触达高度由容器给、item 靠 stretch 继承,
+   任何影响盒模型的按压效果都会碰到那条契约。 */
+.cy-tabs__item--press { opacity: 0.62; }
+
+/* ========== attached:与下方内容面连体(2026-08-26,模板页 画板 16)==========
+   选中 item 与下方面板同色、两者之间不画线 ⇒ 读作「这个面板属于这个 tab」;
+   未选 item 不填色,像抬起来的。这是最原始的文件夹标签隐喻。
+   面色由页面传 --cy-tabs-attached-bg;不传时退化成 transparent(= 普通 tab,零回归)。
+   ⚠️ 几何约束:倒角半径必须 ≤ 相邻 item 间距的一半,否则两个倒角会挤在一起,
+      看起来像「选中 tab 旁边多出一个角」。这里 --cy-radius-md ≤ --cy-space-6 / 2。
+   ⚠️ margin-bottom 负值是故意的:同色拼接靠「刚好对齐」会被子像素舍入重新露出
+      一条发丝缝,必须让选中 item 压进面板。 */
+.cy-tabs--attached {
+  height: auto;
+  align-items: flex-end;
+  gap: var(--cy-tabs-attached-gap, var(--cy-space-6));
+  border-bottom: none;
+  overflow: visible;
+}
+.cy-tabs--attached .cy-tabs__item {
+  height: var(--cy-btn-h);   /* 与同排搜索框等高,且满足 88rpx 触达底线 */
+  padding: 0 var(--cy-space-4);
+  box-sizing: border-box;
+  min-width: var(--cy-tabs-attached-item-min-w, auto);
+  /* 2026-09-01:上圆角 lg(16px) → xl(20px),内凹半径同步跟到 lg —— 用户实测「感觉半径
+     可以高一点」。两个值都取自 radius 阶梯,没有造档外值。 */
+  border-radius: var(--cy-tabs-attached-r, var(--cy-radius-xl)) var(--cy-tabs-attached-r, var(--cy-radius-xl)) 0 0;
+}
+.cy-tabs--attached .cy-tabs__item--on {
+  background: var(--cy-tabs-attached-bg, transparent);
+  /* ⚠️ 这个负边距**跨不过组件边界**,别指望它压住页面里的接缝:宿主 .tpl-toprow 用
+     align-items:flex-end,组件自身的盒子底边不会跟着动 —— 2026-09-01 实测把它加到
+     -6rpx,只把标签往下推了 3px,接缝那条线一个像素没变。接缝要在页面层解决
+     (见 pages/template/index.wxss 的 .tpl-panel)。 */
+  margin-bottom: -2rpx;
+}
+/* 连体态自己就是选中表达,不再要下划线指示条 */
+.cy-tabs--attached .cy-tabs__item--on .cy-tabs__label::after { display: none; }
+/* 内凹倒角:radial-gradient 一个伪元素就够,不需要 mask、不需要额外节点 */
+.cy-tabs--attached .cy-tabs__item--on::before,
+.cy-tabs--attached .cy-tabs__item--on::after {
+  content: ''; position: absolute; bottom: 0;
+  width: var(--cy-tabs-attached-notch, var(--cy-radius-lg));
+  height: var(--cy-tabs-attached-notch, var(--cy-radius-lg));
+}
+/* 内凹倒角改用「实色块 + mask 裁」,不再用 radial-gradient 直接画:
+   ① 渐变画出来的边即使羽化,边缘仍是半透明像素,压在深色 tab 行上会发暗;
+      mask 由合成器裁形,和 border-radius 走同一套抗锯齿,弧才真的顺。
+   ② 缺口往内 overlap 1rpx。三个盒子(tab + 左右缺口)紧挨着时,交界处必然露出一道
+      竖线 —— 2026-09-01 用户实测报的就是它,放大后是 tab 右缘与缺口之间的 1px 黑缝。
+      重叠 1rpx 且两者同色,缝就不存在了。 */
+.cy-tabs--attached .cy-tabs__item--on::before,
+.cy-tabs--attached .cy-tabs__item--on::after {
+  background: var(--cy-tabs-attached-bg, transparent);
+}
+.cy-tabs--attached .cy-tabs__item--on::before {
+  left: calc(1rpx - var(--cy-tabs-attached-notch, var(--cy-radius-lg)));
+  -webkit-mask: radial-gradient(circle at 0 0, transparent calc(var(--cy-tabs-attached-notch, var(--cy-radius-lg)) - 1rpx), #000 var(--cy-tabs-attached-notch, var(--cy-radius-lg))); /* ds-ok: mask 里的 #000 不是颜色,是 alpha 通道(不透明=保留形状);真正的颜色由上面的 background 走 token */
+  mask: radial-gradient(circle at 0 0, transparent calc(var(--cy-tabs-attached-notch, var(--cy-radius-lg)) - 1rpx), #000 var(--cy-tabs-attached-notch, var(--cy-radius-lg))); /* ds-ok: mask 里的 #000 不是颜色,是 alpha 通道(不透明=保留形状);真正的颜色由上面的 background 走 token */
+}
+.cy-tabs--attached .cy-tabs__item--on::after {
+  right: calc(1rpx - var(--cy-tabs-attached-notch, var(--cy-radius-lg)));
+  -webkit-mask: radial-gradient(circle at 100% 0, transparent calc(var(--cy-tabs-attached-notch, var(--cy-radius-lg)) - 1rpx), #000 var(--cy-tabs-attached-notch, var(--cy-radius-lg))); /* ds-ok: mask 里的 #000 不是颜色,是 alpha 通道(不透明=保留形状);真正的颜色由上面的 background 走 token */
+  mask: radial-gradient(circle at 100% 0, transparent calc(var(--cy-tabs-attached-notch, var(--cy-radius-lg)) - 1rpx), #000 var(--cy-tabs-attached-notch, var(--cy-radius-lg))); /* ds-ok: mask 里的 #000 不是颜色,是 alpha 通道(不透明=保留形状);真正的颜色由上面的 background 走 token */
+}

@@ -1,0 +1,234 @@
+/* ============================================================
+   城瘾 · 创建城市路线(简易版)—— 地图为主角版
+   单位 rpx;边距 32rpx;间距基准 8rpx
+   语义色:自由=绿#16a34a / 定向=蓝#155dfc / 路线=主蓝
+   深色「深空星海」见文件底部 .cy-page--dark
+   ============================================================ */
+.simple-ai {
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--cy-color-ai-canvas-top) 0%, var(--cy-color-ai-canvas-mid) 58%, var(--cy-color-ai-canvas-bottom) 100%);
+  color: var(--cy-color-ai-ink);
+}
+/* 顶部导航与页身同底:本页体底是 AI 画布渐变的最上一档,不是 theme-topic-editor 的白。
+   钩子必须写在同一元素上并同等特异性(.simple-ai.theme-topic-editor),写 page{} 会被
+   tokens.wxss 的 .theme-topic-editor 类选择器压住,不生效。 */
+.simple-ai.theme-topic-editor {
+  --cy-comp-nav-bg: var(--cy-color-ai-canvas-top);
+  /* 2026-07-31 第6批把本页画布去紫后压成了纯白/纯黑,和 2026-08-09「创建域改回设计稿
+     彩色」冲突(用户原话:整体太白)。这里换成与本域同源的主蓝调,而不是恢复紫——
+     去紫相是另一条仍然生效的独立拍板,本次只推翻「无彩」,不推翻「无紫」。
+     仍走本页局部覆写,不改 tokens.wxss 全局 ai-* 定义(fabu/ai-assist 另有消费)。 */
+  --cy-color-ai-canvas-top:    #F7F9FC; /* ds-ok: token 定义本身,不是消费端裸写 */
+  --cy-color-ai-canvas-mid:    #EEF3FF; /* ds-ok */
+  --cy-color-ai-canvas-bottom: #E8EEFB; /* ds-ok */
+  --cy-color-ai-surface:       #FFFFFF; /* ds-ok */
+  --cy-color-ai-surface-glass: rgba(255,255,255,.92); /* ds-ok */
+  --cy-color-ai-border:        #D8E3FB; /* ds-ok */
+  --cy-color-ai-ink:           #000000; /* ds-ok: 与 .theme-topic-editor 的 text-primary 同值;2026-09-02 去墨蓝,原 #1A2233 */
+  --cy-color-ai-muted:         #626C7E; /* ds-ok */
+  --cy-color-ai-accent-soft:   #EAF1FF; /* ds-ok */
+  --cy-color-ai-accent:        #2F6DF0; /* ds-ok */
+  --cy-color-ai-accent-strong: #1F55C8; /* ds-ok */
+}
+
+.simple-ai__nav {
+  display: flex;
+  align-items: flex-start;
+  box-sizing: border-box;
+  margin-top: var(--cy-space-5);
+  margin-bottom: var(--cy-space-2);
+  padding: 0 var(--cy-page-x);
+}
+.simple-ai__nav-copy { display: flex; flex: 1; flex-direction: column; }
+.simple-ai__nav-title { color: var(--cy-color-ai-ink); font-size: var(--cy-type-card-title); font-weight: 800; line-height: var(--cy-leading-tight); }
+.simple-ai__nav-sub { margin-top: 2rpx; color: var(--cy-color-ai-muted); font-size: var(--cy-type-micro); } /* ds-ok: 2rpx 像素级微调,标题基线对齐,非量表间距 */
+.simple-ai__quota-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  box-sizing: border-box;
+  min-height: 64rpx;
+  padding: 0 var(--cy-space-2-5);
+  border: 1rpx solid var(--cy-color-ai-border);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-ai-surface-glass);
+  color: var(--cy-color-ai-ink);
+  font-size: var(--cy-type-caption);
+  font-weight: 700;
+}
+.simple-ai__quota-icon { display: flex; align-items: center; color: var(--cy-color-ai-accent-strong); }
+.simple-ai__scroll { flex: 1; min-height: 0; }
+.simple-ai__body { box-sizing: border-box; padding: var(--cy-space-6) var(--cy-page-x) 380rpx; } /* ds-ok: 380rpx 是底部固定输入栏(.simple-ai__composer-wrap)预留高度,不是排版间距 */
+.simple-ai__body { padding-top: 0; }
+.simple-ai__hero { max-width: 620rpx; }
+.simple-ai__kicker { display: block; color: var(--cy-color-ai-accent-strong); font-size: var(--cy-type-label); font-weight: 800; letter-spacing: .05em; }
+.simple-ai__title { display: block; margin-top: var(--cy-space-3); color: var(--cy-color-ai-ink); font-size: var(--cy-type-display); font-weight: 800; letter-spacing: -.04em; line-height: 1.12; }
+.simple-ai__lead { display: block; margin-top: var(--cy-space-4); color: var(--cy-color-ai-muted); font-size: var(--cy-type-body); line-height: var(--cy-leading-loose); }
+.simple-ai__prompt-label { margin-top: var(--cy-space-6); color: var(--cy-color-ai-muted); font-size: var(--cy-type-label); font-weight: 700; }
+.simple-ai__chips { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); margin-top: var(--cy-space-3); }
+.simple-ai__chip {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  min-height: 88rpx;
+  box-sizing: border-box;
+  padding: var(--cy-space-1-5) var(--cy-space-2-5);
+  border: 1rpx solid var(--cy-color-ai-border);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-ai-surface-glass);
+  color: var(--cy-color-ai-ink);
+  font-size: var(--cy-type-label);
+  line-height: var(--cy-leading-tight);
+}
+.simple-ai__chip:active { background: var(--cy-color-ai-accent-soft); }
+.simple-ai__chip-arrow { display: flex; align-items: center; color: var(--cy-color-ai-accent-strong); }
+.simple-ai__section-heading { display: flex; align-items: center; justify-content: space-between; margin-top: var(--cy-space-6); color: var(--cy-color-ai-ink); font-size: var(--cy-type-section-title); font-weight: 800; }
+.simple-ai__section-state, .simple-ai__section-count { padding: var(--cy-legacy-10) 16rpx; border-radius: var(--cy-radius-pill); background: var(--cy-color-ai-accent-soft); color: var(--cy-color-ai-accent-strong); font-size: var(--cy-type-micro); font-weight: 800; }
+.simple-ai__section-heading--locations { align-items: flex-start; }
+.simple-ai__section-sub { display: block; margin-top: var(--cy-space-1); color: var(--cy-color-ai-muted); font-size: var(--cy-type-caption); font-weight: 400; line-height: var(--cy-leading-normal); }
+.simple-ai__card,
+.simple-ai__node {
+  margin-top: var(--cy-space-3);
+  --cy-comp-card-bg: var(--cy-color-ai-surface-glass);
+}
+.simple-ai__field-label { display: block; color: var(--cy-color-ai-muted); font-size: var(--cy-type-label); font-weight: 700; }
+.simple-ai__field-label--space { margin-top: var(--cy-space-4); }
+.simple-ai__field-input { height: var(--cy-legacy-72); margin-top: var(--cy-space-1); border-bottom: 1rpx solid var(--cy-color-ai-border); color: var(--cy-color-ai-ink); font-size: var(--cy-type-card-title); font-weight: 800; }
+.simple-ai__story { width: 100%; min-height: 130rpx; box-sizing: border-box; margin-top: var(--cy-space-2); color: var(--cy-color-ai-muted); font-size: var(--cy-type-body); line-height: var(--cy-leading-normal); }
+.simple-ai__node-head { display: flex; gap: var(--cy-space-3); }
+.simple-ai__node-num { width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-pill); background: var(--cy-color-ai-accent-soft); color: var(--cy-color-ai-accent-strong); font-size: var(--cy-type-label); font-weight: 800; }
+.simple-ai__node-copy { flex: 1; min-width: 0; }
+.simple-ai__node-name { height: 48rpx; color: var(--cy-color-ai-ink); font-size: var(--cy-type-card-title); font-weight: 800; }
+.simple-ai__node-story { width: 100%; min-height: 90rpx; box-sizing: border-box; margin-top: var(--cy-space-2); color: var(--cy-color-ai-muted); font-size: var(--cy-type-label); line-height: var(--cy-leading-normal); }
+.simple-ai__poi { min-height: 88rpx; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; margin-top: var(--cy-space-3); padding: 0 var(--cy-space-3); border: 1rpx solid var(--cy-color-ai-border); border-radius: var(--cy-radius-md); background: var(--cy-color-ai-surface); color: var(--cy-color-ai-muted); font-size: var(--cy-type-label); }
+.simple-ai__poi.is-confirmed { border-color: var(--cy-color-ai-accent); color: var(--cy-color-ai-ink); }
+.simple-ai__poi-label { flex: 1; min-width: 0; }
+.simple-ai__poi-arrow { display: flex; align-items: center; margin-left: var(--cy-space-2); color: var(--cy-color-ai-accent-strong); }
+.simple-ai__composer-wrap {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--cy-z-nav);
+  box-sizing: border-box;
+  padding: var(--cy-space-2) var(--cy-page-x) calc(var(--cy-space-3) + env(safe-area-inset-bottom));
+  border-top: 1rpx solid var(--cy-color-ai-border);
+  border-radius: var(--cy-radius-lg) var(--cy-radius-lg) 0 0;
+  background: var(--cy-color-ai-surface-glass);
+}
+.simple-ai__composer-handle { width: 76rpx; height: 8rpx; margin: 0 auto var(--cy-space-2); border-radius: var(--cy-radius-pill); background: var(--cy-color-ai-border); }
+.simple-ai__composer { display: flex; align-items: center; gap: var(--cy-space-2); box-sizing: border-box; min-height: 100rpx; padding: var(--cy-space-1-5) var(--cy-legacy-14) var(--cy-space-1-5) var(--cy-space-3); border: 1rpx solid var(--cy-color-ai-border); border-radius: var(--cy-radius-pill); background: var(--cy-color-ai-surface); }
+.simple-ai__composer-spark { display: flex; align-items: center; color: var(--cy-color-ai-accent-strong); }
+.simple-ai__input { flex: 1; min-width: 0; max-height: 150rpx; padding: var(--cy-space-1-5) 0; color: var(--cy-color-ai-ink); font-size: var(--cy-type-body); line-height: var(--cy-leading-normal); }
+.simple-ai__placeholder { color: var(--cy-color-ai-muted); }
+.simple-ai__send { min-width: 88rpx; height: 88rpx; padding: 0 var(--cy-space-3-5); display: flex; flex: none; align-items: center; justify-content: center; border-radius: var(--cy-radius-pill); background: var(--cy-color-ai-accent); color: var(--cy-color-text-inverse); font-size: var(--cy-type-body); font-weight: 700; line-height: 1; }
+.simple-ai__send:active { opacity: .8; }
+.simple-ai__send.is-loading { opacity: .58; }
+.simple-ai__composer-hint { display: block; margin-top: var(--cy-space-2); color: var(--cy-color-ai-muted); font-size: var(--cy-type-micro); text-align: center; }
+
+/* ⚠️ 死代码(2026-07-31 确认):本页 wxml 根节点是 .simple-ai,不是 .cy-page——
+   下面这一大段 cy-page 系(含 cy-pv-、cy-preset-、cy-tplcard- 前缀开头的选择器)规则
+   在当前 wxml 里零匹配,不会渲染。保留不删(非本次改动范围),量表类违规原样标注不逐条改值。 */
+.cy-page {
+  --cy-bg:#f9f9f9; --cy-card:#ffffff; --cy-sub:#f8fafc;
+  --cy-title:var(--cy-color-text-primary); --cy-text:#45556c; --cy-2nd:#62748e; --cy-place:#90a1b9; /* ds-ok: 死代码,见上方块注释 */
+  --cy-blue:#155dfc; --cy-green:#16a34a; --cy-red:#ed0006;
+  --cy-on:#000000; --cy-on-fg:#ffffff; --cy-line:#eceef2;
+  --cy-r-card:24rpx; --cy-r-btn:32rpx; --cy-r-pill:999rpx;
+  --cy-shadow:0 4rpx 16rpx rgba(0,0,0,.04);
+  min-height:100vh; background:var(--cy-bg); color:var(--cy-title);
+  font-family:-apple-system,"PingFang SC","Helvetica Neue","DM Sans",sans-serif;
+  padding-bottom:calc(200rpx + env(safe-area-inset-bottom)); box-sizing:border-box;  /* ds-ok: 死代码,见上方块注释 */
+}
+
+
+/* ============================================================
+   A. 地图区(随内容滚动,主角)
+   ============================================================ */
+.cy-map__chip.is-free{ background:var(--cy-green); }
+.cy-map__chip.is-orient{ background:var(--cy-blue); }
+
+
+/* ============================================================
+   B. 操作区
+   ============================================================ */
+
+
+.cy-mode--free.is-sel{ background:rgba(22,163,74,.06); border:2rpx solid var(--cy-green); }
+.cy-mode--free.is-sel .cy-mode__title{ color:var(--cy-green); }
+.cy-mode--free.is-sel .cy-mode__radio{ background:var(--cy-green); border-color:var(--cy-green); }
+.cy-mode--orient.is-sel{ background:rgba(21,93,252,.06); border:2rpx solid var(--cy-blue); }
+.cy-mode--orient.is-sel .cy-mode__title{ color:var(--cy-blue); }
+.cy-mode--orient.is-sel .cy-mode__radio{ background:var(--cy-blue); border-color:var(--cy-blue); }
+
+.cy-modechip.is-free{ color:var(--cy-green); background:rgba(22,163,74,.1); }
+.cy-modechip.is-orient{ color:var(--cy-blue); background:rgba(21,93,252,.1); }
+.cy-card{ margin:0 var(--cy-space-4); background:var(--cy-card); border:1rpx solid var(--cy-line);
+  border-radius:var(--cy-r-card); overflow:hidden; }
+.cy-pick.is-empty{ font-weight:500; color:var(--cy-place); }
+.cy-seg__item.is-on{ background:var(--cy-on); color:var(--cy-on-fg); border-color:var(--cy-on); }
+
+.cy-preset:last-child{ margin-right:0; }
+.cy-preset.is-sel{ background:var(--cy-on); border-color:var(--cy-on); }
+.cy-preset__cover--custom .cy-preset__glyph{ color:var(--cy-place); }
+.cy-preset.is-sel .cy-preset__cover--custom .cy-preset__glyph{ color:var(--cy-on-fg); }
+.cy-preset.is-sel .cy-preset__name{ color:var(--cy-on-fg); }
+.cy-preset.is-sel .cy-preset__sub{ color:rgba(255,255,255,.6); }
+
+.cy-stcard.is-focus{ border:2rpx solid var(--cy-blue); }
+.cy-stcard.is-focus .cy-stcard__no{ background:var(--cy-blue); }
+
+.cy-tpl.is-missing{ border:1rpx solid rgba(237,0,6,.35); }
+.cy-tplcard:last-child{ margin-right:0; }
+.cy-tplcard.is-on .cy-tplcard__img{ outline:4rpx solid var(--cy-blue); }
+.cy-tplcard.is-on .cy-tplcard__name{ color:var(--cy-blue); }
+
+
+
+
+/* ============================================================
+   D. 全屏预览窗口(所见即所得 · Strava 摘要风)
+   ============================================================ */
+.cy-pv__badge.is-free{ background:var(--cy-green); }
+.cy-pv__badge.is-orient{ background:var(--cy-blue); }
+.cy-pv__row:last-child{ border-bottom:none; }
+.cy-pv__pub.is-loading{ opacity:.7; }
+
+/* ============================================================
+   方案 B — 深色「深空星海」 根节点加 class="cy-page cy-page--dark"
+   ============================================================ */
+.cy-page--dark{
+  --cy-bg:var(--cy-bg-page); --cy-card:var(--cy-bg-card); --cy-sub:var(--cy-bg-card-2);
+  --cy-title:var(--cy-text-title); --cy-text:var(--cy-text-body); --cy-2nd:var(--cy-text-body); --cy-place:var(--cy-text-secondary);
+  --cy-blue:var(--cy-info); --cy-green:var(--cy-success); --cy-red:var(--cy-danger);
+  --cy-on:var(--cy-brand); --cy-on-fg:#ffffff; --cy-line:var(--cy-border-card); --cy-shadow:none;
+}
+.cy-page--dark .cy-stat__num{ color:var(--cy-title); }
+.cy-page--dark .cy-stat__num--blue{ color:var(--cy-blue); }
+.cy-page--dark .cy-mode__radio{ background:transparent; border-color:rgba(255,255,255,.18); }
+.cy-page--dark .cy-addst{ border-color:rgba(255,255,255,.14); }
+.cy-page--dark .cy-preset__cover--custom{ border-color:rgba(255,255,255,.14); }
+.cy-page--dark .cy-bottombar{ background:rgba(2,1,4,.82); }
+.cy-page--dark .cy-preset__check{ background:#fff; color:#000; }
+
+/* ============================================================
+   E. 就地建玩法编辑器(底部弹层)
+   ============================================================ */
+.cy-ge.is-show{ visibility:visible; }
+.cy-ge.is-show .cy-ge__mask{ opacity:1; }
+.cy-ge.is-show .cy-ge__sheet{ transform:translateY(0); }
+.cy-ge__save.is-disabled{ color:var(--cy-place); }
+
+.cy-ge__method.is-on{ background:rgba(21,93,252,.06); border:2rpx solid var(--cy-blue); }
+.cy-ge__method.is-on .cy-ge__mname{ color:var(--cy-blue); }
+
+.cy-ge__opt.is-correct{ border:2rpx solid var(--cy-green); background:rgba(22,163,74,.06); }
+.cy-ge__opt.is-correct .cy-ge__optkey{ background:var(--cy-green); border-color:var(--cy-green); color:#fff; }
+
+/* 配额用完:发送钮降到禁用观感(点击仍走 generateAiPlan,由那里给出可读理由,
+   而不是静默无反应 —— 静默无反应比说不清更糟)。 */
+.simple-ai__send.is-exhausted { opacity: .45; }

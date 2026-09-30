@@ -1,0 +1,605 @@
+<!-- 俱乐部 · 活动详情(Figma ★俱乐部·全流程 H1–H6)
+     六态共用一套骨架,差异只在:状态胶囊 / 是否出未通过原因 / 是否出核销 / 是否出接下来 / 主键文案与可点性。
+     ⚠️ 这是俱乐部视角的「主题」,不是商家承接视角 —— 别和 pages/topic/merchantinfo 混。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page ctd-page">
+  <cy-nav-bar overlay custom-back bind:back="goBack" />
+
+  <!-- ⚠️ cy-nav-bar 是 overlay(透明浮层,为了压在 Hero 封面上)。正常态有封面垫着没问题,
+       但错误态/骨架态没有封面 —— 不让开导航高度就会整块滑到微信胶囊底下,
+       2026-09-04 截图实拍到「活动暂时打不开」标题上半截被切。
+       让位以胶囊底实测(chromeClearTop,onLoad 走 resolveMenuChrome)为准;
+       --cy-safe-top 只在拿不到胶囊坐标时兜底 —— env 在无刘海机/模拟器解析为 0,裸 token 会压胶囊行。 -->
+  <view wx:if="{{loadError || !loaded}}" class="ctd-chrome-clear" style="{{chromeClearTop ? 'padding-top:' + chromeClearTop + 'px;' : ''}}">
+    <cy-error wx:if="{{loadError}}" title="活动暂时打不开"
+              sub="{{missingParam ? '这个链接缺少活动编号，从俱乐部管理里重新打开一次。' : '可能是网络波动,或这个活动已经下架。'}}"
+              retry="{{missingParam ? '返回上一页' : '重新加载'}}" bind:retry="onRetry" />
+    <cy-skeleton wx:else type="detail" loading-label="正在加载活动详情" />
+  </view>
+
+  <block wx:else>
+    <!-- ① Hero + 标题区:整块按 Figma 绝对坐标排,高度固定 1044rpx(设计 522px) -->
+    <view class="ctd-head">
+      <view class="ctd-head__cover">
+        <image wx:if="{{topic.cover}}" class="ctd-head__cover-img" src="{{topic.cover}}" mode="aspectFill" lazy-load="true" />
+        <!-- CU-C-147:兜底要说得出"没图"。原来只有 128 的通用 image 线条图标,
+             读起来像资源加载失败,而不是"这场活动没有封面"。图标 + 短文案与
+             templatedetail 头部 / IM 报名卡同一口径,只是 Hero 尺寸放大。 -->
+        <view wx:else class="ctd-head__cover-fallback" aria-role="img" aria-label="{{topic.name}} 暂无封面">
+          <image class="ctd-cover-ph-icon" src="/images/no_data.svg" mode="aspectFit" />
+          <text class="ctd-cover-ph-txt">封面暂不可用</text>
+        </view>
+        <view class="ctd-head__scrim"></view>
+      </view>
+
+      <!-- CU-C-147:商家 Logo 缺就不出这一格。原先外层方块无条件渲染、只有里面的
+           image 是条件渲染 ⇒ 无 Logo 时状态旁边悬着一个空的圆角空心块。 -->
+      <view class="ctd-head__logo" wx:if="{{topic.merchantLogo}}" aria-role="img" aria-label="承接商家">
+        <image class="ctd-head__logo-img" src="{{topic.merchantLogo}}" mode="aspectFill" lazy-load="true" />
+      </view>
+
+      <view class="ctd-head__status" aria-role="status" aria-label="活动状态 {{statusText}}">
+        <view class="ctd-head__status-dot ctd-head__status-dot--{{statusDisplayKey || statusKey}}"></view>
+        <text class="ctd-head__status-txt">{{statusText}}</text>
+      </view>
+
+      <text class="ctd-head__title">{{topic.name}}</text>
+
+      <view class="ctd-head__meta">
+        <view class="ctd-head__meta-item">
+          <cy-icon name="calendar" size="28" />
+          <text class="ctd-head__meta-txt">{{topic.dateRange}}</text>
+        </view>
+        <view class="ctd-head__meta-item" wx:if="{{topic.verifyModeText}}">
+          <cy-icon name="clock" size="28" />
+          <text class="ctd-head__meta-txt">{{topic.verifyModeText}}</text>
+        </view>
+      </view>
+
+      <view class="ctd-head__chips">
+        <view class="ctd-chip" wx:for="{{topic.chips}}" wx:key="*this"><text class="ctd-chip__txt">{{item}}</text></view>
+      </view>
+
+      <!-- ② 四圆钮:商家 · 成员 · 团码 · 更多(2026-09-08 改)
+           它属于头部区块,与 logo/标题/meta 同一套定位基准(相对封面顶),所以放在 .ctd-head 里。
+           原来的「编辑」并进「更多」(Figma J9),图标同时换成语义对得上的 ——
+           旧绑定里成员=tab-club、编辑=image、团码=edit(铅笔),后两个是反的。 -->
+      <view class="ctd-qa" aria-role="navigation" aria-label="活动快捷入口">
+        <view
+          wx:for="{{quickActions}}"
+          wx:key="key"
+          class="ctd-qa__btn {{item.disabled ? 'is-disabled' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onQuickAction"
+          aria-role="button"
+          aria-label="{{item.label}}"
+          aria-disabled="{{item.disabled}}"
+          hover-class="{{item.disabled ? '' : 'cy-pressed'}}"
+          hover-stay-time="80">
+          <view class="ctd-qa__circle"><cy-icon name="{{item.icon}}" size="48" /></view>
+          <text class="ctd-qa__label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ③ 未通过原因(仅 H2) -->
+    <view wx:if="{{showReject}}" class="ctd-sec">
+      <view class="ctd-reject" aria-role="alert">
+        <text class="ctd-reject__tit">未通过原因</text>
+        <text class="ctd-reject__body">{{topic.rejectReason}}</text>
+      </view>
+    </view>
+
+    <!-- ④ 核销(H4 / H5 / H6) -->
+    <view wx:if="{{showVerify}}" class="ctd-sec">
+      <view class="ctd-sec__head">
+        <text class="ctd-sec__tit">核销</text>
+        <view class="ctd-sec__more" bindtap="goLedger" aria-role="button" aria-label="打开核销台账" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="ctd-sec__more-txt">台账</text><cy-icon name="slide-arrow" size="24" />
+        </view>
+      </view>
+      <view class="ctd-metrics">
+        <view class="ctd-metric" wx:for="{{verifyMetrics}}" wx:key="label">
+          <text class="ctd-metric__num">{{item.value}}</text>
+          <text class="ctd-metric__label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ⑤ 主题 -->
+    <view class="ctd-sec">
+      <view class="ctd-sec__head"><text class="ctd-sec__tit">主题</text></view>
+      <view class="ctd-topic" bindtap="goStory" aria-role="button" aria-label="打开剧情与玩法" hover-class="cy-pressed" hover-stay-time="80">
+        <!-- CU-C-147:这块封面与 ① Hero 是同一个 topic.cover,Hero 已经说明了"没图",
+             这里再摆一个 192rpx 的空壳方框就是第二个空方块。缺图时整格不出。 -->
+        <view class="ctd-topic__cover" wx:if="{{topic.cover}}">
+          <image class="ctd-topic__cover-img" src="{{topic.cover}}" mode="aspectFill" lazy-load="true" />
+        </view>
+        <view class="ctd-topic__body">
+          <text class="ctd-topic__name">{{topic.name}}</text>
+          <text class="ctd-topic__sub">{{topic.structureText}}</text>
+          <view class="ctd-topic__chips">
+            <view class="ctd-softchip {{item.tone === 'success' ? 'is-success' : ''}}" wx:for="{{topic.statusChips}}" wx:key="text">
+              <text class="ctd-softchip__txt">{{item.text}}</text>
+            </view>
+          </view>
+          <view class="ctd-topic__more"><text class="ctd-topic__more-txt">打开剧情与玩法</text><cy-icon name="slide-arrow" size="24" /></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ⑥ 接下来(场次) -->
+    <view wx:if="{{sessions.length}}" class="ctd-sec">
+      <view class="ctd-sec__head">
+        <text class="ctd-sec__tit">接下来</text>
+        <view wx:if="{{canManageSessions}}" class="ctd-sec__more" bindtap="goEventOps" aria-role="button" aria-label="管理场次" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="ctd-sec__more-txt">管理场次</text><cy-icon name="slide-arrow" size="24" />
+        </view>
+      </view>
+      <view class="ctd-next">
+        <view class="ctd-next__row" wx:for="{{sessions}}" wx:key="id">
+          <view class="ctd-next__dot"></view>
+          <view class="ctd-next__main">
+            <text class="ctd-next__when">{{item.whenText}}</text>
+            <text class="ctd-next__who">{{item.whoText}}</text>
+            <text class="ctd-next__eta">{{item.etaText}}</text>
+          </view>
+          <view class="ctd-next__kind" wx:if="{{item.kindText}}"><text class="ctd-next__kind-txt">{{item.kindText}}</text></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ── 导演台(施工文档 §5.4:game-director 那一整页已删,十张卡收编到这里)── -->
+    <!-- 导演台自己的加载/错误/空态。它和页面主体(H1-H6)是两条独立的取数链路:
+         主题信息来自 /api/topic/info-to-user,导演台投影来自 adapter。
+         投影挂了不能静默 —— 旧页有这一段,收编时必须一起搬过来。 -->
+    <block wx:if="{{directorActive}}">
+      <view wx:if="{{loadState === 'loading'}}" class="ctd-director-state">
+        <cy-skeleton type="list" count="4" />
+      </view>
+      <view wx:elif="{{loadState === 'business-error'}}" class="ctd-director-state">
+        <cy-error title="导演台读取失败" sub="{{errorText}}" retry="重新加载" bind:retry="loadProjection" />
+      </view>
+      <view wx:elif="{{loadState === 'network-error'}}" class="ctd-director-state">
+        <cy-error title="网络连接失败" sub="{{errorText}}" retry="重新连接" bind:retry="loadProjection" />
+      </view>
+      <view wx:elif="{{loadState === 'empty'}}" class="ctd-director-state">
+        <cy-empty title="还没有可管理的活动局" sub="{{errorText || '先从俱乐部管理区开一场，再进入导演台。'}}" />
+      </view>
+
+      <block wx:elif="{{loadState === 'ready'}}">
+        <!-- ★ 写入结果未知时的安全出口。这一条不是提示,是**唯一**能把
+             「命令发出去了但不知道成没成」收敛掉的入口:核对结果 = 用原 requestId 回读,
+             重试原操作 = 用同一个 requestId 重发(幂等)。丢了它,主理人只能靠猜。 -->
+        <view class="ctd-director-unknown" wx:if="{{writeLocked || writeState === 'storage-error'}}">
+          <view class="ctd-director-unknown__main">
+            <text class="ctd-director-unknown__title">{{writeState === 'storage-error' ? '无法安全提交' : (writeState === 'unknown-write' ? '结果待核对' : '操作处理中')}}</text>
+            <text class="ctd-director-unknown__sub">{{writeMessage}}</text>
+          </view>
+          <view class="ctd-director-unknown__acts" wx:if="{{writeState === 'unknown-write'}}">
+            <view class="ctd-director-unknown__act" bindtap="onReconcileUnknownWrite" aria-role="button" aria-label="核对操作最终结果" hover-class="cy-pressed" hover-stay-time="80">核对结果</view>
+            <view class="ctd-director-unknown__act" wx:if="{{canRetryUnknownWrite}}" bindtap="retryUnknownWrite" aria-role="button" aria-label="用原请求号重试原操作" hover-class="cy-pressed" hover-stay-time="80">重试原操作</view>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <!-- HO-26 集合时间:承接方领队改运营详情(POST /api/club/lead/edit-ops)的入口。
+         时间真源是 /api/topic/info-to-user 的 activityList,改完回读;拿不到合法时间就不显示这一格。 -->
+    <view class="ctd-opstime" wx:if="{{directorActive && loadState === 'ready' && opsTimeAvailable}}">
+      <view class="ctd-opstime__main">
+        <text class="ctd-opstime__label">集合时间</text>
+        <text class="ctd-opstime__value">{{opsTimeText}}</text>
+      </view>
+      <view class="ctd-opstime__edit" bindtap="openOpsTimeSheet" aria-role="button" aria-label="修改集合时间" hover-class="cy-pressed" hover-stay-time="80">修改</view>
+    </view>
+
+    <!-- D1 准备中:准备总览整段。只在「准备中」态出,其余状态它没有意义。 -->
+    <cy-club-director-ready
+      wx:if="{{statusKey === 'preparing'}}"
+      title="准备总览"
+      station-title="节点状态" station-sub="{{readinessText}}" stations="{{stations}}"
+      team-title="队伍进度" team-sub="{{sessionStatusText}}" teams="{{directorTeamRows}}"
+      primary-text="开始活动" primary-disabled="{{!readiness.canStart || writeLocked}}"
+      caption="{{writeMessage}}" caption-tone="{{writeState === 'unknown-write' ? 'warning' : 'muted'}}"
+      bind:primary="onStartSession" />
+
+    <!-- 收编时别把这两句丢了:它们各自挡着一个误读。 -->
+    <cy-empty wx:if="{{directorActive && loadState === 'ready' && stations.length === 0}}"
+      title="暂无节点状态" sub="节点数据尚未下发，不能据此判断为零进度。" />
+    <view class="ctd-director-note" wx:if="{{directorActive && canUnlockChapter}}">仅改变章节开放状态，玩家进度与发放状态保持不变。</view>
+
+    <!-- D9 已结束:复盘/漏斗/榜单。 -->
+    <view class="ctd-director-recaphead" wx:if="{{directorActive && statusKey === 'ended'}}">
+      <view class="ctd-director-note" wx:if="{{!recap}}">复盘尚未生成，不会把缺失指标显示为零。</view>
+      <view class="ctd-director-export {{exportState === 'loading' ? 'is-disabled' : ''}}" wx:if="{{canExportRecap}}"
+        bindtap="copyRecap" aria-role="button" aria-label="复制复盘数据" hover-class="cy-pressed" hover-stay-time="80">{{exportState === 'loading' ? '复制中' : '复制复盘数据'}}</view>
+    </view>
+    <cy-club-director-recap
+      wx:if="{{statusKey === 'ended' && recap}}"
+      title="活动复盘"
+      funnel-title="活动漏斗" funnel-sub="{{sessionStatusText}}" metrics="{{recapMetrics}}"
+      completion-title="节点完成" completion-rows="{{recap.stations}}"
+      leaderboard-title="榜单" leaderboard-rows="{{leaderboard ? leaderboard.rows : []}}"
+      caption="{{writeMessage}}"
+      bind:leaderboardrowtap="onToggleLeaderboard" />
+
+    <!-- §5-断6:没场次时主键换成「去开场」,原因就地写出来 —— 不留点了没反应的死入口 -->
+    <view class="ctd-director-note" wx:if="{{sessionHint}}">{{sessionHint}}</view>
+
+    <view class="ctd-footspacer"></view>
+
+    <!-- ⑦ 固定底部条 -->
+    <view class="ctd-footbar">
+      <view class="ctd-footbar__note" bindtap="goRules" aria-role="button" aria-label="查看退出与暂停规则" hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon name="info" size="28" />
+        <text class="ctd-footbar__note-txt">退出与暂停规则</text>
+        <cy-icon name="slide-arrow" size="24" />
+      </view>
+      <view
+        wx:if="{{primary.text}}"
+        class="ctd-footbar__cta {{primary.disabled ? 'is-disabled' : ''}}"
+        bindtap="onPrimary"
+        aria-role="button"
+        aria-label="{{primary.text}}"
+        aria-disabled="{{primary.disabled}}"
+        hover-class="{{primary.disabled ? '' : 'cy-pressed'}}"
+        hover-stay-time="80">
+        <text class="ctd-footbar__cta-txt">{{primary.text}}</text>
+      </view>
+    </view>
+
+    <!-- D2 结束确认:T2 居中确认,无顶栏无 ✕,只能点按钮(施工文档 §5.4)。 -->
+    <cy-club-director-end-confirm
+      show="{{directorEndConfirmShow}}"
+      title="结束这场活动？"
+      content="结束后不能再核销、不能再改队伍与角色;已产生的结算事实会保留。此操作不可撤销。"
+      cancel-text="再想想" confirm-text="结束活动" loading="{{writeLocked}}"
+      bind:cancel="onDirectorEndCancel" bind:confirm="onDirectorEndConfirm" />
+
+    <!-- E-04(2026-09-16 P1):导演台四个弹层(D4 手动解锁 / D5 队伍进度 / D6 角色分配 / D8 现场事件)
+         原来在页面上**没有任何入口**(方法只有单测直调,全仓 wxml 零绑定)——组件都渲染着,功能静默不可用。
+         这里按投影的能力位给最小入口:有权限/有数据才出,点了才开。 -->
+    <view class="ctd-tools" wx:if="{{directorActive && loadState === 'ready' && (canUnlockChapter || directorTeamRows.length || (canAssignRoles && roleMemberRows.length) || incidentRows.length)}}">
+      <view class="ctd-director-export" wx:if="{{canUnlockChapter}}" bindtap="openManualUnlock"
+            aria-role="button" aria-label="手动解锁章节" hover-class="cy-pressed" hover-stay-time="80">手动解锁章节</view>
+      <view class="ctd-director-export" wx:if="{{directorTeamRows.length}}" bindtap="openTeamSheet"
+            aria-role="button" aria-label="查看队伍进度" hover-class="cy-pressed" hover-stay-time="80">队伍进度</view>
+      <view class="ctd-director-export" wx:if="{{canAssignRoles && roleMemberRows.length}}" bindtap="openRoleSheet"
+            aria-role="button" aria-label="分配角色" hover-class="cy-pressed" hover-stay-time="80">角色分配</view>
+      <view class="ctd-director-export" wx:if="{{incidentRows.length}}" bindtap="openIncidentSheet"
+            aria-role="button" aria-label="处理现场事件" hover-class="cy-pressed" hover-stay-time="80">现场事件</view>
+    </view>
+
+    <!-- D4 章节控制 / 手动解锁 -->
+    <cy-club-director-chapter-sheet
+      show="{{unlockSheetVisible}}" title="手动解锁章节"
+      chapters="{{chapterOptions}}" confirm-text="解锁"
+      confirm-disabled="{{writeLocked || !unlockReason}}" caption="{{writeMessage}}"
+      bind:close="closeManualUnlock" bind:confirm="confirmManualUnlock"
+      bind:selectchapter="onUnlockChapterChange">
+      <!-- 原因必填:confirm-disabled 已经把「没填原因」挡住了,但挡住不等于填得进去 ——
+           组件本身没有输入位,靠它的 slot 补。少了这个框,手动解锁永远点不动。 -->
+      <view class="ctd-director-field">
+        <text class="ctd-director-field__label">现场原因(必填)</text>
+        <textarea class="ctd-director-field__input" value="{{unlockReason}}" bindinput="onUnlockReasonInput"
+          placeholder="写明为什么要手动解锁,会进审计记录" maxlength="200" auto-height />
+      </view>
+    </cy-club-director-chapter-sheet>
+
+    <!-- D5 队伍进度 / 队伍协作 -->
+    <cy-club-director-team-sheet
+      show="{{teamSheetVisible}}" title="队伍进度"
+      teams="{{directorTeamRows}}" collaboration-title="队伍协作" collaboration="{{broadcasts}}"
+      bind:close="closeTeamSheet" />
+
+    <!-- D6 角色分配 / 角色接管。「选择成员」这一列是**同队成员**(不是队伍):
+         弹层从某个成员行打开,主理人可以在这里改选另一个人,标题跟着换的人走 ——
+         否则选了谁全凭猜,而确认键写下去的是最初那个人(2026-09-19 审查 F-PK-2)。 -->
+    <cy-club-director-role-sheet
+      show="{{roleSheetVisible}}" title="{{ roleDraft.memberName ? '角色分配 · ' + roleDraft.memberName : '角色分配' }}"
+      member-section-title="选择成员" members="{{roleMemberRows}}"
+      role-section-title="分配角色" role-options="{{roleOptions}}"
+      selected-role-code="{{roleDraft.roleCode}}"
+      takeover-section-title="角色接管" takeovers="{{directorTakeoverCandidates}}"
+      confirm-text="确认分配" confirm-disabled="{{writeLocked}}"
+      bind:close="closeRoleAssignment" bind:confirm="confirmRoleAssignment"
+      bind:selectmember="onRoleMemberPick"
+      bind:selectrole="onRoleOptionChange" bind:takeovertap="openTakeoverRole">
+      <!-- 接管:选了来源之后要挑接手的人并写原因。组件只给了「接管」这一列入口,
+           填写位同样靠 slot 补 —— 否则点了接管就卡在那里,填不完也提交不了。 -->
+      <view class="ctd-director-field" wx:if="{{takeoverSheetVisible}}">
+        <text class="ctd-director-field__label">接管给</text>
+        <cy-dropdown range="{{takeoverTargetLabels}}" value="{{takeoverDraft.targetIndex}}" bind:change="onTakeoverTargetChange">
+          <view class="ctd-director-field__picker">{{takeoverTargetLabels[takeoverDraft.targetIndex] || '选择同队待分配成员'}}</view>
+        </cy-dropdown>
+        <text class="ctd-director-field__label">接管原因(必填)</text>
+        <textarea class="ctd-director-field__input" value="{{takeoverDraft.reason}}" bindinput="onTakeoverReasonInput"
+          placeholder="写明为什么要接管,会进审计记录" maxlength="200" auto-height />
+        <view class="ctd-director-field__acts">
+          <view class="ctd-director-field__act" bindtap="closeTakeoverRole" aria-role="button" aria-label="取消接管" hover-class="cy-pressed" hover-stay-time="80">取消接管</view>
+          <view class="ctd-director-field__act ctd-director-field__act--primary {{writeLocked || !takeoverDraft.reason ? 'is-disabled' : ''}}"
+            bindtap="confirmTakeoverRole" aria-role="button" aria-label="确认接管" hover-class="cy-pressed" hover-stay-time="80">确认接管</view>
+        </view>
+      </view>
+    </cy-club-director-role-sheet>
+
+    <!-- D7 定向广播 -->
+    <cy-club-director-broadcast-sheet
+      show="{{broadcastSheetVisible}}" title="定向广播"
+      scope-options="{{broadcastScopeOptions}}" scope="{{broadcastDraft.targetType}}"
+      targets="{{broadcastTargetRows}}" content="{{broadcastDraft.content}}"
+      preview-rows="{{broadcasts}}" confirm-text="发送"
+      confirm-disabled="{{writeLocked || !broadcastPreviewReady}}"
+      caption="{{broadcastPreviewText}}"
+      bind:close="closeBroadcast" bind:confirm="confirmBroadcast"
+      bind:input="onBroadcastContentInput" bind:selectscope="selectBroadcastTargetType"
+      bind:selecttarget="onBroadcastTargetChange" />
+
+    <!-- D8 现场事件(商家暂停 / 兜底 / 驳回) -->
+    <cy-club-director-incident-sheet
+      show="{{incidentSheetVisible}}" title="现场事件"
+      incidents="{{incidentRows}}" mode-section-title="处理方式" modes="{{incidentModes}}"
+      selected-mode="{{incidentMode}}"
+      confirm-text="确认处理" confirm-disabled="{{!incidentMode || writeLocked}}"
+      bind:selectincident="onIncidentSelect" bind:selectmode="onIncidentModeChange"
+      bind:confirm="confirmIncident" bind:close="closeIncidentSheet"
+    />
+  </block>
+</view>
+</view>
+
+<!-- Figma J4「主题 · 俱乐部设置」。只管俱乐部这一层的三个开关;
+     主题内容(名称/封面/剧情/日期/票价)由「编辑主题内容」那一行带去编辑主题页。 -->
+<!-- Figma J9「更多」:原 J4 主题设置 + 这一页其它次要入口 + 结束主题。
+     ⚠️ 这里的「结束主题」只做下架(停售),不动已售出的票 —— 主题这一层没有退款接口,
+     商家侧也没有(商家的 /api/activity/cancel 是按单个活动退的)。退款走场次管理逐场取消。 -->
+<cy-scene-sheet show="{{settingSheetVisible}}" variant="half" title="更多" closable maskClosable bind:close="closeTopicSetting">
+  <view class="tset">
+    <cy-skeleton wx:if="{{settingState === 'loading'}}" type="list" count="2" />
+    <cy-empty wx:elif="{{settingState === 'denied'}}" title="当前岗位没有查看权限" sub="主题设置需要「活动查看」权限。" />
+    <cy-error wx:elif="{{settingState !== 'ready'}}" title="主题设置没能取到" sub="稍后再试一次" retry="重试" bind:retry="loadTopicSetting" />
+    <block wx:else>
+      <view class="tset-head">
+        <text class="tset-name">{{setting.topicName}}</text>
+        <text wx:if="{{setting.lifecycleText}}" class="tset-stage">{{setting.lifecycleText}}</text>
+      </view>
+      <view class="tset-row" bindtap="goEditTopic" aria-role="button" aria-label="编辑主题内容"
+        hover-class="cy-pressed" hover-stay-time="80">
+        <view class="tset-row-main">
+          <text class="tset-row-title">编辑主题内容</text>
+          <text class="tset-row-sub">名称、封面、剧情、日期、票价都在编辑主题页改。</text>
+        </view>
+        <cy-icon name="arrow-right" size="28" />
+      </view>
+
+      <view wx:if="{{canReviewChapterApplications}}" class="tset-row" bindtap="goChapterApplications"
+        aria-role="button" aria-label="承接审核与项目协作" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="tset-row-main">
+          <text class="tset-row-title">承接审核</text>
+          <text class="tset-row-sub">审核商家申请与点位，查看项目协作进度。</text>
+        </view>
+        <cy-icon name="arrow-right" size="28" />
+      </view>
+
+      <view class="tset-row" bindtap="goStory" aria-role="button" aria-label="剧情与玩法"
+        hover-class="cy-pressed" hover-stay-time="80">
+        <view class="tset-row-main">
+          <text class="tset-row-title">剧情与玩法</text>
+          <text class="tset-row-sub">看这条路线有几章几站、玩法配没配。</text>
+        </view>
+        <cy-icon name="arrow-right" size="28" />
+      </view>
+      <view class="tset-row" bindtap="goLedger" aria-role="button" aria-label="核销台账"
+        hover-class="cy-pressed" hover-stay-time="80">
+        <view class="tset-row-main">
+          <text class="tset-row-title">核销台账</text>
+          <text class="tset-row-sub">按团看报名与核销，能清退退款。</text>
+        </view>
+        <cy-icon name="arrow-right" size="28" />
+      </view>
+      <view wx:if="{{canManageSessions}}" class="tset-row" bindtap="goEventOps" aria-role="button" aria-label="场次管理"
+        hover-class="cy-pressed" hover-stay-time="80">
+        <view class="tset-row-main">
+          <text class="tset-row-title">场次管理</text>
+          <text class="tset-row-sub">加日期、改未来场次、取消本场。</text>
+        </view>
+        <cy-icon name="arrow-right" size="28" />
+      </view>
+      <view class="tset-row" bindtap="goRules" aria-role="button" aria-label="退出与暂停规则"
+        hover-class="cy-pressed" hover-stay-time="80">
+        <view class="tset-row-main">
+          <text class="tset-row-title">退出与暂停规则</text>
+          <text class="tset-row-sub">玩家退出、队长移交、暂停与退款的判据。</text>
+        </view>
+        <cy-icon name="arrow-right" size="28" />
+      </view>
+
+      <text class="tset-label">开放商家对接</text>
+      <view class="tset-row">
+        <view class="tset-row-main">
+          <text class="tset-row-title">开放商家承接</text>
+          <text class="tset-row-sub">关掉后本主题不再出现在商家的可承接列表里。</text>
+        </view>
+        <cy-switch checked="{{setting.coopOpen}}" disabled="{{!setting.canManage || settingSaving}}"
+          accessibility-label="开放商家承接" bind:change="onSettingToggle" data-key="coopOpen" />
+      </view>
+      <cy-club-director-row-list rows="{{setting.chapterRows}}" surface="raised" />
+
+      <text class="tset-label">在俱乐部页的展示</text>
+      <view class="tset-row">
+        <view class="tset-row-main">
+          <text class="tset-row-title">置顶在俱乐部主页</text>
+          <text class="tset-row-sub">俱乐部页「活动」tab 里排在最前。</text>
+        </view>
+        <cy-switch checked="{{setting.pinned}}" disabled="{{!setting.canManage || settingSaving}}"
+          accessibility-label="置顶在俱乐部主页" bind:change="onSettingToggle" data-key="pinned" />
+      </view>
+      <view class="tset-row">
+        <view class="tset-row-main">
+          <text class="tset-row-title">只对成员可见</text>
+          <text class="tset-row-sub">开启后非成员看不到这条主题。</text>
+        </view>
+        <cy-switch checked="{{setting.memberOnly}}" disabled="{{!setting.canManage || settingSaving}}"
+          accessibility-label="只对成员可见" bind:change="onSettingToggle" data-key="memberOnly" />
+      </view>
+      <!-- 不再拿「还在售卖」当出现条件:已经下架的主题照样可能有已付款未核销的票要退 -->
+      <view wx:if="{{setting.canManage}}" class="tset-row" bindtap="openEndTopic"
+        aria-role="button" aria-label="结束主题" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="tset-row-main">
+          <text class="tset-row-title tset-row-title--danger">结束主题</text>
+          <text class="tset-row-sub">停止售卖，并把未核销的票原价退回。</text>
+        </view>
+        <cy-icon name="arrow-right" size="28" />
+      </view>
+      <text class="tset-foot">含已核销票的订单退不了，会留给平台人工处理，结束后会告诉你有几笔。</text>
+    </block>
+  </view>
+</cy-scene-sheet>
+
+<!-- Figma J7「商家(弹窗)」。商家与成员是两个圆钮、两个独立弹层。
+     联系方式由服务端按「商家已确认」裁剪:未确认的商家回包里没有 phone 这个键,不是前端藏起来。 -->
+<cy-scene-sheet show="{{merchantSheetVisible}}" variant="half" title="商家" closable maskClosable bind:close="closeMerchants">
+  <view class="tset">
+    <cy-skeleton wx:if="{{merchantState === 'loading'}}" type="list" count="2" />
+    <cy-empty wx:elif="{{merchantState === 'denied'}}" title="当前岗位没有查看权限" sub="承接商家需要「活动查看」权限。" />
+    <cy-error wx:elif="{{merchantState !== 'ready'}}" title="商家信息没能取到" sub="稍后再试一次" retry="重试" bind:retry="loadMerchants" />
+    <block wx:else>
+      <cy-empty wx:if="{{!merchantRows.length}}" title="这个主题还没有承接商家" sub="开放商家对接后，商家会出现在这里。" />
+      <view wx:for="{{merchantRows}}" wx:key="nodeId" class="cli-row {{index === 0 ? 'cli-row--first' : ''}}">
+        <view class="cli-ava">{{item.initial}}</view>
+        <view class="cli-main">
+          <text class="cli-name">{{item.merchantName}}</text>
+          <text class="cli-sub">{{item.stationName}}</text>
+          <view class="cli-line">
+            <text class="cli-sub {{item.phone ? '' : 'cli-sub--muted'}}">{{item.contactText}}</text>
+            <view wx:if="{{item.phone}}" class="cli-copy" bindtap="copyPhone" data-phone="{{item.phone}}"
+              aria-role="button" aria-label="复制 {{item.merchantName}} 的手机号" hover-class="cy-pressed" hover-stay-time="80">
+              <cy-icon name="copy" size="24" />
+            </view>
+          </view>
+        </view>
+      </view>
+      <text class="tset-foot">联系方式在商家接受合作后才下发；未确认的商家不展示手机号。</text>
+    </block>
+  </view>
+</cy-scene-sheet>
+
+<!-- Figma J2「报名参与者 · 主题内(弹窗)」。CU-C-88(用户裁决 A):这一层统计的是
+     报名/购票参与者(cms_registration),不是俱乐部成员名单(club_member),所以入口与
+     弹层都按购票口径命名。按场次分组;手机号那一格由后端按权限决定
+     给号码还是给替代说明,前端原样显示,不自己拼。 -->
+<cy-scene-sheet show="{{customerSheetVisible}}" variant="half" title="报名参与者" closable maskClosable bind:close="closeCustomers">
+  <view class="tset">
+    <cy-skeleton wx:if="{{customerState === 'loading'}}" type="list" count="2" />
+    <cy-error wx:elif="{{customerState !== 'ready'}}" title="报名名单没能取到" sub="稍后再试一次" retry="重试" bind:retry="loadCustomers" />
+    <block wx:else>
+      <view class="cli-stats">
+        <text wx:for="{{customerStats}}" wx:key="key"
+          class="cli-stat cli-stat--{{item.tone}}">{{item.text}}</text>
+      </view>
+      <view class="cli-chips">
+        <view wx:for="{{customerChips}}" wx:key="value"
+          class="cli-chip {{item.value === customerFilter ? 'cli-chip--on' : ''}}"
+          data-value="{{item.value}}" bindtap="onCustomerFilter"
+          aria-role="button" aria-label="只看{{item.label}}" hover-class="cy-pressed" hover-stay-time="80">{{item.label}}</view>
+      </view>
+      <cy-empty wx:if="{{!customerRows.length}}" title="{{customerFilter ? '这一档还没有人' : '还没有人报名'}}" sub="{{customerFilter ? '换一个筛选看看。' : '有人下单后会出现在这里。'}}" />
+      <view wx:for="{{customerRows}}" wx:key="key" class="cli-row {{index === 0 ? 'cli-row--first' : ''}}">
+        <view class="cli-ava">{{item.initial}}</view>
+        <view class="cli-main">
+          <text class="cli-name">{{item.displayName}}</text>
+          <text class="cli-sub">{{item.timeText}}</text>
+          <text class="cli-sub">{{item.phoneText}}</text>
+        </view>
+        <view class="cli-right">
+          <text class="cli-state cli-state--{{item.statusCode}}">{{item.statusText}}</text>
+          <text wx:if="{{item.verifyText}}" class="cli-sub">{{item.verifyText}}</text>
+        </view>
+      </view>
+      <text class="tset-foot" wx:if="{{customerRows.length}}">看不全的手机号，与你在本活动的权限有关。</text>
+      <!-- CU-C-76:不可发送时不再让人点进去只吃一句笼统 toast —— 入口置灰并就地写清资格条件;
+           可发送(canBroadcast,来自导演台投影)时才进选范围流程。 -->
+      <view wx:if="{{canBroadcast}}" class="cli-entry" bindtap="goBroadcast"
+        aria-role="button" aria-label="定向广播" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="cli-main">
+          <text class="cli-name">定向广播</text>
+          <text class="cli-sub">选队伍发一条现场通知。进去后先选范围再发送。</text>
+        </view>
+        <cy-icon name="slide-arrow" size="24" />
+      </view>
+      <view wx:else class="cli-entry cli-entry--disabled">
+        <view class="cli-main">
+          <text class="cli-name">定向广播</text>
+          <!-- CU-C-76:两种「不能发」要说清是哪一种 —— 文案由投影的原因码算好(broadcastDisabledText) -->
+          <text class="cli-sub">{{broadcastDisabledText}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+</cy-scene-sheet>
+
+<!-- Figma J5 结束主题确认(T2 居中)。组件只摆样子,请求在宿主。 -->
+<!-- ⚠️ setting 的初值是 null,而这个弹层常驻在页面上(不在 settingSheet 的 wx:else 里):
+     对 null 取成员会把 null 原样传给组件属性(不是 undefined 走默认值),与 2026-09-15
+     cy-modal 控制台实拍的 action=null 同型。同类现场与写法先例见 pages/agreement/index.wxml:11。 -->
+<cy-club-topic-end-confirm show="{{endConfirmVisible}}" topic-name="{{setting ? setting.topicName : ''}}"
+  loading="{{endSubmitting}}" error-text="{{endErrorText}}"
+  bind:confirm="confirmEndTopic" bind:cancel="closeEndTopic" />
+
+<!-- HO-26 改集合时间:日期 + 时间各一格,底部两颗小按钮并排。已售锁定由后端判(CR-63),这里先把规则说在前面。 -->
+<cy-scene-sheet show="{{opsTimeSheetVisible}}" variant="half" title="修改集合时间" closable bind:close="closeOpsTimeSheet">
+  <view class="ctd-director-field">
+    <text class="ctd-opstime__hint">已有人报名或下单的场次，集合时间和地点不能再改（当日备注仍可改）。</text>
+    <text class="ctd-director-field__label">集合日期</text>
+    <cy-date-field mode="date" value="{{opsTimeDraft.date}}" bind:change="onOpsDateChange">
+      <view class="ctd-director-field__picker">{{opsTimeDraft.date || '选择日期'}}</view>
+    </cy-date-field>
+    <text class="ctd-director-field__label">集合时间</text>
+    <cy-date-field mode="time" value="{{opsTimeDraft.time}}" bind:change="onOpsTimeChange">
+      <view class="ctd-director-field__picker">{{opsTimeDraft.time || '选择时间'}}</view>
+    </cy-date-field>
+    <text class="ctd-opstime__hint">改完会报备发起人；退款截止按新的集合时间前 24 小时计算。</text>
+    <view class="ctd-director-field__acts">
+      <view class="ctd-director-field__act" bindtap="closeOpsTimeSheet" aria-role="button" aria-label="取消修改集合时间" hover-class="cy-pressed" hover-stay-time="80">取消</view>
+      <view class="ctd-director-field__act ctd-director-field__act--primary {{opsTimeSubmitting ? 'is-disabled' : ''}}"
+        bindtap="confirmOpsTime" aria-role="button" aria-label="保存集合时间" aria-disabled="{{opsTimeSubmitting}}" hover-class="{{opsTimeSubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{opsTimeSubmitting ? '提交中…' : '保存'}}</view>
+    </view>
+  </view>
+</cy-scene-sheet>
+
+<!-- 集合时间改没改成都由结果半屏说,自愈不等点击。 -->
+<cy-result-sheet show="{{resultSheet.show}}" kind="{{resultSheet.kind}}" title="{{resultSheet.title}}"
+  sub="{{resultSheet.sub}}" why="{{resultSheet.why}}" duration="{{resultSheet.duration}}"
+  bind:close="onOpsResultClose" />
+
+<cy-scene-sheet show="{{rulesSheetVisible}}" variant="half" title="退出与暂停规则" closable maskClosable bind:close="closeRules">
+  <view class="tset">
+    <block wx:for="{{rulesSections}}" wx:key="key">
+      <text class="tset-label">{{item.label}}</text>
+      <view class="tset-rule" wx:for="{{item.rows}}" wx:for-item="rule" wx:key="title">
+        <text class="tset-rule-title tset-rule-title--{{rule.tone || 'default'}}">{{rule.title}}</text>
+        <text class="tset-rule-text">{{rule.text}}</text>
+      </view>
+    </block>
+  </view>
+</cy-scene-sheet>
+
+<!-- CU-C-79(用户裁决 B):「去选一场」先弹这张半屏,选中后带 activityId 进活动运营 ——
+     主键文案承诺的就是选场,不再直接跳到系列编辑页。 -->
+<cy-scene-sheet show="{{sessionPickVisible}}" variant="half" title="选择场次" closable maskClosable bind:close="closeSessionPick">
+  <view class="tset">
+    <view class="tset-row" wx:for="{{sessionPickRows}}" wx:key="id"
+      data-id="{{item.id}}" bindtap="onSessionPick" aria-role="button"
+      aria-label="管理{{item.whenText}}这一场" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="tset-row-main">
+        <text class="tset-row-title">{{item.whenText}}</text>
+        <text class="tset-row-sub">{{item.whoText}}</text>
+      </view>
+      <cy-icon name="arrow-right" size="28" />
+    </view>
+  </view>
+</cy-scene-sheet>

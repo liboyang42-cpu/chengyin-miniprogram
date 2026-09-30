@@ -1,0 +1,30 @@
+<!-- 半屏 sheet:内容短(说明 + 一个链接 + 一个动作),不需要全屏 -->
+<cy-scene-sheet show="{{show}}" variant="peek" theme="{{theme}}" title="隐私与定位" mask-closable="{{true}}" bind:requestclose="onClose">
+  <view class="pv-sheet">
+    <text class="pv-sheet__body">城瘾会在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。</text>
+    <view class="pv-sheet__link" bindtap="openPrivacyContract" aria-role="button" aria-label="查看用户隐私保护指引" hover-class="cy-pressed" hover-stay-time="80">查看《用户隐私保护指引》</view>
+
+    <!-- 分享轨迹裁剪(Any Distance「Clip route for sharing」同构):
+         开关 + 1%–40% 滑块 + 一句说清「裁多少、什么时候生效」。默认开着。 -->
+    <text class="pv-sheet__title">分享时裁掉轨迹首尾</text>
+    <view class="pv-sheet__row">
+      <text class="pv-sheet__row-label">裁剪分享轨迹</text>
+      <cy-switch checked="{{clipEnabled}}" bind:change="onClipToggle" />
+    </view>
+    <view class="pv-sheet__slider" wx:if="{{clipEnabled}}">
+      <slider min="1" max="40" step="1" value="{{clipPercent}}" show-value="{{false}}"
+              activeColor="var(--cy-color-action-primary-bg)" backgroundColor="var(--cy-color-border-subtle)"
+              block-size="24" bindchanging="onClipPercentChanging" bindchange="onClipPercentChange" />
+      <view class="pv-sheet__ticks">
+        <text>1%</text><text>10%</text><text>20%</text><text>30%</text><text>40%</text>
+      </view>
+    </view>
+    <text class="pv-sheet__sub">{{clipEnabled ? '分享或发布足迹卡时，会裁掉本次路线开头和结尾各 ' + clipPercent + '%，不让出发点和终点出现在图上。你自己回看的轨迹仍然完整。' : '已关闭：分享出去的足迹卡会包含完整路线，出发点通常就是你家。'}}</text>
+    <cy-inline-error class="pv-sheet__warn" wx:if="{{saveError}}" kind="data"
+      title="隐私设置未保存" sub="{{saveError}}" />
+
+    <text class="pv-sheet__title">漫游定位</text>
+    <text class="pv-sheet__sub">撤回后，漫游不会继续读取实时位置或记录新的轨迹。</text>
+    <cy-btn variant="secondary" loading="{{submitting}}" disabled="{{submitting}}" class="pv-sheet__action" bindtap="withdrawRoamLocationConsent">撤回漫游定位同意</cy-btn>
+  </view>
+</cy-scene-sheet>

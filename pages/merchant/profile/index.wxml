@@ -1,0 +1,30 @@
+<!-- 旧「承接商家」页兼容壳:只有 loading / error 两态,不再渲染任何商家资料、章节或据点任务卡。
+     正常路径上用户看不到这一屏 —— 它是历史链接落地后立刻转走时的过场。 -->
+<view class="pr-page theme-merchant m-flush-nav" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- 本壳是公开重定向过场(只用 /api/merchant/public-home 解析目的地),
+       玩家/匿名从历史分享进来不该被商家门禁盖屏,所以不挂 cy-access-gate。 -->
+  <cy-nav-bar title="商家主页" custom-back bind:back="onBack" />
+<cy-skeleton wx:if="{{state === 'loading' || state === 'redirecting'}}" type="card" count="{{skeletonItems.length}}" />
+
+  <block wx:else>
+    <cy-error wx:if="{{state === 'network-error'}}" title="资料加载失败" sub="{{message}}"
+              bind:retry="retryLoad" fill="{{true}}" size="lg" auto-back />
+    <cy-empty wx:elif="{{state === 'invalid'}}" title="链接参数无效"
+              sub="这个链接缺少商家或据点信息，无法确定要打开哪一页。"
+              cta="回首页" bind:cta="goHome" fill="{{true}}" size="lg" kind="missing-param" />
+    <cy-empty wx:else title="商家不存在或未开放"
+              sub="这家店暂时无法查看，去首页看看其他城市内容。"
+              cta="回首页" bind:cta="goHome" fill="{{true}}" size="lg" kind="empty" />
+
+    <!-- 冷启动进来的没有上一页,只给「返回」等于把人困死;所以回首页恒在,返回按栈深出。 -->
+    <view class="pr-exits">
+      <text wx:if="{{state === 'network-error'}}" class="pr-exit" bindtap="goHome"
+            aria-role="button" aria-label="回首页" hover-class="cy-pressed">回首页</text>
+      <text wx:if="{{canBack}}" class="pr-exit" bindtap="goBack"
+            aria-role="button" aria-label="返回上一页" hover-class="cy-pressed">返回上一页</text>
+    </view>
+  </block>
+</view>

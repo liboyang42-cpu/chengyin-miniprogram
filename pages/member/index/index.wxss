@@ -1,0 +1,3 @@
+@import '../../../style/merchant-light-scope.wxss';
+
+page { background: var(--cy-color-bg-page); }

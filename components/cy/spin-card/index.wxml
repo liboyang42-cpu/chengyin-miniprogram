@@ -1,0 +1,43 @@
+<!-- cy-spin-card · 立体藏品卡。姿态由 js 拼成一串 CSS 自定义属性挂在根节点上,
+     三层各自读同一组变量 —— 一帧只 setData 一次,三层同时动。 -->
+<view class="sc {{cardStyle === 'plain' ? 'sc--plain' : ''}} {{tracking ? 'sc--live' : ''}}"
+      style="{{pose}}"
+      aria-role="img"
+      aria-label="立体藏品卡 {{title}}"
+      bindtouchstart="onSpinTouchStart"
+      bindtouchmove="onSpinTouchMove"
+      bindtouchend="onSpinTouchEnd">
+
+  <view class="sc__stage">
+    <view class="sc__face">
+      <image class="sc__photo" wx:if="{{src && !broken}}" src="{{src}}" mode="aspectFill"
+             binderror="onImageError" bindload="onFrameLoad" />
+
+
+      <view class="sc__foil"></view>
+      <view class="sc__sheen"></view>
+
+      <view class="sc__ph" wx:if="{{broken}}">
+        <text class="sc__ph-t">{{title || '这张卡'}}</text>
+        <text class="sc__ph-s">照片没读出来</text>
+      </view>
+
+      <view class="sc__cap" wx:if="{{!broken}}">
+        <text class="sc__title">{{title}}</text>
+        <text class="sc__caption" wx:if="{{caption}}">{{caption}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 转台只在真的有多帧时露提示:1 帧时不许出现「拖一拖」这种骗人的引导 -->
+  <!-- 转台预载:每一帧先加载一遍,全部结束(成功或失败)才放行拖动。
+       看不见但必须真去加载,所以藏法是透明 + 1rpx,不是 display:none。 -->
+  <view class="sc__pre" wx:if="{{preload.length}}">
+    <image class="sc__pre-img" wx:for="{{preload}}" wx:key="*this" src="{{item}}" data-src="{{item}}"
+           bindload="onPreload" binderror="onPreload" aria-hidden="true" />
+  </view>
+
+  <view class="sc__hint" wx:if="{{count > 1}}">
+    <text class="sc__hint-t">{{ready ? '拖动转一圈' : '加载中'}}</text>
+  </view>
+</view>

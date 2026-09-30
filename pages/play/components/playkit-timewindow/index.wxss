@@ -1,0 +1,51 @@
+@import "/pages/play/style/playkit.wxss";
+
+/* cy-playkit-timewindow · 时段限定玩法未开放态(Figma v5.1,node 45:293) */
+.tw { padding-top: var(--cy-space-2); }
+.tw__head {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  margin-top: var(--cy-space-3);
+}
+.tw__badge {
+  flex: none;
+  width: 112rpx;
+  height: 112rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  border: 2rpx solid var(--cy-color-play-accent-soft);
+  background: var(--cy-color-play-surface-subtle);
+  font-size: var(--cy-type-section-title);
+}
+.tw__headcopy { flex: 1; min-width: 0; }
+.tw__title { margin-top: 0; }
+.tw__window {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-body);
+  font-weight: 700;
+  letter-spacing: 1rpx;
+  color: var(--cy-color-status-info);
+}
+.tw__count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-4);
+}
+/* 稿里倒计时是 44px(=88rpx)的主视觉数字,比 data-xl(64rpx)还大一档,无对应 token */
+.tw__clock { font-size: 88rpx; } /* ds-ok 倒计时主视觉,稿 45:301 */
+.tw__after {
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-secondary);
+}
+
+/* v5.1 玩法主题色(2026-08-27 用户拍板:游戏可以是不同颜色的)。
+   CTA 在 slot="footer" 里,和上面的内容不在同一棵子树 —— 变量必须包一层才继承得到。 */
+.tw__window { color: var(--cy-color-playkit-night); }
+.tw__cta {
+  --cy-comp-btn-primary-bg: var(--cy-color-playkit-night);
+  --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+}

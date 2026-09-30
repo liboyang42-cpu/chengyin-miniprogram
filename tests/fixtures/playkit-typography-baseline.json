@@ -1,0 +1,190 @@
+{
+  "sourceCommit": "05f2d51ccef01b53c816c44d85d44902a1243a15^",
+  "viewportWidthPx": 375,
+  "typeScale": 1,
+  "maxDeviationPx": 4,
+  "declarations": {
+    "pages/play/components/playkit-ballshake/index.wxss": [
+      [".bl__n", 0, 132.0],
+      [".bl__unit", 0, 26.0],
+      [".bl__sub", 0, 28.0],
+      [".bl__b", 0, 32.0]
+    ],
+    "pages/play/components/playkit-bingo/index.wxss": [
+      [".bg__q", 0, 46.0],
+      [".bg__lock", 0, 30.0],
+      [".bg__t", 0, 21.0],
+      [".bg__how", 0, 18.0],
+      [".bg__ribbon", 0, 28.0],
+      [".bg__tally", 0, 26.0],
+      [".bg__foot", 0, 29.0],
+      [".bg__panel-h", 0, 36.0],
+      [".bg__panel-p", 0, 28.0],
+      [".bg__panel-x", 0, 30.0]
+    ],
+    "pages/play/components/playkit-branch/index.wxss": [
+      [".br__q", 0, 52.0],
+      [".br__story", 0, 38.0],
+      [".br__fb", 0, 30.0],
+      [".br__fb-h", 0, 24.0],
+      [".br__opt", 0, 34.0],
+      [".br__k", 0, 24.0],
+      [".br__end", 0, 23.0]
+    ],
+    "pages/play/components/playkit-classify/index.wxss": [
+      [".cf__prompt", 0, 44.0],
+      [".cf__label", 0, 30.0],
+      [".cf__fb", 0, 28.0]
+    ],
+    "pages/play/components/playkit-coinflip/index.wxss": [
+      [".cf__k", 0, 23.0],
+      [".cf__big", 0, 60.0],
+      [".cf__lab", 0, 30.0],
+      [".cf__hint", 0, 25.0]
+    ],
+    "pages/play/components/playkit-compass/index.wxss": [
+      [".cp__n", 0, 132.0],
+      [".cp__hold", 0, 33.0],
+      [".cp__b", 0, 32.0],
+      [".cp__safe", 0, 25.0]
+    ],
+    "pages/play/components/playkit-countdown/index.wxss": [
+      [".oc__k", 0, 23.0],
+      [".oc__n", 0, 176.0],
+      [".oc__done", 0, 29.0],
+      [".oc__b", 0, 32.0]
+    ],
+    "pages/play/components/playkit-diceroll/index.wxss": [
+      [".dz__k", 0, 23.0],
+      [".dz__segb", 0, 25.0],
+      [".dz__sum", 0, 104.0],
+      [".dz__sub", 0, 29.0],
+      [".dz__hint", 0, 25.0],
+      [".dzi__k", 0, 23.0],
+      [".dzi__sum", 0, 64.0],
+      [".dzi__sub", 0, 27.0],
+      [".dzi__roll", 0, 29.0]
+    ],
+    "pages/play/components/playkit-estimate/index.wxss": [
+      [".es__q", 0, 46.0],
+      [".es__lane", 0, 296.0],
+      [".es__unit", 0, 28.0],
+      [".es__fb", 0, 30.0]
+    ],
+    "pages/play/components/playkit-hidden/index.wxss": [
+      [".hd__q", 0, 46.0],
+      [".hd__prog", 0, 26.0],
+      [".hd__foot", 0, 29.0],
+      [".hd__chip", 0, 24.0]
+    ],
+    "pages/play/components/playkit-match/index.wxss": [
+      [".ma__prompt", 0, 44.0],
+      [".ma__t", 0, 28.0],
+      [".ma__fb", 0, 28.0]
+    ],
+    "pages/play/components/playkit-predict/index.wxss": [
+      [".pd__q", 0, 46.0],
+      [".pd__k", 0, 22.0],
+      [".pd__l", 0, 38.0],
+      [".pd__m", 0, 22.0],
+      [".pd__hint", 0, 24.0],
+      [".pd__reveal-h", 0, 30.0],
+      [".pd__reveal-t", 0, 26.0],
+      [".pd__seal-ch", 0, 60.0]
+    ],
+    "pages/play/components/playkit-pricepair/index.wxss": [
+      [".pp__nm", 0, 27.0],
+      [".pp__pz", 0, 23.0]
+    ],
+    "pages/play/components/playkit-qa/index.wxss": [
+      [".qa__q", 0, 48.0],
+      [".qa__audio, .qa__lead", 0, 30.0],
+      [".qa__input", 0, 50.0],
+      [".qa__opt", 0, 34.0],
+      [".qa__opt-k", 0, 24.0],
+      [".qa__shot-lead", 0, 54.0],
+      [".qa__shot-note", 0, 30.0],
+      [".qa__fb", 0, 30.0],
+      [".qa__fb-h", 0, 24.0]
+    ],
+    "pages/play/components/playkit-quiethold/index.wxss": [
+      [".qt__k", 0, 24.0],
+      [".qt__s", 0, 29.0],
+      [".qt__b", 0, 32.0],
+      [".qt__n", 0, 164.0]
+    ],
+    "pages/play/components/playkit-random/index.wxss": [
+      [".dk__tag", 0, 18.0],
+      [".dk__h", 0, 34.0],
+      [".dk__deckname", 0, 23.0],
+      [".dk__actbtn", 0, 42.0],
+      [".dk__pill", 0, 21.0],
+      [".dk__dh", 0, 58.0],
+      [".dk__dbody", 0, 30.0],
+      [".dk__dback", 0, 28.0]
+    ],
+    "pages/play/components/playkit-reaction/index.wxss": [
+      [".rx__big", 0, 168.0],
+      [".rx__k", 0, 24.0],
+      [".rx__sub", 0, 30.0]
+    ],
+    "pages/play/components/playkit-scan/index.wxss": [
+      [".sc__q", 0, 34.0],
+      [".sc__bub", 0, 27.0],
+      [".sc__sec", 0, 24.0],
+      [".sc__sub", 0, 24.0],
+      [".sc__pic--empty", 0, 24.0],
+      [".sc__camoff-h", 0, 34.0],
+      [".sc__camoff-t", 0, 26.0],
+      [".sc__act", 0, 28.0],
+      [".sc__ar-giveup", 0, 24.0]
+    ],
+    "pages/play/components/playkit-shout/index.wxss": [
+      [".sh__k", 0, 24.0],
+      [".sh__s", 0, 29.0],
+      [".sh__b", 0, 32.0],
+      [".sh__n", 0, 164.0]
+    ],
+    "pages/play/components/playkit-sort/index.wxss": [
+      [".so__prompt", 0, 44.0],
+      [".so__label", 0, 30.0],
+      [".so__grip", 0, 34.0],
+      [".so__fb", 0, 28.0]
+    ],
+    "pages/play/components/playkit-stopwatch/index.wxss": [
+      [".sw__eyebrow", 0, 24.0],
+      [".sw__lbl", 0, 28.0],
+      [".sw__target", 0, 128.0],
+      [".sw__unit", 0, 44.0],
+      [".sw__tol", 0, 68.0],
+      [".sw__unit2", 0, 32.0],
+      [".sw__tip", 0, 25.0],
+      [".sw__btn", 0, 32.0],
+      [".sw__chip", 0, 28.0],
+      [".sw__giant", 0, 252.0],
+      [".sw__dash", 0, 80.0],
+      [".sw__pill", 0, 28.0],
+      [".sw__cap", 0, 26.0],
+      [".sw__hat-t", 0, 34.0],
+      [".sw__hat-s", 0, 24.0],
+      [".sw__time", 0, 30.0]
+    ],
+    "pages/play/components/playkit-walk/index.wxss": [
+      [".wk__h", 0, 52.0],
+      [".wk__k", 0, 22.0],
+      [".wk__pm", 0, 48.0],
+      [".wk__n", 0, 116.0],
+      [".wk__hint", 0, 22.0],
+      [".wk__sub", 0, 22.0],
+      [".wk__dt", 0, 22.0],
+      [".wk__dd", 0, 36.0],
+      [".wk__foot", 0, 25.0],
+      [".wk__cta", 0, 32.0]
+    ],
+    "pages/play/style/play-surface.wxss": [
+      [".g-kicker", 0, 23.0],
+      [".g-sub", 0, 29.0],
+      [".g-btn", 0, 35.0]
+    ]
+  }
+}

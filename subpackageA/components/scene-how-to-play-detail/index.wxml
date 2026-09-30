@@ -1,0 +1,29 @@
+<view class="hpd">
+  <!-- 加载 / 参数缺失 / 失败 / 内容四态互斥:原来 error 块与 wx:else 的内容块并列渲染,
+       出错时空标题 + 空 meta(自带 border-bottom)照样占位 ⇒ 用户看到「一段空内容 + 一个错误」。
+       微信官方设计指南亦要求同一页面不同时出现多于一个加载/状态。
+       加载态走 bbb(骨架屏,不写"加载中"文字);参数缺失走 aaa(missing-param,零假重试,只给真出口)。 -->
+  <cy-skeleton wx:if="{{loading}}" type="detail" />
+
+  <cy-empty class="if-fill cy-fade-in" wx:elif="{{missing}}" fill="{{true}}" size="lg" kind="missing-param" cta="返回" bind:cta="onMissingBack" />
+
+  <cy-error class="if-fill cy-fade-in" wx:elif="{{error}}" fill="{{true}}" size="lg" icon="/images/no_data.svg" title="玩法说明没加载出来" sub="{{errorMsg}}" retry="重试" bind:retry="retryLoad" />
+
+  <cy-empty class="if-fill cy-fade-in" wx:elif="{{empty}}" fill="{{true}}" size="lg" kind="empty" title="这篇玩法说明暂时没有内容" sub="可能已下架或正在更新，返回查看其他玩法。" cta="返回" bind:cta="onBack" />
+
+  <!-- 内容区域 -->
+  <view wx:else class="detail-content cy-fade-in">
+    <!-- 标题 -->
+    <view class="detail-title">{{detailData.title}}</view>
+
+    <!-- 副标题和其他信息 -->
+    <view class="detail-meta">
+      <text class="detail-time" wx:if="{{detailData.createTime}}">{{detailData.createTime}}</text>
+    </view>
+
+    <!-- HTML内容区域 -->
+    <view class="html-content">
+      <rich-text nodes="{{contentNodes}}"></rich-text>
+    </view>
+  </view>
+</view>

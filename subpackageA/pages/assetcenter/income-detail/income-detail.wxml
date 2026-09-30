@@ -1,0 +1,14 @@
+<!-- 2026-08-11 用户裁决:「这个就放到页面上,不要做弹窗了」。
+     原来是一个页面一进来就永久弹一个 cy-sheet(默认 variant=bottom,只盖 70vh),
+     于是页面标题与弹层标题同屏各出一个「收益明细」—— 走查 D28 报的重复就是这么来的。
+     现在正文直接落在页上,标题只剩 cy-page-title 这一个,不再有弹层与叉号。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<cy-nav-bar custom-back bind:back="goBack" />
+<cy-page-title title="收益明细" />
+<view class="id-page-body">
+  <cy-scene-asset-income-detail id="incomeDetail" surface="page" />
+</view>
+</view>

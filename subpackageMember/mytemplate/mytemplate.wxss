@@ -1,0 +1,342 @@
+@charset "UTF-8";
+
+@import '../../style/merchant-light-scope.wxss';
+
+.theme-merchant { min-height: 100vh; background: var(--cy-color-bg-page); }
+
+/* 根因2(总控排查):cy-empty/cy-error 的 fill 变体要靠 flex:1 吃满"标题下方到屏幕底部"
+   的真实剩余空间,前提是从 page 根节点到组件的整条父容器链都是 flex column 且有确定高度。
+   这几层容器原来都没有自己的样式(纯 wx:for 列表用的透传壳),补上不影响列表项本身的排布
+   (block 元素在 flex column 下依旧按 stretch 撑满宽度、纵向依次堆叠,视觉不变)。 */
+/* ⚠️ 上一轮漏了 page 根这一层和各层的 min-height:0,总控串行复拍实测仍未居中。
+   这次按统一配方把整条链补齐:page 根 → 中间每层 → 组件宿主。 */
+page{ display: flex; flex-direction: column; min-height: 100vh; }
+.project { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.project .wp,
+.project .tablist,
+.project .tabcont,
+.project .activity-list { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+/* cy-empty/cy-error 是 isolated 组件,:host 自带 display:block,优先级(0,1,0)比这里的
+   选择器高,四件套必须带 !important 才穿得进宿主节点。
+   ⚠️ 实测另一个坑:祖先链选择器(.project .activity-list cy-empty)在这个组件上不生效
+   (原因未明,怀疑和 isolated 组件的选择器匹配边界有关),换成裸标签选择器就生效了 ——
+   所以这里保留裸标签,并按总控统一配方并上 .fill-slot 类,两条同值不冲突。 */
+.fill-slot,
+cy-empty,
+cy-error {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+.list-inline-error {
+  margin-top: var(--cy-space-3);
+}
+
+.load-more {
+  min-height: var(--cy-btn-h);
+  margin-top: var(--cy-space-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+}
+
+.load-more--loading {
+  color: var(--cy-text-secondary);
+  font-weight: 400;
+}
+
+.project .xm-tab {
+  margin: var(--cy-space-6) 0 var(--cy-space-4);
+}
+
+.project .g-type3 {
+  font-size: var(--cy-font-title);
+  font-weight: bold;
+  margin-bottom: var(--cy-space-4);
+}
+
+.project .activity-list .li {
+  margin-bottom: var(--cy-space-5);
+  padding-bottom: var(--cy-space-2-5);
+  border-bottom: 2rpx solid var(--cy-border-line);
+}
+
+.project .activity-list .li .item {
+  padding: 0;
+  border: 0;
+}
+
+.project .activity-list .li .item .item-txt2 {
+  position: relative;
+}
+
+.project .activity-list .li .item .item-txt2 .item-tit {
+  padding: var(--cy-space-2-5) 0 var(--cy-space-1-5) 0;
+}
+
+.project .activity-list .li .item .item-txt2 .item-tit .tit {
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+}
+
+/* 88rpx = 44pt 命中区保留(DS §3.8 / WCAG 2.2 SC 2.5.8),只是不再画圆底。
+   可见性仍由 color: --cy-text-title 驱动(cy-icon 是 mask + background-color: currentColor,
+   暗端近白、亮端近黑,双主题都有对比),不依赖那层底色。
+   ⚠️ 用户要求去掉圆形背景,故原来的 --cy-bg-subtle 实心底 + pill 圆角一并删除,
+   热区尺寸不动。 */
+.project .activity-list .li .item .item-txt2 .item-tit .dot {
+  margin-left: var(--cy-space-3); width: 88rpx; height: 88rpx;
+  color: var(--cy-text-title);
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl {
+  margin: var(--cy-space-2-5) 0;
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd {
+  display: flex;
+  font-size: var(--cy-font-label);
+  align-items: center;
+  margin-bottom: var(--cy-space-5);
+  font-weight: bold;
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd:last-child {
+  margin-bottom: 0;
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd .label {
+  width: 35%;
+  color: var(--cy-text-body);
+  flex-shrink: 0;
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd .cont {
+  flex: 1;
+  overflow: hidden;
+  font-size: var(--cy-font-body);
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd.dd1 .star cy-icon {
+  margin-right: var(--cy-space-2);
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd.dd1 .score text {
+  color: var(--cy-text-body);
+  margin-left: var(--cy-legacy-10);
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd.dd2 .cont text {
+  background: var(--cy-bg-subtle);
+  font-size: var(--cy-font-label);
+  height: 40rpx;
+  display: flex;
+  color: var(--cy-text-title);
+  align-items: center;
+  justify-content: center;
+  padding: 0 16rpx;
+  border-radius: 12rpx;
+}
+
+.project .activity-list .li .item .item-txt2 .item-dl .dd.dd3 .cont text {
+  background: var(--cy-bg-subtle);
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  padding: 0 16rpx;
+}
+
+.project .activity-list .li .item .dropdown {
+  background: var(--cy-bg-card);
+  box-shadow: 0rpx 4rpx 20rpx 0rpx rgba(0, 0, 0, 0.08);
+  border-radius: var(--cy-radius-lg);
+  padding: var(--cy-space-4);
+  box-sizing: border-box;
+  position: absolute;
+  top: 60rpx;
+  right: 0;
+  z-index: 2;
+  width: 400rpx;
+  display: none;
+}
+
+.project .activity-list .li .item .dropdown .dd {
+  padding: var(--cy-space-2-5) 0;
+  font-size: var(--cy-font-body);
+  font-weight: bold;
+  color: var(--cy-text-title);
+}
+
+.project .activity-list .li .item .dropdown .dd .icon {
+  width: 42rpx;
+  margin-right: var(--cy-space-2-5);
+}
+
+.project .activity-list .li .item .dropdown .dd .icon image {
+  width: 42rpx;
+  height: 42rpx;
+}
+
+.project .activity-list .li .item .dropdown .dd.dd--danger {
+  color: var(--cy-danger);
+}
+
+.project .activity-list .li .item .dropdown.show {
+  display: block;
+}
+
+.project .fenxi .fx1 {
+  padding: 16rpx;
+}
+
+.project .fenxi .fx1 .col {
+  width: 50%;
+  font-size: var(--cy-font-label);
+  font-weight: bold;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.project .fenxi .fx1 .col .pic .icon {
+  width: var(--cy-legacy-72);
+  height: var(--cy-legacy-72);
+  background: var(--cy-gold);
+  border-radius: 50%;
+}
+
+.project .fenxi .fx1 .col .pic .icon image {
+  width: var(--cy-legacy-36);
+  height: var(--cy-legacy-36);
+}
+
+.project .fenxi .fx1 .col .tit {
+  color: var(--cy-text-body);
+  font-weight: bold;
+  margin: 32rpx 0 var(--cy-space-2-5);
+}
+
+.project .fenxi .fx1 .col .num {
+  font-size: var(--cy-type-data-xl);
+
+  font-weight: bold;
+  margin: 24rpx 0;
+}
+
+.project .fenxi .fx1 .col .per {
+  color: var(--cy-success);
+}
+
+.project .fenxi .fx1 .col .per image {
+  width: var(--cy-space-2-5);
+  height: 30rpx;
+}
+
+.project .fenxi .fx1 .col2 {
+  width: 327rpx;
+  height: 352rpx;
+  background: var(--cy-bg-subtle);
+  box-shadow: 0rpx 2rpx 4rpx 0rpx rgba(0, 0, 0, 0.08), inset 0rpx -4rpx 8rpx 0rpx rgba(0, 0, 0, 0.2), inset 0rpx 4rpx 8rpx 0rpx rgba(255, 255, 255, 0.4);
+  border-radius: var(--cy-radius-lg);
+}
+
+.project .fenxi .fx1 .col2 .pic .icon {
+  background: var(--cy-accent);
+}
+
+.project .fenxi .tx-btn {
+  padding: var(--cy-space-5) 0;
+}
+
+.project .fenxi .tx-btn button {
+  width: 100%;
+  height: var(--cy-btn-h);
+  background: var(--cy-brand);
+  border-radius: var(--cy-radius-lg);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-body);
+  font-weight: bold;
+}
+
+.project .fenxi .tx-btn button:hover {
+  opacity: 0.88;
+}
+
+.project .fenxi .fx2 {
+  margin-bottom: var(--cy-legacy-36);
+}
+
+.project .fenxi .fx2 .sel {
+  height: var(--cy-legacy-72);
+  background: var(--cy-bg-card);
+  box-shadow: 0rpx 2rpx 4rpx 0rpx rgba(0, 0, 0, 0.08), inset 0rpx -2rpx 4rpx 0rpx rgba(0, 0, 0, 0.24), inset 0rpx 2rpx 4rpx 0rpx rgba(255, 255, 255, 0.4);
+  border-radius: var(--cy-radius-sm);
+  border: 2rpx solid var(--cy-border-line);
+}
+
+.project .fenxi .fx2 .sel .picker {
+  width: 100%;
+  height: 65rpx;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
+.project .fenxi .fx2 .sel .picker .jt image {
+  width: var(--cy-legacy-22);
+  height: var(--cy-space-1-5);
+}
+
+.project .fenxi .fx2 .charts {
+  height: 650rpx;
+  margin-top: var(--cy-space-4);
+}
+
+/* R4-C04:卡高 512→420、overflow/圆角、以及本地图片 fallback 的配套样式均未获 §5.5 授权,
+   按 github/master 原形恢复(512rpx + 文本首字渐变兜底 + 主图 position:relative)。 */
+.activity-list .li .item .item-pic{
+  position: relative;
+  height: 512rpx;
+}
+.activity-list .li .item .item-pic-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-sm);
+  /* 去紫色化(AI 复查补充):原品牌紫渐变+紫字换成中性灰渐变,和"团体页去紫色"同方向 */
+  background: linear-gradient(135deg, var(--cy-bg-subtle), var(--cy-color-bg-surface-subtle));
+  color: var(--cy-text-secondary);
+  /* §5.5-5 授权保留:--cy-font-display 在 tokens.wxss 已标废弃(全局规范 G8),
+     故此处保持 --cy-type-page-title;R4 只恢复 master 的封面结构,不连带退回这枚 token。 */
+  font-size: var(--cy-type-page-title);
+  font-weight: 700;
+  z-index: 0;
+}
+
+.activity-list .li .item .item-pic-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.activity-list .li .item .item-pic .btns {
+  z-index: 2;
+}
+
+.david_moban {  width: 160rpx;  height: 52rpx;  background: var(--cy-color-overlay);  border-radius: var(--cy-radius-pill);  margin-left: var(--cy-space-2-5);color: var(--cy-color-action-primary-fg-on-dark); font-size: var(--cy-type-micro);  display: flex;  align-items: center;  justify-content: center;}
+.activity-list .li .item .item-pic .david_moban image{ width:var(--cy-legacy-18) !important; height: var(--cy-legacy-18) !important; margin-right: var(--cy-legacy-6);}

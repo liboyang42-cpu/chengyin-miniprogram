@@ -1,0 +1,49 @@
+<!-- 玩法域本地组件：复用到第二个业务页前不提升到 components/cy。 -->
+<view class="roadmap {{reducedMotion ? 'roadmap--reduced-motion' : ''}}">
+  <scroll-view class="roadmap__scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="roadmap__head">
+      <view class="roadmap__progress">
+        <view class="roadmap__progress-dot"></view>
+        <text>{{model.progressText}}</text>
+      </view>
+      <text class="roadmap__eyebrow" wx:if="{{model.eyebrow}}">{{model.eyebrow}}</text>
+      <text class="roadmap__title">{{model.title}}</text>
+      <view class="roadmap__path" style="animation-delay:{{model.pathDelayMs}}ms" aria-role="img" aria-label="路线从标题延伸到当前任务">
+        <view class="roadmap__path-tail"></view>
+      </view>
+    </view>
+
+    <view class="roadmap__steps">
+      <view
+        class="roadmap__node roadmap__node--{{item.state}}"
+        style="animation-delay:{{item.delayMs}}ms"
+        wx:for="{{model.items}}"
+        wx:key="nodeId"
+        aria-role="text"
+        aria-label="第{{item.number}}站，{{item.title}}{{item.active ? '，下一站' : (item.state === 'done' ? '，已完成' : (item.state === 'locked' ? '，前路未知' : '，尚未开始'))}}"
+      >
+        <text class="roadmap__number">{{item.number}}</text>
+        <view class="roadmap__rail">
+          <view class="roadmap__marker" style="animation-delay:{{model.highlightDelayMs}}ms"><view class="roadmap__marker-core"></view></view>
+          <view class="roadmap__segment" wx:if="{{!item.last}}">
+            <!-- 路线流光(Figma Anim/路线流光 42:294):一道光顺着走过的路往前跑 -->
+            <view class="roadmap__shimmer" style="animation-delay:{{item.delayMs || 0}}ms"></view>
+          </view>
+        </view>
+        <view class="roadmap__copy">
+          <text class="roadmap__state" wx:if="{{item.active}}">下一站</text>
+          <text class="roadmap__state" wx:elif="{{item.state === 'done'}}">已完成</text>
+          <text class="roadmap__state" wx:elif="{{item.state === 'locked'}}">前路未知</text>
+          <text class="roadmap__name">{{item.title}}</text>
+          <text class="roadmap__body" wx:if="{{item.body}}">{{item.body}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="roadmap__end-space"></view>
+  </scroll-view>
+
+  <view class="roadmap__footer" style="animation-delay:{{model.ctaDelayMs}}ms">
+    <view class="roadmap__cta" bindtap="onContinue" hover-class="roadmap__cta--pressed"
+      aria-role="button" aria-label="继续进入路线">继续</view>
+  </view>
+</view>

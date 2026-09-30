@@ -1,0 +1,55 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-shout · 喊一嗓子(原型真源:模板编辑页 v2 · playkit shout) */
+/* 与 quiethold 同一骨架、颜色语义反过来:那边红=要出事,这边绿=在成事。
+   动效只走 transition(契约 §6.1 关键帧只减不增)。 */
+.sh {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40rpx;                                                       /* ds-ok 原型 20px */
+  padding: 112rpx 56rpx 68rpx;                                      /* ds-ok 原型 56px 28px 34px */
+  text-align: center;
+  transition: background var(--cy-dur) linear;
+  background: linear-gradient(180deg, #0d1512, #050a08);            /* ds-ok */
+}
+/* 过线:整屏透出绿 —— 人在喊的时候不会盯数字,余光里的颜色才是反馈 */
+.sh--on { background: linear-gradient(180deg, #0d1f16, #050a08); }  /* ds-ok */
+
+.sh__k {
+  font-size: var(--cy-type-label);
+  font-weight: 800;
+  letter-spacing: 7rpx;                                             /* ds-ok 原型 3.6px */
+  color: #e8f0ea;                                                   /* ds-ok */
+  opacity: .68;
+}
+.sh__s {
+  font-size: var(--cy-type-body);
+  line-height: 1.75;
+  max-width: 24em;
+  color: #e8f0ea;                                                   /* ds-ok */
+  opacity: .75;
+}
+.sh__b {
+  width: 100%;
+  height: 104rpx;                                                   /* ds-ok 原型 52px */
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 52rpx;                                             /* ds-ok 原型 26px */
+  background: #e8f0ea;                                              /* ds-ok */
+  color: #0d1512;                                                   /* ds-ok */
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+}
+.sh__b--press { opacity: .88; }
+.sh__b--busy { opacity: .55; }
+.sh__n {
+  font-size: var(--cy-play-display-3xl);
+  line-height: 1;
+  letter-spacing: -5rpx;                                            /* ds-ok 原型 -2.46px */
+  color: #f0ece5;                                                   /* ds-ok 未过线:中性白,不骗人说快了 */
+  transition: color var(--cy-dur-fast) linear;
+}
+.sh--on .sh__n { color: #3ecf8e; }                                  /* ds-ok 过线绿 */

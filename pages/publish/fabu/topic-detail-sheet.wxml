@@ -1,0 +1,250 @@
+<!-- 主题详情弹窗:装「除章节、玩法、票务之外」的全部主题内容。
+     2026-08-10 按设计源码(编辑主题弹窗.dc.html)重做:标题区 = 主题名大标题,
+     正文 = 一张张白卡,卡内「圆图标 + 标题/副文 + 右侧灰药丸」,
+     多行之间隔 1px 线。和节点编辑弹窗(4029:14152)是同一套卡片语言,所以直接复用
+     .node-card / .node-pill,不再造第二套。
+     ⚠️ 不传 title:cy-sheet 的 .sh__head 是「左标题 + 右 ×」且被无障碍契约逐字锁死;
+     不传 title 时那段整段不渲染,头完全在这里画。 -->
+<cy-sheet show="{{topicDetailShow}}" style="--cy-comp-sheet-max-h: calc(100vh - {{chrome.sheetTop}}px)" bind:close="closeTopicDetail">
+  <view class="pd-topic-detail node-sheet">
+    <!-- 2026-09-24 CU-C-156:✕ 收到右上角(全仓统一),「完成」紧贴其左 ——
+         原来 ✕ 在左上,和相邻弹层的右上 ✕ 反向,找关闭要换方向。
+         标题只留主题名一处:「编辑主题」那颗小字和下面放大的主题名是两个标题,
+         而主题名不在这一层改(命名由前一步的命名页负责),所以撤的是小字那行。 -->
+    <view class="node-sheet__top">
+      <view class="node-sheet__done" bindtap="closeTopicDetail" aria-role="button" aria-label="完成主题详情编辑" hover-class="cy-pressed" hover-stay-time="80">完成</view>
+      <view class="node-sheet__close" bindtap="closeTopicDetail" aria-role="button" aria-label="关闭编辑主题" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="node-sheet__close-circle"><cy-icon name="close-sm" size="44" /></view>
+      </view>
+    </view>
+    <view class="node-sheet__titlebar">
+      <text class="node-sheet__name node-sheet__name--static">{{formData.name || '未命名主题'}}</text>
+    </view>
+
+    <!-- 主题描述。设计里右侧是一颗「编辑 ›」药丸(HTML 稿用 prompt 弹输入框),
+         小程序里没有 prompt 这个东西,而且 30 字的字段就地写比再开一层弹窗少一步,
+         所以译成卡内直接输入 —— 视觉语言照搬,交互取更短的那条。 -->
+    <view class="node-card" id="fieldSubtitle">
+      <view class="node-card__row">
+        <view class="node-card__ico"><cy-icon name="edit" size="32" /></view>
+        <view class="node-card__main">
+          <text class="node-card__title">主题描述</text>
+          <input class="pd-card-input" placeholder="不超过 30 字" placeholder-class="slopes-story-placeholder" value="{{formData.subtitle}}" bindinput="onSubtitleChange" maxlength="30" />
+        </view>
+      </view>
+    </view>
+
+    <view class="node-card" id="fieldCategory" bindtap="navigateToCategorySelect" aria-role="button" aria-label="选择主题类别" hover-class="cy-pressed" hover-stay-time="80">
+      <view class="node-card__row">
+        <view class="node-card__ico"><cy-icon name="filter" size="32" /></view>
+        <view class="node-card__main">
+          <text class="node-card__title"><text class="g-req">*</text>主题类别</text>
+          <text class="node-card__value">决定主题在广场的分区</text>
+        </view>
+        <view class="node-pill"><text>{{selectedCategoryNamesStr || '选择类别'}}</text><cy-icon name="chevron-right" size="24" /></view>
+      </view>
+    </view>
+
+    <!-- 视觉素材:两条封面同卡、中间一条线(设计源码里就是一张卡两行) -->
+    <view class="node-card" id="fieldVisual">
+      <view class="node-card__row">
+        <view class="node-card__main">
+          <text class="node-card__title"><text class="g-req">*</text>竖版封面</text>
+          <text class="node-card__value">3:4 竖图 · 1 张 · 首屏大图展示</text>
+        </view>
+        <view class="node-pill node-pill--solid" catchtap="uploadBanner" aria-role="button" aria-label="{{formData.imgUrl ? '更换竖版封面' : '上传竖版封面'}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text wx:if="{{formData.imgUrl}}">已上传</text>
+          <block wx:else><cy-icon name="plus" size="24" /><text>上传 3:4</text></block>
+          <image wx:if="{{formData.imgUrl}}" class="pd-pill-thumb pd-pill-thumb--portrait" src="{{formData.imgUrl}}" mode="aspectFill" />
+        </view>
+      </view>
+
+      <view class="node-card__hr"></view>
+
+      <view class="node-card__row">
+        <view class="node-card__main">
+          <text class="node-card__title">横版封面</text>
+          <text class="node-card__value">16:9 横图 · 最多 {{ imgArrMax || 0 }} 张</text>
+        </view>
+        <view class="node-pill" catchtap="uploadImgArr" wx:if="{{imgArrList.length < imgArrMax}}" aria-role="button" aria-label="{{imgArrList.length ? '继续上传横版封面' : '上传横版封面'}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text wx:if="{{imgArrList.length}}">已上传</text>
+          <block wx:else><cy-icon name="plus" size="24" /><text>上传 16:9</text></block>
+        </view>
+      </view>
+      <view class="pd-gallery" wx:if="{{imgArrList.length}}">
+        <view wx:for="{{imgArrList}}" wx:key="*this" class="pd-gitem">
+          <image src="{{item}}" mode="aspectFill" class="pd-gimg" />
+          <view class="pd-gdel" catchtap="removeImgArr" data-i="{{index}}" aria-role="button" aria-label="删除横版封面 {{index + 1}}" hover-class="cy-pressed" hover-stay-time="80"><view class="pd-gdel__surface"><cy-icon name="close-sm" size="24" /></view></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="node-card" id="fieldDescription">
+      <view class="node-card__row">
+        <view class="node-card__ico"><cy-icon name="flag" size="32" /></view>
+        <view class="node-card__main">
+          <text class="node-card__title"><text class="g-req">*</text>剧情详情</text>
+          <text class="node-card__value">为这个主题写详细的故事、规则或叙述</text>
+        </view>
+      </view>
+      <textarea class="pd-card-textarea" placeholder="写下这个主题的故事…" placeholder-class="slopes-story-placeholder" value="{{formData.description}}" bindinput="onIntroductionChange" maxlength="1000" show-confirm-bar="{{false}}" fixed="{{true}}" />
+    </view>
+
+    <!-- 通关勋章:图 + 名。图这条链路后端与玩家端本来就通,只是一直没有创作端入口。 -->
+    <view class="node-card">
+      <block wx:if="{{medalEditable}}">
+      <view class="node-card__row">
+        <view class="node-card__ico node-card__ico--media" bindtap="uploadFinishMedal" aria-role="button" aria-label="上传完成勋章图" hover-class="cy-pressed" hover-stay-time="80">
+          <image wx:if="{{formData.finishMedalImg}}" class="pd-medal-img" src="{{formData.finishMedalImg}}" mode="aspectFill" />
+          <cy-icon wx:else name="star" size="32" />
+        </view>
+        <view class="node-card__main">
+          <text class="node-card__title">通关勋章</text>
+          <input class="pd-card-input" placeholder="默认：主题名 · 通关" placeholder-class="slopes-story-placeholder" value="{{formData.finishMedalName}}" bindinput="onFinishMedalNameInput" />
+        </view>
+        <view class="node-pill" wx:if="{{formData.finishMedalImg}}" catchtap="clearFinishMedal" hover-class="cy-pressed" hover-stay-time="80">清除</view>
+      </view>
+      <view class="node-card__foot">
+        <text class="node-card__addr">1:1 方图 · 不传图则只显示名称</text>
+      </view>
+    </block>
+      <!-- 稿 E2:无资格时**只读不清空** —— 存量勋章可能是有资格时设的,清掉等于替用户删图 -->
+      <block wx:else>
+        <view class="node-card__row">
+          <view class="node-card__ico node-card__ico--media">
+            <image wx:if="{{formData.finishMedalImg}}" class="pd-medal-img" src="{{formData.finishMedalImg}}" mode="aspectFill" />
+            <cy-icon wx:else name="star" size="32" />
+          </view>
+          <view class="node-card__main">
+            <text class="node-card__title">通关勋章</text>
+            <text class="node-card__value">{{formData.finishMedalName || '默认：主题名 · 通关'}}（只读）</text>
+          </view>
+          <view class="node-pill node-pill--locked">未解锁</view>
+        </view>
+        <view class="node-card__hr"></view>
+        <view class="node-card__foot">
+          <text class="node-card__addr">勋章设计是俱乐部主理人的权益，当前身份暂未解锁</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 完成奖励(2026-09-08 用户裁决:改成开关,打开才选)。关着 = 只发通关勋章。
+         ⚠️ 开关不落库、也不是新字段:它就是「有没有选券」本身 —— 关掉即把 couponId 清 0。
+         多存一个 rewardOn 会立刻产生「开着但没选」这种存不住也说不清的中间态。 -->
+    <view class="node-card" id="fieldCompleteReward">
+      <view class="node-card__row">
+        <view class="node-card__ico"><cy-icon name="gift" size="32" /></view>
+        <view class="node-card__main">
+          <text class="node-card__title">完成奖励</text>
+          <text class="node-card__value">{{formData.completeRewardCouponId ? completionRewardCouponName : '关着：只发通关勋章'}}</text>
+          <text class="node-card__addr" wx:if="{{completeRewardOn && !formData.completeRewardCouponId}}">可选优惠券或体验卡</text>
+        </view>
+        <cy-switch checked="{{!!formData.completeRewardCouponId}}" bindchange="onCompleteRewardToggle" />
+      </view>
+      <block wx:if="{{completeRewardOn}}">
+        <view class="node-card__hr"></view>
+        <cy-reward-selector
+          value="{{formData.completeRewardCouponId}}"
+          selected-name="{{completionRewardCouponName}}"
+          occasion="topic"
+          label="选择奖励"
+          placeholder="选一张优惠券或体验卡"
+          scope="{{operationScope}}"
+          bind:change="onCompletionRewardChange" />
+      </block>
+    </view>
+
+    <!-- 主题级 N/M：自由探索继续认商家权益核销，不能被节点数量覆盖。 -->
+    <view class="node-card" id="fieldCompletionRule">
+      <view class="node-card__row">
+        <view class="node-card__ico"><cy-icon name="flag" size="32" /></view>
+        <view class="node-card__main">
+          <text class="node-card__title">通关条件</text>
+          <text class="node-card__value" wx:if="{{formData.productType === 2}}">自由探索按所购商家权益全部核销后通关</text>
+          <text class="node-card__value" wx:else>{{completionRuleMode === 'AT_LEAST' ? '完成指定数量站点即可通关' : '完成全部站点后通关'}}</text>
+        </view>
+        <cy-switch wx:if="{{formData.productType === 1}}" checked="{{completionRuleMode === 'AT_LEAST'}}" bindchange="onCompletionRuleToggle" />
+      </view>
+      <block wx:if="{{formData.productType === 1 && completionRuleMode === 'AT_LEAST'}}">
+        <view class="node-card__hr"></view>
+        <view class="pd-completion-rule">
+          <text>完成</text>
+          <input class="pd-completion-rule__input {{completionRuleError || errors.completionRule ? 'is-error' : ''}}" type="number" value="{{completionRequiredCount}}" bindinput="onCompletionRequiredCountInput" />
+          <text>/ {{totalNodes || 0}} 个站点即通关</text>
+        </view>
+        <cy-inline-error class="pd-completion-rule__error" wx:if="{{completionRuleError || errors.completionRule}}" title="{{completionRuleError || errors.completionRule}}" />
+      </block>
+    </view>
+
+    <!-- 宾果九宫格。九格的**点亮条件是内置的、跨节点的**(完成 N 个点 / 连续两天来 / 周末来一次…),
+         商家零输入 —— 所以这里不绑站点:绑了这份配置就只能在那一个主题用。
+         商家改的只有「这一格叫什么」和「填上给什么」,于是同一份配置换个主题也能直接用。
+         勋章不在这里 —— 它随节点列表提前下发去播动画,那时一格都还没填上,发不出去。 -->
+    <view class="node-card" id="fieldBingo">
+      <view class="node-card__row">
+        <view class="node-card__ico"><cy-icon name="filter-lines" size="32" /></view>
+        <view class="node-card__main">
+          <text class="node-card__title">宾果九宫格</text>
+          <text class="node-card__value">{{bingoEnabled ? '按 S 形依次填九格的名称和奖励' : '不开就用默认九格,只是没有每格奖励'}}</text>
+        </view>
+        <cy-switch checked="{{bingoEnabled}}" bindchange="onBingoToggle" />
+      </view>
+      <block wx:if="{{bingoEnabled}}">
+        <view class="node-card__hr"></view>
+        <view class="pd-bingo-row" wx:for="{{bingoRows}}" wx:key="pos" wx:for-index="bi">
+          <view class="pd-bingo-row__head">
+            <text class="pd-bingo-row__no">第 {{item.seq}} 格</text>
+            <text class="pd-bingo-row__cond">{{item.hint}}</text>
+          </view>
+          <input class="pd-bingo-row__input" value="{{item.label}}" placeholder="这一格叫什么（不填就用左边那句）" data-index="{{bi}}" bindinput="onBingoLabelInput" />
+          <input class="pd-bingo-row__input" value="{{item.feedbackText}}" placeholder="填上后给玩家看的一句话" data-index="{{bi}}" bindinput="onBingoFeedbackInput" />
+          <cy-reward-selector
+            value="{{item.couponId}}"
+            selected-name="{{item.couponName}}"
+            occasion="topic"
+            label=""
+            placeholder="这一格不发券"
+            scope="{{operationScope}}"
+            data-index="{{bi}}"
+            bind:change="onBingoCouponChange" />
+        </view>
+        <cy-inline-error class="pd-completion-rule__error" wx:if="{{bingoError}}" title="{{bingoError}}" />
+        <view class="pd-bingo-hint">左边那句是这一格的点亮条件,平台内置、不用你填。你填的是它显示成什么名字、填上之后发什么。每格的券只发一次。</view>
+      </block>
+    </view>
+
+
+    <!-- 举办方式。设计源码里这张卡是「需要商家参与 / 发布到创意广场」两个开关,
+         但商家承接在本仓是【章节级】字段、且发布后才配得准(招商要等商家看得到主题),
+         主题层没有这个开关 —— 不凭空造一个点了不生效的假开关,只留真有的那两项。 -->
+    <view class="node-card">
+      <view class="node-card__row">
+        <view class="node-card__ico"><cy-icon name="tab-feed" size="32" /></view>
+        <view class="node-card__main">
+          <text class="node-card__title">发布到创意广场</text>
+          <text class="node-card__value">{{publishToCreative ? '发布后在广场公开展示' : '仅通过主题入口访问'}}</text>
+        </view>
+        <cy-switch checked="{{publishToCreative}}" bindchange="onPublishToCreativeChange" />
+      </view>
+      <block wx:if="{{myClubs.length > 0}}">
+        <view class="node-card__hr"></view>
+        <cy-dropdown range="{{myClubs}}" range-key="name" value="{{clubIndex}}" bind:change="onClubChange">
+          <view class="node-card__row">
+            <view class="node-card__ico"><cy-icon name="tab-club" size="32" /></view>
+            <view class="node-card__main">
+              <text class="node-card__title">归属俱乐部</text>
+              <text class="node-card__value">{{clubIndex >= 0 ? myClubs[clubIndex].name : '未选择'}}</text>
+            </view>
+            <view class="node-pill"><text>选择</text><cy-icon name="chevron-right" size="24" /></view>
+          </view>
+        </cy-dropdown>
+      </block>
+    </view>
+
+
+    <!-- 「清空本地草稿」原先挂在创作页那条常驻提示条上,提示条 2026-08-11 下线后
+         入口挪到这里 —— 它是"把这份草稿丢掉重来"的破坏性动作,本来也不该常驻在
+         首屏第一眼的位置。 -->
+    <view class="node-card node-card--danger" bindtap="clearLocalDraft" aria-role="button" aria-label="清空本地草稿" hover-class="cy-pressed" hover-stay-time="80">清空本地草稿</view>
+  </view>
+</cy-sheet>

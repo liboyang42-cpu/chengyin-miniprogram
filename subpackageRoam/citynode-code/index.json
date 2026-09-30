@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "据点核销码",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "cy-qr-voucher": "/components/cy/qr-voucher/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom"
+}

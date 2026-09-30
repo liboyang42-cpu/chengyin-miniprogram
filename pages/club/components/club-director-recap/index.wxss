@@ -1,0 +1,52 @@
+:host { display: block; }
+.cdrecap__title {
+  display: block;
+  margin-bottom: 20rpx;
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-page-title);
+  font-weight: 700;
+}
+.cdrecap__section { margin-bottom: 20rpx; }
+.cdrecap__section-title {
+  display: block;
+  margin-bottom: 16rpx;
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+}
+.cdrecap__section-sub {
+  display: block;
+  margin-bottom: 20rpx;
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption);
+}
+.cdrecap__metrics {
+  display: flex;
+  gap: 22rpx;
+}
+.cdrecap__metric {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: 32rpx 20rpx 32rpx 28rpx;
+  border-radius: var(--cy-comp-sheet-card-radius);
+  background: var(--cy-color-bg-surface-strong);
+  box-sizing: border-box;
+}
+.cdrecap__metric-value {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-sheet-title);
+  font-weight: 700;
+}
+.cdrecap__metric-label {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+.cdrecap__caption {
+  display: block;
+  margin-top: 4rpx;
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption);
+}

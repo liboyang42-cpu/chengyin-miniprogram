@@ -1,0 +1,31 @@
+<cy-sheet show="{{show}}" handle="{{true}}" bind:close="onClose">
+  <view class="st">
+    <view class="pk-eyebrow">{{eyebrow}}</view>
+    <!-- 图标步骤行(ADA 借鉴卡 E):替代原来那行整句说明;整句降级为本行 aria-label -->
+    <view class="pk-steps" wx:if="{{stepIcons.length}}" aria-role="text" aria-label="{{stepsA11y}}">
+      <block wx:for="{{stepIcons}}" wx:key="index">
+        <view wx:if="{{index > 0}}" class="pk-steps__link" aria-hidden="true"></view>
+        <view class="pk-steps__item">
+          <view class="pk-steps__badge">
+            <cy-icon name="{{item.icon}}" size="34" />
+            <view class="pk-steps__no">{{item.index}}</view>
+          </view>
+          <text class="pk-steps__label">{{item.label}}</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="st__ring">
+      <cy-ring-meter percent="{{percent}}" size="360" segments="60" tone="playkit">
+        <text class="pk-figure st__num">{{stepsLabel}}</text>
+        <text class="st__goal">/ {{goalLabel}} 步</text>
+      </cy-ring-meter>
+    </view>
+
+    <view class="st__eco">{{co2Label}}</view>
+    <view class="st__todo">{{remainLabel}}</view>
+  </view>
+  <view slot="footer" class="st__cta">
+    <cy-btn variant="primary" loading="{{refreshing}}" bindtap="onRefresh">刷新步数</cy-btn>
+  </view>
+</cy-sheet>

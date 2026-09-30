@@ -1,0 +1,77 @@
+/* ============================================================
+   资金域重排(2026-08-11 用户草图):一组一卡 + 内部 1px 分隔线;
+   状态一律 chip 不混进副文;右列只放金额;行高 76→58。
+   颜色一律走 --cy-color-status-* token,禁裸 hex(ds-hardcode-gate 会拦)。
+   ★ 大标题(cy-page-title)按用户裁决保留,不迁进导航栏。
+   ============================================================ */
+
+/* 汇总条:服务端算好的三个数,首屏立刻有信息量 */
+.fin-summary { display: flex; gap: var(--cy-space-3); padding: var(--cy-space-4);
+  margin-bottom: 40rpx; background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); }
+.fin-summary__cell { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.fin-summary__k { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.fin-summary__v { margin-top: var(--cy-space-1); font-size: var(--cy-font-subtitle); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--cy-text-title); }
+.fin-summary__v--pending { color: var(--cy-color-status-warning); }
+.fin-summary__v--arrived { color: var(--cy-color-status-success); }
+
+/* 分组标题(L2)+ 一组一卡 */
+.fin-group { margin-bottom: 40rpx; }  /* 分组间 20px */
+.fin-group__title { margin: 0 var(--cy-space-1) var(--cy-space-2); font-size: var(--cy-font-label);
+  font-weight: 400; color: var(--cy-text-secondary); }
+.fin-card { background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); padding: var(--cy-space-4); }
+
+/* 行:左状态点 + 主副文 + 右金额。分隔线只在行间,不在卡缘。 */
+.fin-row { display: flex; align-items: center; gap: var(--cy-space-2-5); }
+.fin-row + .fin-row { margin-top: 40rpx; }  /* 行距 20px;零 divider —— 密度靠间距不靠线 */
+.fin-row--tap { opacity: .72; }
+.fin-row__dot { width: 14rpx; height: 14rpx; border-radius: 50%; flex: 0 0 14rpx; background: var(--cy-text-placeholder); }
+.fin-row__dot--warning { background: var(--cy-color-status-warning); }
+.fin-row__dot--success { background: var(--cy-color-status-success); }
+.fin-row__dot--danger { background: var(--cy-color-status-danger); }
+.fin-row__dot--neutral { background: var(--cy-text-placeholder); }
+.fin-row__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.fin-row__t1 { font-size: var(--cy-font-subtitle); font-weight: 600; color: var(--cy-text-title);
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.fin-row__t2 { margin-top: var(--cy-space-1); display: flex; align-items: center; flex-wrap: wrap; gap: var(--cy-space-1);
+  font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.fin-row__chip { margin-left: var(--cy-space-1); }
+/* 金额:等宽数字,右缘对齐;+绿 −红,不结现金走中性破折号 */
+.fin-row__v { flex-shrink: 0; font-size: var(--cy-font-subtitle); font-weight: 600; font-variant-numeric: tabular-nums;
+  color: var(--cy-text-title); }
+.fin-row__v--pos { color: var(--cy-color-status-success); }
+.fin-row__v--neg { color: var(--cy-color-status-danger); }
+.fin-row__v--mute { color: var(--cy-text-placeholder); font-weight: 500; }
+
+/* hero:每页唯一主数字 */
+.fin-hero { background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); padding: var(--cy-space-4);
+  margin-bottom: 40rpx; display: flex; flex-direction: column; }
+.fin-hero__lab { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.fin-hero__amt { margin: var(--cy-space-1) 0 var(--cy-space-1-5); font-size: 80rpx; line-height: 1.1; font-weight: 700;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--cy-text-title); }
+.fin-hero__chips { margin-bottom: var(--cy-space-1); display: flex; gap: var(--cy-space-1); flex-wrap: wrap; }
+.fin-hero__cta { margin-top: var(--cy-space-2); }
+
+/* key-value:hero 卡内的次级事实,与主数字量级拉开 */
+.fin-kv { display: flex; justify-content: space-between; align-items: baseline; gap: var(--cy-space-2);
+  margin-top: var(--cy-space-3); font-size: var(--cy-font-label); }  /* 零 divider */
+.fin-kv__k { color: var(--cy-text-secondary); }
+.fin-kv__v { font-variant-numeric: tabular-nums; color: var(--cy-text-title); }
+.fin-kv__v--neg { color: var(--cy-color-status-danger); }
+/* 合计:不画分割线,靠「多留 20px + 字号加大加粗 + label 转黑」和上面两行拉开 */
+.fin-kv--total { margin-top: 40rpx; font-size: var(--cy-font-subtitle); font-weight: 700; }
+.fin-kv--total .fin-kv__k { color: var(--cy-text-title); font-weight: 700; }
+
+/* 竖向 timeline:节点=进度,节点下小字=事件(两者本是同一件事的两个视图) */
+.fin-tl { position: relative; padding-left: var(--cy-space-4); }
+/* ★不画连线:点本身的明暗序列已表达顺序,灰线是这页最容易冒出来的那根多余的线 */
+.fin-tl__step { position: relative; }
+.fin-tl__step + .fin-tl__step { margin-top: 40rpx; }
+.fin-tl__step::before { content: ''; position: absolute; left: calc(-1 * var(--cy-space-4) + 4rpx); top: 8rpx;
+  width: 16rpx; height: 16rpx; border-radius: 50%; background: var(--cy-bg-card);
+  border: 3rpx solid var(--cy-color-border-subtle); box-sizing: border-box; }
+.fin-tl__step--done::before { background: var(--cy-text-title); border-color: var(--cy-text-title); }
+.fin-tl__step--now::before { background: var(--cy-bg-card); border-color: var(--cy-color-status-success); }
+.fin-tl__a { font-size: var(--cy-font-subtitle); font-weight: 600; color: var(--cy-text-title); }
+.fin-tl__step--todo .fin-tl__a { color: var(--cy-text-placeholder); font-weight: 500; }
+.fin-tl__b { margin-top: var(--cy-space-1); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.fin-card--pad { padding: var(--cy-space-4); }

@@ -1,0 +1,13 @@
+page { min-height: 100vh; display: flex; flex-direction: column; }
+/* 同 income-detail：主题类挂在根 view 上，page{} 在主题作用域外，onShow 切商家浅色后
+   半屏一撤就会露出浅底。背景必须涂在 .theme-dark 上。
+   商家侧深链进来根节点换挂 .theme-merchant,同一条布局规则,底色由该作用域的 token 给。 */
+.theme-dark,
+.theme-merchant { flex: 1; min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.txjl-page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.txjl-page-body { flex: 1; min-height: 0; display: flex; flex-direction: column;
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-4) + env(safe-area-inset-bottom)); }
+/* 商家「灰底白卡」:记录卡默认 fallback 是 surface-subtle,压在商家灰底上几乎看不出卡边,
+   这里只在商家作用域把场景卡底 token 指回白卡面。 */
+.theme-merchant .txjl-page-body { --cy-scene-card-bg: var(--cy-color-bg-surface); }

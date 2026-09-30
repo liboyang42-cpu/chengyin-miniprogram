@@ -1,0 +1,49 @@
+/* 集邮册刻意走浅色纸感(根节点挂 .theme-light 逃生口):
+   集邮册要像一张真的贴纸册,邮票是【贴在纸上】而不是浮在暗底上 —— 这是 STAMPA 那面墙好看的根由。
+
+   ⚠️ 本页随主题变的颜色一律用真值层 --cy-color-*,禁用 --cy-bg-page / --cy-text-title 这类旧名别名:
+   别名在 tokens.wxss 的 page{} 里声明(--cy-bg-page: var(--cy-color-bg-page)),在 page 上就已就地
+   解析成暗值,并以计算值继承下来。子节点挂 .theme-light 只覆盖 --cy-color-*,追不回已解析的别名
+   —— 用别名这页会照样是黑的(实测:ach_album.png 全黑)。
+   注:--cy-space-* / --cy-font-* / --cy-radius-* 不随主题变,别名无害,保留。 */
+.al-root { min-height: 100vh; display: flex; flex-direction: column; background: var(--cy-color-bg-page); padding: 0 var(--cy-space-4) var(--cy-space-4); box-sizing: border-box;
+  /* 上面那段注释的坑还有下半场:别名不只影响自绘元素,也顺着继承进了组件。
+     --cy-btn-solid-bg/fg 在 page 根规则里就地解析成【暗色主题】的值(星白底 + 深墨字),
+     子节点挂 .theme-light 只覆盖 --cy-color-*,追不回已解析的别名 ⇒ cy-error 的
+     「重新载入」在浅纸底上变成淡底深字,视觉近似禁用(2026-07-30 真机复采坐实)。
+     组件内选择器被样式隔离挡死、且 components/cy 是禁区 ⇒ 在此重新声明别名,
+     让它对着 .theme-light 的真值层重新解析:实心深墨底 + 白字 = 明确可点。
+     ⚠️ CSS 变量能穿透样式隔离,这是页面侧唯一不 hack 的修法。 */
+  --cy-btn-solid-bg: var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg: var(--cy-color-action-primary-fg);
+}
+.al-hd { display: flex; align-items: baseline; gap: 8rpx; padding: 16rpx 8rpx 32rpx; }
+.al-n { font-size: var(--cy-type-data-xl); font-weight: 300; color: var(--cy-color-text-primary); }
+.al-u { font-size: var(--cy-font-label); color: var(--cy-color-text-tertiary); }
+.al-stage { position: relative; }
+/* 纸感:邮票贴在纸上要有轻微落影(暗底才不用投影,浅底必须有,否则邮票和纸糊成一片) */
+.al-item { position: absolute; background: var(--cy-color-bg-surface);
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,.12); /* ds-ok: 浅底纸感落影,tokens 的阴影档是暗底(注明不用投影),无对应日值 token */ }
+.al-img { width: 100%; height: 100%; display: block; } /* ds-ok: 空态整屏居中前的顶部留白，把空态往屏幕中段压 */
+/* R1:去紫色化——空态 CTA 与悬浮「+」原用 --cy-color-brand(亮紫),
+   全站按钮统一黑白基调,不借品牌紫做强调,改用与 .al-root 顶部同一套主操作色 token */
+.al-more { text-align: center; padding: 32rpx; color: var(--cy-color-text-tertiary); font-size: var(--cy-font-label); }
+.al-fab { position: fixed; right: 40rpx; bottom: var(--cy-space-7); width: 104rpx; height: 104rpx;
+  border-radius: 50%; background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg);
+  font-size: 48rpx; /* ds-ok: FAB "+"字形尺寸,非文本层级,无对应 token */
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,.25); /* ds-ok: 浮钮落影装饰,无对应 token */ }
+
+/* aaa 标准:整屏失败态在"标题下方到屏幕底部"的剩余空间里居中(2026-07-31 组件层已支持,
+   cy-error 的 fill 属性内部走 flex:1)。.al-root 已是 flex column,这里让 cy-error 的
+   host 本身也吃 flex:1,配合组件内部的 fill 才能真正撑满剩余空间(而不是只给个 min-height)。
+   ⚠️ 四件套要写全:原来只有 flex:1 + display:flex,缺 flex-direction/justify-content 时
+   host 是「行方向」容器,垂直居中完全依赖组件内部实现;补齐后居中由本层自己兜底,
+   与 income-detail 的 .id-state-fill、earnings 的 .er-fill 同一写法。
+   只调布局,不动本页浅色纸感配色。 */
+.al-state-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: center;
+}

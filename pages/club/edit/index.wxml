@@ -1,0 +1,14 @@
+<!-- 深链兼容壳(§4.1):站内从俱乐部管理点开的是弹窗;这一页只服务外部直达。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="club" need="club:read" club-id="{{clubId}}" />
+<view class="cle-shell">
+  <cy-nav-bar custom-back bind:back="requestBack" />
+  <view style="height: {{statusBarHeight + navBarHeight}}px; flex-shrink: 0;"></view>
+  <cy-page-title title="编辑资料" safe-top="{{false}}" />
+  <cy-scene-club-edit wx:if="{{routeReady}}" id="clubEdit" club-id="{{clubId}}" bind:back="requestBack" bind:saved="onSaved" bind:dissolved="onDissolved" bind:transferowner="goGovernance" bind:dirtychange="onDirtyChange" />
+  <cy-modal show="{{confirm.show}}" title="放弃未保存修改？" content="返回后，本次修改不会保留。" confirm-text="放弃修改" cancel-text="继续编辑" danger bind:confirm="confirmBack" bind:cancel="cancelBack" />
+</view>
+</view>

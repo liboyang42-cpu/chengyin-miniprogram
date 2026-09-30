@@ -1,0 +1,22 @@
+<view class="ps ps--quick {{merchant ? 'theme-merchant ps--merchant' : 'theme-dark'}} {{quickOpen ? 'ps--quick-open' : ''}} {{reducedMotion ? 'ps--reduced' : ''}} {{_closing ? 'ps--closing' : ''}}" wx:if="{{_render}}">
+  <!-- top 由 JS 按微信胶囊实测下发:整层玻璃菜单原来铺到状态栏,把原页的导航标题
+       和消息入口一起压暗了(CU-M-157)。面板从微信导航下方开始,不再盖住导航行。 -->
+  <view class="ps__mask" style="top:{{chrome.contentTop}}px" catchtouchmove="noop" bindtap="onMask" aria-role="button" aria-label="关闭发布菜单" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <!-- 右上角 ✕ = 退出整个菜单(走查点名「只有底部返回、无右上角 X」)。
+       二级那行「返回」是「上一步」不是退出,和 ✕ 各管一件事;首屏那行「返回」和 ✕
+       确实是同一件事,但整组四行是用户视频确认过的构图,删行属于视觉改版,留待裁决。 -->
+  <view class="ps__close" style="top:{{chrome.contentTop}}px" bindtap="onClose" aria-role="button" aria-label="关闭发布菜单" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close-sm" size="44" /></view>
+  <view class="ps__quick" catchtap="noop" catchtouchmove="noop">
+    <block wx:if="{{level === 'cards'}}">
+    <view class="ps__quick-action ps__quick-action--explore" bindtap="chooseTopicMode" data-mode="2" aria-role="button" aria-label="发布自由探索" hover-class="cy-pressed" hover-stay-time="80"><text>自由探索</text><image class="ps__quick-icon" src="/images/publish-quick/explore.png" mode="aspectFit" /></view>
+    <view class="ps__quick-action ps__quick-action--city" bindtap="chooseTopicMode" data-mode="1" aria-role="button" aria-label="发布城市定向" hover-class="cy-pressed" hover-stay-time="80"><text>城市定向</text><image class="ps__quick-icon" src="/images/publish-quick/city.png" mode="aspectFit" /></view>
+    <view class="ps__quick-action ps__quick-action--interaction" bindtap="goTemplate" aria-role="button" aria-label="发布互动" hover-class="cy-pressed" hover-stay-time="80"><text>互动</text><image class="ps__quick-icon" src="/images/publish-quick/interaction.png" mode="aspectFit" /></view>
+    <view class="ps__quick-action ps__quick-action--return" bindtap="onClose" aria-role="button" aria-label="返回" hover-class="cy-pressed" hover-stay-time="80"><text>返回</text><view class="ps__quick-return"><image class="ps__quick-icon" src="/images/publish-quick/return.png" mode="aspectFit" /></view></view>
+    </block>
+    <block wx:else>
+      <view class="ps__quick-action ps__quick-action--city" bindtap="chooseSimple" aria-role="button" aria-label="快速配置" hover-class="cy-pressed" hover-stay-time="80"><text>快速配置</text><image class="ps__quick-icon" src="/images/publish-quick/explore.png" mode="aspectFit" /></view>
+      <view class="ps__quick-action ps__quick-action--interaction" bindtap="choosePro" aria-role="button" aria-label="专业手动" hover-class="cy-pressed" hover-stay-time="80"><text>专业手动</text><image class="ps__quick-icon" src="/images/publish-quick/city.png" mode="aspectFit" /></view>
+      <view class="ps__quick-action ps__quick-action--return" bindtap="backToCards" aria-role="button" aria-label="返回发布类型" hover-class="cy-pressed" hover-stay-time="80"><text>返回</text><view class="ps__quick-return"><image class="ps__quick-icon" src="/images/publish-quick/return.png" mode="aspectFit" /></view></view>
+    </block>
+  </view>
+</view>

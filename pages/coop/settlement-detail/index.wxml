@@ -1,0 +1,37 @@
+<view class="detail-page theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- E-01/E-02(2026-09-16):source=finance(俱乐部主办视角)只读 /api/coop/finance,
+       登录人本人即可,不带商家守卫;source=ledger(商家台账)走 /api/coop/mybiz,
+       那个接口 merchantAccessService.require 是硬闸 —— 所以 ledger 分支保留。
+       CU-C-41:source=club(俱乐部分润)读 /api/club/settlement/summary,后端自带
+       club:finance:read 闸,同样不需要商家身份。
+       门禁口径 = 后端真实准入,不宽也不严。 -->
+  <cy-access-gate wx:if="{{source === 'ledger'}}" id="cy-access-gate" kind="merchant" need="" />
+  <cy-nav-bar custom-back bind:back="onNavBack" />
+  <view class="detail-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="结算详情" safe-top="{{false}}" flush="{{true}}" />
+
+  <block wx:if="{{detail}}">
+    <cy-progress-status class="refresh-state" wx:if="{{loadState === 'refreshing'}}"
+      title="正在更新结算详情" sub="现有详情仍可查看" />
+    <cy-inline-error class="refresh-state" wx:elif="{{loadState === 'stale-error'}}"
+      kind="{{errorKind}}" title="结算详情没有更新" sub="{{errorText}}"
+      action="重试" bind:action="retryLoad" />
+    <cy-settlement-detail detail="{{detail}}" />
+  </block>
+
+  <block wx:elif="{{loadState === 'loading'}}">
+    <cy-skeleton type="amount" count="{{1}}" />
+    <cy-skeleton type="card" count="{{2}}" />
+  </block>
+  <cy-empty class="state-slot" wx:elif="{{loadState === 'missing-param'}}" kind="missing-param"
+    size="lg" fill title="缺少结算记录标识" sub="请返回结算列表重新进入"
+    cta="返回上一页" bind:cta="onNavBack" />
+  <cy-empty class="state-slot" wx:elif="{{loadState === 'missing-record'}}" kind="empty"
+    size="lg" fill title="结算记录不可见" sub="这条记录可能已撤回或不属于当前账号"
+    cta="返回结算列表" bind:cta="onNavBack" />
+  <cy-error class="state-slot cy-fade-in" wx:else size="lg" fill
+    title="结算详情没加载出来" sub="{{errorText}}" auto-back custom-back bind:back="onNavBack" retry="重试" bind:retry="retryLoad" />
+</view>

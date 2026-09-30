@@ -1,0 +1,11 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index"
+  }
+}

@@ -1,0 +1,20 @@
+<wxs src="../../../utils/wxs/money.wxs" module="money" />
+<view class="fs" wx:if="{{state === 'ready' && hasRows}}">
+  <view class="fs-row" wx:if="{{stages.pending}}">
+    <text class="fs-label">待结算（活动未结束）</text><text class="fs-amount">{{money.amount(stages.pending)}}</text>
+  </view>
+  <view class="fs-row" wx:for="{{stages.complaintPeriod}}" wx:key="key">
+    <text class="fs-label">{{item.label}}</text><text class="fs-amount">{{money.amount(item.amount)}}</text>
+  </view>
+  <view class="fs-row" wx:if="{{stages.disputed}}">
+    <text class="fs-label">客诉处理中</text><text class="fs-amount">{{money.amount(stages.disputed)}}</text>
+  </view>
+  <view class="fs-row" wx:if="{{showWithdrawable}}">
+    <text class="fs-label">可提现</text><text class="fs-amount fs-amount--strong">{{money.amount(stages.withdrawable)}}</text>
+  </view>
+  <text class="fs-note" wx:if="{{!stages.amountsKnown}}">部分未到账金额暂时算不出，以结算到账为准</text>
+</view>
+<view class="fs fs-row" wx:elif="{{state === 'error'}}" aria-role="alert">
+  <text class="fs-label">未到账金额暂时取不到</text>
+  <view class="fs-retry" bindtap="load" aria-role="button" aria-label="重新加载未到账金额" hover-class="cy-pressed" hover-stay-time="80">重试</view>
+</view>

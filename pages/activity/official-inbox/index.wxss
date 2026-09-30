@@ -1,0 +1,94 @@
+@import '../../../style/merchant-light-scope.wxss';
+
+.oi-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-4) var(--cy-space-4);
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+
+/* cy-error/cy-empty 是 isolated 组件，填充剩余高度需页面显式接管 flex。 */
+.oi-page cy-error,
+.oi-page cy-empty {
+  flex: 1;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0;
+}
+
+.oi-hero {
+  padding: var(--cy-space-3-5);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+}
+.oi-title,
+.oi-sub { display: block; }
+.oi-k {
+  display: inline-block;
+  margin-bottom: var(--cy-legacy-10);
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  font-weight: 700;
+}
+.oi-title { margin-top: var(--cy-legacy-10); font-size: var(--cy-type-section-title); font-weight: 750; }
+.oi-sub { margin-top: var(--cy-legacy-10); font-size: var(--cy-type-label); line-height: 1.6; color: var(--cy-color-text-secondary); }
+.oi-list { padding-top: var(--cy-space-3); }
+.oi-refreshing {
+  min-height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+}
+.oi-list-error { display: block; margin-bottom: var(--cy-space-2-5); }
+.oi-card {
+  margin-bottom: var(--cy-space-2-5);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface);
+}
+.oi-head { display: flex; gap: var(--cy-space-2-5); align-items: flex-start; justify-content: space-between; }
+.oi-event,
+.oi-meta { display: block; }
+.oi-event { font-size: var(--cy-type-card-title); font-weight: 700; }
+.oi-meta { margin-top: var(--cy-space-1); font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+.oi-status {
+  flex: none;
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+}
+.oi-scope {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-2-5);
+  padding: var(--cy-space-2);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+}
+.oi-summary { display: block; margin-top: var(--cy-space-2); font-size: var(--cy-type-label); line-height: 1.6; color: var(--cy-color-text-secondary); }
+.oi-action-error { display: block; margin-top: var(--cy-space-2); }
+.oi-actions { display: flex; gap: var(--cy-space-2); margin-top: var(--cy-space-2-5); }
+.oi-btn { flex: 1; padding: var(--cy-space-2-5) var(--cy-space-1-5); border-radius: var(--cy-radius-pill); text-align: center; font-size: var(--cy-type-label); font-weight: 700; }
+.oi-btn.accept { background: var(--cy-color-status-success); color: var(--cy-color-action-danger-fg); }
+.oi-btn.decline { background: var(--cy-color-action-danger-bg); color: var(--cy-color-action-danger-fg); }
+.oi-btn.secondary { background: var(--cy-color-action-secondary-bg); color: var(--cy-color-text-primary); }
+.oi-btn.is-busy { opacity: .52; }
+.oi-action-status {
+  display: block;
+  margin-top: var(--cy-space-1-5);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  text-align: center;
+}

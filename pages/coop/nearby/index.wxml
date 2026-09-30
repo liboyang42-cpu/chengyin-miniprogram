@@ -1,0 +1,61 @@
+<view class="nearby-shell theme-merchant m-flush-nav">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- E-01(2026-09-16 P0):去页级 merchant 守卫。两个接口都不要求商家身份:
+       /api/merchant/nearby 登录即可(电话另按 CRM 权限裁),/api/merchant/chapter-application/invitable
+       只要求主题发布者(scope 非 MERCHANT 时 principalMemberId 直接放行)。 -->
+<cy-nav-bar back="{{true}}"></cy-nav-bar>
+<view style="height:{{statusBarHeight + navBarHeight}}px;"></view>
+<cy-page-title title="{{pageTitle || '附近商家'}}" subtitle="{{topicName}}" safe-top="{{false}}" />
+
+<view class="nearby-page">
+  <view class="action-state action-state--ok" wx:if="{{actionReceipt}}" aria-role="status" aria-live="polite">{{actionReceipt}}</view>
+  <cy-inline-error class="action-state--error" wx:if="{{actionError}}" kind="data"
+    title="操作未完成" sub="{{actionError}}" />
+  <!-- bbb 标准:骨架屏代替"正在查找…"文字 -->
+  <cy-skeleton wx:if="{{pageState === 'loading'}}" type="list" count="{{4}}" />
+
+  <block wx:elif="{{pageState === 'ready'}}">
+    <view class="inline-state" wx:if="{{refreshing}}" aria-role="status" aria-live="polite">正在刷新附近商家…</view>
+    <view class="inline-state inline-state--error error-kind--{{refreshErrorKind}}" wx:if="{{refreshErrorText}}" aria-role="alert" aria-live="assertive">
+      {{refreshErrorText}}<text class="inline-retry" bindtap="retry" aria-role="button" aria-label="重试刷新附近商家" hover-class="cy-pressed" hover-stay-time="80">重试</text>
+    </view>
+    <block wx:if="{{merchants.length}}">
+    <!-- 🔴 卡片重新设计:补商家照片 + 修掉误用的暗色卡底/紫色徽标(此前是暗色主题残留样式) -->
+    <view class="card" wx:for="{{merchants}}" wx:key="id" wx:if="{{item.name}}"
+          bindtap="openMerchant" data-memberid="{{item.memberId}}" aria-role="button"
+          aria-label="查看商家详情：{{item.name}}" hover-class="cy-pressed" hover-stay-time="80">
+      <image class="card-photo" src="{{item.logo || item.photo || item.coverUrl || '/images/d_logo.png'}}" mode="aspectFill" lazy-load="true" />
+      <view class="card-main">
+        <view class="name">
+          <text class="ep1">{{item.name}}</text>
+          <text class="badge {{item.memberId ? 'badge-on' : 'badge-off'}}">{{item.memberId ? '已入驻' : '平台登记'}}</text>
+        </view>
+        <view class="addr" wx:if="{{item.address}}">{{item.address}}</view>
+        <view class="chapter">{{item.chapterText || '暂无可承接章节'}}</view>
+        <view class="meta" wx:if="{{item.distanceText !== null}}">约 {{item.distanceText || 0}} 米</view>
+      </view>
+      <view class="ops">
+        <cy-btn wx:if="{{item.memberId}}" variant="primary" size="sm" catchtap="openMerchant" data-memberid="{{item.memberId}}"
+          accessibility-label="进入{{item.name}}承接资料">进入承接</cy-btn>
+        <cy-btn wx:elif="{{item.canCall}}" variant="secondary" size="sm" catchtap="callMerchant"
+          loading="{{actionPendingKey === 'call:' + item.phone}}" disabled="{{!!actionPendingKey}}"
+          accessibility-label="电话联系{{item.name}}" data-phone="{{item.phone}}">电话联系</cy-btn>
+      </view>
+    </view>
+    </block>
+    <cy-empty size="lg" style="flex:1;min-height:0;" kind="empty" wx:else fill title="附近暂无可联系商家" sub="按当前定位没找到商家，刷新会重新定位再找一遍" cta="刷新附近商家" bind:cta="retry"></cy-empty>
+  </block>
+
+  <!-- aaa 标准:未定位/空态统一垂直居中 + 放大文字图片(cy-error 原生 fill 变体,不再自己包一层) -->
+  <cy-empty class="retry-lg" size="lg" style="flex:1;min-height:0;" kind="permission" wx:elif="{{pageState === 'permission'}}" fill title="当前无法查看附近商家" sub="{{errorText || '需要定位权限才能找附近商家'}}" cta="去设置" bind:cta="openLocationSettings"></cy-empty>
+
+  <cy-empty size="lg" style="flex:1;min-height:0;" kind="missing-param" wx:elif="{{pageState === 'missing-param'}}" fill title="主题参数无效" sub="{{errorText}}" cta="返回上一页" bind:cta="goBack"></cy-empty>
+
+  <cy-error class="retry-lg error-kind--{{errorKind}}" size="lg" style="flex:1;min-height:0;" wx:elif="{{pageState === 'error'}}" fill title="附近商家没加载出来" sub="{{errorText || '服务暂时不可用,请稍后重试'}}" auto-back custom-back bind:back="goBack" bind:retry="retry"></cy-error>
+
+  <cy-error class="retry-lg" size="lg" style="flex:1;min-height:0;" wx:else fill title="附近商家暂不可用" sub="请返回后重试" auto-back custom-back bind:back="goBack" bind:retry="retry"></cy-error>
+</view>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

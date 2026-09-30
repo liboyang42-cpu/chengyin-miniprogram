@@ -1,0 +1,88 @@
+<view class="theme-dark {{reducedMotion ? 'cy-motion-reduced' : ''}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="报名名册" safe-top="{{false}}" />
+
+  <cy-skeleton wx:if="{{permissionState === 'loading'}}" type="list" count="3" loading-label="正在确认报名名册查看权限" />
+  <cy-error wx:elif="{{permissionState === 'business-error'}}" fill title="暂时无法确认查看权限" sub="{{permissionError}}" retry="重新检查" bind:retry="retryPermission" auto-back />
+  <cy-error wx:elif="{{permissionState === 'network-error'}}" fill title="网络连接失败" sub="{{permissionError}}" retry="重新检查" bind:retry="retryPermission" auto-back />
+  <cy-error wx:elif="{{permissionState === 'denied'}}" fill="{{true}}" size="lg" title="{{permissionDeniedTitle}}"
+            sub="{{permissionDeniedSub}}" retry="" bind:back="goBack" auto-back custom-back />
+
+  <block wx:elif="{{permissionState === 'ready'}}">
+  <view class="sub">{{clubName || '我的俱乐部'}} · {{ teams.length || 0 }} 个团 · 报名费由平台担保托管</view>
+  <view wx:if="{{refreshing}}" class="refreshing" aria-role="status" aria-live="polite">正在更新报名名册…</view>
+  <cy-inline-error wx:if="{{staleError}}" class="list-inline-error" kind="{{staleErrorKind}}" title="报名名册暂未更新"
+                   sub="{{staleError}}" action="重试更新" bind:action="retryLoadTeams" />
+
+  <!-- 加载中 -->
+  <cy-skeleton wx:if="{{teamsState === 'loading'}}" type="card" count="3" loading-label="正在加载报名名册" />
+
+  <!-- 业务失败 / 网络失败:都不能落入空态 -->
+  <cy-error class="cy-fade-in" wx:elif="{{teamsState === 'business-error'}}" title="报名名册加载失败" sub="俱乐部数据暂时不可用" retry="重新加载" bind:retry="retryLoadTeams" />
+  <cy-error wx:elif="{{teamsState === 'network-error'}}" title="网络连接失败" sub="检查网络后重新加载报名名册" retry="重新加载" bind:retry="retryLoadTeams" />
+
+  <!-- 空态 -->
+  <cy-empty wx:elif="{{teamsState === 'ready' && teams.length === 0}}" fill="{{true}}" size="lg" kind="empty" title="还没有城市定向团"
+            sub="在发布器选择「城市定向」票种并归属本俱乐部,即可在此查看报名名册。" />
+
+  <!-- 团列表 -->
+  <view wx:else class="list">
+    <view class="team cy-rise-in" wx:for="{{teams}}" wx:key="id" wx:for-item="team" wx:for-index="ti">
+      <view class="team-head" hover-class="team-head--pressed" hover-stay-time="80" bindtap="toggleTeam" data-index="{{ti}}" aria-role="button"
+            aria-expanded="{{team._open}}" aria-label="{{team._open ? '收起' : '展开'}} {{team.name || '未命名团'}} 报名详情">
+        <image class="team-cover" src="{{team.imgUrl || '/images/route_city_cover.png'}}" mode="aspectFill" lazy-load="true" />
+        <view class="team-main">
+          <view class="team-name ep1">{{team.name || '未命名团'}}</view>
+          <view class="team-meta">{{team.dateText || '时间待定'}} · 已报名 {{team.signupCount || 0}} 人</view>
+        </view>
+        <cy-icon class="team-arrow {{team._open ? 'open' : ''}}" name="arrow-right" size="32" />
+      </view>
+
+      <!-- 展开:各票种报名人数 + 报名者名单 -->
+      <view class="team-body" wx:if="{{team._open}}">
+        <cy-skeleton wx:if="{{team._detailState === 'loading'}}" type="list" count="2" loading-label="正在加载报名详情" />
+        <cy-error wx:elif="{{team._detailState === 'business-error'}}" title="报名详情加载失败" retry="重试" bind:retry="retryTeamDetail" data-index="{{ti}}" data-topic-id="{{team.id}}" />
+        <cy-error wx:elif="{{team._detailState === 'network-error'}}" title="网络连接失败" retry="重试" bind:retry="retryTeamDetail" data-index="{{ti}}" data-topic-id="{{team.id}}" />
+        <block wx:elif="{{team._detailState === 'ready'}}">
+          <view class="team-summary" wx:if="{{team.summary}}">
+            {{team.summary.teamStatusText}} · 已支付 {{ team.summary.paidCount || 0 }} 人 · 可退款 {{ team.summary.refundableCount || 0 }} 人
+            <text wx:if="{{team.summary.signupDeadlineText}}"> · 截止 {{team.summary.signupDeadlineText}}</text>
+          </view>
+          <cy-empty wx:if="{{team.tickets.length === 0}}" class="enroll-inline-empty" size="sm" title="该团暂无票种" />
+          <view class="ticket" wx:for="{{team.tickets}}" wx:key="name" wx:for-item="tk">
+            <view class="ticket-top">
+              <view class="ticket-name ep1">{{tk.name || '票种'}}</view>
+              <!-- 「已报名 12 人 · 上限 20」两行压成一行分数:同屏比对多个票种时,
+                   分数一列对齐才看得出哪个票要卖完了。 -->
+              <view class="ticket-num">{{tk.signups || 0}}<text wx:if="{{tk.totalInventory}}"> / {{tk.totalInventory}}</text><text wx:else> 人</text></view>
+            </view>
+            <!-- 报名者名单 -->
+            <view class="regs" wx:if="{{tk.regs.length > 0}}">
+              <view class="reg" wx:for="{{tk.regs}}" wx:key="id" wx:for-item="r">
+                <view class="reg-l" bindtap="goUserInfo" data-id="{{r.memberId}}" aria-role="button" aria-label="查看 {{r.nickname || '玩家'}} 的资料" hover-class="cy-pressed" hover-stay-time="80">
+                  <cy-avatar class="reg-ava" size="56" src="{{r.avatar || '/images/d_profile.png'}}" />
+                  <text class="reg-name ep1">{{r.nickname || '玩家'}}</text>
+                </view>
+                <text class="reg-checkin reg-checkin--{{r.checkinKind}}" catchtap="goCheckinDetail"
+                      data-regid="{{r.id}}" aria-role="button" aria-label="查看 {{r.nickname || '玩家'}} 的核销详情"
+                      hover-class="cy-pressed" hover-stay-time="80">{{r.checkinText}}</text>
+                <!-- 2026-09-09 用户裁决:名册这一行不再放退款。
+                     退款挪到点进核销详情之后、那一页底部的按钮上 —— 名册是一屏几十行,
+                     在行内点退款太容易点错人,详情页至少先把这单是谁、买了什么摆在眼前。 -->
+              </view>
+            </view>
+            <cy-empty wx:else class="enroll-inline-empty" size="sm" title="还没有人报名" />
+          </view>
+          <view class="detail-note">点开某个人看核销详情;清退退款在那一页底部,仅主理人可操作。</view>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  </block>
+</view>
+</view>

@@ -1,0 +1,14 @@
+<view class="inline-error inline-error--{{kind}}"
+      aria-role="alert" aria-live="polite" aria-label="{{aria || _title}}{{!aria && _sub ? '，' + _sub : ''}}">
+  <view class="inline-error__icon" aria-hidden="true">
+    <cy-icon name="{{_glyph}}" size="36" />
+  </view>
+  <view class="inline-error__copy">
+    <view class="inline-error__title">{{_title}}</view>
+    <view wx:if="{{_sub}}" class="inline-error__sub">{{_sub}}</view>
+  </view>
+  <view wx:if="{{action}}" class="inline-error__action"
+        aria-role="button" aria-label="{{action}}"
+        hover-class="inline-error__action--pressed" hover-stay-time="80"
+        bindtap="onAction">{{action}}</view>
+</view>

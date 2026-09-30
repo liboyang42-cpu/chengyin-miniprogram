@@ -1,0 +1,3 @@
+<view class="cy-celebrate {{reducedMotion ? 'cy-celebrate--reduced-motion' : ''}}" wx:if="{{eventKey && pieces.length}}" aria-hidden="true">
+  <view class="cy-celebrate__piece" wx:for="{{pieces}}" wx:key="id" style="left:{{item.left || 0}}%;background:{{item.color}};animation-delay:{{item.delay || 0}}ms"></view>
+</view>

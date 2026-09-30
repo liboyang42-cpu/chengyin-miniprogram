@@ -1,0 +1,20 @@
+// 多图 CSV 工具(WXML 不支持 String.split,统一走 WXS)。
+// 字段存"url1,url2,url3"逗号分隔;缩略图取首张 first(),画廊取全部 list()。
+// 兼容旧单图数据:无逗号时 first 返回原串、list 返回单元素数组。
+var first = function (s) {
+  if (!s) return '';
+  return ('' + s).split(',')[0] || '';
+};
+var list = function (s) {
+  if (!s) return [];
+  var arr = ('' + s).split(',');
+  var out = [];
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i]) out.push(arr[i]);
+  }
+  return out;
+};
+module.exports = {
+  first: first,
+  list: list
+};

@@ -1,0 +1,138 @@
+/* 创建节点玩法 · 第0页(价值主张)。深底引导页,底色必须与固定顶栏同取
+   --cy-color-bg-page,否则顶栏下缘出色带(custom-nav-page-surface-contract 门禁)。 */
+page { background: var(--cy-color-bg-page); }
+
+.ti {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+  padding: 0 var(--cy-page-x) calc(env(safe-area-inset-bottom) + var(--cy-space-4));
+}
+
+/* 跳过:右上角次级出口,与顶栏返回钮分列两侧 */
+.ti-skip {
+  align-self: flex-end;
+  padding: var(--cy-space-2) 0 0;
+  min-height: 88rpx;
+  min-width: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-secondary);
+}
+
+/* ===== 扇形卡堆 ===== */
+.ti-stage {
+  position: relative;
+  height: 560rpx;                 /* ds-ok: 卡堆舞台高度,按参考图三卡叠放的视觉体量定 */
+  margin-top: var(--cy-space-4);
+}
+
+.ti-stage--state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-body);
+  text-align: center;
+}
+.ti-stage--state > cy-skeleton,
+.ti-stage--state > cy-inline-error { width: 100%; }
+.ti-stale {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 6;
+}
+.ti-stage--empty { padding: 0 var(--cy-space-6); box-sizing: border-box; }
+
+.ti-card {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 340rpx;                  /* ds-ok: 卡面尺寸按参考图比例定,非通用间距 */
+  height: 460rpx;                 /* ds-ok: 同上 */
+  margin-left: -170rpx;           /* ds-ok: = 卡宽一半,做水平居中锚点 */
+  box-sizing: border-box;
+  border: 8rpx solid transparent; /* 实际颜色由 wxml 按品类逐张内联绑定 */
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+  background: var(--cy-color-bg-elevated);
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, .55); /* ds-ok 刻意:卡堆需要投影分层,--cy-shadow-card 暗端为 none */
+}
+
+/* 左后倾 / 右前倾 / 中间压顶 —— 三张的层级与旋转角照参考图。
+   右卡上移量要够大:它被中卡横向压掉大半,只有把顶端(品类标签那一行)抬到
+   中卡上缘之上,标签才露得出来 —— 参考图里右卡正是最高的那张。 */
+.ti-card--0 { transform: rotate(-13deg) translateX(-96rpx) translateY(48rpx); z-index: 1; animation: ti-card-left var(--cy-motion-celebrate) var(--cy-ease-spring) both; }
+.ti-card--2 { transform: rotate(12deg) translateX(96rpx) translateY(-72rpx); z-index: 2; animation: ti-card-right var(--cy-motion-celebrate) var(--cy-ease-spring) var(--cy-motion-press) both; }
+.ti-card--1 { transform: rotate(-2deg); z-index: 3; animation: ti-card-center var(--cy-motion-celebrate) var(--cy-ease-spring) var(--cy-motion-fast) both; }
+
+.ti-card-cat {
+  padding: var(--cy-space-1) var(--cy-space-2);
+  font-size: var(--cy-type-caption);
+  font-weight: 700;
+  color: var(--cy-color-text-inverse);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ti-card-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== 价值主张文案:两行粗细混排 ===== */
+.ti-copy {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  animation: ti-rise var(--cy-motion-slow) var(--cy-ease-out) var(--cy-motion-standard) both;
+}
+.ti-copy-a {
+  font-size: var(--cy-type-page-title);
+  font-weight: 800;
+  line-height: 1.25;
+}
+.ti-copy-b {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-page-title);
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--cy-color-text-secondary);
+}
+
+/* 主 CTA:通栏,严格走黑白系(--cy-btn-solid-*,暗端=白底黑字) */
+.ti-cta { padding-top: var(--cy-space-4); animation: ti-rise var(--cy-motion-slow) var(--cy-ease-out) var(--cy-motion-slow) both; }
+.ti-cta > cy-inline-error { display: block; margin-bottom: var(--cy-space-2); }
+
+.ti--reduced-motion .ti-card,
+.ti--reduced-motion .ti-copy,
+.ti--reduced-motion .ti-cta { animation: none !important; }
+
+@keyframes ti-card-left {
+  0% { opacity: 0; transform: rotate(-4deg) translateX(-18rpx) translateY(88rpx) scale(.92); }
+  100% { opacity: 1; transform: rotate(-13deg) translateX(-96rpx) translateY(48rpx) scale(1); }
+}
+@keyframes ti-card-right {
+  0% { opacity: 0; transform: rotate(4deg) translateX(18rpx) translateY(42rpx) scale(.92); }
+  100% { opacity: 1; transform: rotate(12deg) translateX(96rpx) translateY(-72rpx) scale(1); }
+}
+@keyframes ti-card-center {
+  0% { opacity: 0; transform: rotate(0) translateY(72rpx) scale(.9); }
+  100% { opacity: 1; transform: rotate(-2deg) translateY(0) scale(1); }
+}
+@keyframes ti-rise {
+  0% { opacity: 0; transform: translateY(20rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}

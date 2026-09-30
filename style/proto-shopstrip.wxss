@@ -1,0 +1,58 @@
+/* 原型的商家横滑卡(shopCards / .shopstrip / .poicard / .poidots)。
+   2026-09-11 从 pages/play/index.wxss 抽出来,一行未改 —— 漫游的「查找附近好玩的」
+   与「发现商家」(原型 f-fun / f-discover)也是同一条横滑白卡,两页共用一份。 */
+/* ★ 商家横滑卡逐条照原型 .shopstrip / .poicard / .poidots 抄
+ * (2026-09-09 用户裁决:所有页面与 HTML 一模一样)。1px = 1.923rpx。
+ * 推翻的 Figma 值逐条列在这里:
+ *   卡宽 358px = 688rpx(原来没写死,跟着 swiper 走)· 卡高 138px = 265rpx(原 273rpx)
+ *   左栏定宽 228px = 438rpx(原来是 flex:1,右侧缩略图一大文字就被挤没)
+ *   店名 29rpx/700 → 27rpx/800(原型 14px 800)· 模板名 19rpx → 21rpx/600 #8A8A8E
+ *   地址 23rpx → 21rpx(原型 11px)· 营业行 21rpx 上 15rpx → 上 10rpx(原型 5px)
+ *   状态点 16rpx → 15rpx(原型 8px)
+ *   动作钮 min-height 按钮档 → 58rpx 定高、内边距 0 27rpx、字 25rpx/700(原型 30px/0 14px/13px 700)
+ *   头像 48rpx/3rpx 描边/-14rpx → 38rpx/4rpx/-12rpx(原型 20px/2px/-6px)
+ *   ⚠️ +N 原型是一段**文字**(11px 700 #6B7280,左边距 6px),不是圆形芯片 —— 现码画成了芯片
+ *   缩略图 90×100px = 173×192rpx ✓(这一条本来就对)
+ *   计数点 on 态 34rpx → 35rpx(原型 18px);位置 bottom 由卡高推
+ */
+.pois{ position:absolute; left:0; right:0; z-index:43; height:265rpx; /* ds-ok 原型 .poicard 138px */
+  bottom:calc(240rpx + var(--cy-space-3) + env(safe-area-inset-bottom)); }
+.poi{ display:flex; gap:23rpx; align-items:flex-start; height:265rpx; box-sizing:border-box; /* ds-ok 原型 .poicard__in gap:12px */
+  margin:0 15rpx 0 31rpx; padding:27rpx; /* ds-ok 原型 padding:14px */
+  border-radius:31rpx; background:#FFFFFF; /* ds-ok 原型 radius:16px */
+  box-shadow:0 38rpx 24rpx rgba(0,0,0,.1); } /* ds-ok 白卡压地图的投影 */
+.poi--solo{ margin:0 31rpx; }
+/* 原型 .poicard__l 是定宽 228px:左栏不定宽的话,店名一长就把右边缩略图挤没 */
+.poi__main{ width:438rpx; flex:none; min-width:0; display:flex; flex-direction:column; } /* ds-ok 原型 228px */
+.poi__title{ display:flex; align-items:baseline; gap:2rpx; }
+.poi__name{ font-size:27rpx; font-weight:800; color:#111111; line-height:1.25; /* ds-ok 原型 .poicard__t 14px 800 */
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.poi__tpl{ flex:none; font-size:21rpx; font-weight:600; color:#8A8A8E; } /* ds-ok 原型 .poicard__t span 11px 600 */
+.poi__addr{ margin-top:8rpx; font-size:21rpx; line-height:1.3; color:#6B7280; /* ds-ok 原型 .poicard__a 11px / 上 4px */
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.poi__biz{ display:flex; align-items:center; gap:12rpx; margin-top:10rpx; /* ds-ok 原型 .poicard__b gap:6px / 上 5px */
+  font-size:21rpx; line-height:1.3; color:#6B7280; white-space:nowrap; } /* ds-ok 原型 .poicard__b 11px #6B7280 */
+.poi__dot{ width:15rpx; height:15rpx; border-radius:var(--cy-radius-pill); flex:none; } /* ds-ok 原型 8px */
+/* 原型 .poicard__foot:margin-top:auto 把这一行压到卡底,动作在左、头像在右 */
+.poi__last{ margin-top:auto; display:flex; align-items:center; gap:15rpx; min-width:0; } /* ds-ok 原型 gap:8px */
+/* 视觉高度照抄原型 30px = 58rpx;命中区用透明 ::after 撑到 88rpx(X12)——
+   本仓 a11y 门禁认这种写法(cy-info-pop 同款),不必拿视觉去换 44px。 */
+.poi__go{ position:relative; flex:none; height:58rpx; box-sizing:border-box; display:inline-flex; align-items:center;
+  padding:0 27rpx; border-radius:var(--cy-radius-pill); /* ds-ok 原型 30px / 0 14px */
+  background:#111111; color:#FFFFFF; font-size:25rpx; font-weight:700; } /* ds-ok 原型 #111 / 13px 700 */
+.poi__go::after{ content:''; position:absolute; left:0; top:50%; width:100%; height:88rpx;
+  transform:translateY(-50%); }
+.poi__who{ display:flex; align-items:center; min-width:0; overflow:hidden; } /* ds-ok 原型 .poicard__been */
+.poi__face{ flex:none; width:38rpx; height:38rpx; border-radius:var(--cy-radius-pill);
+  border:4rpx solid #FFFFFF; margin-left:-12rpx; background:#EEF0F3; } /* ds-ok 原型 20px / 2px / -6px */
+.poi__face:first-child{ margin-left:0; }
+/* ⚠️ 原型的 +N 是一段文字,不是圆形芯片 */
+.poi__more{ flex:none; margin-left:12rpx; font-size:21rpx; font-weight:700; color:#6B7280; /* ds-ok 原型 .poicard__been span */
+  white-space:nowrap; } /* ds-ok 原型 .poicard__been span 11px 700 / 左 6px */
+.poi__thumb{ flex:none; width:173rpx; height:192rpx; border-radius:23rpx; /* ds-ok 原型 90×100px / radius 12px */
+  overflow:hidden; background:#F2F2F2; } /* ds-ok 缩略图没加载出来时的占位底 */
+.poi__thumb image{ width:100%; height:100%; }
+.pois__dots{ position:absolute; left:31rpx; z-index:43; display:flex; align-items:center; gap:12rpx; /* ds-ok 原型 gap:6px */
+  bottom:calc(240rpx + var(--cy-space-3) + 265rpx + var(--cy-space-2) + env(safe-area-inset-bottom)); }
+.pois__dot{ width:12rpx; height:12rpx; border-radius:6rpx; background:#444444; } /* ds-ok 原型 6px / #444 */
+.pois__dot.is-on{ width:35rpx; background:#FFFFFF; } /* ds-ok 原型 18px / #fff */

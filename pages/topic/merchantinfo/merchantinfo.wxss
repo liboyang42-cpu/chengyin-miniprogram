@@ -1,0 +1,1872 @@
+@import '../../../style/merchant-light.wxss';
+
+.merchant-info-page { min-height: 100vh; background: var(--cy-bg-page); color: var(--cy-text-title); }
+
+page {
+  background: var(--cy-bg-page);
+}
+
+/* ===== 顶栏 ===== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--cy-bg-page);
+}
+.topbar .navBar {
+  position: relative;
+}
+.topbar .nav-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 0 var(--cy-space-3-5);
+  display: flex;
+  align-items: center;
+}
+.back-btn image {
+  width: var(--cy-space-2-5);
+  height: 25rpx;
+}
+.btn-signup::after { border: none; }
+/* 页面基础样式 */
+.topic .slide1 {
+  height: 100vh;
+  overflow: hidden; position: relative;
+}
+
+.topic .slide1 image {
+  width: 100%;
+  height: 100%;
+}
+
+.topic .slide1 .slide-txt {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: var(--cy-space-5) var(--cy-space-6) var(--cy-space-6) var(--cy-space-6);
+  box-sizing: border-box;
+  color: var(--cy-text-inverse);
+  text-align: center;
+}
+
+/* P0-UI-1:不让封面承担信息；四态共用这块文字锚点。 */
+.topic .slide1 .cover-brief {
+  margin: 0 auto var(--cy-space-3);
+  max-width: 560rpx;
+}
+.topic .slide1 .cover-brief-type {
+  display: inline-block;
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-overlay);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-caption);
+}
+.topic .slide1 .cover-brief-title {
+  margin-top: var(--cy-space-2);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+}
+.topic .slide1 .cover-brief-value {
+  display: block;
+  margin-top: var(--cy-space-1);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-body);
+  line-height: 1.5;
+}
+
+/* 浅色封面兜底沿用商家页正文层级，不能让图片态的白字落在浅底上。 */
+.topic .slide1 .slide-txt--cover-fallback {
+  color: var(--cy-text-title);
+}
+.topic .slide1 .slide-txt--cover-fallback .cover-brief-title {
+  color: var(--cy-text-title);
+}
+.topic .slide1 .slide-txt--cover-fallback .cover-brief-value {
+  color: var(--cy-text-body);
+}
+.topic .slide1 .slide-txt--cover-fallback .jt {
+  display: inline-flex;
+  padding: var(--cy-space-1-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-overlay);
+}
+
+.topic .slide1 .slide-txt .txt1 {
+  font-size: var(--cy-font-display);
+  font-weight: bold;
+}
+
+.topic .slide1 .slide-txt .txt2 {
+  font-size: 72rpx; /* ds-ok: hero封面大字,刻意大于data-xl(64)做沉浸式展示 */
+  margin: var(--cy-space-2-5) 0;
+}
+
+.topic .slide1 .slide-txt .txt3 {
+  font-size: var(--cy-font-body);
+}
+
+.topic .slide1 .slide-txt .jt {
+  margin-top: var(--cy-space-8);
+}
+
+/* P1-2:封面加载失败兜底 —— 原来图挂了就是一整屏纯空白,看不出页面有没有内容 */
+.topic .slide1 .slide-cover-fallback {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-6);
+  background: var(--cy-bg-card-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.topic .slide1 .cover-fb-skeleton {
+  width: 100%;
+  padding: var(--cy-space-5);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.topic .slide1 .cover-fb-block {
+  width: 58%;
+  height: var(--cy-space-3);
+  margin-top: var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+}
+.topic .slide1 .cover-fb-block:first-child { margin-top: 0; }
+.topic .slide1 .cover-fb-block--wide { width: 82%; height: var(--cy-space-8); border-radius: var(--cy-radius-lg); }
+.topic .slide1 .cover-fb-block--short { width: 36%; }
+.topic .slide1 .cover-fb-title {
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  text-align: center;
+}
+.topic .slide1 .cover-fb-tip {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-secondary);
+  text-align: center;
+}
+
+/* 底部压深,保证「下滑」提示在任何封面(含浅色兜底底)上都读得清 */
+.topic .slide1 .slide-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 320rpx;
+  background: linear-gradient(to top, var(--cy-color-overlay), transparent);
+  pointer-events: none;
+}
+.topic .slide1 .slide-scrim--cover-fallback {
+  background: linear-gradient(to top, var(--cy-bg-card-2), transparent);
+}
+
+.topic .slide1 .slide-txt .jt image {
+  width: 43rpx;
+  height: 41rpx;
+  -webkit-animation: bounceDown 4s linear infinite;
+  -moz-animation: bounceDown 4s linear infinite;
+  -o-animation: bounceDown 4s linear infinite;
+  animation: bounceDown 4s linear infinite;
+}
+
+/* ==================== 顶部导航栏样式 ==================== */
+.topic .topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  background: transparent;
+  transition: background-color var(--cy-dur) var(--cy-ease);
+}
+
+.topic .topbar.solid {
+  background: var(--cy-bg-card);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.topic .topbar .statusBar.trans {
+  background: transparent;
+  transition: background-color var(--cy-dur) var(--cy-ease);
+}
+
+.topic .topbar.solid .statusBar.trans {
+  background: var(--cy-bg-card);
+}
+
+.topic .topbar .titBar.trans {
+  background: transparent;
+  transition: background-color var(--cy-dur) var(--cy-ease);
+}
+
+.topic .topbar.solid .titBar.trans {
+  background: var(--cy-bg-card);
+}
+
+.topic .topbar .titBar {
+  padding: 0 var(--cy-space-3-5);
+  box-sizing: border-box;
+}
+
+.topic .topbar .titBar .back button {
+  width: 66rpx;
+  height: 66rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transition: background-color var(--cy-dur) var(--cy-ease);
+}
+
+.topic .topbar.solid .titBar .back button {
+  background: var(--cy-bg-page);
+}
+
+.topic .topbar .titBar .back button image {
+  width: var(--cy-space-2-5);
+  height: 25rpx;
+}
+
+
+.sticky-tab-wrapper.sticky {
+  /* 吸顶时的样式 */
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  /* 2026-09-02:同 topic/index —— 原 999 比所有弹窗档都高,吸顶条会压住弹窗。 */
+  z-index: var(--cy-z-sticky);
+  opacity: 1;
+  visibility: visible;
+  height: auto;
+  /*box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);*/
+  animation: tabSlideDown 0.3s ease-out;
+}
+
+
+
+.sticky-nav-bar .sticky-back button {
+  width: 66rpx;
+  height: 66rpx;
+  background: var(--cy-bg-page);
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sticky-nav-bar .sticky-back button::after {
+  border: none;
+}
+
+.sticky-nav-bar .sticky-back button image {
+  width: var(--cy-space-2-5);
+  height: 25rpx;
+}
+
+/* 吸顶动画 */
+@keyframes tabSlideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 调整吸顶标签栏的样式 */
+.sticky-tab-wrapper .tab2 {
+  margin: 0;
+  height: 90rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--cy-bg-card);
+  
+}
+
+/* .sticky-tab-wrapper .tab2 .li 已归一至 .cy-tabs__item(吸顶容器样式保留) */
+
+/* 页面内的标签栏样式 */
+.det4 .page-tab {
+  /* .hidden 只改 opacity/visibility/height */
+  transition: opacity var(--cy-dur) var(--cy-ease), visibility var(--cy-dur) var(--cy-ease), height var(--cy-dur) var(--cy-ease);
+  opacity: 1;
+  visibility: visible;
+  height: auto;
+  overflow: visible;
+}
+
+.det4 .page-tab.hidden {
+  /* 当吸顶标签显示时，页面内的标签隐藏 */
+  opacity: 0;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+/* 确保页面内容在吸顶时有正确的间距 */
+.topic {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-bg-page);
+}
+
+.browse-error {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+.topic .slide2 { padding-bottom: var(--cy-space-6); background: var(--cy-bg-page); }
+
+/* 修复吸顶后内容被遮挡的问题 */
+.sticky-tab-wrapper.sticky ~ .slide1 {
+  margin-top: calc(90rpx + var(--statusBarHeight, 0px) + var(--navBarHeight, 44px)); /* ds-ok: 90rpx=吸顶tab高,尺寸值非留白间距 */
+}
+
+/* 原有的主题内容样式 */
+/* 方案一优化版 - 增加更多兼容性处理 */
+.topic .det1 {
+  display: flex;
+  height: auto;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  /* 优先使用 aspect-ratio */
+  aspect-ratio: 5/3;
+}
+
+/* 对于不支持 aspect-ratio 的容器 */
+.topic .det1:not([style*="aspect-ratio"]) {
+  height: 0;
+  padding-bottom: 60%; /* 5:3比例，3/5=0.6=60% */
+}
+
+.topic .det1 .bgt {
+  width: 100%;
+  height: auto;
+  /* 移除 !important 以避免冲突 */
+  object-fit: cover;
+  display: block;
+}
+
+.topic .det1 .detail-cover-fallback {
+  width: 100%;
+  height: 100%;
+  padding: var(--cy-space-5) var(--cy-page-x);
+  box-sizing: border-box;
+  background: var(--cy-bg-card-2);
+}
+/* CU-M-156 加载结束后无封面的缺图档:图标 + 短文案,与 pages/template 列表、
+   templatedetail 头图同一口径。排布写在占位块自己身上,不写进 fallback ——
+   那块还要给加载中的骨架用,骨架是左上角的横条,不是居中。 */
+.topic .det1 .detail-cover-ph {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1-5);
+  color: var(--cy-text-secondary);
+}
+/* no_data.svg 原图 4:3,按此比例给宽,不拉扁 */
+.topic .det1 .detail-cover-ph-icon { width: 160rpx; height: 120rpx; flex: 0 0 auto; }
+.topic .det1 .detail-cover-ph-txt { font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal); }
+
+.topic .det1 .detail-cover-shape {
+  width: 56%;
+  height: var(--cy-space-3);
+  margin-top: var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card);
+}
+.topic .det1 .detail-cover-shape--large {
+  width: 100%;
+  height: calc(var(--cy-space-8) * 2);
+  margin-top: 0;
+  border-radius: var(--cy-radius-lg);
+}
+
+/* 确保在容器有padding-bottom时图片能正确显示 */
+.topic .det1[style*="padding-bottom"] .bgt,
+.topic .det1:not([style*="aspect-ratio"]) .bgt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.topic .det1 .cont {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between; 
+}
+
+.topic .det1 .cont .row1 {
+  box-sizing: border-box;
+}
+
+/* CU-M-156:这里原来还写了 background: rgba(255,255,255,.5) —— 与上面的规则同特异性,
+   @import 在前、本页在后,于是本页赢下 background 却没人赢下 color,color 仍从
+   style/merchant-light.wxss:217 拿到 #ffffff ⇒ 白字压在近白底上,"运动健身"读不见。
+   merchant-light 那条「暗底白字」是一对(深底必配白字),只改走一半就是这次的根因。
+   所以撤掉本页的 background,让共享规则把底和字一起定死,不是再补一条 color 盖回去。 */
+.topic .det1 .cont .row1 text {
+  padding: 0 var(--cy-space-1);
+  height: 40rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-font-label);
+  backdrop-filter: blur(var(--cy-space-1))
+}
+
+.topic .det1 .cont .row2 {
+  color: var(--cy-text-inverse);
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-2-5) var(--cy-page-x);
+  box-sizing: border-box;
+  align-items: flex-end;
+}
+
+.topic .det1 .cont .row2 .col1 .tit {
+  font-size: var(--cy-font-title);
+  font-weight: bold;
+}
+
+.topic .det1 .cont .row2 .col1 .desc {
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+  margin-top: var(--cy-space-2);
+  line-height: var(--cy-leading-normal);
+}
+
+.topic .det1 .cont .row2 .col2 {
+  width: 200rpx;
+  margin-left: 110rpx; /* ds-ok: 量表外遗留值,复核保留(既有布局/图文对齐值) */
+}
+
+.topic .det1 .cont .row2 .col2 .user image {
+  width: 55rpx;
+  height: 55rpx;
+  border-radius: 50%;
+  margin-right: calc(var(--cy-space-3-5) * -1);
+}
+
+.topic .det1 .cont .row2 .col2 .user .num {
+  width: 55rpx;
+  height: 55rpx;
+  background: var(--cy-bg-card);
+  color: var(--cy-accent);
+  font-weight: 400;
+  font-size: var(--cy-font-caption);
+  border-radius: 50%;
+  border: 2rpx solid var(--cy-text-title);
+}
+
+.topic .det1 .cont .row2 .col2 .user .txt {
+  margin-left: var(--cy-space-2-5);
+}
+
+
+
+
+
+
+
+.topic .det2 {
+  position: relative;
+}
+
+.topic .det2 .bgt {
+  width: 100%;
+  height: 106rpx !important;
+}
+
+.topic .det2 .txt {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: var(--cy-space-2-5) var(--cy-page-x);
+  box-sizing: border-box;
+  font-size: var(--cy-font-label);
+}
+
+.topic .det2 .txt .tit {
+  font-weight: bold;
+}
+
+.topic .det2 .txt .desc {
+  color: var(--cy-text-body);
+  margin-top: var(--cy-legacy-4);
+}
+
+.topic .det-type {
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+  margin-bottom: var(--cy-space-2-5);
+}
+
+.topic .det3 {
+  padding: var(--cy-space-4) 0 0 0;
+}
+
+.topic .det3 .cont1 .txt1 {
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+  margin-bottom: var(--cy-space-4);
+  padding: 0 var(--cy-legacy-14);
+}
+
+.topic .det3 .cont1 .txt2 {
+  font-size: var(--cy-font-body);
+  font-weight: bold;
+  margin-bottom: var(--cy-space-3);
+}
+
+.topic .det3 .cont1 .txt3 {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+}
+
+.topic .det3 .cont1 .txt3 .li {
+  margin: var(--cy-legacy-6) 0;
+}
+
+.topic .det3 .cont2 {
+  padding: var(--cy-space-3-5) 0;
+}
+
+.topic .det3 .cont2 .fl .icon {
+  margin-right: var(--cy-space-4);
+}
+
+.topic .det3 .cont2 .fl .icon image {
+  width: var(--cy-space-5);
+  height: var(--cy-space-5);
+}
+
+.topic .det3 .cont2 .fl .tit {
+  color: var(--cy-brand);
+  font-weight: bold;
+  font-size: var(--cy-font-body);
+}
+
+.topic .det3 .cont2 .jt {
+  flex-shrink: 0;
+  margin-left: var(--cy-space-2);
+}
+
+.topic .det3 .cont2 .jt image {
+  width: var(--cy-space-1-5);
+  height: var(--cy-space-2-5);
+}
+
+.topic .det4 .browse-tabs { margin-bottom: 0; }
+
+.topic .muban {
+  margin-top: var(--cy-space-4);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+
+.topic .muban .temp-list2 .li {
+  margin-left: 0;
+  padding-bottom: var(--cy-space-2-5);
+}
+
+
+.topic .det5 .lis1t .li .item {
+  width: 176rpx;
+  height: 216rpx;
+  background: rgba(79, 79, 79, 0.1);
+  border-radius: var(--cy-radius-lg);
+  padding: var(--cy-space-1) var(--cy-space-3-5);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.topic .det5 .list .li .item .icon image {
+  width: 112rpx;
+  height: 112rpx !important;
+  border-radius: 50%;
+}
+
+.topic .det5 .list .li .item .tit {
+  font-size: var(--cy-font-body);
+  margin: var(--cy-space-1) 0;
+}
+
+.topic .det5 .list .li .item .desc {
+  font-size: var(--cy-font-label);
+}
+
+.topic .det6 .row1 {
+  margin: var(--cy-space-3-5) 0 0;
+  align-items: flex-start;
+}
+
+.topic .det6 .row1 .star {
+  margin-top: var(--cy-space-3-5);
+  margin-bottom: var(--cy-space-2-5);
+}
+
+.topic .det6 .row1 .col1 {
+  font-size: 72rpx; /* ds-ok: hero封面大字,刻意大于data-xl(64)做沉浸式展示 */
+  /*width: 128rpx;*/
+  flex-shrink: 0;
+  font-weight: bold;
+}
+
+.topic .det6 .row1 .col2 {
+  margin-left: var(--cy-legacy-10);
+}
+
+.topic .det6 .row1 .col2 image {
+  margin-left: var(--cy-space-1-5);
+  width: 37rpx;
+  height: 37rpx;
+}
+
+.topic .det6 .row1 .col3 button {
+  width: 130rpx;
+  margin-top: var(--cy-space-2-5);
+  height: 66rpx;
+  color: var(--cy-text-title);
+  background: var(--cy-bg-page);
+  border-radius: var(--cy-radius-lg);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+}
+
+.topic .det6 .row2 {
+  padding-left: var(--cy-space-2);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-caption);
+}
+
+.topic .det6 .scroll-list {
+  margin: var(--cy-space-2-5) 0;
+}
+
+.topic .det6 .scroll-list .li {
+  margin-left: var(--cy-space-3-5);
+  flex-shrink: 0;
+  width: 518rpx;
+}
+
+.topic .det6 .scroll-list .li .item {
+  height: 333rpx;
+  background: var(--cy-bg-card);
+  border-radius: 0rpx;
+  border: 2rpx solid #D4CFC4;
+  padding: var(--cy-space-3-5) var(--cy-space-2-5);
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.topic .det6 .scroll-list .li .item .col1 .tit {
+  font-size: var(--cy-font-title);
+  font-weight: bold;
+}
+
+.topic .det6 .scroll-list .li .item .col1 .time {
+  color: var(--cy-text-title);
+  margin-top: var(--cy-space-1);
+}
+
+.topic .det6 .scroll-list .li .item .col2 image {
+  width: var(--cy-space-3);
+  height: var(--cy-space-3);
+  margin-left: var(--cy-space-1-5);
+}
+
+.topic .det6 .scroll-list .li .item .item-desc {
+  margin-top: var(--cy-space-2-5);
+  color: var(--cy-text-title);
+  padding: 0 var(--cy-legacy-14);
+  box-sizing: border-box;
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+  white-space: normal;
+}
+
+.topic .det7 {
+  padding: var(--cy-space-1-5) 0 var(--cy-space-1-5);
+  box-sizing: border-box;
+}
+
+.topic .det7 .share .icon {
+  flex-shrink: 0;
+  margin-right: var(--cy-space-5);
+}
+
+.topic .det7 .share .icon image {
+  width: var(--cy-space-4);
+  height: var(--cy-space-4);
+}
+
+.topic .det7 .share .info .tit {
+  font-size: var(--cy-font-body);
+  color: var(--cy-brand);
+  font-weight: bold;
+}
+
+.topic .det7 .share .info .desc {
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-label);
+}
+
+.topic .bm-btn {
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-6) var(--cy-page-x);
+  box-sizing: border-box;
+  position: sticky;
+  bottom: 0;
+  z-index: 21;
+  /* 粘在底部却没有背景 = 下方内容从 padding 区透出来,「报名」按钮看上去压在
+     「活动信息」标题上(2026-08-19 C27 实拍坐实)。sticky 元素必须自带不透明底。 */
+  background: var(--cy-bg-page);
+}
+
+.topic .bm-btn button {
+  width: 100%;
+  height: var(--cy-space-8);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-body);
+  border-radius: var(--cy-radius-lg);
+  font-weight: bold;
+}
+
+.topic .bm-btn button:hover {
+  opacity: 0.88;
+}
+
+.topic .bm-btn2 {
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-6) var(--cy-page-x);
+  box-sizing: border-box;
+  bottom: 0;
+  z-index: 21;
+}
+
+.topic .bm-btn2 button {
+  width: 100%;
+  height: var(--cy-space-8);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-body);
+  border-radius: var(--cy-radius-lg);
+  font-weight: bold;
+}
+
+.topic .bm-btn2 button:hover {
+  opacity: 0.88;
+}
+
+.topic .tabcont {
+  min-height: 45vh; padding-bottom: 0;
+}
+
+.david_tgb {
+  margin: var(--cy-space-4) 0 0 0;
+  overflow: hidden;
+}
+
+
+
+
+.david_tgb_top_left_tu image {
+  width: var(--cy-legacy-72);
+  height: var(--cy-legacy-72);
+  vertical-align: top;
+}
+
+
+.david_tgb_top_left_add image {
+  width: 40rpx;
+  height: 40rpx;
+  vertical-align: top;
+}
+
+
+
+.david_tgb_top_right_name image {
+  width: var(--cy-space-3);
+  height: var(--cy-space-3);
+  margin-left: var(--cy-legacy-10);
+}
+
+
+.david_tgb_con {
+  overflow: hidden;
+  margin: 0 0 var(--cy-legacy-10) 0;
+}
+
+.david_tgb_con_title {
+  font-size: var(--cy-font-display);
+  font-weight: bolder;
+  color: var(--cy-text-title);
+}
+
+.david_tgb_con_3s {
+  overflow: hidden;
+  margin: var(--cy-space-3-5) 0 var(--cy-legacy-10) 0;
+}
+
+.david_tgb_con_3s_li {
+  float: left;
+  margin-right: var(--cy-space-2-5);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-body);
+}
+
+.david_tgb_con_3s_li image {
+  width: var(--cy-space-3);
+  height: var(--cy-space-3);
+  vertical-align: top;
+  margin-right: var(--cy-legacy-6);
+  margin-top: var(--cy-space-1);
+}
+
+.david_tgb_con_txt {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+}
+
+.david_tgb_box {
+  overflow: hidden;
+}
+
+.david_tgb_box_li {
+  overflow: hidden;
+  margin-bottom: var(--cy-legacy-10);
+}
+
+.david_tgb_box_li_nbm {
+  height: 40rpx;
+  overflow: hidden;
+  position: relative;
+}
+
+.david_tgb_box_li_nbm_x {
+  border-bottom: 2rpx solid var(--cy-border-line);
+  margin-top: var(--cy-space-2-5);
+}
+
+.david_tgb_box_li_nbm_t {
+  width: 30rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  background: var(--cy-bg-card);
+  text-align: center;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: calc(var(--cy-space-2) * -1);
+  font-style: italic;
+  color: var(--cy-text-body);
+}
+
+.david_tgb_box_li_txt {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+  margin: var(--cy-legacy-10) 0 var(--cy-space-2-5) 0;
+}
+
+
+.david_tgb_box_li_con_top {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--cy-space-3-5);
+}
+
+image.david_stu {
+  width: 100%;
+  height: 412rpx;
+  vertical-align: top;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+
+
+
+.david_tgb_box_li_con_top_xf_pf image {
+  width: var(--cy-space-2-5);
+  height: var(--cy-space-2-5);
+  vertical-align: top;
+  margin: var(--cy-space-3-5) var(--cy-legacy-10) 0 0;
+}
+
+
+
+
+
+.david_tgb_box_li_con_ly_bom_left text {
+  display: block;
+}
+
+
+.david_tgb_box_li_con_ly_bom_right image {
+  width: 52rpx;
+  height: 52rpx;
+  vertical-align: top;
+}
+
+.topic .david_span {
+  padding: var(--cy-space-4) var(--cy-space-5) var(--cy-space-6) var(--cy-space-5);
+}
+
+.topic-list .list .li .item .item-box1 {
+  padding: var(--cy-legacy-10);
+  min-height: 160rpx;
+}
+
+.topic .det5 .scroll-list .li {
+  position: relative;
+}
+
+.topic .det5 .scroll-list .li .daviditem {
+  content: " ";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  backdrop-filter: blur(10rpx);
+  padding: var(--cy-space-1-5) 0 0 0;
+}
+
+.topic .det5 .item {
+  background: rgba(79, 79, 79, 0.1);
+  border-radius: var(--cy-radius-lg);
+  padding: var(--cy-space-1-5) var(--cy-legacy-26);
+  text-align: center;
+}
+
+.pop-baoming .cont .ul .li .item .item-tit .tit {
+  font-size: var(--cy-font-subtitle);
+  margin-top: var(--cy-space-3);
+  font-weight: bold;
+}
+
+.pop-baoming .cont .ul .li .item .item-price {
+  margin: var(--cy-legacy-26) 0 0;
+  padding-bottom: var(--cy-legacy-6);
+}
+
+.davidxian {
+  display: none;
+}
+
+
+.topic .bm-btn button.david_butfx {
+  color: var(--cy-text-inverse);
+  width: var(--cy-space-8);
+  height: var(--cy-space-8);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: var(--cy-legacy-6);
+}
+
+.topic .bm-btn button.david_butfx image {
+  width: 34rpx;
+  height: 34rpx;
+}
+
+
+
+
+
+
+
+.david_sti {
+  margin: var(--cy-space-4) 0 var(--cy-space-2-5) var(--cy-space-3);
+}
+
+
+.david_trights image {
+  width: var(--cy-space-4);
+  height: var(--cy-space-4);
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.david_trights text {
+   margin-left: var(--cy-legacy-10);
+  display: block;
+  padding-right: var(--cy-legacy-10);
+  position: relative;
+}
+
+.david_trights text::before {
+  content: "";
+  height: var(--cy-space-3);
+  width: 3rpx;
+  background: var(--cy-btn-solid-bg);
+  position: absolute;
+  top: var(--cy-legacy-4);
+  right: 0;
+}
+
+.david_trights text {
+  margin-left: var(--cy-legacy-6);
+}
+
+
+
+
+
+.david_tzr_top_right image {
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  vertical-align: middle;
+}
+
+.david_tzr_top_right text {
+  margin: 0 var(--cy-space-2-5) 0 var(--cy-legacy-10);
+}
+
+
+
+.david_tzr_box_con.scroll-list {
+  padding-bottom: 0;
+  padding-left: var(--cy-space-2-5);
+  margin-bottom: var(--cy-space-3);
+  padding-top: var(--cy-space-3);
+}
+
+
+.david_tzr_box_con_li image {
+  width: var(--cy-space-7);
+  height: var(--cy-space-7);
+  vertical-align: top;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.david_tzr_box_con_li text {
+  font-size: var(--cy-font-caption);
+  display: block;
+  margin-top: var(--cy-legacy-6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.davidli {
+  width: 332rpx;
+  flex-shrink: 0;
+  margin-left: var(--cy-space-3);
+}
+
+.davidli_tu {
+  width: 100%;
+  overflow: hidden;
+}
+
+.davidli_tu image {
+  width: 100%;
+  height: 266rpx;
+  vertical-align: top;
+}
+
+.davidli_name {
+  width: 100%;
+  overflow: hidden;
+  font-size: var(--cy-font-body);
+  font-weight: bold;
+  margin: var(--cy-space-1-5) 0 var(--cy-legacy-10) 0;
+}
+
+.davidli_txt {
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-label);
+}
+
+.davidxfxi {
+  width: 100%;
+  padding-bottom: var(--cy-space-3-5);
+  margin-bottom: var(--cy-space-5);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+
+.davidomxi {
+  overflow: hidden;
+  padding: 0 var(--cy-space-3-5) var(--cy-legacy-10) var(--cy-space-3-5);
+  margin-bottom: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+
+.davidomxi:last-of-type {
+  margin-bottom: 0;
+}
+
+.scroll-list {
+  margin-bottom: var(--cy-space-2);
+}
+
+
+
+.david_dang {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, .5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+  color: var(--cy-text-inverse);
+}
+
+/* 原有的 tab2 样式 */
+.tab2 {
+  margin-bottom: 0;
+}
+
+/* .tab2 .li 已归一至全局 .cy-tabs__item(下划线走 --cy-tabs-accent 经典定向绿) */
+
+/* 修复按钮样式 */
+.topic button {
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  line-height: normal;
+}
+
+.topic button::after {
+  border: none;
+}
+
+.det4--tabs { margin-top: var(--cy-space-3); padding: 0 var(--cy-page-x); }
+.browse-tabs { --cy-tabs-fade-bg: var(--cy-bg-page); }
+.tablist { margin-top: var(--cy-space-2); background: var(--cy-bg-page); }
+.topic .tabcont > .det3,
+.topic .tabcont > .det4,
+.topic .tabcont > .david_tgb,
+.topic .tabcont.topic-list > .wp {
+  margin: 0 var(--cy-page-x) var(--cy-space-2);
+  padding: var(--cy-space-3-5);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.topic .tabcont > .det3 { padding-top: var(--cy-space-3-5) !important; }
+.topic .tabcont > .det4 { margin-top: var(--cy-space-2); }
+.topic .tabcont > .david_tgb { overflow: visible; }
+
+/* ==================== 主题弹窗样式 ==================== */
+/* 弹窗背景遮罩 */
+.lightbox {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 33;
+  background: rgba(0, 0, 0, .5);
+}
+
+/* 弹窗容器 */
+.pop-topic {
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+  z-index: 34;
+  border-radius: var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0;
+  background: var(--cy-bg-card);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 关闭线条 */
+.pop-topic .line {
+  width: 56rpx;
+  height: var(--cy-space-1);
+  background: var(--cy-border-line);
+  border-radius: var(--cy-radius-pill);
+  margin: var(--cy-space-1-5) auto var(--cy-space-1-5);
+}
+
+/* 弹窗内容容器 */
+.pop-topic .pop-cont {
+  padding: 0 var(--cy-space-4);
+  box-sizing: border-box;
+}
+
+/* 弹窗标题区域 */
+.pop-topic .pop-tit {
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+  margin: var(--cy-space-4) 0 var(--cy-space-3-5);
+}
+
+/* 主题弹窗顶部区域 */
+.pop-topic .zt1 {
+  margin: var(--cy-space-3-5) 0 var(--cy-space-4);
+}
+
+.pop-topic .zt1 .col1 {
+  width: 200rpx;
+  height: 200rpx;
+  flex-shrink: 0;
+  margin-right: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+}
+
+.pop-topic .zt1 .col1 image {
+  width: 100%;
+  height: 100%;
+}
+
+.pop-topic .zt1 .col2 .tit {
+  font-size: var(--cy-font-title);
+  font-weight: bold;
+  margin-bottom: var(--cy-legacy-10);
+}
+
+.pop-topic .zt1 .col2 .check {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+}
+
+/* 弹窗选项区域 */
+.pop-topic .dl {
+  margin-bottom: var(--cy-space-4);
+  position: relative;
+}
+
+.pop-topic .dl .dt {
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+  margin-bottom: var(--cy-space-2-5);
+}
+
+/* 选项按钮容器 */
+.pop-topic .check {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2-5);
+}
+
+/* 选项按钮 */
+.pop-topic .dd {
+  padding: var(--cy-space-2-5) var(--cy-space-4);
+  border: 2rpx solid var(--cy-border-line);
+  border-radius: var(--cy-radius-xl);
+  font-size: var(--cy-font-body);
+  text-align: center;
+  /* .check 只改 background/color/border-color */
+  transition: background-color var(--cy-dur) var(--cy-ease), color var(--cy-dur) var(--cy-ease), border-color var(--cy-dur) var(--cy-ease);
+  flex-grow: 0;
+}
+
+/* 选中状态的选项按钮 */
+.pop-topic .dd.check {
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-text-inverse);
+  border-color: var(--cy-text-title);
+}
+
+/* 底部按钮区域 */
+.pop-topic .bm-btn1 {
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-6) var(--cy-page-x);
+  box-sizing: border-box;
+}
+
+.pop-topic .bm-btn1 button {
+  width: 100%;
+  height: var(--cy-space-8);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-body);
+  border-radius: var(--cy-radius-lg);
+  font-weight: bold;
+  border: none;
+}
+
+.pop-topic .bm-btn1 button:hover {
+  opacity: 0.88;
+}
+
+/* 关闭按钮:纯字形 ✕(close-sm 44rpx),无圆底无透明度蒙版 —— 弱化交给次级文字色,
+   与 cy-sheet / cy-scene-sheet 同口径(2026-09-19 收编,原 del.png 40rpx 图 + .45 透明度作废)。 */
+.david_gbtu {
+  width: 44rpx;
+  height: 44rpx;
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-secondary);
+  line-height: 1;
+  z-index: 35;
+}
+
+/* 触控热区:字形 44rpx,低于 88rpx 最小可点(DS §3.2)。透明 ::after 居中撑到 88rpx。
+   同层只有 .col1 里的封面图,没有 tap,不存在偷点击。 */
+.david_gbtu::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+
+/* 问号图标 */
+.david_wh {
+  position: absolute;
+  width: 50rpx;
+  height: 50rpx;
+  background: var(--cy-bg-card);
+  top: var(--cy-space-4);
+  right: 0;
+  text-align: center;
+}
+
+.david_wh image {
+  width: var(--cy-space-4);
+  height: var(--cy-space-4);
+  vertical-align: middle;
+}
+
+
+/* ==================== 报名模式说明弹框样式 ==================== */
+.lightbox2 {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  bottom: 0;
+  z-index: 33;
+  background: rgba(0, 0, 0, .5);
+}
+
+.pop-topic2 {
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+  z-index: 34;
+  border-radius: var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0;
+  background: var(--cy-bg-card);
+  overflow: hidden;
+  /* 顶边复查(2026-09-18):原来没有上限,内容一长就顶到屏幕上沿。
+     走全站口径:宿主在 wxml 传胶囊实测的 --cy-comp-sheet-max-h,拿不到退 token。 */
+  max-height: var(--cy-comp-sheet-max-h, var(--cy-comp-sheet-max-height));
+  /* 2026-09-19 实拍:content-box 下 max-height 不含 padding-bottom 的 34px 安全区,
+     面板实际顶边比 clamp 线高出整段安全区,标题与✕被微信胶囊压住。 */
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.davidbmtk {
+  overflow: hidden;
+}
+
+.davidbmtk_top {
+  overflow: hidden;
+  position: relative;
+  background: var(--cy-btn-solid-bg);
+}
+
+.davidbmtk_top_tit {
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+  margin: var(--cy-space-3-5) var(--cy-space-4) var(--cy-space-2-5) var(--cy-space-4);
+}
+
+.davidbmtk_top_txt {
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-label);
+  margin: 0 var(--cy-space-4) var(--cy-space-2-5) var(--cy-space-4);
+  line-height: var(--cy-leading-normal);
+}
+
+/* 关闭钮:纯字形 ✕(close-sm 44rpx)。2026-09-19 收编:52rpx 白圆底 + blur 作废,
+   这块是实色头屏、文字走反色档,✕ 颜色跟随所在层的文字色。 */
+.davidbmtk_top_gb {
+  width: 44rpx;
+  height: 44rpx;
+  position: absolute;
+  top: var(--cy-space-3-5);
+  right: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-inverse);
+  line-height: 1;
+}
+
+/* 触控热区:字形只有 44rpx(它压在标题旁,放大会挡文字),
+   透明 ::after 居中撑到 88rpx —— 这正是 DS §3.2 的 compact-floating 分层范式。
+   同层是 .davidbmtk_top_tit / _txt 两段纯文本,没有 tap,不存在偷点击。 */
+.davidbmtk_top_gb::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+
+.davidbmtk_box {
+  margin: var(--cy-space-5);
+  overflow: hidden;
+  border-radius: var(--cy-radius-lg);
+  border: 2rpx solid var(--cy-border-line);
+  background: linear-gradient(135deg, #EFF6FF 0%, #ECFEFF 100%);
+}
+
+.davidbmtk_box_top {
+  overflow: hidden;
+  margin-top: var(--cy-space-5);
+  height: 124rpx;
+}
+
+.davidbmtk_box_top_left {
+  float: left;
+  width: var(--cy-space-8);
+  height: var(--cy-space-8);
+  border-radius: var(--cy-radius-lg);
+  margin: 0 var(--cy-space-3-5) 0 var(--cy-space-5);
+  text-align: center;
+  background: linear-gradient(135deg, #2B7FFF 0%, #00B8DB 100%);
+  box-shadow: 0px 10rpx 20rpx -6rpx rgba(43, 127, 255, 0.9);
+}
+
+.davidbmtk_box_top_left image {
+  width: var(--cy-space-5);
+  height: var(--cy-space-5);
+  margin-top: var(--cy-space-3);
+}
+
+.davidbmtk_box_top_right {
+  float: left;
+  overflow: hidden;
+}
+
+.davidbmtk_box_top_right_tit {
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-title);
+  font-weight: 500;
+  margin-bottom: var(--cy-legacy-14);
+}
+
+.davidbmtk_box_top_right_con {
+  height: 52rpx;
+  line-height: 52rpx;
+  background: rgba(43, 127, 255, 0.1);
+  padding: 0 var(--cy-legacy-26);
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+  font-size: var(--cy-font-label);
+  color: var(--cy-accent);
+}
+
+.davidbmtk_box_top_right_con image {
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  vertical-align: top;
+  margin: var(--cy-space-1-5) var(--cy-legacy-10) 0 0;
+}
+
+.davidbmtk_box_ly {
+  overflow: hidden;
+  margin: 0 var(--cy-space-5) var(--cy-legacy-36) var(--cy-space-5);
+}
+
+.davidbmtk_box_ly_name {
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+}
+
+.davidbmtk_box_ly_2h {
+  overflow: hidden;
+  margin-top: var(--cy-space-3);
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-label);
+}
+
+.davidbmtk_box_ly_2h_li {
+  overflow: hidden;
+  padding-left: var(--cy-space-4);
+  position: relative;
+  margin-bottom: var(--cy-space-3);
+}
+
+.davidbmtk_box_ly_2h_li::before {
+  content: "";
+  width: var(--cy-space-2);
+  height: var(--cy-space-2);
+  background: var(--cy-accent);
+  border-radius: 50%;
+  position: absolute;
+  top: var(--cy-space-1);
+  left: 0;
+}
+
+.davidbmtk_box_ly_tit {
+  height: 70rpx;
+  line-height: 70rpx;
+  color: var(--cy-accent);
+  font-size: var(--cy-font-label);
+  border-top: 2rpx solid rgba(190, 219, 255, 0.5);
+}
+
+.davidbmtk_box_ly_tit image {
+  width: var(--cy-space-4);
+  height: var(--cy-space-4);
+  vertical-align: top;
+  margin: var(--cy-space-2-5) var(--cy-legacy-18) 0 0;
+}
+
+.davidbmtk_box_ly_txt {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+  line-height: var(--cy-leading-normal);
+}
+
+
+.cense .davidbmtk_box_top_left {
+  background: linear-gradient(135deg, #00A63E 0%, #00FF5F 100%);
+  box-shadow: 0px 10rpx 20rpx -6rpx rgba(1, 209, 78, 0.9);
+}
+
+.cense .davidbmtk_box_top_right_con {
+  color: #00A63E;
+  background: rgba(218, 255, 229, 1);
+}
+
+.cense .davidbmtk_box_ly_2h_li::before {
+  background: #038C36;
+}
+
+.cense .davidbmtk_box_ly_tit {
+  color: #00752C;
+  border-top: 2rpx solid rgba(1, 183, 68, 0.18)
+}
+
+/* 底部按钮 */
+.bm-btndavid {
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-6) var(--cy-page-x);
+  box-sizing: border-box;
+}
+
+.bm-btndavid button {
+  width: 100%;
+  height: var(--cy-space-8);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-body);
+  border-radius: var(--cy-radius-lg);
+  font-weight: bold;
+}
+
+.bm-btndavid button:hover {
+  opacity: 0.88;
+}
+
+/* 相对定位辅助类 */
+.david_pr {
+  position: relative;
+}
+
+.merchant-chapter-option {
+  min-width: 46%;
+  max-width: 100%;
+  line-height: 1.45;
+}
+
+.merchant-chapter-meta {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.merchant-chapter-option.check .merchant-chapter-meta {
+  color: inherit;
+}
+
+/* 减少动态效果:吸顶标签栏滑入直接到位。 */
+.mi--reduced .sticky-tab-wrapper.sticky { animation: none; }
+
+/* 站点卡(稿 181:715):宽图 + 图底深色带写玩法名,图下写「商家名（地点名）」与导航按钮。 */
+.node-card {
+  margin-top: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  overflow: hidden;
+}
+.node-card-cover { position: relative; }
+.node-card-img {
+  display: block;
+  width: 100%;
+  height: 320rpx;
+  background: var(--cy-bg-card-2);
+}
+/* 玩法名压在图的底部:稿上是一条通栏深色带,不是图外单独一行 */
+.node-card-tag {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: var(--cy-space-2) var(--cy-space-4);
+  background: var(--cy-comp-scrim);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-inverse);
+}
+.node-card-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3) var(--cy-space-4);
+}
+.node-card-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.node-card-name {
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-title);
+}
+.node-card-place {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.node-card-more {
+  margin-left: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+/* 命中区不得小于 44px(X12 门禁):圆钮本身照稿是 56rpx 的小胶囊,
+   靠 min-width/min-height 把可点范围撑到 88rpx = 44px。 */
+.node-card-go {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88rpx;
+  height: 88rpx;
+  min-width: 88rpx;
+  min-height: 88rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+}
+
+/* 稿 181:575「阵容/商家」:横滑人物卡(与玩家版 214:384 同构,浅色域) */
+.lineup { padding: var(--cy-space-5) 0 var(--cy-space-2); }
+.lineup .det-type { margin: 0 var(--cy-page-x) var(--cy-space-3-5) var(--cy-page-x); }
+.lineup-row { white-space: nowrap; padding: 0 var(--cy-page-x); }
+.lineup-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 200rpx;
+  padding: var(--cy-space-4) var(--cy-space-2-5);
+  margin-right: var(--cy-space-2-5);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  vertical-align: top;
+}
+.lineup-name {
+  margin-top: var(--cy-space-2-5);
+  max-width: 100%;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.lineup-role {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-muted);
+}
+
+/* 「我在这条路线上的承接」:从选标的弹层搬进正文后,要按正文的卡片语言排,
+   不能沿用弹层里那套贴边列表 —— 它现在跟「节点介绍 / 主题介绍」并排。 */
+.topic .my-apply .dt {
+  margin-top: var(--cy-space-3);
+  margin-bottom: var(--cy-space-1-5);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.topic .my-apply .dd {
+  padding: var(--cy-space-3);
+  margin-bottom: var(--cy-space-2);
+  background: var(--cy-bg-card);
+  border: 1rpx solid var(--cy-border-card);
+  border-radius: var(--cy-radius-md);
+}
+/* 一行里可能同时有「撤回申请」和「填写实际供给」,让它们并排、按内容宽 */
+.topic .my-apply .merchant-chapter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-2);
+}
+
+/* 稿 181:687 / 181:696「评价」：大分数 + 星 + 「基于 N 条评论」，下面一排横滑评价卡。
+   与玩家版 214:542/551 同一块，这里是浅色域的镜像。 */
+.topic .det6-light { padding: var(--cy-space-4) 0 0 0; }
+.topic .det6-light__head {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: 0 var(--cy-page-x);
+}
+.topic .det6-light__score {
+  font-size: 72rpx; /* ds-ok: 与玩家版 .det6 .row1 .col1 同一个刻意放大的评分数字,两边必须一样大 */
+  font-weight: bold;
+  color: var(--cy-text-title);
+  line-height: 1;
+}
+.topic .det6-light__stars { display: flex; align-items: center; gap: var(--cy-space-1); }
+.topic .det6-light__sub {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.topic .det6-light__row { margin-top: var(--cy-space-3); white-space: nowrap; }
+.topic .det6-light__card {
+  display: inline-block;
+  width: 516rpx;
+  white-space: normal;
+  vertical-align: top;
+  margin-left: var(--cy-page-x);
+  padding: var(--cy-space-3);
+  background: var(--cy-bg-card);
+  border: 1rpx solid var(--cy-border-card);
+  border-radius: var(--cy-radius-md);
+}
+.topic .det6-light__card:last-child { margin-right: var(--cy-page-x); }
+.topic .det6-light__card-top { display: flex; align-items: center; justify-content: space-between; }
+.topic .det6-light__card-stars { display: flex; align-items: center; gap: 2rpx; }
+.topic .det6-light__who { font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-title); }
+.topic .det6-light__when {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-muted);
+}
+.topic .det6-light__text {
+  display: block;
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-body);
+}
+
+/* 稿 181:644 / 214:499「活动内容」：主题介绍下面的一串「这趟里都有什么」，
+   一行一条、行首一个点。内容全部来自后端真字段，缺就少一条、都缺整块不出。 */
+.topic-includes { margin-top: var(--cy-space-3); }
+.topic-includes__t {
+  margin-bottom: var(--cy-space-2);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.topic-includes__li {
+  position: relative;
+  padding-left: var(--cy-space-4);
+  margin-bottom: var(--cy-space-1-5);
+  font-size: var(--cy-font-label);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-body);
+}
+.topic-includes__li::before {
+  content: '·';
+  position: absolute;
+  left: var(--cy-space-2);
+}
+
+
+/* ===== 稿 181:575 数据条(商家浅色;玩家深色版 214:384 是同一块) =====
+   稿上的死数:格宽 104、格内 gap 4、小标题 11、大数字 19、格间一条 1×32 竖线。 */
+.statbar {
+  margin: var(--cy-space-3) var(--cy-page-x) 0;
+  padding: 20rpx 16rpx;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  white-space: nowrap;
+}
+.statbar__row { display: flex; align-items: center; }
+.statbar__cell {
+  flex: none;
+  width: 208rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+.statbar__sep {
+  flex: none;
+  width: 1rpx;
+  height: 64rpx;
+  background: var(--cy-color-border-subtle);
+}
+.statbar__label { font-size: var(--cy-type-caption); color: var(--cy-text-secondary); }
+.statbar__value {
+  font-size: 38rpx;            /* ds-ok:稿 19px,card-title(16)与 sheet-title(22)之间没有这一档;为一个元素加全局 token 要同步六处,不值 */
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--cy-text-title);
+}
+.statbar__sub { font-size: var(--cy-type-caption); color: var(--cy-text-secondary); }
+.statbar__stars { display: flex; gap: 4rpx; color: var(--cy-color-status-warning); }
+
+/* CU-M-89:「节点介绍」缺图时的占位块。尺寸仍由全局 .temp-list ... .pic 钉住
+   (height 266rpx !important),这里只补底色与居中 —— 不写尺寸,免得与全局那一条打架。 */
+.temp-list .li .item .pic--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cy-bg-subtle);
+}

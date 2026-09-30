@@ -1,0 +1,708 @@
+@import '../../../style/merchant-light.wxss';
+
+page {
+  background: var(--cy-bg-page);
+  color: var(--cy-text-title);
+}
+
+.rv-merchant {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: var(--cy-bg-page);
+}
+
+/* 身份/加载失败只留页内一条内联错误,不再有整屏闸;留出与 hero 的间距。 */
+.rv-console-error { display: block; margin: var(--cy-space-3) var(--cy-page-x) 0; }
+
+/* 入驻申请状态卡(审核中/未通过/停用):页内说清状态与原因,不再静默跳回会员中心。 */
+.rv-apply-state { display: block; margin: var(--cy-space-3) var(--cy-page-x); }
+.rv-apply-state-head { display: flex; margin-bottom: var(--cy-space-3); }
+.rv-apply-state-badge {
+  padding: 4rpx var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-caption);
+  font-weight: 600;
+}
+.rv-apply-state-badge--neutral { background: var(--cy-color-status-neutral-soft); color: var(--cy-text-secondary); }
+.rv-apply-state-badge--warning { background: var(--cy-color-status-warning-soft); color: var(--cy-color-status-warning); }
+.rv-apply-state-badge--danger { background: var(--cy-color-status-danger-soft); color: var(--cy-color-status-danger); }
+.rv-apply-state-badge--success { background: var(--cy-color-status-success-soft); color: var(--cy-color-status-success); }
+.rv-apply-state-text {
+  display: block;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-body);
+  line-height: 1.6;
+}
+.rv-apply-state-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1);
+  min-height: var(--cy-btn-h);
+  margin-top: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-page);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+}
+
+.rv-hero {
+  /* 2026-09-18 用户定:收入数字居中在问候行与快捷钮正中间 ⇒ 底距交给 .rv-revenue-zone,
+   * hero 自身不再压 200rpx;员工端(无收入区)仍用 --no-revenue 保持原构图。 */
+  padding: var(--cy-space-2) var(--cy-page-x) 0;
+}
+
+.rv-hero--no-revenue {
+  padding-bottom: 200rpx; /* ds-ok: 200rpx 首屏构图定位值,无对应 spacing token */
+}
+
+.rv-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cy-space-3);
+  margin-bottom: var(--cy-space-5);
+}
+
+.rv-hero-greet {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 2026-08-20 稿 3910:580:问候行 19px regular,不再用 display 大字 */
+.rv-hero-line {
+  font-size: 38rpx; /* ds-ok: 稿面 19px,介于 subtitle 与 display 之间无同值 token */
+  line-height: 1.4;
+  color: var(--cy-text-title);
+  letter-spacing: -1rpx;
+}
+
+/* 营业状态 pill 与欢迎语同一行(设计稿:状态是身份信息,不是独立一栏) */
+.rv-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-1-5);
+}
+
+.rv-hero-tip {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.rv-hero-hi {
+  font-weight: 400;
+  color: var(--cy-text-title);
+}
+
+.rv-hero-name {
+  font-weight: 400; /* 稿面与 Hi 同重 */
+  color: var(--cy-text-title);
+}
+
+.rv-hero-avatar-hit {
+  /* 2026-09-17 用户定:头像再大一些 88→112rpx */
+  width: 112rpx;
+  height: 112rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rv-hero-avatar {
+  /* 2026-09-17 用户定:头像再大一些,撑满 112rpx 热区 */
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 50%;
+  background: var(--cy-bg-card);
+  border: 2rpx solid var(--cy-border-line);
+}
+
+/* 收入区:固定高度撑出问候行与快捷钮之间的整段留白(原 96+…+200 ≈ 650rpx,
+ * 按钮位置不动),数字组 flex 居中 ⇒ 永远在标题与按钮正中间。 */
+.rv-revenue-zone {
+  position: relative;
+  min-height: 650rpx; /* ds-ok: 650rpx 首屏构图定位值,无对应 spacing token */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rv-revenue-label {
+  text-align: center;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  font-weight: 400;
+  letter-spacing: 0.6rpx;
+}
+
+.rv-revenue-amount {
+  margin-top: var(--cy-space-1);
+  text-align: center;
+  font-size: 88rpx; /* ds-ok: 稿面 44px */
+  line-height: 1.05;
+  font-weight: 400; /* 稿面 regular,大而轻 */
+  letter-spacing: -2.6rpx;
+  color: var(--cy-text-title);
+}
+
+.rv-revenue-value {
+  min-height: 104rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rv-revenue-unknown {
+  margin-top: var(--cy-space-2);
+  text-align: center;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-type-section-title);
+  font-weight: 600;
+}
+
+.rv-revenue-feedback {
+  /* 同步/报错提示贴收入区底部(按钮正上方)，不占居中留白，数字才真正居中 */
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: 0;
+  min-height: 112rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rv-revenue-sync,
+.rv-project-sync {
+  text-align: center;
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-type-caption);
+}
+
+/* ===== 快捷操作：灰色透明蒙版 ===== */
+.rv-actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 var(--cy-page-x) var(--cy-space-8);
+}
+
+.rv-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-2);
+  width: 120rpx; /* 与 .rv-action-circle 同宽,否则圆钮溢出页边 */
+}
+
+.rv-action-circle {
+  /* 2026-09-17 用户定:圆钮再大一些 96→120rpx,里面 icon 保持 44 不变 */
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: var(--cy-bg-card);
+  box-shadow: var(--cy-shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rv-action-label {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-body);
+  font-weight: 400; /* 稿面 regular */
+}
+
+.rv-aftercare-alert {
+  min-height: var(--cy-btn-h);
+  margin: 0 var(--cy-page-x) var(--cy-space-4);
+  padding: 0 var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  box-shadow: var(--cy-shadow-card);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  box-sizing: border-box;
+}
+
+.rv-aftercare-alert__mark {
+  width: 14rpx;
+  height: 14rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--cy-color-status-danger);
+}
+
+.rv-aftercare-alert__text {
+  flex: 1;
+  min-width: 0;
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+}
+
+.rv-aftercare-alert__chev {
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-title);
+}
+
+/* 项目卡 —— 1:1 落 Figma 稿 ku2oaN9ag1XUMC9lKNnrcr#4019-12757。
+ * 结构:72×72 封面 + 右侧三行(标题/铃铛 · 副信息 · 待办/身份 pill)。
+ * 稿面有几个色值不在 DS 色板上,逐条 ds-ok 标了来源,按稿子保留原值。 */
+.rv-project-cards { margin: 0 var(--cy-page-x); }
+.rv-project-item + .rv-project-item { margin-top: var(--cy-space-2); }
+
+.rv-project-card {
+  display: flex;
+  /* 稿 134:185 的卡底那一行要整幅铺满,不能变成「封面 | 正文 | 卡底」三列。
+     flex-wrap + 卡底 flex-basis:100% 让它换到第二行,原来两列的排法一个字不动。 */
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 24rpx;
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.06); /* ds-ok: 稿面 drop-shadow 0 2px 5px 6%,比 --cy-shadow-card 更紧更实 */
+}
+
+/* 2026-08-20 稿 3910:580:封面加大到 91×99px(182×198rpx),竖图占位更接近活动海报比例 */
+.rv-project-thumb {
+  width: 182rpx;
+  height: 198rpx;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--cy-radius-md);
+  background: #ebebeb; /* ds-ok: 稿面 bg/fill/neutral/subdued,同时是缺图时的占位底 */
+}
+.rv-project-thumb-img { width: 100%; height: 100%; display: block; }
+
+.rv-project-body {
+  min-width: 0;
+  flex: 1;
+  min-height: 198rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 稿面顶对齐,不居中 */
+  gap: 10rpx;
+}
+
+.rv-project-line1 { display: flex; align-items: center; gap: 12rpx; }
+.rv-project-line1-fill { flex: 1; min-width: 0; }
+
+/* 状态签:白底浮签蓝字(稿面 进行中);未开始/已结束 降灰 */
+.rv-project-status {
+  flex-shrink: 0;
+  padding: 4rpx 16rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card);
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.12); /* ds-ok: 稿面浮签投影 */
+  font-size: var(--cy-type-micro);
+  font-weight: 500;
+  color: #155dfc; /* ds-ok: 稿面「进行中」蓝 */
+}
+/* 类目签:实心蓝白字(稿面 自由探索),放在状态后面 */
+.rv-project-cat {
+  flex-shrink: 0;
+  padding: 4rpx 16rpx;
+  border-radius: var(--cy-radius-md);
+  background: #2b7fff; /* ds-ok: 稿面类目签蓝 */
+  color: var(--cy-color-text-inverse);
+  font-size: var(--cy-type-micro);
+  font-weight: 700;
+}
+
+/* 2026-08-20 稿面重排:标题独占一行加大 */
+.rv-project-card-title {
+  min-width: 0;
+  font-size: 32rpx; /* ds-ok: 稿面标题 16px 档,比 body 大一级 */
+  font-weight: 700;
+  line-height: 42rpx;
+  letter-spacing: -0.56rpx;
+  color: #0d0d0d; /* ds-ok: 稿面标题色,比 DS 纯黑略浅 */
+}
+
+/* 铃铛:有动态=红铃铛+红角标+计数,没动态=灰铃铛占位。两张都是 Figma 导出资产,不自己画路径 */
+.rv-project-bell { flex-shrink: 0; display: flex; align-items: center; gap: 6rpx; }
+.rv-project-bell-ico { position: relative; width: 30rpx; height: 30rpx; }
+.rv-project-bell-img { width: 100%; height: 100%; display: block; }
+.rv-project-bell-dot {
+  position: absolute;
+  top: 0;
+  left: 20rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-status-danger);
+  border: 2rpx solid var(--cy-bg-card);
+}
+.rv-project-bell-count {
+  font-size: var(--cy-font-caption);
+  font-weight: 600;
+  line-height: 22rpx;
+  color: var(--cy-color-status-danger);
+  font-variant-numeric: tabular-nums;
+}
+
+.rv-project-card-meta {
+  display: block;
+  font-size: var(--cy-font-caption);
+  line-height: 31rpx;
+  color: #9a9a9a; /* ds-ok: 稿面副信息色 */
+}
+
+.rv-project-line3 { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+
+/* 待办:待核销=绿 / 待扫码=琥珀,标签 medium、数字 semibold,中间一个浅点分隔 */
+.rv-project-todos { min-width: 0; flex: 1; display: flex; align-items: center; }
+.rv-project-todo {
+  font-size: var(--cy-font-caption);
+  font-weight: 500;
+  line-height: 22rpx;
+}
+.rv-project-todo-num {
+  padding-left: 4rpx;
+  font-size: var(--cy-font-caption);
+  font-weight: 600;
+  line-height: 22rpx;
+  font-variant-numeric: tabular-nums;
+}
+.rv-project-todo--verify { color: #16a34a; /* ds-ok: 稿面待核销绿 */ }
+.rv-project-todo--scan { color: #d97706; /* ds-ok: 稿面待扫码琥珀 */ }
+.rv-project-todo-sep {
+  padding: 0 8rpx 0 12rpx;
+  font-size: var(--cy-type-micro);
+  line-height: 30rpx;
+  color: #dedede; /* ds-ok: 稿面分隔点 */
+}
+
+.rv-project-card-note {
+  min-width: 0;
+  font-size: var(--cy-font-caption);
+  line-height: 22rpx;
+  color: #bbbbbb; /* ds-ok: 稿面「今日无待办 / 待办没加载出来」灰 */
+}
+
+/* 承接卡「谁、哪天几点到店」(2026-09-23 裁决,取代原站点状态字):复用卡片第三行右侧。 */
+.rv-project-visit {
+  max-width: 300rpx;
+  flex-shrink: 0;
+  font-size: var(--cy-type-micro);
+  color: var(--cy-color-text-secondary);
+  text-align: right;
+}
+
+/* 2026-08-20 用户拍板:主办/承办身份 pill 从卡面删除(样式随 wxml 一并清) */ /* ds-ok: 行内动作与说明文字的最小区分 */
+
+/* ===== 区块 ===== */
+/* 2026-08-20 稿 3910:580 间距:区块间收紧到 48rpx(稿面 section 间约 20-24px) */
+.rv-section {
+  margin: 0 0 var(--cy-space-5);
+}
+
+.rv-section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-legacy-10);
+  padding: 0 var(--cy-page-x);
+  margin-bottom: var(--cy-space-4);
+}
+
+.rv-section-title {
+  font-size: 30rpx; /* ds-ok: 稿面 15px */
+  font-weight: 400; /* 稿面 regular */
+  color: var(--cy-text-title);
+}
+
+.rv-section-more {
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  margin-left: auto;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.rv-project-state {
+  margin: var(--cy-space-3) var(--cy-page-x) 0;
+}
+
+.rv-loading,
+
+.rv-error {
+  margin: 0 var(--cy-page-x);
+  --cy-comp-card-pad: var(--cy-space-4) var(--cy-space-3);
+  text-align: center;
+  font-size: var(--cy-font-label);
+  color: var(--cy-danger);
+}
+
+.rv-courses-art image {
+  width: 112rpx;
+  height: 112rpx;
+  opacity: 0.32;
+}
+
+.rv-courses-art--orange image {
+  width: 148rpx;
+  height: 148rpx;
+  opacity: 1;
+  filter: invert(42%) sepia(98%) saturate(4200%) hue-rotate(360deg) brightness(102%) contrast(101%);
+}
+
+.rv-courses-card--data .rv-courses-art image {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: var(--cy-radius-md);
+  opacity: 1;
+  filter: none;
+  object-fit: cover;
+}
+
+.rv-discover-art image {
+  width: var(--cy-space-8);
+  height: var(--cy-space-8);
+  opacity: 0.35;
+}
+
+.rv-scroll-pad {
+  height: calc(120rpx + constant(safe-area-inset-bottom));
+  height: calc(120rpx + env(safe-area-inset-bottom));
+}
+
+.rv-tap {
+  opacity: 0.88;
+}
+
+/* 今日待办四类 */
+.rv-todo-sub {
+  margin: var(--cy-space-2-5) 0 var(--cy-space-1-5);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-secondary);
+}
+
+.rv-more-list {
+  /* 左右边距由 scene-sheet 正文的 --cy-comp-sheet-body-pad-x 给,这里不再补一份 */
+  padding: 0;
+}
+
+/* Airbnb 177/179 式:行直接坐在白底上,靠发丝线分组。
+   不再是胶囊白卡 + 投影 —— 面板本身已是纯白,再叠白卡就是 §3.3 禁止的「白卡叠白卡」,
+   而且卡 + 投影同时出现违反「一层容器只选描边或投影之一」。 */
+.rv-more-item {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  min-height: max(88rpx, var(--cy-comp-sheet-merchant-row-h));
+  padding: var(--cy-space-2) var(--cy-space-3);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rv-more-item + .rv-more-item { border-top: 1rpx solid var(--cy-color-border-subtle); }
+
+.rv-more-ico {
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+}
+
+.rv-more-label {
+  flex: 1;
+  font-size: var(--cy-comp-sheet-merchant-row-size);
+  color: var(--cy-text-title);
+}
+
+.rv-more-chev {
+  flex-shrink: 0;
+  color: var(--cy-text-secondary);
+}
+
+/* 营业状态 pill(营业中/已打烊) */
+.rv-biz {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: var(--cy-legacy-6) var(--cy-space-2-5);
+  border-radius: var(--cy-radius-pill);
+  background: rgba(18,184,134,0.12);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-success);
+}
+.rv-biz-dot {
+  width: var(--cy-space-1-5);
+  height: var(--cy-space-1-5);
+  border-radius: 50%;
+  background: var(--cy-success);
+  margin-right: var(--cy-legacy-10);
+}
+.rv-biz--off { background: rgba(0,0,0,0.06); color: var(--cy-text-secondary); }
+.rv-biz--off .rv-biz-dot { background: var(--cy-text-secondary); }
+
+/* [P0-2] ③ 选章核销面板 —— 装在 cy-sheet 的 slot 里,条数不设上限
+   (wx.showActionSheet 上限 6 项,超了只能截断 = 静默丢选项) */
+.chpick { padding-bottom: var(--cy-space-2); }
+.chpick__hint {
+  padding: 0 var(--cy-space-1) var(--cy-space-2-5); /* ds-ok: 20rpx无精确匹配的spacing token */
+  font-size: var(--cy-font-label);
+  line-height: 1.5;
+  color: var(--cy-text-secondary);
+}
+.chpick__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88rpx;
+  box-sizing: border-box;
+  padding: var(--cy-space-3-5) var(--cy-space-1); /* ds-ok: 30rpx无精确匹配的spacing token */
+  border-top: 1rpx solid var(--cy-border-card);
+}
+.chpick__name {
+  flex: 1;
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  /* 章节名可能很长,别把箭头挤出屏幕 */
+  margin-right: var(--cy-space-2);
+}
+.chpick__chev {
+  flex-shrink: 0;
+  color: var(--cy-text-secondary);
+}
+
+/* 核销必须落到可辨识的三态,不能只给一闪而过的 toast。 */
+.verify-result { padding: var(--cy-legacy-36) var(--cy-space-4) var(--cy-space-3-5); text-align: center; /* ds-ok: 36rpx和28rpx无精确匹配的spacing token */ }
+.verify-result__title { display: block; font-size: var(--cy-font-title); font-weight: 700; color: var(--cy-text-title); }
+.verify-result__message { display: block; margin-top: var(--cy-legacy-18); font-size: var(--cy-font-body); line-height: 1.6; color: var(--cy-text-secondary); }
+.verify-result__action { margin: var(--cy-space-4) auto 0; width: 100%; padding: var(--cy-legacy-22) 0; border-radius: var(--cy-radius-md); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); font-weight: 600; }
+.verify-result--duplicate .verify-result__title { color: var(--cy-gold); }
+.verify-result--failure .verify-result__title { color: var(--cy-danger); }
+
+/* ===== 我的消息(设计稿 3910:702):事件流,单卡分隔线 ===== */
+.rv-msgs {
+  margin: 0 var(--cy-page-x);
+  --cy-comp-card-pad: 0;
+}
+
+.rv-msg {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2-5);
+  padding: var(--cy-space-3) var(--cy-space-3-5);
+  margin: var(--cy-space-2);
+  border-radius: var(--cy-radius-md);
+}
+
+.rv-msg-ico {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: var(--cy-bg-card-2);
+  color: var(--cy-text-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rv-msg-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1);
+}
+
+.rv-msg-title {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-title);
+}
+
+.rv-msg-sub {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.rv-msg-time {
+  flex-shrink: 0;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* scroll-view 同时带 100vh 与 padding-top:必须 border-box,否则整页比视口高一个导航栏 */
+.rv-scroll { box-sizing: border-box; }
+
+.rv-revenue-error {
+  margin-top: var(--cy-space-3);
+  text-align: center;
+  font-size: var(--cy-font-label);
+  color: var(--cy-danger);
+}
+
+/* ===== 我的消息(2026-08-20 稿 3910:580):白卡列表,行=图标圈+标题/摘要+时间 ===== */
+.rv-msg-card {
+  margin: 0 var(--cy-page-x);
+  background: var(--cy-bg-card);
+  border-radius: var(--cy-radius-lg);
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.06); /* ds-ok: 与同页项目卡同一投影 */
+  overflow: hidden;
+}
+.rv-msg-item {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+  padding: 28rpx 32rpx;
+}
+.rv-msg-item + .rv-msg-item { border-top: 1rpx solid var(--cy-color-border-subtle); }
+.rv-msg-ico {
+  flex-shrink: 0;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-secondary);
+}
+.rv-msg-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.rv-msg-title { font-size: var(--cy-font-label); color: var(--cy-color-text-primary); }
+.rv-msg-sub { font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+.rv-msg-time { flex-shrink: 0; font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+
+
+/* 稿 134:201 卡底行:左「承接方 · 幸会咖啡」,右一颗动作。稿上 12px 文字、行高 28。 */
+.rv-project-foot {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  min-height: 56rpx;
+  padding-top: var(--cy-space-2);
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+}
+.rv-project-foot-gap { flex: 1 1 auto; }
+.rv-project-acceptor {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+/* 动作半句用主文本色 + 尖括号,与同页「全部 8 ›」「承接邀约 ›」一套写法 ——
+   同色同字号的一句话看不出可点(2026-08-19 C02 实拍坐实)。 */
+.rv-project-act {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: var(--cy-font-caption);
+  font-weight: 500;
+  color: var(--cy-text-title);
+}
+.rv-project-act-arrow { flex-shrink: 0; }

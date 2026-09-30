@@ -1,0 +1,12 @@
+.mc { padding: 0 var(--cy-page-x) calc(env(safe-area-inset-bottom) + var(--cy-space-4)); }
+.mc-intro, .mc-loading, .mc-empty { display: block; font-size: var(--cy-font-label); line-height: 1.6; color: var(--cy-text-secondary); }
+.mc-list { display: flex; flex-direction: column; gap: var(--cy-space-3); margin-top: var(--cy-space-3); }
+.mc-merchant { padding: var(--cy-space-3); border-radius: var(--cy-radius-lg); background: var(--cy-bg-elevated); }
+.mc-name { display: block; font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); }
+.mc-channel { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-3); min-height: 104rpx; border-top: 1rpx solid var(--cy-border-card); }
+.mc-label, .mc-sub { display: block; }
+.mc-label { font-size: var(--cy-font-label); color: var(--cy-text-title); }
+.mc-sub { margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.mc-error { display: flex; align-items: center; justify-content: space-between; color: var(--cy-color-status-danger); }
+.mc-retry { margin: 0; font-size: var(--cy-font-caption); }
+.mc-error-text { display: block; margin-top: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-color-status-danger); }

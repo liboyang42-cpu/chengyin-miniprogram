@@ -1,0 +1,67 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="club" need="club:finance:read" club-id="{{clubId}}" />
+<view class="page" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="俱乐部分润" safe-top="{{false}}" />
+  <!-- 9-16 晚拍板第 5 条 + 9-17 总控:余额三段只给主理人本人,管理员不显示(isOwner 由 summary 接口判定) -->
+  <cy-funds-stages class="section" wx:if="{{summary && summary.isOwner && (state === 'ready' || state === 'empty')}}" bind:stages="onStages" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="3" />
+  <cy-error wx:elif="{{state === 'network-error'}}" title="网络连接失败" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" />
+  <cy-error wx:elif="{{state === 'error'}}" title="结算数据暂不可用" sub="{{errorText}}" retry="重新加载" bind:retry="retryLoad" />
+  <cy-empty wx:elif="{{state === 'empty'}}" kind="empty" fill size="lg" title="还没有主题结算记录" sub="有主题开始结算后会在这里显示" />
+
+  <block wx:elif="{{state === 'ready'}}">
+    <view class="section">
+      <view class="settled-card">
+        <text class="settled-label">已入账分润</text>
+        <text class="settled-amount">{{summary.settledAmountStatus === 'unverified' ? '金额待核验' : summary.settledAmountText}}</text>
+        <text class="settled-label" wx:if="{{summary.unverifiedSettledCount}}">{{summary.unverifiedSettledCount || 0}} 笔已结算记录缺少入账证据，合计待核验</text>
+      </view>
+
+      <!-- CU-C-92:可提现余额为 0(或还没取到)时主按钮不得再冒充提现 —— 与商家侧同款禁用,
+           并把可提现条件写在按钮下面。余额数由下方 cy-funds-stages 自己拉的 /api/wallet/stages 给出。 -->
+      <button class="withdraw-btn" loading="{{withdrawing}}" disabled="{{withdrawing || withdrawState !== 'positive'}}"
+        aria-disabled="{{withdrawing || withdrawState !== 'positive'}}"
+        aria-label="{{withdrawState === 'zero' ? '联系平台客服提现，当前可提现为 0' : (withdrawState === 'unknown' ? '联系平台客服提现，可提现余额待确认' : '联系平台客服提现')}}"
+        bindtap="goWithdraw">联系平台客服提现</button>
+      <text class="withdraw-hint" wx:if="{{withdrawState === 'zero'}}">可提现为 0：分润到账并客诉期结束后才能提现</text>
+      <text class="withdraw-hint" wx:elif="{{withdrawState === 'unknown'}}">{{summary.isOwner === false ? '仅主理人可发起提现' : '可提现余额待确认'}}</text>
+      <!-- 2026-09-04 截图走查改:原文案是「已入账金额待确认」,而它正上方那张卡
+           写着「已入账分润 ¥12,480.00」—— 一个说已入账、一个说待确认,自相矛盾,
+           而且是在动钱的页面上。
+           2026-09-09:这里原来那句被我改成了和页脚一模一样的文案,一页两条同话。
+           稿 G2 105:6 只在最底下写一次,这里就不再重复了。 -->
+    </view>
+
+    <view class="section">
+      <text class="section-title">各主题结算</text>
+      <view class="topic-row" wx:for="{{summary.topics}}" wx:key="id"
+        data-topic-id="{{item.topicId}}" data-id="{{item.id}}" bindtap="goTopicSettlement" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="topic-row-head">
+          <text class="topic-row-name">{{item.name}}</text>
+          <text class="topic-row-amount">{{item.amountStatus === 'unverified' ? '待核验' : item.amountText}}</text>
+        </view>
+        <view class="topic-row-body">
+          <view class="topic-row-meta">
+            <text class="topic-row-meta-line">原始应结 {{item.originalAmountText}}</text>
+            <text class="topic-row-meta-line">已执行调整 {{item.executedAdjustmentText}}</text>
+            <text class="topic-row-meta-line">核算净额 {{item.netAmountText}}</text>
+            <text class="topic-row-meta-line">{{item.arrivedText}}</text>
+            <!-- CU-C-93:右侧 chip 本来就是状态徽标,同一状态不再在 meta 行里再说一遍
+                 (pending 两处都写「待入账」、settled+已核验两处都写「已入账」);
+                 只在 chip 说不全(作废细节、入账金额待核验)时补这一行。 -->
+            <text class="topic-row-meta-line" wx:if="{{item.status === 'void' || item.amountStatus !== 'verified'}}">{{item.paidText}}</text>
+          </view>
+          <text class="topic-row-chip {{item.status === 'settled' && item.amountStatus === 'verified' ? 'topic-row-chip--settled' : ''}}">{{item.status === 'void' ? '已作废' : item.status === 'pending' ? '待入账' : item.amountStatus === 'unverified' ? '待核验' : '已入账'}}</text>
+          <cy-icon class="topic-row-arrow" name="arrow-right" size="24" />
+        </view>
+      </view>
+      <text class="footnote">已入账以账户打款记录为准；核算净额包含已执行调整，后续调整不代表已到账。作废记录保留历史金额，不再打款。</text>
+    </view>
+  </block>
+</view>
+</view>

@@ -1,0 +1,33 @@
+<cy-sheet show="{{show}}" handle="{{true}}" bind:close="onClose">
+  <view class="mc">
+    <view class="mc__head">
+      <view class="pk-eyebrow">{{eyebrow}}</view>
+      <view wx:if="{{arrived}}" class="pk-pill pk-pill--ok"><cy-icon name="pin" size="24" /><text>到点</text></view>
+    </view>
+    <view class="pk-title">{{title}}</view>
+
+    <view class="pk-card mc__player">
+      <view class="mc__play" bindtap="onToggle"
+            aria-role="button" aria-label="{{playing ? '暂停店主的歌单' : '播放店主的歌单'}}"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <cy-icon wx:if="{{!playing}}" name="play" size="40" />
+        <!-- 图标册里没有 pause:两根竖杠是几何图元不是图标,不伪造一个矢量塞进 cy-icon -->
+        <view wx:else class="mc__pause" aria-hidden="true">
+          <view class="mc__pause-bar"></view>
+          <view class="mc__pause-bar"></view>
+        </view>
+      </view>
+      <view class="mc__wave">
+        <view class="mc__bar {{index < litBars ? 'mc__bar--on' : ''}}"
+              wx:for="{{bars}}" wx:key="*this"
+              style="height:{{item || 16}}rpx"></view>
+      </view>
+      <view class="mc__meta">{{trackName}} · {{positionLabel}}</view>
+    </view>
+
+    <view class="pk-desc pk-desc--dim">{{hint}}</view>
+    <view class="mc__track">
+      <view class="mc__track-fill" style="width:{{percent || 0}}%"></view>
+    </view>
+  </view>
+</cy-sheet>

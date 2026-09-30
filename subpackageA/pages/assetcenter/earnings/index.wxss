@@ -1,0 +1,44 @@
+page { min-height: 100vh; background: var(--cy-bg-page); color: var(--cy-text-title); }
+.er-page.theme-dark {
+  /* 页面可能从商家浅色分包返回；旧 alias 在 page 作用域已快照为日间值，必须在深色根重映射。 */
+  --cy-bg-page: var(--cy-color-bg-page);
+  --cy-bg-card: var(--cy-color-bg-surface);
+  --cy-bg-card-2: var(--cy-color-bg-surface-subtle);
+  --cy-bg-elevated: var(--cy-color-bg-elevated);
+  --cy-border-card: var(--cy-color-border-subtle);
+  --cy-border-line: var(--cy-color-border-strong);
+  --cy-text-body: var(--cy-color-text-secondary);
+  --cy-btn-solid-bg: var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg: var(--cy-color-action-primary-fg);
+  min-height: 100vh;
+  background: var(--cy-color-bg-page);
+  color: var(--cy-color-text-primary);
+}
+.er-shell { box-sizing: border-box; }
+
+/* D19 提现表单：逐行灰底、无横线，说明位于底部 CTA 上方。 */
+.tx-body { padding-bottom: var(--cy-space-2); }
+.txyr { min-height: calc(var(--cy-btn-h) + var(--cy-space-2)); padding: 0 var(--cy-space-3); display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); border-radius: var(--cy-radius-md); background: var(--cy-color-input-bg-empty); }
+.txyr_left { flex: 1; display: flex; justify-content: space-between; gap: var(--cy-space-2); color: var(--cy-text-secondary); }
+.txyr_left text { color: var(--cy-color-input-text); font-weight: 700; }
+.txyr_unknown { color: var(--cy-text-secondary); }
+.txyr_right { min-height: var(--cy-btn-h); display: flex; align-items: center; color: var(--cy-text-title); font-weight: 600; text-decoration: underline; }
+.txcon { margin-top: var(--cy-space-2); }
+.txcon_ly { min-height: calc(var(--cy-btn-h) + var(--cy-space-2)); margin-bottom: var(--cy-space-2); padding: 0 var(--cy-space-3); box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-input-bg-empty); }
+.txcon_ly--amount { align-items: stretch; flex-direction: column; justify-content: center; gap: 0; padding-top: var(--cy-space-2); padding-bottom: var(--cy-space-2); }
+.txcon_ly--filled { background: var(--cy-color-input-bg-filled); }
+.txcon_ly_name { flex: none; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.txcon_ly_inp { flex: 1; min-width: 0; }
+.txcon_ly_inp--amount { display: flex; align-items: center; }
+.txcon_ly_currency { color: var(--cy-color-input-text); font-size: var(--cy-font-subtitle); font-weight: 700; }
+.txcon_ly_inp input { width: 100%; height: 64rpx; color: var(--cy-color-input-text); font-size: var(--cy-font-body); text-align: right; }
+.txcon_ly_inp--amount input { font-size: var(--cy-font-subtitle); font-weight: 700; }
+.txcon_ly_inp--disabled input { color: var(--cy-text-secondary); font-size: var(--cy-font-body); }
+.etx-placeholder { color: var(--cy-color-input-placeholder); }
+.txtpis { padding-top: var(--cy-space-3); }
+.txtpis_tit { margin-bottom: var(--cy-space-1); font-size: var(--cy-font-body); font-weight: 700; }
+.txtpis_txt { color: var(--cy-text-body); font-size: var(--cy-font-label); line-height: var(--cy-leading-normal); }
+
+/* 单独同意勾选行:排在提现说明之前,不与说明文字混排 */
+.etx-consent { margin-top: var(--cy-space-3); }
+.tx-submit-error { margin-top: var(--cy-space-3); }

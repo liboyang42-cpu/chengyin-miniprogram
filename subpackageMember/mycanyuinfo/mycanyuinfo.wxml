@@ -1,0 +1,13 @@
+<!-- 深链兼容壳(§4.1):站内从「我的参与」点开的是弹窗;这一页只服务外部直达。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="mycanyuinfo-page">
+  <cy-nav-bar custom-back bind:back="backToList" />
+  <view style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="参与详情" safe-top="{{false}}" />
+  <cy-scene-member-participation-detail id="participationDetail" record-id="{{id}}" bind:back="backToList" bind:close="backToList" bind:refresh="noop" />
+</view>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

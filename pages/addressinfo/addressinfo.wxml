@@ -1,0 +1,52 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="davidbox">
+  <!-- 真实 caller 三处都是 navigateTo(address.js:79 编辑、address.wxml:29 新增、
+       baoming.js:329 报名内进入)⇒ 真·二级页。组件内 onBack 在栈深 1 时不动 ⇒ 深链直达是死箭头。
+       接管后回落到无参可达的参与人列表。 -->
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <!-- 说明改挂 page-title 的 subtitle:原来卡外还有一个同名「参与人信息」大标题 = 同页双标题(DS §3.1 禁止条) -->
+  <cy-page-title title="参与人信息" subtitle="用于报名联系和到场核验，不会公开展示，也不用于配送。" />
+  <cy-skeleton wx:if="{{bootstrapping}}" type="form-section" count="{{2}}" loading-label="正在读取参与人信息" />
+  <cy-state-shell wx:elif="{{bootstrapError}}" kind="{{bootstrapErrorKind}}"
+                  title="{{bootstrapError}}" sub="{{bootstrapErrorSub}}" primary="重新加载"
+                  fill size="lg" bind:primary="retryBootstrap" auto-back custom-back bind:back="onBack" />
+  <view class="add" wx:else>
+    <view class="add_li">
+      <view class="add_li_left">姓名</view>
+      <view class="add_li_right">
+        <input type="text" placeholder="输入姓名" placeholder-class="fld-ph"
+               value="{{form.fullName}}" bindinput="onInputChange" data-field="fullName" />
+      </view>
+    </view>
+    <view class="add_li">
+      <view class="add_li_left">手机号</view>
+      <view class="add_li_right">
+        <input type="number" placeholder="输入手机号" placeholder-class="fld-ph"
+               value="{{form.mobilePhone}}" bindinput="onInputChange" data-field="mobilePhone" />
+      </view>
+    </view>
+    <!-- <view class="add_li switch-li">
+      <view class="add_li_left">设为默认地址</view>
+      <view class="add_li_right">
+        <cy-switch checked="{{form.isDefault == 1}}" bindchange="onDefaultChange" />
+      </view>
+    </view> -->
+  </view>
+</view>
+
+<view class="address-save-state" wx:if="{{!bootstrapping && !bootstrapError}}">
+  <cy-progress-status wx:if="{{saving || saveSucceeded}}" density="compact"
+                      steps="{{saveSteps}}" current="{{saveSucceeded ? 1 : 0}}"
+                      title="{{saveSucceeded ? '参与人信息已保存' : '正在保存参与人信息'}}"
+                      sub="{{saveSucceeded ? '即将返回上一页' : '请保持当前页面'}}" />
+  <cy-inline-error wx:if="{{saveError}}" title="参与人信息没有保存" sub="{{saveError}}"
+                   action="重试保存" bind:action="saveAddress" />
+</view>
+
+<cy-footer-bar wx:if="{{!bootstrapping && !bootstrapError}}">
+  <cy-btn variant="primary" loading="{{saving}}" disabled="{{!canSubmit}}" bindtap="saveAddress" bind:disabledtap="onSaveDisabledTap">保存参与人信息</cy-btn>
+</cy-footer-bar>
+</view>

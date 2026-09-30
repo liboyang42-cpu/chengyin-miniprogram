@@ -1,0 +1,19 @@
+{
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-scene-member-order-history": "/components/cy/scene-member-order-history/index",
+    "cy-scene-member-order-detail": "/components/cy/scene-member-order-detail/index",
+    "cy-scene-play-activity-detail": "/components/cy/scene-play-activity-detail/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationBarTitleText": "我的订单",
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white"
+}

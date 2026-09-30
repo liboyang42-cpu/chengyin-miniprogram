@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-npc-avatar": "/components/cy/npc-avatar/index",
+    "cy-result-sheet": "/components/cy/result-sheet/index"
+  }
+}

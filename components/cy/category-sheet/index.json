@@ -1,0 +1,11 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-icon": "/components/cy/icon/index"
+  }
+}

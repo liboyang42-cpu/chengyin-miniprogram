@@ -1,0 +1,21 @@
+<!-- 原型的取景面板(camPanel):浮在地图上的一张卡,不是整页相机。
+     2026-09-11 用户裁决「不是 canon 了 用原型的」—— 拟物机身那页退场,
+     漫游、组局、集邮册三处入口统一用这一件。
+     四枚控件的位置逐条照原型:✕ 左上 · 全屏左下 · 翻转右下 · 快门居中底。 -->
+<view wx:if="{{show}}" class="cam {{camFull ? 'is-full' : ''}}" style="top:{{camFull ? 0 : topSafe}}px">
+  <camera wx:if="{{camReady}}" class="cam__live" device-position="{{camFront ? 'front' : 'back'}}"
+          flash="off" binderror="onCamError" />
+  <view wx:else class="cam__live cam__live--off">
+    <text class="cam__offtxt">{{camErr || '正在打开相机'}}</text>
+  </view>
+  <view class="cam__x" bindtap="onCamClose" aria-role="button" aria-label="关闭取景框" hover-class="cy-pressed" hover-stay-time="80">
+    <cy-icon name="close-sm" size="30" />
+  </view>
+  <view class="cam__full" bindtap="onCamFull" aria-role="button" aria-label="{{camFull ? '退出全屏' : '全屏放大'}}" hover-class="cy-pressed" hover-stay-time="80">
+    <cy-icon name="{{camFull ? 'collapse' : 'expand'}}" size="30" />
+  </view>
+  <view class="cam__flip" bindtap="onCamFlip" aria-role="button" aria-label="翻转镜头" hover-class="cy-pressed" hover-stay-time="80">
+    <cy-icon name="camera" size="30" />
+  </view>
+  <view class="cam__shutter" bindtap="onShoot" aria-role="button" aria-label="拍照" hover-class="cy-pressed" hover-stay-time="80"></view>
+</view>

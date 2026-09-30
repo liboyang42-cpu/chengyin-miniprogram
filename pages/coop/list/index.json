@@ -1,0 +1,22 @@
+{
+  "navigationBarTitleText": "协作邀请",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F4F4",
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-nav-spacer": "/components/cy/nav-spacer/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-inline-error": "/components/cy/inline-error/index"
+  },
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true
+}

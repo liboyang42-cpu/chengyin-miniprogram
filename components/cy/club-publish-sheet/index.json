@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-scene-sheet": "../scene-sheet/index",
+    "cy-icon": "../icon/index"
+  }
+}

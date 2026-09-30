@@ -1,0 +1,7 @@
+page { min-height: 100vh; display: flex; flex-direction: column; }
+.theme-dark { flex: 1; min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.myinvite-page { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.myinvite-page-body { flex: 1; min-height: 0; display: flex; flex-direction: column;
+  padding: 0 var(--cy-page-x) calc(var(--cy-space-4) + env(safe-area-inset-bottom)); }
+.xjtit_box_li{ background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); padding: var(--cy-space-4); border: 2rpx solid var(--cy-border-card); display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx;box-shadow: 0px 2rpx 6rpx 0px rgba(0, 0, 0, .1)} /* ds-ok: box-shadow rgba 为既有色值,非本次改动引入 */

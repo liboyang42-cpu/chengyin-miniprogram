@@ -1,0 +1,38 @@
+<cy-sheet show="{{show}}" handle="{{true}}" bind:close="onClose">
+  <view class="bt">
+    <view class="bt__top">
+      <view class="bt__copy">
+        <view class="pk-eyebrow">{{eyebrow}}</view>
+        <view class="pk-title">{{title}}</view>
+      </view>
+      <cy-mascot mode="blindfold" size="192" />
+    </view>
+    <!-- 图标步骤行(ADA 借鉴卡 E):替代原来那行整句说明;整句降级为本行 aria-label -->
+    <view class="pk-steps" wx:if="{{stepIcons.length}}" aria-role="text" aria-label="{{steps}}">
+      <block wx:for="{{stepIcons}}" wx:key="index">
+        <view wx:if="{{index > 0}}" class="pk-steps__link" aria-hidden="true"></view>
+        <view class="pk-steps__item">
+          <view class="pk-steps__badge">
+            <cy-icon name="{{item.icon}}" size="34" />
+            <view class="pk-steps__no">{{item.index}}</view>
+          </view>
+          <text class="pk-steps__label">{{item.label}}</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="pk-option {{selectedKey === item.key ? 'pk-option--on' : ''}}"
+          wx:for="{{options}}" wx:key="key"
+          data-key="{{item.key}}" bindtap="onPick"
+          aria-role="button" aria-label="选择 {{item.key}} {{item.label}}"
+          hover-class="cy-pressed" hover-stay-time="80">
+      <view class="pk-option__key">{{item.key}}</view>
+      <view class="pk-option__label">{{item.label}}</view>
+    </view>
+
+    <view class="pk-foot">
+      <text class="pk-foot__hint">{{hint}}</text>
+      <text class="pk-foot__xp">{{xpLabel}}</text>
+    </view>
+  </view>
+</cy-sheet>

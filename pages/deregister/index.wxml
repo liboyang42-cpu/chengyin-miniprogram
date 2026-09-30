@@ -1,0 +1,13 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="deregister-page">
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <cy-page-title title="注销账号" flush="{{true}}" />
+  <!-- D38：路由只保留深链兼容，正文与设置页弹窗共用同一个注销 scene。 -->
+  <cy-sheet show="{{true}}" bind:close="onBack">
+    <cy-scene-settings-deregister id="deregisterFlow" />
+  </cy-sheet>
+</view>
+</view>

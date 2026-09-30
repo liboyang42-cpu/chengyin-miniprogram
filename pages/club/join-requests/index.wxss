@@ -1,0 +1,31 @@
+page { background: var(--cy-bg-page); }
+.page { min-height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; padding-bottom: var(--cy-space-5); }
+cy-empty { display: flex !important; flex: 1 !important; min-height: 0; }
+.intro { padding: 0 var(--cy-page-x) var(--cy-space-3); color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.refreshing { padding: 0 var(--cy-page-x) var(--cy-space-2); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+.request-list-error { margin: 0 var(--cy-page-x) var(--cy-space-3); }
+.list-inline-error { margin: 0 var(--cy-page-x) var(--cy-space-3); }
+.request-list { padding: 0 var(--cy-page-x); }
+/* 整页上的卡 = bg-elevated。--cy-bg-card 解析到 bg-surface(#0A0A0B),与页黑几乎同色。 */
+.request-card { padding: var(--cy-space-3); margin-bottom: var(--cy-space-2); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-elevated); }
+.request-row { display: flex; align-items: center; gap: var(--cy-space-2-5); }
+.request-avatar { flex-shrink: 0; }
+.request-main { flex: 1; min-width: 0; }
+.request-name { color: var(--cy-text-title); font-size: var(--cy-font-body); font-weight: 600; }
+.request-time { margin-top: var(--cy-space-1); color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+/* 稿 P3 30:2 的申请留言:头像行之下整宽一行,比时间那行亮一档 —— 它是要读的内容,不是元信息。 */
+.request-message {
+  display: block; margin-top: var(--cy-space-2);
+  color: var(--cy-color-text-primary); font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+}
+.request-actions { display: flex; gap: var(--cy-space-1-5); flex-shrink: 0; }
+/* 用 pill + min-width=min-height 会把两个字的按钮压成正圆,看着像头像。
+   改成常规圆角矩形,宽度由文字撑。 */
+.request-btn { min-height: var(--cy-btn-h); box-sizing: border-box; display: flex; align-items: center; justify-content: center; padding: 0 var(--cy-space-4); border-radius: var(--cy-radius-md); font-size: var(--cy-font-label); }
+.request-btn.is-disabled { opacity: var(--cy-opacity-disabled); }
+/* 拒绝一条申请不是危险动作(可撤、无资金后果),所以走中性描边而不是 danger 档 ——
+   红色描边会让它跟「解散俱乐部」同级,人会不敢点。Figma 30:20。 */
+.request-btn--reject { color: var(--cy-text-body); border: 2rpx solid var(--cy-color-border-strong); }
+.request-btn--approve { color: var(--cy-btn-solid-fg); background: var(--cy-btn-solid-bg); }
+.request-action-error { margin-top: var(--cy-space-2); }

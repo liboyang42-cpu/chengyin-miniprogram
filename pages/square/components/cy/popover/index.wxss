@@ -1,0 +1,51 @@
+/* cy-popover · T5 胶囊弹窗(Figma 339:740)
+ *
+ * 尺寸映射(稿 pt → rpx,1pt = 2rpx):
+ *   圆角 14pt = 28rpx · 内边距 6pt = 12rpx · 投影 0 8pt 24pt rgba(0,0,0,.4) = 0 16rpx 48rpx
+ *   行内边距 11/14/11/12pt · 图标与文字间距 8pt = 16rpx · 图标 18pt = 36rpx · 文字 14pt = 28rpx
+ */
+
+.pop__catch {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: var(--cy-z-popover);
+  /* 刻意无背景:T5 不压暗。这层只为接住「点外面」。 */
+}
+
+.pop__panel {
+  position: fixed;
+  z-index: var(--cy-z-popover);
+  /* 宽度由内容撑 —— 稿子写死了「不许铺满宽度」,所以这里不能有 width/left+right 对拉。 */
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 12rpx;
+  border-radius: var(--cy-comp-popover-radius);
+  background: var(--cy-color-bg-interactive);
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, .4);   /* ds-ok:稿 339:733 的投影,阴影没有 token 层 */
+}
+
+.pop__item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 22rpx 28rpx 22rpx 24rpx;
+  /* 稿上行高约 83rpx,差 5rpx 到仓库的 88rpx(44pt)可点下限。
+     这里直接抬 min-height 而不是用透明 ::after —— 行是竖着叠的,
+     ::after 外扩会让相邻两行的热区在缝里重叠,变成「点 A 触发 B」。 */
+  min-height: 88rpx;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.pop__label {
+  font-size: var(--cy-type-body);
+  /* 坐在 interactive(#4D4D4D)上的文字只能用 text-primary —— tokens.wxss:71 写死的判据。 */
+  color: var(--cy-color-text-primary);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,本地补一份(灰底与灰字，松手恢复)。 */
+.pop__item.cy-pressed { background: var(--cy-color-bg-raised); color: var(--cy-color-text-secondary); }
+.pop__item.cy-pressed .pop__label { color: var(--cy-color-text-secondary); }

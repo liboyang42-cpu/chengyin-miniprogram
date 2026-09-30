@@ -1,0 +1,19 @@
+/* ============================================================
+ * 加载结束后内容挂载淡入(2026-08-21)
+ *
+ * 挂在「随加载完成而挂载」的那个节点上 —— 即 <cy-skeleton wx:if> 的 wx:elif/wx:else 兄弟
+ * (内容 / 空态 / 错误态都算)。wx:if 翻转会重新挂载,
+ * 进场动画自动播,不需要任何 JS 接线。
+ *
+ * 时长读 --cy-motion-fade-swap(200ms),与 utils/motion.js 的 FADE_SWAP_MS 同源;
+ * 系统级减动效由 app.wxss 的 prefers-reduced-motion 全局规则兜底(把时长压到 0.01ms)。
+ *
+ * ⚠️ 单独成文件是因为自定义组件 styleIsolation:isolated 收不到全局 components.wxss ——
+ * 组件内部要用就 @import 这一份,别再抄一份定义(抄一份 = 时长会各改各的)。
+ * 用法:@import '../../../style/fade-in.wxss';
+ * ============================================================ */
+.cy-fade-in { animation: cy-fade-in var(--cy-motion-fade-swap) var(--cy-ease-out); }
+@keyframes cy-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

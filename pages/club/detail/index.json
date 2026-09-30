@@ -1,0 +1,32 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-date-field": "/components/cy/date-field/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-merchant-card": "/components/cy/merchant-card/index",
+    "cy-timeline": "/components/cy/timeline/index",
+    "cy-post-card": "/components/cy/post-card/index",
+    "cy-modal": "/components/cy/modal/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-qr-voucher": "/components/cy/qr-voucher/index",
+    "cy-scene-club-edit": "/components/cy/scene-club-edit/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-search": "/components/cy/search/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-privacy-gate": "/components/cy/privacy-gate/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-inline-error": "/components/cy/inline-error/index"
+  },
+  "navigationBarTitleText": "俱乐部",
+  "navigationBarBackgroundColor": "#000000",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true
+}

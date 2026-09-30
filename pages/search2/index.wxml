@@ -1,0 +1,197 @@
+<wxs src="../../utils/wxs/money.wxs" module="money" />
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="search2">
+  <cy-nav-bar />
+  <!-- 透明语义包装仅保留 C1 标题契约，不提供任何竖向间距。 -->
+  <view class="c1-page-title"><cy-page-title title="搜索" /></view>
+  <view class="main">
+    <view class="wp">
+      <view class="sousuo flex-cb">
+        <cy-search class="sousuo__field" value="{{searchKeyword}}" placeholder="搜索主题、活动、俱乐部、商家" bind:input="onKeywordInput" bind:confirm="onSearchConfirm" />
+        <cy-btn id="filter-trigger" variant="ghost" size="xs" class="cy-btn-inline" bindtap="popShow">
+          <image lazy-load="true" src="/images/icon_cat.png" mode="widthFix" style="width:32rpx;height:32rpx;margin-right:8rpx" />
+          筛选
+        </cy-btn>
+      </view>
+
+      <!-- 搜索历史:2026-08-04 产品拍板,只走本地 storage(最近 10 条),不上后端、不建表。 -->
+      <view class="hot-keys" wx:if="{{ searchHistory.length }}">
+        <view class="g-type1 flex-cb">
+          <text>搜索历史</text>
+          <text class="history-clear" bindtap="onClearHistory" aria-role="button" aria-label="清空搜索历史" hover-class="cy-pressed" hover-stay-time="80">清空</text>
+        </view>
+        <view class="cont flex-w">
+          <view
+            class="li"
+            wx:for="{{ searchHistory }}"
+            wx:key="*this"
+            bindtap="onHotKeyClick"
+            data-index="{{-1}}"
+            data-keyword="{{item}}"
+            aria-role="button" aria-label="搜索{{item}}"
+           hover-class="cy-pressed" hover-stay-time="80">{{ item }}</view>
+        </view>
+      </view>
+
+      <!-- 2026-09-24 裁决(CU-M-63):这 8 个词是 utils/hot-words.js 里的硬编码运营位,
+           不是按用户/内容算出来的,所以标题不写「猜你想搜」(个性化承诺)也不写「热门搜索」
+           (冒充聚合热搜);且每个词都在仓内真实内容里有命中样本,不再出现
+           「盗墓笔记」这种点开一张全空结果页的死词。真实热搜聚合另立卡。 -->
+      <view class="hot-keys" wx:if="{{ hotkeys.length }}">
+        <view class="g-type1">推荐搜索</view>
+        <view class="cont flex-w">
+          <view 
+            class="li {{activeHotKey === index ? 'active' : ''}}" 
+            wx:for="{{ hotkeys }}" 
+            wx:key="index"
+            wx:if="{{item}}"
+            bindtap="onHotKeyClick"
+            data-index="{{index}}"
+            data-keyword="{{item}}"
+            aria-role="button" aria-label="搜索{{item}}"
+           hover-class="cy-pressed" hover-stay-time="80">{{ item }}</view>
+        </view>
+      </view>
+
+      <!-- 类别:2026-07-31 用户原话"类别没有就不显示"——零类别时整块隐藏，不再展示空态占位。
+           加载中/加载失败仍要有反馈，只有"确定没有"这一态才隐藏。 -->
+      <view class="type-list" wx:if="{{categoryLoading || categoryError || categoryList.length}}">
+        <view class="g-type1">类别</view>
+        <!-- 结构已知的首屏加载走骨架,不写裸文案/虚线占位框(规范 §3.12,C01 文档 P0-D) -->
+        <cy-skeleton wx:if="{{categoryLoading}}" type="card" count="2" />
+        <cy-error class="cy-fade-in" wx:elif="{{categoryError}}" title="类别没能加载出来" sub="{{categoryError}}" bind:retry="getCategoryList" />
+        <view class="list flex-w" wx:else>
+          <view 
+            class="li {{activeCategory === item.id ? 'active' : ''}}" 
+            wx:for="{{ categoryList }}" 
+            wx:key="id"
+            bindtap="onCategoryClick"
+            data-category="{{item}}"
+            aria-role="button" aria-label="搜索类别{{item.categoryName}}"
+           hover-class="cy-pressed" hover-stay-time="80">
+            <view class="item flex-cb">
+              <view class="icon">
+                <cy-icon name="{{ item.iconName }}" size="40" />
+              </view>
+              <view class="info flex-a">
+                {{ item.categoryName }}
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="search-actions">
+        <cy-btn variant="ghost" class="search-actions__map" bindtap="goMap">
+          <cy-icon name="gps" size="32" />
+          在地图上找活动与主题点位
+        </cy-btn>
+      </view>
+    </view>
+  </view>
+
+  <!-- 筛选(§11:Modal 走共享组件,原 .screen/.pop-cont 私有弹层已删,对齐 pages/searchmap 同款筛选表单) -->
+  <cy-sheet show="{{popVisible}}" title="筛选" anchor-selector="#filter-trigger" bind:close="popClose">
+    <view class="form-main">
+      <!-- 日期筛选 -->
+      <view class="dl">
+        <view class="dt">日期</view>
+        <view class="cont">
+          <view class="dd {{activeDate === '1' ? 'active' : ''}}" bindtap="selectDate" data-value="1" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="tit">今天</view>
+            <cy-icon wx:if="{{activeDate === '1'}}" class="ck" name="check" size="40" />
+          </view>
+          <view class="dd {{activeDate === '2' ? 'active' : ''}}" bindtap="selectDate" data-value="2" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="tit">明天</view>
+            <cy-icon wx:if="{{activeDate === '2'}}" class="ck" name="check" size="40" />
+          </view>
+          <view class="dd {{activeDate === '3' ? 'active' : ''}}" bindtap="selectDate" data-value="3" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="tit">选择日期</view>
+            <cy-icon wx:if="{{activeDate === '3'}}" class="ck" name="check" size="40" />
+          </view>
+
+          <view class="riqi flex-ac" wx:if="{{activeDate === '3'}}">
+            <cy-icon name="calendar" size="32" />
+            <view class="picker_group flex-ac">
+              <view class="picker" data-field="startdate" bindtap="openDatePicker" hover-class="cy-pressed" hover-stay-time="80">
+                <text class="{{startdate=='开始日期'?'text-style1':'text-style2'}}">{{startdate}}</text>
+              </view>
+              <text class="text-style1">-</text>
+              <view class="picker" data-field="enddate" bindtap="openDatePicker" hover-class="cy-pressed" hover-stay-time="80">
+                <text class="{{enddate=='结束日期'?'text-style1':'text-style2'}}">{{enddate}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 价格筛选 -->
+      <view class="dl dl2">
+        <view class="dt">价格</view>
+        <view class="price flex-b">
+          <view class="li">
+            <view class="tit">最低区间</view>
+            <view class="cont">
+              <input type="text" value="{{jg1}}" bindinput="onMinPriceInput" />
+            </view>
+          </view>
+          <view class="li">
+            <view class="tit">最高区间</view>
+            <view class="cont">
+              <input type="text" value="{{jg2}}" bindinput="onMaxPriceInput" />
+            </view>
+          </view>
+        </view>
+
+        <!-- 双向滑动价格滑块 -->
+        <view class="slider-container">
+          <view class="slider-track"></view>
+          <view class="slider-range" style="{{sliderRangeStyle}}"></view>
+          <view class="slider-handle min-handle" style="{{minHandleStyle}}" bindtouchmove="onMinSliderMove" data-type="min"></view>
+          <view class="slider-handle max-handle" style="{{maxHandleStyle}}" bindtouchmove="onMaxSliderMove" data-type="max"></view>
+        </view>
+
+        <view class="price-range-tip">
+          价格区间：{{money.amount(priceRange.min)}} - {{money.amount(priceRange.max)}}
+        </view>
+      </view>
+
+      <!-- 排序:2026-09-24 裁决(CU-M-66)把「最热」撤掉——四类后端都没有热度排序,
+           留着只是一个点了不生效的选项。剩下「最近」去结果页真的会拼进查询
+           (/api/activity/list 的 sort_type),不再是死选项。 -->
+      <view class="dl">
+        <view class="dt">排序</view>
+        <view class="cont">
+          <view class="dd {{activeSort === '1' ? 'active' : ''}}" bindtap="selectSort" data-value="1" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="tit">最近</view>
+            <cy-icon wx:if="{{activeSort === '1'}}" class="ck" name="check" size="40" />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-btn">
+      <cy-btn class="form-btn__item" variant="ghost" bindtap="resetFilter">重置</cy-btn>
+      <cy-btn class="form-btn__item" variant="primary" bindtap="searchFilter">搜索</cy-btn>
+    </view>
+  </cy-sheet>
+
+  <cy-date-sheet show="{{dateSheetVisible}}" title="{{datePickerTitle}}" dark="{{true}}"
+    bind:cancel="cancelDatePicker" bind:confirm="confirmDatePicker">
+      <picker-view class="date-picker-view pw-wheel" value="{{datePickerValue}}" indicator-style="height:88rpx; border-top:1rpx solid rgba(128,128,128,0.45); border-bottom:1rpx solid rgba(128,128,128,0.45);" mask-style="background: transparent;" bindchange="onDatePickerChange">
+        <picker-view-column>
+          <view class="date-picker-item" wx:for="{{datePickerYears}}" wx:key="*this">{{ item || 0 }}年</view>
+        </picker-view-column>
+        <picker-view-column>
+          <view class="date-picker-item" wx:for="{{datePickerMonths}}" wx:key="*this">{{ item || 0 }}月</view>
+        </picker-view-column>
+        <picker-view-column>
+          <view class="date-picker-item" wx:for="{{datePickerDays}}" wx:key="*this">{{ item || 0 }}日</view>
+        </picker-view-column>
+      </picker-view>
+  </cy-date-sheet>
+</view>
+</view>

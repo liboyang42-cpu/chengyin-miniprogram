@@ -1,0 +1,118 @@
+@import '../../../style/merchant-light.wxss';
+
+page { background: var(--cy-bg-page); }
+.pdm-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-bg-page);
+}
+.pdm-scroll { flex: 1; min-height: 0; }
+.pdm-shell { box-sizing: border-box; padding: 0 var(--cy-page-x) var(--cy-space-8); }
+.pdm-summary {
+  margin: 0 var(--cy-space-1) var(--cy-space-2);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+
+.pdm-card {
+  margin-bottom: var(--cy-space-3);
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.pdm-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cy-space-3);
+}
+.pdm-title { min-width: 0; display: flex; flex-direction: column; }
+.pdm-node {
+  overflow: hidden;
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pdm-day {
+  margin-top: var(--cy-space-1);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+/* 题面是这张卡的主体:商家要靠它想起来这一轮问的是什么 */
+.pdm-q {
+  display: block;
+  margin-top: var(--cy-space-3);
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 600;
+  line-height: 1.45;
+}
+.pdm-bets {
+  margin-top: var(--cy-space-2);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+
+.pdm-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-3);
+  padding-top: var(--cy-space-3);
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+.pdm-link { display: flex; align-items: center; gap: var(--cy-space-1); }
+
+/* 展开之后:选项就在题面底下,不跳页也不弹半屏 ——
+   给答案这件事只有一步,再套一层容器就是多一次「我在哪」。 */
+.pdm-pick-hint {
+  margin-top: var(--cy-space-3);
+  padding-top: var(--cy-space-3);
+  border-top: 1rpx solid var(--cy-color-border-subtle);
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+.pdm-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-2);
+  padding: var(--cy-space-3);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-body);
+}
+/* 选中不是换底色,是描边加粗 + 右边一个勾:底色一换,没选中的几条看着像被禁用了 */
+.pdm-opt.is-on {
+  border-color: var(--cy-text-title);
+  color: var(--cy-text-title);
+  font-weight: 600;
+}
+.pdm-opt-t { min-width: 0; }
+
+.pdm-actions { display: flex; gap: var(--cy-space-2); margin-top: var(--cy-space-4); }
+.pdm-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+}
+.pdm-btn--ghost {
+  border: 2rpx solid var(--cy-color-border-subtle);
+  color: var(--cy-text-secondary);
+}
+.pdm-btn--primary { background: var(--cy-text-title); color: var(--cy-bg-card); }
+.pdm-btn--primary.is-disabled { opacity: .4; }

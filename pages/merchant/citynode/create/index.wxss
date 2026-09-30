@@ -1,0 +1,46 @@
+@import '../../../../style/merchant-light.wxss';
+
+.cnc-page { height: 100vh; display: flex; flex-direction: column; background: var(--cy-bg-page); }
+.cnc-scroll { flex: 1; min-height: 0; }
+.cnc-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--cy-space-5) var(--cy-page-x); color: var(--cy-text-secondary); text-align: center; }
+.cnc-state-title { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.cnc-state-sub { margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); line-height: 1.7; }
+
+/* 三段分组卡(照 Shopify 144 全屏子页排版) */
+.cnc-card { margin: var(--cy-space-2) var(--cy-page-x) 0; padding: var(--cy-space-2-5) var(--cy-space-3-5) var(--cy-space-3-5); background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); }
+.cnc-card--first { margin-top: 0; }
+.cnc-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.cnc-step { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.cnc-ok-wrap { display: inline-flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-success); }
+.cnc-ok { font-size: var(--cy-font-label); color: var(--cy-success); max-width: 320rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cnc-pad { height: var(--cy-space-5); }
+
+
+.cnc-cta { padding: var(--cy-space-2) var(--cy-page-x) calc(var(--cy-space-2) + env(safe-area-inset-bottom)); background: var(--cy-bg-card); border-top: 2rpx solid var(--cy-border-card); }
+
+/* 2026-08-10 收成一屏:玩法交给 pages/publish/temp,本页只剩玩法摘要 + 店址确认 */
+.cnc-tpl-name { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.cnc-tpl-meta { margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cnc-addr { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.cnc-addr-sub { margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cnc-addr-actions { display: flex; gap: var(--cy-space-2); }
+.cnc-addr-action { flex: 1; min-width: 0; }
+.cnc-hint { margin: var(--cy-space-1) 0 var(--cy-space-2-5); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); line-height: 1.7; }
+.cnc-page-error { margin: var(--cy-space-2) var(--cy-page-x) 0; }
+
+
+/* 2026-08-20 标题统一:L1 大标题撤销、标题移入 cy-nav-bar 居中;原 subtitle 保留为引导行 */
+.cnc-lede {
+  margin: 0 0 var(--cy-space-2);
+  padding: 0 var(--cy-page-x);
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-secondary);
+}
+
+/* 据点申请进度条:与 lede 同一左右留白,和下面的分组卡对齐 */
+.cnc-timeline {
+  display: block;
+  margin: 0 0 var(--cy-space-3);
+  padding: 0 var(--cy-page-x);
+}

@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "邀请记录",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-scene-member-invite-history": "/components/cy/scene-member-invite-history/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white"
+}

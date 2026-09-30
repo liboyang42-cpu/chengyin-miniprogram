@@ -1,0 +1,42 @@
+<!-- 低碳行动 · 计步。一条线:设目标 → 倒着数步数 → 归零落章,没有 tab。
+     ★ 步数**只能同步不能填**:填的话这个玩法当场作废,而它的全部价值就在于那个数是真的。 -->
+<cy-play-stage id="cy-play-stage" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="wk">
+    <view class="wk__h">{{mode === 'goal' ? '今天想走多少' : (done ? '走到了' : '还差多少')}}</view>
+
+    <!-- 琥珀点阵 LCD:面板上的字全是中文,不发光 -->
+    <view class="wk__lcd">
+      <view class="wk__k">{{mode === 'goal' ? '今日目标' : '还差'}}</view>
+      <view class="wk__row">
+        <view class="wk__pm" wx:if="{{mode === 'goal'}}" data-d="-1" bindtap="onStep"
+              aria-role="button" aria-label="减少 500 步"
+              hover-class="wk__pm--press" hover-stay-time="60"><view class="wk__minus"></view></view>
+        <view class="wk__pm" wx:else></view>
+        <view class="wk__n">{{mode === 'goal' ? goalText : leftText}}</view>
+        <view class="wk__pm" wx:if="{{mode === 'goal'}}" data-d="1" bindtap="onStep"
+              aria-role="button" aria-label="增加 500 步"
+              hover-class="wk__pm--press" hover-stay-time="60"><view class="wk__plus"></view></view>
+        <view class="wk__pm" wx:else></view>
+      </view>
+      <view class="wk__hint">{{mode === 'goal' ? '每格 500 步' : (done ? '到了' : '步')}}</view>
+
+      <block wx:if="{{mode !== 'goal'}}">
+        <view class="wk__bar"><view class="wk__bar-i" style="transform:scaleX({{scale}})"></view></view>
+        <view class="wk__sub">{{stepsText}} / {{goalText}} · {{pct}}%</view>
+      </block>
+    </view>
+
+    <view class="wk__stats">
+      <view class="wk__stat"><view class="wk__dt">目标</view><view class="wk__dd">{{goalText}}</view></view>
+      <view class="wk__stat"><view class="wk__dt">已走</view><view class="wk__dd">{{stepsText}}</view></view>
+      <view class="wk__stat"><view class="wk__dt">少排</view><view class="wk__dd">{{co2}} kg</view></view>
+    </view>
+
+    <view class="wk__foot">{{mode === 'goal' ? '先设目标，再同步微信运动。' : '步数只能同步，不能填 —— 能填的话这个玩法就没意义了。'}}</view>
+  </view>
+
+  <view class="wk__cta {{syncing ? 'wk__cta--busy' : ''}}" bindtap="onCta"
+        aria-role="button" aria-label="{{ctaLabel}}" hover-class="wk__cta--press" hover-stay-time="80">
+    {{ctaLabel}}
+  </view>
+</cy-play-stage>

@@ -1,0 +1,75 @@
+@import '../../../style/merchant-light.wxss';
+
+.mp-page { min-height: 100vh; background: var(--cy-bg-page); padding-bottom:var(--cy-space-4); }
+
+.mp-tabs { padding:0 var(--cy-page-x) 0; } /* aaa v2:标题下间距由 cy-page-title space-5 独家供给 */
+
+.mp-filter { white-space: nowrap; padding:var(--cy-space-2-5) var(--cy-page-x) 0; }
+/* Threads 式筛选 chip:未选透明+hairline 描边,选中反色实心(暗页=白底黑字) */
+.mp-chip { display: inline-block; padding:var(--cy-space-1-5) 32rpx; margin-right:16rpx; border-radius: var(--cy-radius-sm); font-size: var(--cy-font-label); color: var(--cy-text-body); background: transparent; border: 1rpx solid var(--cy-border-card); transition: background var(--cy-dur), color var(--cy-dur); }
+.mp-chip.on { color: var(--cy-bg-page); background: var(--cy-text-title); border-color: var(--cy-text-title); font-weight: 600; }
+.mp-chip-sm { padding:8rpx 24rpx; font-size: var(--cy-font-caption); }
+
+/* C6:待处理摘要条 + 状态筛选下拉(替代原 8 档状态 chips) */
+.mp-toolbar { display: flex; align-items: center; justify-content: space-between; gap:16rpx; padding:var(--cy-space-2-5) var(--cy-page-x) 0; }
+.mp-summary { flex: 1; min-width: 0; display: flex; align-items: center; gap:16rpx; overflow: hidden; white-space: nowrap; font-size: var(--cy-font-label); color: var(--cy-text-title); }
+.mp-summary-dot { width: var(--cy-space-1-5); height: var(--cy-space-1-5); border-radius: var(--cy-radius-pill); background: var(--cy-danger); flex-shrink: 0; }
+.mp-summary-total { font-weight: 600; }
+.mp-summary-seg { color: var(--cy-text-secondary); }
+.mp-summary-clear { color: var(--cy-text-secondary); }
+.mp-state-btn { flex-shrink: 0; padding:var(--cy-legacy-10) 24rpx; border-radius: var(--cy-radius-pill); border: 1rpx solid var(--cy-border-card); font-size: var(--cy-font-caption); color: var(--cy-text-body); }
+.mp-state-btn.on { color: var(--cy-bg-page); background: var(--cy-text-title); border-color: var(--cy-text-title); font-weight: 600; }
+.mp-state-option { min-height: var(--cy-btn-h); display: flex; align-items: center; padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-md); color: var(--cy-text-title); font-size: var(--cy-font-body); }
+.mp-state-option--on { background: var(--cy-bg-card-2); font-weight: 600; }
+
+.mp-list { padding:8rpx var(--cy-page-x) 0; }
+.mp-card { display: flex; flex-direction: column; background: var(--cy-bg-card); border: 1rpx solid var(--cy-border-card); border-radius: var(--cy-radius-lg); padding:var(--cy-space-3); margin-top:var(--cy-space-3); }
+.mp-main { display: flex; align-items: center; }
+.mp-cover { width: 168rpx; height: 168rpx; border-radius: var(--cy-radius-md); background: var(--cy-bg-card-2); flex-shrink: 0; }
+.mp-body { flex: 1; margin-left:var(--cy-space-3); overflow: hidden; }
+.mp-tit-row { display: flex; align-items: center; gap:var(--cy-space-1-5); }
+.mp-dot { width: var(--cy-legacy-14); height: var(--cy-legacy-14); border-radius: var(--cy-radius-pill); background: var(--cy-danger); flex-shrink: 0; }
+.mp-tit { font-size: var(--cy-font-subtitle); color: var(--cy-text-title); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-tags { margin-top:var(--cy-space-2); display: flex; align-items: center; gap: var(--cy-space-1-5); }
+.mp-type { font-size: var(--cy-font-caption); color: var(--cy-text-body); background: var(--cy-bg-subtle); padding:var(--cy-legacy-4) 16rpx; border-radius: var(--cy-radius-pill); }
+.mp-owner { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+/* P0-4 承接三态徽标:未承接=中性等待态;已承接(.on)=成功态 */
+.mp-accept { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); background: var(--cy-bg-subtle); padding:var(--cy-legacy-4) 16rpx; border-radius: var(--cy-radius-pill); }
+.mp-accept.on { color: var(--cy-success); background: var(--cy-color-status-success-soft); }
+.mp-stats { margin-top:var(--cy-space-2); display: flex; }
+.mp-stat { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); margin-right:24rpx; }
+.mp-ops { display: flex; flex-direction: row; justify-content: flex-end; align-items: center; gap:var(--cy-space-1-5); margin-top:16rpx; padding-top:16rpx; border-top: 1rpx solid var(--cy-border-card); }
+.mp-tags-gap { flex: 1; }
+/* 稿 260:277:标题下面的地址,次要灰字,单行截断 */
+.mp-addr { margin-top:var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 长按提示:次要说明,不抢卡片的位置 */
+/* CU-M-174:.mp-page 自己不带横向内距,页面每一档内容条各自加 --cy-page-x
+   (.tabs/.filter/.toolbar/.list 都有)。这两条漏了,于是从屏幕左缘 x=0 开始排,
+   「长按卡片可上下架 / 删除」首字被安全区裁掉 —— 与下面的卡片左边界也对不齐。 */
+.mp-longtip { margin-top:var(--cy-space-2); padding:0 var(--cy-page-x); box-sizing: border-box; font-size: var(--cy-font-caption); color: var(--cy-text-muted); }
+.mp-create-row { min-height: var(--cy-btn-h); margin-top: var(--cy-space-2); padding:0 var(--cy-page-x); box-sizing: border-box; display: flex; align-items: center; gap: var(--cy-space-1); font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+/* 长按面板:一行一个动作,标题 + 一句后果 */
+.mp-ops-sheet { padding-bottom:var(--cy-space-2); }
+.mp-ops-row { min-height: var(--cy-btn-h); display: flex; flex-direction: column; justify-content: center; gap:var(--cy-space-1); padding:var(--cy-space-3) 0; border-bottom: 1rpx solid var(--cy-border-card); }
+.mp-ops-row:last-child { border-bottom: 0; }
+.mp-ops-label { font-size: var(--cy-font-subtitle); color: var(--cy-text-title); }
+.mp-ops-sub { font-size: var(--cy-font-caption); color: var(--cy-text-muted); }
+.mp-ops-row--danger .mp-ops-label { color: var(--cy-danger); }
+.mp-op { min-height: var(--cy-btn-h); display: inline-flex; align-items: center; justify-content: center; font-size: var(--cy-font-caption); text-align: center; padding:0 24rpx; border-radius: var(--cy-radius-pill); border: 1rpx solid var(--cy-border-line); box-sizing: border-box; }
+.mp-op-toggle { color: var(--cy-text-body); }
+.mp-op-del { color: var(--cy-danger); border-color: var(--cy-danger-soft); }
+
+.mp-more { text-align: center; padding:32rpx; color: var(--cy-text-secondary); font-size: var(--cy-font-caption); }
+/* CU-M-174 同一条病的第二个实例:这一档在 wxss 里原本一条规则都没有,"正在同步最新项目…"
+   就以裸文本贴在 x=0 渲染。只补左安全边距,字号/颜色不动(不在本条走查射程)。 */
+.mp-refreshing { padding-left: var(--cy-page-x); }
+
+/* aaa 标准:空态整体居中、大字、留白(此前 .mp-empty 系列缺样式,渲染成贴边裸文本) */
+.mp-state { min-height: 60vh; display: flex; flex-direction: column; }
+
+/* 稿 260:277:标题上方那行档期「8月23日 19:20—21:00」 */
+.mp-when {
+  margin-bottom: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-tertiary);
+}

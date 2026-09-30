@@ -1,0 +1,54 @@
+<!-- chip:每个 item 各自独立药丸(Airbnb Messages 参照),需要横滑容器,故独立一支 scroll-view 分支;
+     与下面 wx:else 分支的 item 结构逐行一致,只是外层容器换成可横滑的 scroll-view。 -->
+<view wx:if="{{variant === 'chip' && sharedSlab}}" class="cy-tabs cy-tabs--chip cy-tabs--shared-slab {{wide ? 'cy-tabs--wide' : ''}} {{size ? 'cy-tabs--' + size : ''}} {{sticky ? 'cy-tabs--sticky' : ''}} {{plain ? 'cy-tabs--plain' : ''}} {{hairline ? '' : 'cy-tabs--noline'}} {{reducedMotion ? 'cy-tabs--reduced-motion' : ''}}" aria-role="tablist">
+  <view class="cy-tabs__slab" wx:if="{{_slabCount}}" aria-hidden="true"
+        style="width: {{_slabWidth}}; transform: translateX({{_slabOffset || 0}}%); opacity: {{_slabOpacity}};"></view>
+  <view
+    wx:for="{{tabs}}"
+    wx:key="key"
+    class="cy-tabs__item {{item.key === active ? 'cy-tabs__item--on' : ''}}"
+    data-key="{{item.key}}"
+    bindtap="onTab"
+    aria-role="tab"
+    aria-selected="{{item.key === active}}"
+    aria-label="{{item.label}}"
+   hover-class="cy-tabs__item--press" hover-stay-time="80"><view class="cy-tabs__label">{{item.label}}</view><view wx:if="{{item.badge}}" class="cy-tabs__badge"><cy-badge type="count" count="{{item.badge}}" /></view></view>
+</view>
+<scroll-view wx:elif="{{variant === 'chip'}}" class="cy-tabs cy-tabs--chip {{wide ? 'cy-tabs--wide' : ''}} {{size ? 'cy-tabs--' + size : ''}} {{sticky ? 'cy-tabs--sticky' : ''}} {{plain ? 'cy-tabs--plain' : ''}} {{hairline ? '' : 'cy-tabs--noline'}}" scroll-x enhanced show-scrollbar="{{false}}">
+  <view
+    wx:for="{{tabs}}"
+    wx:key="key"
+    class="cy-tabs__item {{item.key === active ? 'cy-tabs__item--on' : ''}}"
+    data-key="{{item.key}}"
+    hover-class="cy-tabs__item--press"
+    hover-stay-time="80"
+    bindtap="onTab"
+   hover-class="cy-tabs__item--press" hover-stay-time="80"><view class="cy-tabs__label">{{item.label}}</view><view wx:if="{{item.badge}}" class="cy-tabs__badge"><cy-badge type="count" count="{{item.badge}}" /></view></view>
+</scroll-view>
+<!-- fill:item 等宽铺满,但 item 带 min-width ⇒ tab 多到装不下时整条横向可滑,而不是把每个挤成两个字。
+     结构比 wx:else 分支多一层 __track:scroll-view 自身不能当 flex 容器(它要负责滚动),
+     等宽分配必须落在里面这层;__track 的 min-width:100% 保证 tab 少时仍然铺满整行(零回归)。 -->
+<scroll-view wx:elif="{{variant === 'fill'}}" class="cy-tabs cy-tabs--fill {{wide ? 'cy-tabs--wide' : ''}} {{size ? 'cy-tabs--' + size : ''}} {{sticky ? 'cy-tabs--sticky' : ''}} {{plain ? 'cy-tabs--plain' : ''}} {{hairline ? '' : 'cy-tabs--noline'}}" scroll-x enhanced show-scrollbar="{{false}}">
+  <view class="cy-tabs__track">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="cy-tabs__item {{item.key === active ? 'cy-tabs__item--on' : ''}}"
+      data-key="{{item.key}}"
+      hover-class="cy-tabs__item--press"
+    hover-stay-time="80"
+    bindtap="onTab"
+    ><view class="cy-tabs__label">{{item.label}}</view><view wx:if="{{item.badge}}" class="cy-tabs__badge"><cy-badge type="count" count="{{item.badge}}" /></view></view>
+  </view>
+</scroll-view>
+<view wx:else class="cy-tabs {{variant ? 'cy-tabs--' + variant : ''}} {{wide ? 'cy-tabs--wide' : ''}} {{size ? 'cy-tabs--' + size : ''}} {{sticky ? 'cy-tabs--sticky' : ''}} {{plain ? 'cy-tabs--plain' : ''}} {{hairline ? '' : 'cy-tabs--noline'}}">
+  <view
+    wx:for="{{tabs}}"
+    wx:key="key"
+    class="cy-tabs__item {{item.key === active ? 'cy-tabs__item--on' : ''}}"
+    data-key="{{item.key}}"
+    hover-class="cy-tabs__item--press"
+    hover-stay-time="80"
+    bindtap="onTab"
+   hover-class="cy-tabs__item--press" hover-stay-time="80"><view class="cy-tabs__label">{{item.label}}</view><view wx:if="{{item.badge}}" class="cy-tabs__badge"><cy-badge type="count" count="{{item.badge}}" /></view></view>
+</view>

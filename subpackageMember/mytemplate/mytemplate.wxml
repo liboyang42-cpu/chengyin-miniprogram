@@ -1,0 +1,136 @@
+<!-- 2026-08-09:身份分支,商家进来不该落回暗色(与 pages/template/index 同口径)。 -->
+<view class="{{isMerchant ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="project">
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <cy-page-title title="我的节点玩法" />
+  <view class="wp">
+    <view class="tablist">
+      <!-- 用户原话"这个删除搜索"/"还没有节点玩法向下 正中 删除搜索":两态都不要搜索入口 -->
+      <view class="tabcont box-shadow">
+        <view class="activity-list">
+          <view class="li" wx:for="{{list}}" wx:key="id">
+            <view class="item">
+              <view class="item-pic" bindtap="goInfo"  data-index="{{index}}" hover-class="cy-pressed" hover-stay-time="80">
+                <!-- R4-C04:封面选源/本地图片 fallback 未获文档 §5.5 授权,按 github/master 原形恢复:
+                     兜底是「标题首字 + DS 渐变」的文本伪图,主图条件走 item.imgUrl。 -->
+                <view class="item-pic-fallback" aria-role="img" aria-label="{{item.title || '玩法封面'}}">
+                  {{item.coverInitial || '玩'}}
+                </view>
+                <image wx:if="{{item.imgUrl && !item.coverFailed}}" lazy-load="true" src="{{item.imgUrl}}" mode="aspectFill"
+                  class="item-pic-image" binderror="onCoverError" data-index="{{index}}" data-key="{{item.id}}" />
+                <view class="btns flex-ac">
+                  <view class="david_moban">
+                    <image lazy-load="true" src="/images/icon_star.png" mode="widthFix" />
+                    {{item.rating }}
+                  </view>
+                  <view class="david_moban" wx:if="{{item.useNum != null && item.useNum !== ''}}">{{ item.useNum || 0 }} 次引用</view>
+                </view>
+
+              </view>
+              <view class="item-txt2">
+                <view class="item-tit flex-cb">
+                  <view class="tit ep">{{item.title}}</view>
+                  <!-- R3-C04:命中区 R1 已达标(88rpx = 44pt),但字形是近黑色的 icon_dot.png,
+                       压在深色卡上等于隐形(复拍 09 实证):有靶、没有看得见的可点提示。
+                       改用**已注册的图标库** cy-icon 的 `more`(icons.wxss 里的 .cyi--more 三点),
+                       它以 mask 取形、background-color: currentColor 取色 ⇒ 由 .dot 的 color
+                       (--cy-text-title)驱动,双主题自动适配。视觉 40rpx / 命中 88rpx 依 DS §3.2。
+                       ⚠️ 不改 /images/icon_dot.png 资源本身 —— 它还被 square/detail、square/list、
+                       userinfo 三个本轮范围外的页消费,改资源会溢出范围。 -->
+                  <view class="dot flex-cc" aria-role="button" aria-label="更多操作" bindtap="toggleDropdown" data-index="{{index}}" hover-class="cy-pressed" hover-stay-time="80">
+                    <cy-icon name="more" size="40" />
+                  </view>
+                </view>
+                <view class="item-desc">{{item.description}}</view>
+
+                <view class="item-dl">
+                  <view class="dd dd1">
+                    <view class="label">评分</view>
+                    <view class="cont flex-ac">
+                      <view class="star">
+                        <cy-icon name="star" size="32" />
+                      </view>
+                      <view class="score">
+                        {{item.rating}}
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="dd dd2">
+                    <view class="label">状态</view>
+                    <view class="cont flex-ac">
+                      <text wx:if="{{item.status != null && item.status !== '' && item.status ==0}}">未发布</text>
+                      <text wx:elif="{{item.status ==1}}">已发布</text>
+                      <text wx:elif="{{item.status ==2}}">审核中</text>
+                      <text wx:else>状态待确认</text>
+                    </view>
+                  </view>
+                  <view class="dd dd3">
+                    <view class="label">时长</view>
+                    <view class="cont flex-ac">
+                      <text>{{item.duration != null && item.duration !== '' ? item.duration + '分钟' : '0分钟'}}</text>
+                    </view>
+                  </view>
+                  <view class="dd dd3">
+                    <view class="label">创建时间</view>
+                    <view class="cont flex-ac">
+                      <text>{{item.createTime || '—'}}</text>
+                    </view>
+                  </view>
+                </view>
+
+                <view class="dropdown {{item.drop ? 'show' : 'hide'}}">
+                  <view class="dd flex-ac"  bindtap="templateStatus" data-index="{{index}}" wx:if="{{item.publishStatus == '0'}}"  hover-class="cy-pressed" hover-stay-time="80">
+                    <view class="icon">
+                      <image lazy-load="true" src="/subpackageMember/images/icon_send.png" mode="widthFix" />
+                    </view>
+                    <view class="tit">发布到节点玩法库</view>
+                  </view>
+
+                  <view class="dd flex-ac"  bindtap="templateStatus" data-index="{{index}}" wx:if="{{item.publishStatus == '1'}}" hover-class="cy-pressed" hover-stay-time="80">
+                    <view class="icon">
+                      <image lazy-load="true" src="/subpackageMember/images/icon_xz.png" mode="widthFix" />
+                    </view>
+                    <view class="tit">从节点玩法库下架</view>
+                  </view>
+
+                  <view class="dd dd--danger flex-ac" bindtap="deleteItem" data-index="{{index}}" hover-class="cy-pressed" hover-stay-time="80">
+                    <view class="icon">
+                      <image lazy-load="true" src="/subpackageMember/images/icon_del.png" mode="widthFix" />
+                    </view>
+                    <view class="tit">删除节点玩法</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- QA 复核(根因2):这两个也是整屏态,和下面的空态一样补 fill,在"标题下方到屏幕
+             底部"的剩余空间里居中,不再是贴顶渲染;size="lg" 补 aaa 标准另外两条(文字放大+配图放大) -->
+        <cy-empty wx:if="{{loading && list.length === 0}}" kind="loading" fill size="lg" class="fill-slot" title="正在加载你的节点玩法" />
+
+        <cy-error wx:if="{{!loading && errorMsg && list.length === 0}}" fill size="lg" class="fill-slot" title="{{errorMsg}}" sub="" retry="重试" bind:retry="refreshList" auto-back />
+
+
+        <!-- aaa 标准(标准速查表):fill 撑满居中+放大;补 kind="empty" 拿默认插画 -->
+        <cy-empty wx:if="{{!loading && !errorMsg && list.length === 0}}" kind="empty" fill size="lg" class="fill-slot" title="还没有节点玩法" sub="发布路线时可以沉淀自己的节点互动，之后在这里复用和管理。" />
+
+        <!-- 加载更多:list 为空时不该出现(截图审计发现空态残留"加载更多"文案的根因——
+             hasMore 初值是 true,首屏还没等到 getList 回包把它拨正,就先跟空态一起露出来了) -->
+        <cy-inline-error class="list-inline-error" wx:if="{{loadMoreError}}"
+          kind="network" title="更多玩法没有加载出来" sub="{{loadMoreError}}"
+          action="重试" bind:action="retryLoadMore" />
+        <view wx:elif="{{loadingMore}}" class="load-more load-more--loading"
+          aria-live="polite">正在加载更多…</view>
+        <view wx:elif="{{hasMore && list.length > 0}}" class="load-more"
+          aria-role="button" aria-label="加载更多节点玩法" bindtap="loadMore" hover-class="cy-pressed" hover-stay-time="80">加载更多</view>
+
+      </view>
+    </view>
+  </view>
+</view>
+</view>

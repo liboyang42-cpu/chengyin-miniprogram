@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-club-director-row-list": "../club-director-row-list/index",
+    "cy-club-director-chip-group": "../club-director-chip-group/index"
+  }
+}

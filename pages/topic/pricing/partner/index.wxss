@@ -1,0 +1,51 @@
+@import '../../../../style/merchant-light.wxss';
+@import '/style/pr-settings.wxss';
+
+/* G4 商家页：卡片纯白，卡内有内容的分组用浅灰块与留白分层。 */
+.pr-group {
+  padding: var(--cy-space-1-5);
+  border-radius: var(--cy-radius-lg);
+  box-shadow: none;
+}
+.pr-view-link,
+.pr-detail-kv { transition: transform var(--cy-motion-press) var(--cy-ease-out), opacity var(--cy-motion-fast) var(--cy-ease-out); }
+.pr-view-link--pressed,
+.pr-detail-kv--pressed { transform: scale(.985); opacity: .72; }
+.pr-row {
+  min-height: 88rpx;
+  margin-bottom: var(--cy-space-1);
+  border-radius: var(--cy-radius-md);
+}
+.pr-row:last-child { margin-bottom: 0; }
+.pr-detail-block {
+  margin: 0 var(--cy-space-3-5) var(--cy-space-3-5);
+  padding: var(--cy-space-2-5);
+  border-radius: var(--cy-radius-md);
+}
+
+.cy-motion-reduced .pr-view-link,
+.cy-motion-reduced .pr-detail-kv { transition: none !important; }
+.pr-view-link {
+  min-height: 88rpx;
+  padding-top: 0;
+}
+.pr-view-link-t { color: var(--cy-text-secondary); }
+
+.pr-view-chevron { color: var(--cy-text-secondary); }
+.pr-detail-link-icon {
+  color: var(--cy-info);
+  flex-shrink: 0;
+}
+
+.pr-detail-kv.is-action { min-height: 88rpx; }
+
+.pr-detail-v-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--cy-space-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.pr-detail-v { text-align: right; }

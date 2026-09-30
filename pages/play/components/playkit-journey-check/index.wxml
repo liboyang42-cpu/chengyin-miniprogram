@@ -1,0 +1,69 @@
+<!-- R14 旅程检定:题面 → 掷 → 结果 → 结算。
+     ★ 文案(成功/失败那句)结算后才由服务端给,所以结果屏先报点数与成败,文案在结算屏。
+     ★ 失败也推进:结算前后都能退出,这一屏不拦节点完成。 -->
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="jc g-col {{reducedMotion ? 'pk--reduced' : ''}} {{_motionReset ? 'pk--reset' : ''}}">
+    <!-- 题面:技能 + 难度档 + 条件修正逐条给玩家看见(held = 这条现在算不算数) -->
+    <block wx:if="{{!receipt}}">
+      <view class="g-kicker">{{skill || '检定'}}</view>
+      <view class="jc__tier">难度 · {{tierLabel || '标准'}}</view>
+
+      <view class="jc__tags" wx:if="{{advantage || disadvantage}}">
+        <view class="jc__tag jc__tag--good" wx:if="{{advantage}}">优势</view>
+        <view class="jc__tag jc__tag--bad" wx:if="{{disadvantage}}">劣势</view>
+      </view>
+
+      <view class="jc__mods" wx:if="{{mods.length}}">
+        <view class="jc__mods-k">条件修正</view>
+        <view class="jc__mod {{item.held ? 'is-held' : ''}}" wx:for="{{mods}}" wx:key="index">
+          <text class="jc__mod-l">{{item.label || '条件'}}</text>
+          <text class="jc__mod-v">{{item.held ? '生效 ' : '未生效 '}}{{item.value > 0 ? '+' : ''}}{{item.value}}</text>
+        </view>
+      </view>
+      <view class="jc__idle" wx:else>没有附加条件 —— 掷一颗骰子，看过不过得去。</view>
+    </block>
+
+    <!-- 结果屏:骰子 / 达成值 / DC / 成败。文案还没给,这里只报事实 -->
+    <block wx:elif="{{!receipt.settled}}">
+      <view class="jc__dice">
+        <view class="jc__die" wx:for="{{receipt.dice}}" wx:key="index">{{item}}</view>
+      </view>
+      <view class="jc__total pk-in pk-in--2">
+        <text class="jc__total-n">{{receipt.kept}}</text>
+        <text class="jc__total-s">达成值 {{receipt.total}} · 难度 {{receipt.dc}}</text>
+      </view>
+      <view class="jc__verdict pk-in pk-in--3 {{receipt.success ? 'jc__verdict--ok' : 'jc__verdict--no'}}">{{verdictText}}</view>
+      <view class="jc__applied" wx:if="{{receipt.mods.length}}">
+        <view class="jc__mod {{item.applied ? 'is-held' : ''}}" wx:for="{{receipt.mods}}" wx:key="index">
+          <text class="jc__mod-l">{{item.label || '条件'}}</text>
+          <text class="jc__mod-v">{{item.applied ? '生效 ' : '未生效 '}}{{item.value > 0 ? '+' : ''}}{{item.value}}</text>
+        </view>
+      </view>
+      <view class="jc__hint" wx:if="{{rerollVisible}}">还剩幸运，可以重掷一次</view>
+    </block>
+
+    <!-- 结算屏:这才是服务端给的文案 + 失败代价 + 生命/幸运读数 -->
+    <block wx:else>
+      <view class="jc__verdict {{receipt.success ? 'jc__verdict--ok' : 'jc__verdict--no'}}">{{receipt.success ? '过线了' : '没过线'}}</view>
+      <view class="jc__copy" wx:if="{{receipt.text}}">{{receipt.text}}</view>
+      <view class="jc__cost" wx:if="{{receipt.failCostLabel}}">代价 · {{receipt.failCostLabel}}</view>
+      <view class="jc__vitals">
+        <text wx:if="{{receipt.hp !== null}}">生命 {{receipt.hp}}</text>
+        <text wx:if="{{receipt.luck !== null}}">幸运 {{receipt.luck}}</text>
+      </view>
+      <view class="jc__exhaust" wx:if="{{receipt.exhausted}}">力竭了，先找地方休整</view>
+    </block>
+  </view>
+
+  <!-- 底部动作:题面一颗「掷骰」;结果屏「重掷 + 结算」;结算屏「继续」。失败也推进,没有锁死的态 -->
+  <view class="g-btn" wx:if="{{!receipt}}" bindtap="onRoll"
+        aria-role="button" aria-label="掷骰" hover-class="g-btn--press" hover-stay-time="80">掷骰</view>
+  <block wx:elif="{{!receipt.settled}}">
+    <view class="jc__act jc__act--ghost" wx:if="{{rerollVisible}}" bindtap="onReroll"
+          aria-role="button" aria-label="花一点幸运重掷" hover-class="g-btn--press" hover-stay-time="80">重掷</view>
+    <view class="g-btn jc__act-main {{loading ? 'g-btn--disabled' : ''}}" bindtap="onSettle"
+          aria-role="button" aria-label="结算这次检定" hover-class="g-btn--press" hover-stay-time="80">结算</view>
+  </block>
+  <view class="g-btn" wx:else bindtap="onClose"
+        aria-role="button" aria-label="收起检定" hover-class="g-btn--press" hover-stay-time="80">继续</view>
+</cy-play-stage>

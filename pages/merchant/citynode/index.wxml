@@ -1,0 +1,137 @@
+<view class="cn-page theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar custom-back bind:back="onNavBack" />
+  <view class="cn-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="成为节点" safe-top="{{false}}" />
+<view class="cn-intro" wx:if="{{accessState === 'ready'}}">
+    <view class="cn-intro-row">
+      <text class="cn-intro-t">把门店变成漫游地图上的互动据点</text>
+      <cy-info-pop title="据点是什么"
+        content="据点就是门店在漫游地图上的互动打卡点。投放或认领申请经平台审核通过后，玩家才会在地图看到；到店可按模板完成暗号、问答、拍照、扫码或 GPS 验证。" />
+    </view>
+    <text class="cn-quota" wx:if="{{quotaState === 'ready'}}">在架据点 {{used}}/{{max}}<block wx:if="{{used >= max}}"> · {{max === 0 ? '当前没有据点配额，暂不能投放新据点' : '已满，先下线一个再投放'}}</block></text>
+    <text class="cn-quota" wx:elif="{{quotaState === 'loading'}}">正在读取据点配额</text>
+    <cy-inline-error class="cn-quota-error" wx:elif="{{quotaState === 'unknown'}}"
+      kind="data" title="据点配额暂未取回" sub="请重新读取后再投放"
+      action="重试" bind:action="retryQuota" />
+  </view>
+
+  <view class="cn-primary-action {{quotaState === 'ready' && used >= max ? 'cn-primary-action--disabled' : ''}}" wx:if="{{accessState === 'ready' && merchantAccess.canManageProjects}}" bindtap="goCreate" aria-role="button" aria-label="投放据点" aria-disabled="{{quotaState === 'ready' && used >= max}}" hover-class="{{quotaState === 'ready' && used >= max ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+    <text>投放据点</text><cy-icon name="arrow-right" size="28" />
+  </view>
+  <view class="cn-ops" wx:if="{{accessState === 'ready'}}">
+    <view class="cn-op" wx:if="{{merchantAccess.canManageProjects}}" bindtap="toggleClaim" aria-role="button" aria-label="认领节点" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="plus" size="26" /><text>认领节点</text></view>
+    <view class="cn-op" wx:if="{{merchantAccess.canVerify}}" bindtap="scanRedeem" aria-role="button" aria-label="扫码核销" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="qr-scan" size="26" /><text>扫码核销</text></view>
+  </view>
+
+  <view class="cn-sec-hd" wx:if="{{accessState === 'ready'}}">
+    <text class="cn-sec-t">我的据点</text>
+    <text class="cn-sec-meta">{{(nodes.length + applications.length) || 0}} 条</text>
+  </view>
+
+  <cy-skeleton type="list" count="{{2}}" wx:if="{{accessState === 'loading' || (accessState === 'ready' && loading)}}" />
+  <cy-error class="cn-retry cy-fade-in" size="lg" style="display:flex;flex-direction:column;flex:1;min-height:0;"
+    icon="/images/no_data.svg" wx:elif="{{accessState === 'error' || (accessState === 'ready' && loadErr)}}" fill
+    title="{{accessState === 'error' ? '商家权限加载失败' : '据点加载失败'}}"
+    sub="{{accessState === 'error' ? accessErrorText : '网络可能不稳定，再试一次'}}" retry="重试" bind:retry="retry" auto-back="{{accessState === 'error' || !listEverLoaded}}" />
+  <cy-error size="lg" style="flex:1;min-height:0;" retry=""
+    wx:elif="{{accessState === 'no-permission'}}" fill
+    title="当前岗位不能管理据点" sub="请联系店主或店长调整经营团队岗位" auto-back />
+
+  <block wx:elif="{{accessState === 'ready' && !loading && !loadErr}}">
+    <view class="cn-node-wrap" wx:for="{{applications}}" wx:key="id">
+      <view class="cn-node cn-node--application">
+        <view class="cn-node-main">
+          <view class="cn-node-top">
+            <text class="cn-node-name">{{item.applicationType === 2 ? '节点认领' : '据点投放'}} · {{item.displayName}}</text>
+            <cy-badge type="status"
+              variant="{{item.auditStatus === 1 ? 'success' : (item.auditStatus === 2 ? 'warning' : 'neutral')}}"
+              label="{{item.auditStatus === 0 ? '审核中' : (item.auditStatus === 1 ? '已通过' : '已驳回')}}" />
+          </view>
+          <view class="cn-reject-reason" wx:if="{{item.auditStatus === 2 && item.auditReasonText}}"><text class="cn-reject-label">驳回理由</text><text>{{item.auditReasonText}}</text></view>
+        </view>
+        <view class="cn-node-btn" wx:if="{{item.applicationType === 2 && item.auditStatus === 0 && merchantAccess.canManageProjects}}"
+          data-poiid="{{item.id}}" bindtap="cancelClaim" aria-role="button" aria-label="撤回认领申请" aria-disabled="{{item.actionState === 'loading'}}"
+          hover-class="{{item.actionState === 'loading' ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          {{item.actionState === 'loading' ? '撤回中' : '撤回申请'}}
+        </view>
+      </view>
+      <cy-inline-error class="cn-row-error" wx:if="{{item.actionError}}" kind="network"
+        title="认领申请撤回失败" sub="{{item.actionError}}" action="重试"
+        data-poiid="{{item.id}}" bind:action="retryCancel" />
+    </view>
+
+    <cy-empty size="lg" style="flex:1;min-height:0;" kind="empty"
+      wx:if="{{nodes.length === 0 && applications.length === 0}}" fill
+      title="还没有据点" sub="提交投放申请，把门店放上漫游地图"
+      cta="{{merchantAccess.canManageProjects && quotaState === 'ready' && used < max ? '投放据点' : ''}}" bind:cta="goCreate" />
+
+    <view class="cn-node-wrap" wx:for="{{nodes}}" wx:key="poiId">
+      <view class="cn-node">
+        <view class="cn-node-main">
+          <view class="cn-node-top">
+            <text class="cn-node-name">{{item.name}}</text>
+            <cy-badge type="status" variant="{{item.status === 1 ? 'success' : 'neutral'}}"
+              label="{{item.status === 1 ? '在架' : '下线'}}" />
+          </view>
+          <text class="cn-node-sub">{{item.templateTitle}}<block wx:if="{{item.tagsText}}"> · {{item.tagsText}}</block></text>
+          <view class="cn-node-code" wx:if="{{item.validationMethod === 4 && merchantAccess.canVerify}}"
+            data-poiid="{{item.poiId}}" bindtap="showPosterCode" aria-role="button" aria-label="取到店打卡码" hover-class="cy-pressed" hover-stay-time="80">
+            <text>取打卡码</text><cy-icon name="arrow-right" size="24" />
+          </view>
+        </view>
+        <view class="cn-node-btn" wx:if="{{merchantAccess.canManageProjects}}" data-poiid="{{item.poiId}}" data-status="{{item.status}}"
+          bindtap="toggleNode" aria-role="button" aria-disabled="{{item.actionState === 'loading'}}" hover-class="{{item.actionState === 'loading' ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          {{item.actionState === 'loading' ? '处理中' : (item.status === 1 ? '下线' : '上架')}}
+        </view>
+      </view>
+      <cy-inline-error class="cn-row-error" wx:if="{{item.actionError}}" kind="network"
+        title="{{item.status === 1 ? '据点下线失败' : '据点上架失败'}}" sub="{{item.actionError}}"
+        action="重试" data-poiid="{{item.poiId}}" data-status="{{item.status}}" bind:action="retryToggle" />
+    </view>
+  </block>
+
+  <cy-sheet show="{{showClaim}}" title="认领平台节点" bind:close="toggleClaim">
+    <view class="cn-claim">
+      <cy-skeleton type="list" count="2" wx:if="{{claimState === 'loading'}}" />
+      <cy-error class="cn-claim-state" wx:elif="{{claimState === 'error' && !claimable.length}}"
+        title="可认领节点加载失败" sub="{{claimError}}" retry="重试" bind:retry="retryClaimable" />
+      <cy-inline-error class="cn-claim-state" wx:elif="{{claimState === 'error'}}" kind="network"
+        title="可认领节点没有更新" sub="{{claimError}}" action="重试" bind:action="retryClaimable" />
+      <cy-empty class="cy-fade-in" wx:elif="{{claimState === 'ready' && !claimable.length}}" title="还没有可认领的节点" />
+      <view class="cn-claim-row" wx:for="{{claimable}}" wx:key="id">
+        <view class="cn-node cn-node--sheet">
+          <view class="cn-node-main">
+            <text class="cn-node-name">{{item.name}}</text>
+            <text class="cn-node-sub">{{item.descriptionText}}</text>
+          </view>
+          <view class="cn-node-btn" data-poiid="{{item.id}}" bindtap="submitClaim"
+            aria-role="button" aria-disabled="{{item.actionState === 'loading'}}" hover-class="{{item.actionState === 'loading' ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+            {{item.actionState === 'loading' ? '提交中' : '申请认领'}}
+          </view>
+        </view>
+        <cy-inline-error class="cn-row-error" wx:if="{{item.actionError}}" kind="network"
+          title="认领申请未提交" sub="{{item.actionError}}" action="重试"
+          data-poiid="{{item.id}}" bind:action="retryClaim" />
+      </view>
+    </view>
+  </cy-sheet>
+
+  <cy-sheet show="{{posterSheet.show}}" title="到店打卡码" bind:close="closePosterCode">
+    <view class="cn-poster">
+      <cy-skeleton class="cn-poster-state" wx:if="{{posterSheet.state === 'loading'}}" type="detail" />
+      <image class="cn-poster-img cy-fade-in" wx:elif="{{posterSheet.state === 'ready' && posterSheet.qrcodeUrl}}" src="{{posterSheet.qrcodeUrl}}"
+        mode="aspectFit" show-menu-by-longpress />
+      <cy-error class="cn-poster-state" wx:elif="{{posterSheet.state === 'error'}}" size="lg" title="打卡码加载失败"
+        sub="{{posterSheet.errorText}}" retry="重新取码" bind:retry="retryPosterCode" />
+      <block wx:if="{{posterSheet.state === 'ready'}}">
+        <text class="cn-poster-name">{{posterSheet.nodeName}}</text>
+        <text class="cn-hint">长按保存并打印张贴。玩家到店扫码完成互动。</text>
+        <text class="cn-hint">这张码长期有效，请妥善保管。</text>
+      </block>
+    </view>
+  </cy-sheet>
+</view>
+<cy-privacy-gate show="{{privacyGateShow}}" bind:settled="onPrivacyGateSettled" />

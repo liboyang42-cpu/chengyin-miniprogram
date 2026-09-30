@@ -1,0 +1,76 @@
+@import '../../../../style/merchant-light.wxss';
+@import '../../style/merchant-finance.wxss';
+
+page { background: var(--cy-bg-page); }
+
+.ac-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: var(--cy-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.ac-scroll { flex: 1; min-height: 0; }
+.ac-content { padding: 0 var(--cy-page-x) var(--cy-space-8); }
+
+.ac-evidence-link { min-height: var(--cy-btn-h); margin-top: var(--cy-space-2); padding: var(--cy-space-2) var(--cy-space-3); display: flex; align-items: center; gap: var(--cy-space-2); box-sizing: border-box; border-radius: var(--cy-radius-md); background: var(--cy-bg-subtle); }
+.ac-evidence-label { flex-shrink: 0; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.ac-evidence-value { min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--cy-font-caption); color: var(--cy-text-body); }
+.ac-evidence-copy { flex-shrink: 0; font-size: var(--cy-font-caption); font-weight: 600; color: var(--cy-info); } /* ds-ok 用户拍板：文字「查看」用蓝 */
+
+.ac-field-line { margin-top: var(--cy-space-3); display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); }
+.ac-field-line .ac-field-label { margin-bottom: 0; }
+.ac-field-label { display: block; margin-bottom: var(--cy-space-2); font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-title); }
+.ac-field-count { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.ac-textarea { width: 100%; min-height: 180rpx; padding: var(--cy-space-3); box-sizing: border-box; border-radius: var(--cy-radius-md); background: var(--cy-bg-subtle); font-size: var(--cy-font-body); line-height: 1.6; color: var(--cy-text-title); }
+.ac-placeholder { color: var(--cy-color-input-placeholder); }
+.ac-field-help { display: block; margin-top: var(--cy-space-2); font-size: var(--cy-font-caption); line-height: 1.5; color: var(--cy-text-secondary); }
+.ac-evidence-field { margin-top: var(--cy-space-3); }
+.ac-evidence-selected,
+.ac-evidence-upload { min-height: calc(var(--cy-btn-h) + var(--cy-space-4)); padding: var(--cy-space-2); box-sizing: border-box; border-radius: var(--cy-radius-md); background: var(--cy-bg-subtle); }
+.ac-evidence-selected { display: flex; align-items: center; gap: var(--cy-space-2); }
+.ac-evidence-preview { width: calc(var(--cy-btn-h) + var(--cy-space-2)); height: calc(var(--cy-btn-h) + var(--cy-space-2)); flex-shrink: 0; border-radius: var(--cy-radius-sm); background: var(--cy-bg-card); }
+.ac-evidence-selected-copy { min-width: 0; flex: 1; }
+.ac-evidence-selected-title,
+.ac-evidence-upload-title { display: block; font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-title); }
+.ac-evidence-remove { min-height: var(--cy-btn-h); padding: 0 var(--cy-space-2); display: flex; align-items: center; flex-shrink: 0; font-size: var(--cy-font-caption); color: var(--cy-color-status-danger); }
+.ac-evidence-upload { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.ac-field-error { display: block; margin-top: var(--cy-space-2); font-size: var(--cy-font-caption); color: var(--cy-color-status-danger); }
+
+.ac-readonly-sub { display: block; margin-top: 0; font-size: var(--cy-font-label); line-height: 1.5; color: var(--cy-text-secondary); }
+
+/* —— Revolut 313:大金额头 + 操作胶囊 —— */
+.ac-hero-head { position: relative; padding-right: calc(var(--cy-btn-h) + var(--cy-space-3)); }
+.ac-hero { margin-bottom: var(--cy-space-5); }
+.ac-hero-icon { position: absolute; top: var(--cy-space-5); right: var(--cy-page-x); width: var(--cy-btn-h); height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--cy-bg-card); color: var(--cy-text-title); }
+.ac-hero-icon--sm { position: static; flex-shrink: 0; background: var(--cy-bg-subtle); }
+.ac-actions { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); }
+.ac-decision { min-height: var(--cy-btn-h); padding: 0 var(--cy-space-4); display: flex; align-items: center; gap: var(--cy-space-1-5); box-sizing: border-box; border-radius: var(--cy-radius-pill); background: var(--cy-bg-card); color: var(--cy-text-title); font-size: var(--cy-font-label); font-weight: 600; }
+
+/* —— 键值分组卡 —— */
+.ac-card { margin-bottom: var(--cy-space-3); }
+.ac-kv { min-height: var(--cy-btn-h-sm); display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-3); }
+.ac-kv + .ac-kv { margin-top: var(--cy-space-2); }
+.ac-kv--tap { min-height: var(--cy-btn-h); }
+.ac-kv-v--mute { color: var(--cy-text-secondary); }
+.ac-kv-k { flex-shrink: 0; font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.ac-kv-v { min-width: 0; text-align: right; font-size: var(--cy-font-label); color: var(--cy-text-title); word-break: break-all; }
+.ac-kv-v--copy { display: flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-info); } /* ds-ok 与凭证「查看」同:可点文字用蓝 */
+.ac-kv-v--stack { display: flex; flex-direction: column; align-items: flex-end; }
+.ac-kv-meta { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.ac-reason-text { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-font-body); line-height: 1.6; color: var(--cy-text-title); }
+.ac-group { margin-top: var(--cy-space-5); margin-bottom: var(--cy-space-3); }
+.ac-group-title { margin: 0 var(--cy-space-1) var(--cy-space-2); font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title); }
+.ac-help { padding: 0; overflow: hidden; }
+
+/* —— 回应面板(Revolut 314/315) —— */
+.ac-sheet { padding: var(--cy-space-3) var(--cy-page-x) var(--cy-space-6); }
+.ac-sheet-amount { display: flex; align-items: center; gap: var(--cy-space-3); padding: var(--cy-space-3); border-radius: var(--cy-radius-lg); background: var(--cy-bg-card); }
+.ac-sheet-amount-main { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.ac-sheet-amount-title { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); }
+.ac-sheet-amount-v { flex-shrink: 0; font-size: var(--cy-font-subtitle); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--cy-text-title); }
+.ac-sheet-amount-v--unknown { font-size: var(--cy-font-label); font-weight: 500; color: var(--cy-text-secondary); }
+.ac-confirm-text { display: block; margin-top: var(--cy-space-4); font-size: var(--cy-font-label); line-height: 1.6; color: var(--cy-text-secondary); }
+.ac-confirm-card { margin-top: var(--cy-space-4); padding: var(--cy-space-3); border-radius: var(--cy-radius-lg); background: var(--cy-bg-card); }
+.ac-sheet-footer { display: block; }

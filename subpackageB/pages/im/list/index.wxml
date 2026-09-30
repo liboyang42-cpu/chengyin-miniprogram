@@ -1,0 +1,97 @@
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="im-list" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <!-- 标题走 nav-bar 居中槽:二三级页统一「三角返回 + 居中标题 + 原生胶囊」。
+       曾用下方超大左对齐 hero-title(照 Airbnb 210.png),但那让本页成为全站唯一的左标题二级页,
+       与统一导航规范冲突,已撤销。 -->
+  <cy-nav-bar title="消息" custom-back bind:back="onBack">
+    <!-- 右上角圆形图标按钮 = 「全部已读」图标化(✓)。判断题见报告 2a:不放搜索按钮(城瘾无 IM 搜索页,
+         放了就是死按钮);设置按钮不照搬 Airbnb 的齿轮(那背后的 Archived/Give feedback 城瘾都没有,
+         同样会是死按钮),改用「全部已读」这个已有真功能的图标化,保留 Airbnb 的圆形按钮节奏。 -->
+    <view slot="actions" class="hd-icon-btn {{hasUnread ? '' : 'is-disabled'}}" hover-class="cy-pressed" hover-stay-time="80" aria-label="全部已读" bindtap="onReadAll">
+      <cy-icon name="check" size="40" />
+    </view>
+  </cy-nav-bar>
+
+  <cy-tabs class="tabs-row" tabs="{{tabs}}" active="{{activeTab}}" variant="fill" wide="{{true}}" bind:change="onTabChange" />
+
+
+  <!-- 竞猜待答:玩家押完了,答案得商家给,而且**有期限** ——
+       超过 48 小时不给,那一轮由平台作废、谁都拿不到奖。
+       所以它放在消息里:商家是在这儿被提醒的,不该等到自己想起来去翻点位。
+       没有待答的轮次就整行不出 —— 一个常驻的「0 条」入口等于每天骗一次点击。 -->
+  <cy-cell wx:if="{{canSettlePredict}}" class="pool-entry" title="竞猜待答"
+           description="玩家押完了，等你公布答案" bind:tap="goPredictInbox" />
+
+  <view wx:if="{{refreshing}}" class="refresh-status" aria-role="status" aria-live="polite">
+    <cy-icon name="clock" size="28" /><text>正在刷新消息</text>
+  </view>
+
+  <!-- 骨架 -->
+  <cy-skeleton wx:if="{{loading}}" type="list" count="{{6}}" />
+
+  <!-- 错误 -->
+  <cy-error class="cy-fade-in" wx:elif="{{error}}" title="加载失败" sub="{{errorMsg || '网络好像出了点问题'}}" retry="重试" bind:retry="retryConversations" />
+
+  <!-- 空态 -->
+  <cy-empty wx:elif="{{loaded && viewList.length === 0}}"
+            fill
+            size="lg"
+            title="{{activeTab === 'dm' ? '还没有私信' : '还没有系统通知'}}"
+            sub="{{activeTab === 'dm' ? '去广场认识几个同路的人，聊起来就在这儿了' : '报名、审核这些通知会出现在这里'}}"
+            cta="{{activeTab === 'dm' ? '去广场找人' : ''}}"
+            bindcta="onEmptyCta" />
+
+  <!-- 列表 -->
+  <scroll-view class="body" wx:else scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="conv-wrap {{item._open ? 'is-open' : ''}}" wx:for="{{viewList}}" wx:key="conversationId">
+      <!-- 左滑露出的操作 -->
+      <view class="conv-actions" style="opacity: {{item.offset ? 1 : 0}};">
+        <view class="act act-read" hover-class="cy-pressed" hover-stay-time="80" catchtap="onRowRead" data-id="{{item.conversationId}}" data-index="{{index}}" aria-role="button" aria-label="标记会话为已读">
+          <cy-icon class="act-icon" name="check" size="32" /><text class="act-label">标已读</text>
+        </view>
+        <view class="act act-mute" hover-class="cy-pressed" hover-stay-time="80" catchtap="onRowMute" data-id="{{item.conversationId}}" data-index="{{index}}" aria-role="button" aria-label="{{item.muted == 1 ? '恢复会话提醒' : '开启会话免打扰'}}">
+          <cy-icon class="act-icon" name="bell" size="32" /><text class="act-label">{{item.muted == 1 ? '恢复提醒' : '免打扰'}}</text>
+        </view>
+        <view class="act act-del" hover-class="cy-pressed" hover-stay-time="80" catchtap="onRowDelete" data-id="{{item.conversationId}}" data-index="{{index}}" aria-role="button" aria-label="删除会话">
+          <cy-icon class="act-icon" name="trash" size="32" /><text class="act-label">删除</text>
+        </view>
+      </view>
+      <!-- 行内容(可滑) -->
+      <view class="conv {{item.type==2?'is-sys':''}} {{item._dragging ? 'is-dragging' : ''}}"
+            style="transform: translateX({{item.offset || 0}}px);"
+            hover-class="cy-pressed-bg" hover-stay-time="80"
+            data-index="{{index}}"
+            bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd"
+            bindtouchcancel="onTouchEnd"
+            bindtap="openChat" data-id="{{item.conversationId}}"
+            data-name="{{item.counterparty.nickname}}" data-avatar="{{item.counterparty.avatar}}"
+            data-type="{{item.type}}">
+        <view class="avatar">
+          <view wx:if="{{item.type==2}}" class="sys-avatar">
+            <cy-icon name="bell" size="48" />
+          </view>
+          <image wx:else lazy-load="true" class="avatar-img" src="{{item.counterparty.avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+        </view>
+        <view class="conv-body">
+          <view class="conv-top">
+            <text class="conv-name {{item.type==2?'sys-name':''}}">{{item.counterparty.nickname}}</text>
+            <text wx:if="{{item.type == 3}}" class="official-tag">官方</text>
+            <view wx:if="{{item.muted == 1}}" class="mute-ico" aria-label="已开启免打扰"><cy-icon name="bell" size="28" /></view>
+            <text class="conv-time">{{item.timeText}}</text>
+          </view>
+          <view class="conv-bottom">
+            <text class="conv-preview">{{item.previewText}}</text>
+            <view class="badge {{item.muted == 1 ? 'is-muted' : ''}}" wx:if="{{item.unread > 0}}">{{item.unread > 99 ? '99+' : item.unread}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view style="height: 40rpx;"></view>
+  </scroll-view>
+</view>
+</view>
+<!-- 危险动作三段式确认(文案在 utils/danger-actions.js) -->
+<cy-danger-confirm id="dc" bind:confirm="onDangerConfirm" bind:cancel="onDangerCancel" bind:done="onDangerCancel" />

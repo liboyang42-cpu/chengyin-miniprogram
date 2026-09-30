@@ -1,0 +1,5 @@
+<view class="sf-root {{reducedMotion ? 'sf-root--static' : ''}}">
+  <view class="sf-neb"></view>
+  <view class="sf-stars sf-dim"></view>
+  <view class="sf-stars sf-bright"></view>
+</view>

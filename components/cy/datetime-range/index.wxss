@@ -1,0 +1,95 @@
+/* cy-datetime-range · 起止时刻选择
+ * 壳、遮罩、进退场全交给 cy-date-sheet,这里只排摘要 + 滚轮 + 提示。 */
+@import '../../../style/picker-wheel.wxss';
+:host { display: block; }
+
+.cdr {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--cy-space-4) var(--cy-space-2);
+}
+
+/* —— 跨度徽章 —— */
+/* 常驻高度:徽章只在算得出跨度时出现,面板不该因此抖一下 */
+.cdr__badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 52rpx;
+  padding-top: var(--cy-space-2);
+}
+.cdr__badge {
+  padding: var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-brand-soft);
+  color: var(--cy-color-brand-strong);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+  line-height: 1.4;
+}
+/* —— 双栏摘要(同时是切换器)—— */
+.cdr__summary {
+  display: flex;
+  gap: var(--cy-space-4);
+  padding: var(--cy-space-3) 0 var(--cy-space-2);
+}
+.cdr__col {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-bottom: var(--cy-space-2);
+  /* 未选中那栏也留一条同高的透明线,否则切换时两栏会一高一低跳动 */
+  border-bottom: 4rpx solid transparent;
+  transition: border-color var(--cy-motion-fast) var(--cy-ease-out);
+}
+.cdr__col--on { border-bottom-color: var(--cy-color-brand); }
+
+.cdr__col-label {
+  display: block;
+  font-size: var(--cy-type-micro);
+  letter-spacing: 1rpx;
+  color: var(--cy-color-text-tertiary);
+}
+.cdr__col-val {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+
+/* —— 滚轮 —— */
+.cdr__wheel {
+  width: 100%;
+  height: 440rpx;
+}
+.cdr__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+}
+
+/* —— 提示 —— */
+/* 常驻占位一行高度:提示出现/消失时整个面板不该抖动 */
+.cdr__hint {
+  min-height: 40rpx;
+  padding-top: var(--cy-space-1);
+  font-size: var(--cy-type-caption);
+  line-height: 1.4;
+  color: var(--cy-color-status-danger);
+  opacity: 0;
+  transition: opacity var(--cy-motion-fast) var(--cy-ease-out);
+}
+.cdr__hint--on { opacity: 1; }
+
+/* styleIsolation:isolated 不继承全局 style/components.wxss 的 .cy-pressed,
+   在组件内重声明一份(与 cy/date-range-sheet 同一手法)。 */
+.cy-pressed { opacity: .88; transform: scale(.98); }
+/* ⚠️ 减少动态效果的兜底必须挂**组件自己**的 class:全局那个 .cy-motion-reduced 挂在
+   组件外的祖先上,isolated 组件的选择器根本匹配不到它。
+   撤位移、保留减淡 —— 反馈不能归零。 */
+.cdr--reduced-motion .cy-pressed { transform: none; }
+.cdr--reduced-motion .cdr__col,
+.cdr--reduced-motion .cdr__hint { transition: none; }

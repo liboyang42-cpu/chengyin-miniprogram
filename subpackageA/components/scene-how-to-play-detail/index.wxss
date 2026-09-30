@@ -1,0 +1,75 @@
+@import '../../../style/fade-in.wxss';
+
+/* 玩法详情样式沿用原页面;去掉页面 chrome(顶部交给 scene-sheet)。面板底色由 .ss__panel 出。 */
+:host { display: block; height: 100%; }
+.hpd { width:100%; height:100%; min-height:0; box-sizing:border-box; }
+@charset "UTF-8";
+/* 顶距交还给 cy-page-title(自带 safeTop):容器再补 padding-top = 让位两次,标题会比同批其它页低一档。
+   左右统一 --cy-page-x,与页标题对齐。 */
+.hpd {
+  padding: 0 var(--cy-page-x) var(--cy-space-7);
+  height: 100%;
+  min-height: 0;
+  background: var(--cy-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 空态/错误态在"标题下方到屏幕底部"的剩余空间里居中(aaa 标准):host 本身吃 flex:1
+   撑满 .hpd 剩下的高度,同时自己也是 flex 容器,让组件内部的 fill(flex:1)有依附。 */
+.if-fill { flex: 1; display: flex; }
+
+.detail-content {
+  padding-top: var(--cy-space-5);
+}
+
+.detail-title {
+  font-size: var(--cy-font-title);
+  font-weight: bold;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+  margin-bottom: var(--cy-space-2-5);
+}
+
+.detail-meta {
+  margin-bottom: var(--cy-space-4);
+  padding-bottom: var(--cy-space-2-5);
+  border-bottom: 1rpx solid var(--cy-border-line);
+}
+
+.detail-subtitle {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-body);
+  display: block;
+  margin-bottom: var(--cy-legacy-10);
+}
+
+.detail-time {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+
+.html-content {
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+  color: var(--cy-text-title);
+}
+
+/* 富文本内容样式:只留 .html-content 容器本身。
+   原来这里还有 p / h1-h3 / ul / ol / li / a / blockquote 一组标签规则 —— 它们打的是 rich-text
+   内部节点,外部 wxss 根本够不到,从来没生效过;等效样式已由 index.js 的 parseHtml 内联下发。
+   组件里也禁标签选择器,一并删除,不留假规则。 */
+/* 原页面这里有一条 .html-content image {…} —— 它够不到 rich-text 内部节点(外部 wxss 进不去),
+   而 parseHtml 已经把同样的 max-width/height/display/margin 内联打在 <img> 上了(index.js:95),
+   所以那是条同值的死规则,组件里也禁标签选择器,直接删。 */
+
+
+
+
+
+
+
+
+
+
+/* 本页底色为 card 档:导航钩子跟随同色(2026-07-29 导航统一) */

@@ -1,0 +1,23 @@
+/* 滚轮(picker-view)统一皮肤 —— 深浅两套面板通用,零配色依赖。
+   用法(三件套,缺一不可):
+   ① picker-view 挂 class .pw-wheel;
+   ② mask-style="background: transparent;" —— 原生默认遮罩是白色渐变不跟主题,
+      深色面板上渲成两条白带(2026-09-18 search2 实拍);且 mask-style 会被
+      上、下两半遮罩【各自】渲染,任何共享渐变都会在轮心叠出灰带(探针实证)。
+      淡出改由 ① 的 mask-image 作用在轮体上:两端渐隐到透明,露出的就是
+      所在面板自己的底,深/浅/玻璃都成立。
+   ③ indicator-style="height:<行高>; border-top:1rpx solid rgba(128,128,128,0.45);
+      border-bottom:1rpx solid rgba(128,128,128,0.45);" —— 中性灰线深浅通用;
+      必须显式给 border 才能盖掉默认浅边(试过 border:0 压不掉,会双线)。 */
+.pw-wheel {
+  -webkit-mask-image: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 1) 20%,
+      rgba(0, 0, 0, 1) 80%,
+      rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 1) 20%,
+      rgba(0, 0, 0, 1) 80%,
+      rgba(0, 0, 0, 0) 100%);
+}

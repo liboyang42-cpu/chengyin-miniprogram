@@ -1,0 +1,28 @@
+{
+  "usingComponents": {
+    "chapter-node-form": "/pages/topic/components/cy/chapter-node-form/index",
+    "node-npc-form": "/pages/topic/components/cy/node-npc-form/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-privacy-gate": "/components/cy/privacy-gate/index",
+    "cy-qr-voucher": "/components/cy/qr-voucher/index",
+    "cy-tabs": "/components/cy/tabs/index",
+    "project-host": "/pages/topic/components/project-host/index",
+    "project-join": "/pages/topic/components/project-join/index",
+    "cy-avatar": "/components/cy/avatar/index",
+    "cy-chapter-target-picker": "/pages/topic/components/cy/chapter-target-picker/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-option-sheet": "/components/cy/option-sheet/index"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F3F4F4",
+  "backgroundColorTop": "#F3F4F4",
+  "backgroundColorBottom": "#F3F4F4"
+}

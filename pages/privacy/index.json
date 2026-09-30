@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "隐私保护",
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-card": "/components/cy/card/index",
+    "cy-inline-error": "/components/cy/inline-error/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white"
+}

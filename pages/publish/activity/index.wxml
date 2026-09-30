@@ -1,0 +1,331 @@
+<wxs src="../../../utils/time-format.wxs" module="tf" />
+<view class="fabu theme-topic-editor">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar custom-back bind:back="onNavBack" />
+  <cy-page-title title="{{pageTitle}}" subtitle="{{editingActivityId ? (timeLocationLocked ? '已售出：只能改文字、图片与票务' : '改未售出的场次、票务与地点') : '设定您的活动地点、票务信息'}}" />
+  <view class="publish-access-state" wx:if="{{accessState === 'checking'}}">
+    <cy-skeleton type="card" count="3" />
+  </view>
+  <view class="publish-access-state" wx:elif="{{accessState === 'error'}}">
+    <cy-error fill="{{true}}" title="暂时无法确认身份" sub="{{accessError}}" bind:retry="retryAccessCheck" auto-back />
+  </view>
+  <view class="publish-access-state" wx:elif="{{accessState === 'denied'}}">
+    <cy-error fill size="lg" title="当前身份不能发布活动" sub="{{deniedReason}}" retry="" bind:back="onNavBack" auto-back custom-back />
+  </view>
+  <block wx:elif="{{accessState === 'ready'}}">
+  <view class="publish-access-state" wx:if="{{activityLoadError}}">
+    <cy-error fill="{{true}}" title="活动没能加载" sub="{{activityLoadError}}" bind:retry="loadExistingActivity" auto-back />
+  </view>
+  <!-- 处方 I:每屏一组,进度点在大标题下 -->
+  <!-- 稿 J4/N6/N7/N8:每屏顶上一个问句,进度点在它下面 -->
+  <view class="step-heading" wx:if="{{stepHeading}}">{{stepHeading}}</view>
+  <view class="step-dots">
+    <view class="step-dot step-dot--{{item.state}}" wx:for="{{progress}}" wx:key="key">
+      <text class="step-dot-mark"></text>
+      <text class="step-dot-title">{{item.title}}</text>
+    </view>
+  </view>
+
+  <view class="wp">
+    <view class="form">
+
+      <view wx:if="{{step === 0}}">
+      <view class="li" id="field-name">
+        <view class="item-tit">活动标题<text>*</text></view>
+        <view class="item-cont {{focusField === 'name' ? 'is-focused' : ''}} {{errors.name ? 'is-error' : ''}}">
+          <input type="text" placeholder="活动标题" placeholder-class="fld-ph" value="{{formData.name}}" bindinput="onInputChange" bindfocus="onFieldFocus" bindblur="onFieldBlur" data-field="name" />
+        </view>
+        <cy-inline-error class="form-inline-error" wx:if="{{errors.name}}" title="{{errors.name}}" action="清除" data-field="name" bind:action="clearFormField" />
+      </view>
+
+      <view class="li" id="field-address">
+        <view class="item-tit">活动地点<text>*</text></view>
+        <view class="item-cont {{errors.addressName ? 'is-error' : ''}} {{timeLocationLocked ? 'is-sold-locked' : ''}}" bindtap="choosePoiForNode" aria-role="button" aria-label="为该节点选点" hover-class="cy-pressed" hover-stay-time="80">
+          <input type="text" placeholder="请输入活动地点" placeholder-class="fld-ph" value="{{formData.addressName}}" disabled   data-field="addressName" />
+        </view>
+        <cy-inline-error class="form-inline-error" wx:if="{{errors.addressName}}" title="{{errors.addressName}}" />
+        <view class="field-purpose">选择地点时才会请求定位，用于活动地图与到场导航；拒绝后仍可继续编辑其他内容。</view>
+      </view>
+
+      <view class="ul flex-b date-type-fields" id="field-date">
+        <view class="li" id="field-category">
+          <view class="item-tit">活动日期<text>*</text></view>
+          <view class="item-cont {{errors.startDate || errors.endDate ? 'is-error' : ''}} {{timeLocationLocked ? 'is-sold-locked' : ''}}">
+            <view class="picker_group flex-cb" bindtap="showStartTimePicker" aria-role="button"
+              aria-label="设置活动时间，当前从{{startdate}}到{{enddate}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="picker">
+                <text style="font-size: var(--cy-font-label);" class="date-value {{startdate=='开始日期'?'text-style1':'text-style2'}}">{{startdate}}</text>
+              </view>
+              <text class="text-style1">-</text>
+              <view class="picker">
+                <text style="font-size: var(--cy-font-label);" class="date-value {{enddate=='结束日期'?'text-style1':'text-style2'}}">{{enddate}}</text>
+              </view>
+              <image lazy-load="true" src="/pages/publish/images/icon_date3.png" mode="widthFix" />
+            </view>
+          </view>
+          <cy-inline-error class="form-inline-error" wx:if="{{errors.startDate || errors.endDate}}" title="{{errors.startDate || errors.endDate}}" />
+          <!-- CR-63:已售出(有已支付报名)后时间与地点锁死。服务端为准,这里说明原因。 -->
+          <view class="field-purpose field-purpose--locked" wx:if="{{timeLocationLocked}}">活动已售出：时间和地点已锁定，不可修改；标题、说明、图片、音频仍可改。</view>
+        </view>
+
+        <view class="li">
+          <view class="item-tit">活动类型<text>*</text></view>
+          <view class="item-cont {{errors.categoryIds ? 'is-error' : ''}}">
+            <view class="picker picker2 flex-cb" bindtap="navigateToCategorySelect" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="tit {{selectedCategoryNames.length > 0 ? 'selected-text' : 'placeholder-text'}}">
+                <text wx:if="{{selectedCategoryNames.length > 0}}">{{selectedCategoryNamesStr}}</text>
+                <text wx:else>请选择活动类型</text>
+              </view>
+              <view class="jt">
+                <image lazy-load="true" src="/images/icon_right.png" mode="widthFix" />
+              </view>
+            </view>
+          </view>
+          <cy-inline-error class="form-inline-error" wx:if="{{errors.categoryIds}}" title="{{errors.categoryIds}}" />
+        </view>
+      </view>
+      </view>
+
+      <view wx:if="{{step === 1}}">
+      <view class="li li2" id="field-description">
+        <view class="item-tit">活动说明<text>*</text></view>
+        <view class="item-cont item-cont2 {{focusField === 'description' ? 'is-focused' : ''}} {{errors.description ? 'is-error' : ''}}">
+          <textarea style="width: 100%;" value="{{formData.description}}" auto-height placeholder="活动说明" placeholder-class="fld-ph" bindinput="onInputChange" bindfocus="onFieldFocus" bindblur="onFieldBlur" data-field="description" />
+        </view>
+        <cy-inline-error class="form-inline-error" wx:if="{{errors.description}}" title="{{errors.description}}" action="清除" data-field="description" bind:action="clearFormField" />
+      </view>
+
+      <view class="li" id="field-cover">
+        <view class="item-tit">活动封面<text>*</text></view>
+        <view class="item-cont2 {{errors.imgUrl ? 'is-error' : ''}}">
+          <cy-upload
+            class="theme-topic-editor"
+            urls="{{formData.imgUrl ? [formData.imgUrl] : []}}"
+            max="{{1}}"
+            replace-on-tap="{{true}}"
+            uploading="{{coverUploading}}"
+            error-indexes="{{coverErrorIndexes}}"
+            tip-text="16:9 横图 · 1 张 · 用于活动卡片与详情头图 · 点图可换"
+            bind:add="onCoverAdd"
+            bind:remove="onCoverRemove"
+            bind:preview="onCoverPreview"
+            bind:retry="retryCoverUpload"
+          />
+          <cy-inline-error class="form-inline-error" wx:if="{{errors.imgUrl}}" title="{{errors.imgUrl}}" />
+        </view>
+      </view>
+
+      <view class="li" id="field-template">
+        <view class="item-tit">选择模板<text>*</text></view>
+        <view class="item-cont {{errors.templateId ? 'is-error' : ''}}">
+          <view class="picker picker2 flex-cb" bindtap="showTemp" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="tit {{selectedTempInfo ? 'selected-text' : 'placeholder-text'}}">
+              {{selectedTempInfo ? selectedTempInfo.title : '请选择模板'}}
+            </view>
+            <view class="jt">
+              <image lazy-load="true" src="/images/icon_right.png" mode="widthFix" />
+            </view>
+          </view>
+        </view>
+        <cy-inline-error class="form-inline-error" wx:if="{{errors.templateId}}" title="{{errors.templateId}}" />
+      </view>
+      </view>
+
+      <view wx:if="{{step === 2}}">
+      <cy-inline-error wx:if="{{ownerLoadError}}" title="发起人信息未加载" sub="{{ownerLoadError}}" action="重试" bind:action="getUserData" />
+      <view class="li">
+        <view class="item-tit">合作者<text>*</text></view>
+        <view class="item-cont2 hezuo">
+          <view class="dl" wx:for="{{formData.collaboratorList}}" wx:key="id">
+            <view class="dd flex-cb" style="padding: 16rpx 26rpx;">
+              <view class="fl flex-ac">
+                <view class="icon">
+                  <image lazy-load="true" src="{{item.avatar || '/images/d_profile.png'}}" mode="aspectFill" />
+                </view>
+                <view class="name">{{item.nickname}}</view>
+              </view>
+              <view class="zw" wx:if="{{item.isOwner==1}}">主理人</view>
+              <view class="david_ty_rl_hcz_li_right" wx:if="{{item.isOwner!=1}}" bindtap="removeCollaborator" data-index="{{index}}" aria-role="button" aria-label="移除合作者 {{item.nickname}}" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close" size="32" /></view>
+            </view>
+          </view>
+          <view class="add-more flex-cc" bindtap="AddCollaborator" aria-role="button" aria-label="添加合作者" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="plus" size="32" />添加合作者</view>
+        </view>
+      </view>
+
+      <cy-collaborator-picker show="{{collaboratorPickerShow}}" ids="{{collaboratorPickerIds}}"
+        bind:select="onCollaboratorPickerSelect" bind:close="onCollaboratorPickerClose" />
+
+      <!-- 票单部分 - 支持多个 -->
+      <view class="ticket" id="field-ticket" wx:for="{{formData.tickets}}" wx:key="index" wx:for-item="ticket" wx:for-index="ticketIndex">
+        <view class="li">
+          <view class="item-tit">票单名称{{ticketIndex + 1}}<text>*</text>
+            <view wx:if="{{ticketIndex>0}}" class="david_del" bindtap="removeTicket" data-index="{{ticketIndex}}" hover-class="cy-pressed" hover-stay-time="80">删除</view>
+          </view>
+          <view class="item-cont {{focusField === 'ticketName' + ticketIndex ? 'is-focused' : ''}} {{errors['ticketName' + ticketIndex] ? 'is-error' : ''}}">
+            <input type="text" placeholder="请输入票单名称" placeholder-class="fld-ph" value="{{ticket.name}}" bindinput="onTicketChange" bindfocus="onFieldFocus" bindblur="onFieldBlur" data-focuskey="ticketName{{ticketIndex}}" data-field="name" data-index="{{ticketIndex}}" />
+          </view>
+          <cy-inline-error class="form-inline-error" wx:if="{{errors['ticketName' + ticketIndex]}}" title="{{errors['ticketName' + ticketIndex]}}" action="清除" data-ticket-index="{{ticketIndex}}" data-ticket-field="name" data-error-key="ticketName{{ticketIndex}}" bind:action="clearFormField" />
+        </view>
+
+        <view class="ul flex-b">
+          <view class="li">
+            <view class="item-tit">票面价格</view>
+            <view class="item-cont {{focusField === 'ticketPrice' + ticketIndex ? 'is-focused' : ''}}">
+              <input type="number" placeholder="请输入价格" placeholder-class="fld-ph" value="{{ticket.price}}" bindinput="onTicketChange" bindfocus="onFieldFocus" bindblur="onFieldBlur" data-focuskey="ticketPrice{{ticketIndex}}" data-field="price" data-index="{{ticketIndex}}" />
+            </view>
+            <view class="field-purpose field-purpose--locked" wx:if="{{merchantHost}}">{{merchantFreeOnlyMsg}}</view>
+          </view>
+
+          <view class="li">
+            <view class="item-tit">票单库存<text>*</text></view>
+            <view class="item-cont {{focusField === 'ticketStock' + ticketIndex ? 'is-focused' : ''}} {{errors['ticketStock' + ticketIndex] ? 'is-error' : ''}}">
+              <input type="number" placeholder="请输入库存" placeholder-class="fld-ph" value="{{ticket.totalStock}}" bindinput="onTicketChange" bindfocus="onFieldFocus" bindblur="onFieldBlur" data-focuskey="ticketStock{{ticketIndex}}" data-field="totalStock" data-index="{{ticketIndex}}" />
+            </view>
+            <cy-inline-error class="form-inline-error" wx:if="{{errors['ticketStock' + ticketIndex]}}" title="{{errors['ticketStock' + ticketIndex]}}" action="清除" data-ticket-index="{{ticketIndex}}" data-ticket-field="totalStock" data-error-key="ticketStock{{ticketIndex}}" bind:action="clearFormField" />
+          </view>
+        </view>
+      </view>
+
+      <view>
+        <cy-btn variant="secondary" style="width:268rpx;margin:20rpx auto 0 auto" bindtap="addTicket"><cy-icon name="plus" size="28" /> 添加票单</cy-btn>
+      </view>
+      </view>
+
+    </view>
+  </view>
+
+  <!-- 选择模板 -->
+  <cy-sheet show="{{ popTemp }}" closable="{{ false }}" bind:close="cancelTemp">
+    <view class="pop-model pop-temp">
+    <view class="pop-top flex-cb">
+      <cy-btn variant="ghost" size="xs" class="cy-btn-inline" bindtap="cancelTemp">取消</cy-btn>
+      <view class="tit">我的模板</view>
+      <cy-btn variant="ghost" size="xs" class="cy-btn-inline" bindtap="confirmTemp">完成</cy-btn>
+    </view>
+    <view class="safebot">
+      <cy-search class="theme-topic-editor" placeholder="搜索关键字" value="{{searchKeyword}}" bind:confirm="handleSearch" />
+      <view class="pop-cont">
+        <view class="temp-list">
+          <cy-skeleton wx:if="{{templateLoadState === 'loading' && !tempList.length}}" type="card" count="2" />
+          <cy-error wx:elif="{{templateLoadState === 'error'}}" title="模板加载失败" sub="{{templateError}}" bind:retry="getTempList" />
+          <cy-empty wx:elif="{{templateLoadState === 'empty'}}" kind="empty" title="还没有可用模板" sub="先创建节点玩法，再回来选择。" cta="创建节点玩法" bind:cta="createTemplate" />
+          <view class="ul flex-w" wx:else>
+            <view bindtap="selectTemp" class="li {{selectedTempId === item.id ? 'selected' : ''}}" wx:for="{{tempList}}" wx:key="id" data-item="{{item}}" aria-role="radio" aria-checked="{{selectedTempId === item.id}}" aria-label="选择模板 {{item.title}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="item">
+                <image lazy-load="true" src="{{item.imgUrl}}" mode="aspectFill" class="pic" />
+                <!-- <view class="attr flex-ce">
+                  <view class="dd flex-cc">
+                    <image lazy-load="true" src="/images/icon_star.png" mode="widthFix" />{{item.rating}}
+                  </view>
+                  <view class="dd flex-cc">
+                    {{item.useNum}} 使用
+                  </view>
+                </view> -->
+                <view class="item-txt">
+                  <view class="tit ep1">{{item.title}}</view>
+                  <view class="david_mbxi">
+                  <view class="david_mbxi_li"><image lazy-load="true" src="/pages/publish/images/d_mbico1.png" mode="widthFix" />{{ item.players }}</view>
+                  <view class="david_mbxi_li"><image lazy-load="true" src="/pages/publish/images/d_mbico2.png" mode="widthFix" />{{ item.duration === 0 ? 0 : (item.duration || '--') }}分钟</view>
+                </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  </cy-sheet>
+
+  <view class="fabu-btn safebot">
+    <view class="publish-review" wx:if="{{step === 2}}">
+      <!-- CU-C-103:这是编辑已有活动的**保存**页,不是发布页。原来不分新建/编辑都写
+           「发布前摘要」+「发布后会在活动列表展示,继续即按当前公开范围发布」,
+           用户会以为保存=重新发布或改公开范围(后端 /api/activity/update 只改内容,
+           不碰 publish_status,也不重新送审)。 -->
+      <view class="publish-review__title">{{editingActivityId ? '修改摘要' : '发布前摘要'}}</view>
+      <view class="publish-review__text">{{publishSummary}}</view>
+      <view class="publish-review__visibility">{{editingActivityId ? '本次保存只更新上面这些内容，不会改变活动的公开范围。' : '默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。'}}</view>
+    </view>
+    <cy-inline-error wx:if="{{submitError}}" title="活动尚未发布" sub="{{submitError}}" action="重试" bind:action="submitForm" />
+    <view class="wrap flex-cb">
+      <cy-btn wx:if="{{step === 0}}" variant="secondary" style="width:170rpx" bindtap="onCancel">取消</cy-btn>
+      <cy-btn wx:else variant="secondary" style="width:170rpx" bindtap="prevStep">上一步</cy-btn>
+      <cy-btn wx:if="{{step < 2}}" variant="primary" disabled="{{!canContinue}}" style="flex:1;margin-left:16rpx" bindtap="nextStep" bind:disabledtap="onContinueDisabledTap">下一步</cy-btn>
+      <cy-btn wx:else variant="primary" loading="{{submitting}}" disabled="{{!canContinue}}" aria-disabled="{{!canContinue || submitting}}" style="flex:1;margin-left:16rpx" bindtap="submitForm" bind:disabledtap="onContinueDisabledTap">{{submitLabel}}</cy-btn>
+    </view>
+  </view>
+
+  <!-- activity-time-picker:start -->
+  <cy-sheet show="{{timePicker.show}}" closable="{{false}}" bind:close="cancelTimePicker">
+    <view class="activity-time-picker">
+      <view class="time-picker-head">
+        <cy-btn variant="ghost" size="xs" class="cy-btn-inline" bindtap="cancelTimePicker">取消</cy-btn>
+        <view class="time-picker-title">设置活动时间</view>
+        <cy-btn variant="ghost" size="xs" class="cy-btn-inline" bindtap="submitTimePickerStep"
+          accessibility-label="{{timePicker.active === 'start' ? '确认开始时间并选择结束时间' : '确认活动时间'}}"
+          aria-role="button"
+          aria-label="{{timePicker.active === 'start' ? '确认开始时间并选择结束时间' : '确认活动时间'}}">{{timePicker.active === 'start' ? '下一步' : '完成'}}</cy-btn>
+      </view>
+
+      <view class="time-range-switch">
+        <view class="time-range-point {{timePicker.active === 'start' ? 'time-range-point--active' : ''}}"
+          data-field="start" bindtap="selectTimePickerPoint" aria-role="button"
+          aria-label="编辑开始时间，当前{{timePickerStartPreview}}" hover-class="cy-pressed" hover-stay-time="80">
+          <text class="time-range-point__label">开始</text>
+          <text class="time-range-point__value">{{timePickerStartPreview}}</text>
+        </view>
+        <view class="time-range-connector" aria-hidden="true"></view>
+        <view class="time-range-point {{timePicker.active === 'end' ? 'time-range-point--active' : ''}} {{!timePicker.endUnlocked ? 'time-range-point--locked' : ''}}"
+          data-field="end" bindtap="selectTimePickerPoint" aria-role="button"
+          aria-label="{{timePicker.endUnlocked ? '编辑结束时间，当前' + timePickerEndPreview : '结束时间，请先完成开始时间'}}"
+          aria-disabled="{{!timePicker.endUnlocked}}" hover-class="{{!timePicker.endUnlocked ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+          <text class="time-range-point__label">{{timePicker.endUnlocked ? '结束' : '结束（下一步）'}}</text>
+          <text class="time-range-point__value">{{timePicker.endUnlocked ? timePickerEndPreview : '下一步后自动建议'}}</text>
+        </view>
+      </view>
+
+      <view class="time-picker-help">
+        {{timePicker.active === 'start' ? '先确定活动从何时开始' : '结束时间必须晚于开始时间'}}
+      </view>
+
+      <view class="time-picker-stage">
+        <view class="time-section time-section--date">
+          <view class="time-label">日期</view>
+          <picker-view class="time-picker-view"
+            value="{{timePicker.active === 'start' ? startDateIndex : endDateIndex}}"
+            indicator-style="height:88rpx" bindchange="onTimePickerDateChange">
+            <picker-view-column>
+              <view wx:for="{{dateList}}" wx:key="date" class="picker-item">{{item.display}}</view>
+            </picker-view-column>
+          </picker-view>
+        </view>
+        <view class="time-section time-section--clock">
+          <view class="time-label">时间</view>
+          <picker-view class="time-picker-view"
+            value="{{timePicker.active === 'start' ? startTimeIndex : endTimeIndex}}"
+            indicator-style="height:88rpx" bindchange="onTimePickerTimeChange">
+            <picker-view-column>
+              <view wx:for="{{hours}}" wx:key="*this" class="picker-item">{{tf.pad2(item)}}时</view>
+            </picker-view-column>
+            <picker-view-column>
+              <view wx:for="{{minutes}}" wx:key="*this" class="picker-item">{{tf.pad2(item)}}分</view>
+            </picker-view-column>
+          </picker-view>
+        </view>
+      </view>
+    </view>
+  </cy-sheet>
+  <!-- activity-time-picker:end -->
+
+  <cy-category-sheet show="{{categorySheetVisible}}" type="{{2}}" ids="{{categorySheetIds}}"
+    bind:select="onCategorySelect" bind:close="onCategorySheetClose" />
+  </block>
+</view>
+
+<!-- 发布结果面板(2026-09-06 统一:不再放按钮,收掉直接落项目列表) -->
+<cy-result-sheet show="{{resultSheet.show}}" kind="{{resultSheet.kind}}" title="{{resultSheet.title}}"
+  sub="{{resultSheet.sub}}" meta="{{resultSheet.meta}}" pill="{{resultSheet.pill}}" why="{{resultSheet.why}}"
+  duration="{{resultSheet.duration}}" bind:close="onResultSheetClose" />

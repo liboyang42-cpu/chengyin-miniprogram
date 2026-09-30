@@ -1,0 +1,34 @@
+@import '../../../../style/merchant-light.wxss';
+@import '../design.wxss';
+
+.dg-page { height: 100vh; display: flex; flex-direction: column; background: var(--cy-bg-page); }
+.dg-scroll { flex: 1; min-height: 0; }
+.dg-retry { --cy-btn-h-sm: var(--cy-btn-h); }
+.dg-refreshing { min-height: 88rpx; display: flex; align-items: center; padding: 0 var(--cy-page-x); color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.dg-note { margin: 0 var(--cy-page-x) var(--cy-space-2); padding: var(--cy-space-2-5) var(--cy-space-3); background: var(--cy-bg-card); border-radius: var(--cy-radius-lg); }
+.dg-note-t { display: block; font-size: var(--cy-font-body); color: var(--cy-text-title); font-weight: 600; }
+.dg-note-s { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.dg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--cy-space-2); padding: 0 var(--cy-page-x); }
+.dg-item, .dg-add { position: relative; height: 196rpx; overflow: hidden; border-radius: var(--cy-radius-lg); background: var(--cy-bg-card); }
+.dg-image { width: 100%; height: 100%; display: block; }
+.dg-delete { position: absolute; top: var(--cy-space-1); right: var(--cy-space-1); width: var(--cy-btn-h); height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-pill); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); }
+.dg-add { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--cy-text-secondary); font-size: var(--cy-font-label); }
+.dg-add-mark { margin-bottom: var(--cy-space-1); font-size: var(--cy-font-title); color: var(--cy-text-title); }
+.dg-pad { height: var(--cy-space-5); }
+.dg-cta { padding: var(--cy-space-2) var(--cy-page-x) calc(var(--cy-space-2) + env(safe-area-inset-bottom)); background: var(--cy-bg-card); border-top: 2rpx solid var(--cy-border-card); }
+.dg-cta cy-inline-error { display: block; margin-bottom: var(--cy-space-2); }
+.dg-save-receipt { min-height: 88rpx; display: flex; align-items: center; justify-content: center; margin-bottom: var(--cy-space-2); color: var(--cy-success); font-size: var(--cy-font-label); }
+
+/* Figma 33:123：两列横图、图片下方删除、底部保存。 */
+.dg-note{margin:31rpx 38.5rpx 38.5rpx;padding:0;background:transparent;display:flex;flex-direction:column;gap:38.5rpx;}
+.dg-grid{padding:0 38.5rpx;gap:23rpx;}
+.dg-item{height:auto;background:transparent;overflow:visible;}
+.dg-image,.dg-add{height:183rpx;border-radius:31rpx;} /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */
+.dg-delete{position:static;min-height:44px;width:auto;height:auto;justify-content:flex-start;border-radius:0;background:transparent;color:var(--cy-color-text-tertiary);font-size:23rpx;} /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */
+.dg-add{background:var(--cy-color-bg-surface-strong);color:var(--cy-color-text-primary);font-size:23rpx;} /* ds-ok: Figma 定稿尺寸与中性配色；已由原生截图复核 */
+.dg-count{padding:15rpx 38.5rpx;}
+.dg-cta{padding:23rpx 38.5rpx calc(100rpx + env(safe-area-inset-bottom));background:transparent;border:0;}
+
+.dg-item { position:relative; }
+.dg-delete { position:absolute; top:0; right:0; min-width:44px; min-height:44px; justify-content:center; color:var(--cy-color-status-danger); background:transparent; }
+.dg-grid { margin-top:var(--cy-space-3); row-gap:var(--cy-space-3); }

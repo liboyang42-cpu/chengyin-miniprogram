@@ -1,0 +1,7 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-switch": "/components/cy/switch/index",
+    "cy-inline-error": "/components/cy/inline-error/index"
+  }
+}

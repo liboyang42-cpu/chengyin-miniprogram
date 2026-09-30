@@ -1,0 +1,91 @@
+.cnf-subtitle {
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-body);
+  margin-bottom: var(--cy-space-4);
+}
+
+.cnf-field {
+  margin-bottom: var(--cy-space-4);
+}
+
+.cnf-row { display: flex; gap: var(--cy-space-2); }
+.cnf-half { flex: 1; min-width: 0; }
+.cnf-note { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); line-height: 1.5; margin-bottom: var(--cy-space-4); }
+
+.cnf-offer {
+  border-bottom: var(--cy-comp-sheet-border-width) solid var(--cy-color-border-subtle);
+  border-top: var(--cy-comp-sheet-border-width) solid var(--cy-color-border-subtle);
+  margin-bottom: var(--cy-space-4);
+  padding-top: var(--cy-space-4);
+}
+
+.cnf-section-title {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  margin-bottom: var(--cy-space-3);
+}
+
+.cnf-perk-empty {
+  align-items: flex-start;
+  color: var(--cy-color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--cy-type-caption);
+  gap: var(--cy-space-2);
+}
+
+.cnf-label {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-label);
+  font-weight: 650;
+  margin-bottom: var(--cy-space-2);
+}
+
+.cnf-required,
+.cnf-optional {
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+  font-weight: 500;
+  margin-left: var(--cy-space-1);
+}
+
+.cnf-input,
+.cnf-picker {
+  align-items: center;
+  background: var(--cy-color-input-idle-bg);
+  border: var(--cy-comp-sheet-border-width) solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  box-sizing: border-box;
+  color: var(--cy-color-input-text);
+  display: flex;
+  font-size: var(--cy-type-body);
+  min-height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-3);
+  width: 100%;
+}
+
+.cnf-picker {
+  justify-content: space-between;
+}
+
+.cnf-picker--selected {
+  background: var(--cy-color-input-filled-bg);
+}
+
+.cnf-placeholder,
+.cnf-arrow {
+  color: var(--cy-color-text-placeholder);
+}
+
+.cnf-arrow {
+  font-size: var(--cy-type-card-title);
+  margin-left: var(--cy-space-2);
+}
+
+.cnf-actions {
+  display: flex;
+  gap: var(--cy-space-2);
+  justify-content: flex-end;
+  padding-top: var(--cy-space-2);
+}

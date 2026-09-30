@@ -1,0 +1,70 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-note · 留言(契约 §2.4)。皮面走 play-surface 暗版。*/
+.nt { overflow-y: auto; }
+.nt__prompt {
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+  color: var(--sub);
+}
+.nt__previous {
+  margin-top: var(--cy-space-4);
+  width: 100%;
+  text-align: left;
+}
+.nt__previous-k {
+  font-size: var(--cy-type-caption);
+  color: var(--sub);
+}
+.nt__previous-i {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  padding: var(--cy-space-2) 0;
+  border-bottom: 2rpx solid var(--soft);
+}
+.nt__previous-t { font-size: var(--cy-type-body); color: var(--ink); }
+.nt__previous-at { flex: none; font-size: var(--cy-type-caption); color: var(--sub); }
+
+.nt__input {
+  margin-top: var(--cy-space-4);
+  width: 100%;
+  min-height: 160rpx;
+  box-sizing: border-box;
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--soft);
+  color: var(--ink);
+  font-size: var(--cy-type-body);
+  line-height: 1.7;
+}
+.nt__input-ph { color: var(--cy-color-text-placeholder); }
+.nt__count {
+  width: 100%;
+  margin-top: var(--cy-space-1);
+  text-align: right;
+  font-size: var(--cy-type-caption);
+  color: var(--sub);
+}
+.nt__presets {
+  margin-top: var(--cy-space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-1-5);
+}
+.nt__preset {
+  padding: var(--cy-space-1-5) var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-pill);
+  border: 2rpx solid var(--cy-color-border-strong);
+  font-size: var(--cy-type-label);
+  color: var(--ink);
+}
+.nt__preset--press { opacity: .8; }
+.nt__done {
+  margin-top: var(--cy-space-4);
+  font-size: var(--cy-type-label);
+  color: var(--ok);
+}

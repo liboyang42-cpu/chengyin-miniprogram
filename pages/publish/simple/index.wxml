@@ -1,0 +1,102 @@
+<!-- 城瘾 · 创建城市路线(简易版)—— 地图为主角版 -->
+<!-- 模式语义:mode=2 自由(绿)/ mode=1 定向(蓝) -->
+<view class="simple-ai theme-topic-editor">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar />
+  <!-- 页头由下方自带的「快速配置 · 路线共创」承担,不再叠一层 cy-page-title;这里只做导航让位 -->
+  <view class="simple-ai__nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <view class="simple-ai__nav">
+    <view class="simple-ai__nav-copy">
+      <text class="simple-ai__nav-title">快速配置</text>
+      <text class="simple-ai__nav-sub">路线共创</text>
+    </view>
+    <view class="simple-ai__quota-pill" wx:if="{{aiQuotaLoaded}}">
+      <view class="simple-ai__quota-icon"><cy-icon name="clock" size="28" /></view>
+      <text>还可生成 {{ aiRemaining || 0 }} 次</text>
+    </view>
+  </view>
+
+  <scroll-view class="simple-ai__scroll" scroll-y="true">
+    <view class="simple-ai__body">
+      <view class="simple-ai__hero">
+        <text class="simple-ai__kicker">{{mode === 2 ? '自由探索 · 章节承接路线' : '城市定向 · 集合式路线'}}</text>
+        <text class="simple-ai__title">{{aiPlan ? '这条路线，已经有了轮廓。' : '嗨，想做一条什么样的路线？'}}</text>
+        <text class="simple-ai__lead">{{aiPlan ? '检查故事和地点；确认后再进入专业编辑器细化。' : '用一句话告诉我灵感。我先整理主题骨架，地点仍由你亲自确认。'}}</text>
+      </view>
+
+      <block wx:if="{{!aiPlan}}">
+        <view class="simple-ai__prompt-label">可以从这些灵感开始</view>
+        <view class="simple-ai__chips">
+          <view class="simple-ai__chip" wx:for="{{aiPrompts}}" wx:key="*this" bindtap="useAiPrompt" data-text="{{item}}" aria-role="button" aria-label="使用灵感：{{item}}" hover-class="cy-pressed" hover-stay-time="80">
+            <text>{{item}}</text>
+            <view class="simple-ai__chip-arrow"><cy-icon name="arrow-right" size="22" /></view>
+          </view>
+        </view>
+      </block>
+
+      <cy-progress-status wx:if="{{aiGenerating}}" density="compact"
+                          title="正在生成主题草稿" sub="完成后仍需你确认地点"
+                          reduced-motion="{{reducedMotion}}" />
+      <cy-inline-error wx:elif="{{aiError}}" kind="data"
+                       title="这次没能继续" sub="{{aiError}}" />
+      <!-- 稿 F5(99:5984):额度为 0 时界面上就写「今日额度已用完」,不是等他点了才说。
+           发送键已经置灰(is-exhausted),但灰着不给理由 —— 顶部那行「还可生成 0 次」
+           是小字,不会有人把两件事连起来。这里同时给出路:走「专业手动」。 -->
+      <cy-inline-error wx:elif="{{!aiPlan && aiQuotaLoaded && aiRemaining <= 0}}" kind="data"
+                       title="今日额度已用完" sub="明天再来，或直接走「专业手动」自己填。" />
+
+      <block wx:if="{{aiPlan}}">
+        <view class="simple-ai__section-heading">
+          <text>AI 为你整理的初稿</text>
+          <text class="simple-ai__section-state">可编辑</text>
+        </view>
+        <cy-card class="simple-ai__card">
+          <text class="simple-ai__field-label">主题名称</text>
+          <input class="simple-ai__field-input" value="{{aiPlan.title}}" bindinput="onAiPlanTitleInput" maxlength="30" aria-label="主题名称" />
+          <text class="simple-ai__field-label simple-ai__field-label--space">故事简介</text>
+          <textarea class="simple-ai__story" value="{{aiPlan.storyline}}" bindinput="onAiPlanStoryInput" maxlength="500" fixed="{{true}}" aria-label="故事简介" />
+        </cy-card>
+
+        <view class="simple-ai__section-heading simple-ai__section-heading--locations">
+          <view>
+            <text>确认地点</text>
+            <text class="simple-ai__section-sub">每个点位都要从地图确认</text>
+          </view>
+          <text class="simple-ai__section-count">{{ aiPlanNodes.length || 0 }} 个点位</text>
+        </view>
+        <cy-card class="simple-ai__node" wx:for="{{aiPlanNodes}}" wx:key="index" wx:for-item="node" wx:for-index="nodeIndex">
+          <view class="simple-ai__node-head">
+            <text class="simple-ai__node-num">{{nodeIndex + 1}}</text>
+            <view class="simple-ai__node-copy">
+              <input class="simple-ai__node-name" value="{{node.name}}" bindinput="onAiNodeNameInput" data-index="{{nodeIndex}}" maxlength="30" aria-label="第{{nodeIndex + 1 || 1}}个点位名称" />
+              <textarea class="simple-ai__node-story" value="{{node.description}}" bindinput="onAiNodeStoryInput" data-index="{{nodeIndex}}" maxlength="300" fixed="{{true}}" aria-label="第{{nodeIndex + 1 || 1}}个点位故事" />
+            </view>
+          </view>
+          <view class="simple-ai__poi {{node.confirmed ? 'is-confirmed' : ''}}" bindtap="confirmAiNodePoi" data-index="{{nodeIndex}}" aria-role="button" aria-label="第{{nodeIndex + 1 || 1}}个点位，{{node.confirmed ? '修改地点' : '确认地点'}}" hover-class="cy-pressed" hover-stay-time="80">
+            <text class="simple-ai__poi-label">{{node.confirmed ? node.address : '在地图中确认地点'}}</text>
+            <view class="simple-ai__poi-arrow"><cy-icon name="arrow-right" size="28" /></view>
+          </view>
+        </cy-card>
+
+        <!-- 置灰 ≠ 哑巴:cy-btn 吞掉禁用态的 tap,必须显式接 disabledtap 才拿得到理由。
+             enterAiEditor 的前两道守卫与 canEnterAiEditor 同判据,禁用时点它只会落 aiError 文案。 -->
+        <cy-btn variant="primary" style="margin-top:var(--cy-space-4)" disabled="{{!canEnterAiEditor}}" bindtap="enterAiEditor" bind:disabledtap="enterAiEditor"><text>确认地点，进入编辑器</text><cy-icon name="arrow-right" size="28" /></cy-btn>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view class="simple-ai__composer-wrap">
+    <view class="simple-ai__composer-handle"></view>
+    <view class="simple-ai__composer">
+      <view class="simple-ai__composer-spark"><cy-icon name="star" size="28" /></view>
+      <textarea class="simple-ai__input" value="{{aiIdea}}" bindinput="onAiIdeaInput" maxlength="300" auto-height="{{true}}" placeholder="描述你想做的路线" placeholder-class="simple-ai__placeholder" fixed="{{true}}" aria-label="路线灵感" />
+      <view class="simple-ai__send {{aiGenerating ? 'is-loading' : ''}} {{(aiQuotaLoaded && aiRemaining <= 0) ? 'is-exhausted' : ''}}" bindtap="generateAiPlan" aria-role="button" aria-label="生成主题草稿" aria-disabled="{{aiGenerating || (aiQuotaLoaded && aiRemaining <= 0)}}" hover-class="{{aiGenerating || (aiQuotaLoaded && aiRemaining <= 0) ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        <text wx:if="{{aiGenerating}}">生成中…</text>
+        <text wx:else>生成</text>
+      </view>
+    </view>
+    <text class="simple-ai__composer-hint">AI 只协助起草，地点与发布内容始终由你确认</text>
+  </view>
+</view>

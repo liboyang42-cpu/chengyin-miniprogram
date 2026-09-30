@@ -1,0 +1,12 @@
+{
+  "navigationStyle": "custom",
+  "backgroundColor": "#0A0A0B",
+  "disableScroll": true,
+  "usingComponents": {
+    "xr-badge": "/subpackageP3/components/xr-badge/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  }
+}

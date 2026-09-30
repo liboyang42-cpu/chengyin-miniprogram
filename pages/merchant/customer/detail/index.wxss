@@ -1,0 +1,312 @@
+@import '../../../../style/merchant-light.wxss';   /* m-flush-nav 等商家浅色作用域类定义在这里,别删 */
+
+page { background: var(--cy-bg-page); }
+
+/* 商家端 · 客户详情。真源 = Figma 71:279「商家端 · 客户详情 · 多状态 / 白色」。
+ * 白色体系 · 375 尺度 · 16 边距 · 16 卡片圆角(=--cy-radius-lg 32rpx)。
+ * 尺寸注释里的 px 是 Figma 的 375 尺度值,rpx = px × 2。 */
+.cd-page {
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--cy-bg-page);
+  display: flex;
+  flex-direction: column;
+}
+
+.cd-scroll { flex: 1; min-height: 0; }
+
+/* 客户身份(71:287) */
+.cd-identity {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  min-height: 152rpx;
+  margin: 32rpx var(--cy-page-x) 0;   /* 稿 71:287 y=56,紧接返回行(现由 cy-nav-bar plain 承担) */
+}
+.cd-identity-body { flex: 1; min-width: 0; }
+.cd-name {
+  display: block;
+  font-size: var(--cy-font-display-xl);   /* 56rpx = Figma 71:289 的 28px */
+  font-weight: 700;
+  line-height: 1.28; /* ds-ok: 紧行高会裁中文上沿 */
+  color: var(--cy-text-title);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cd-identity-line {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 26rpx; /* ds-ok: Figma 71:290 = 13px */
+  color: var(--cy-text-secondary);
+}
+.cd-avatar { flex-shrink: 0; }
+
+/* 累计实付(71:308)。B 态服务端给「无查看权限」,字号降一档,别摆出金额的架势。 */
+.cd-paid { margin: 32rpx var(--cy-page-x) 0; }
+.cd-paid-label {
+  display: block;
+  font-size: var(--cy-font-caption);
+  font-weight: 600;
+  color: var(--cy-text-secondary);
+}
+.cd-paid-value {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 48rpx; /* ds-ok: Figma 71:310 = 24px */
+  font-weight: 700;
+  line-height: 1.25; /* ds-ok: 数字与中文混排下不裁上沿 */
+  color: var(--cy-text-title);
+}
+.cd-paid-value--denied {
+  font-size: 34rpx; /* ds-ok: Figma 71:370「无查看权限」= 17px */
+  font-weight: 400;
+  color: var(--cy-text-secondary);
+}
+
+/* 分组:标题 16px,标题与内容间距 12px,组间 20px */
+.cd-sec { margin-top: 40rpx; }
+.cd-sec-title {
+  display: block;
+  padding: 0 var(--cy-page-x);
+  font-size: var(--cy-font-subtitle);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+/* 客户概览(71:298):三张等宽白卡,gap 8px */
+.cd-metrics {
+  display: flex;
+  gap: 16rpx;
+  margin: 24rpx var(--cy-page-x) 0;
+}
+.cd-metric {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 156rpx;
+  padding: 24rpx;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.cd-metric-num {
+  display: block;
+  font-size: 44rpx; /* ds-ok: Figma 71:300 = 22px */
+  font-weight: 700;
+  line-height: 1.3; /* ds-ok */
+  color: var(--cy-text-title);
+}
+.cd-metric-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+/* 参与记录(71:312):白卡行,日期块 38px 宽 */
+.cd-records { margin: 24rpx var(--cy-page-x) 0; }
+.cd-record {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  box-sizing: border-box;
+  min-height: 156rpx;
+  padding: 24rpx 28rpx;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.cd-record + .cd-record { margin-top: 16rpx; }
+.cd-record-date {
+  flex-shrink: 0;
+  width: 76rpx;
+  text-align: center;
+}
+.cd-record-day {
+  display: block;
+  font-size: var(--cy-font-title);
+  font-weight: 600;
+  line-height: 1.3; /* ds-ok */
+  color: var(--cy-text-title);
+}
+.cd-record-month {
+  display: block;
+  margin-top: 2rpx;
+  font-size: var(--cy-font-micro);
+  color: var(--cy-text-secondary);
+}
+.cd-record-body { flex: 1; min-width: 0; }
+.cd-record-title {
+  display: block;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cd-record-status {
+  display: block;
+  margin-top: 10rpx;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.cd-records-empty {
+  margin: 24rpx var(--cy-page-x) 0;
+  padding: 24rpx 0;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+
+/* 标签与备注(71:334) */
+.cd-notecard {
+  margin: 24rpx var(--cy-page-x) 0;
+  padding: 24rpx 28rpx;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+}
+.cd-chips { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.cd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 18rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-card-2);   /* 稿 71:336 #efefef;别用 --cy-bg-subtle,商家主题里它是 #f8fafc 冷调,白卡上没台阶 */
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.cd-note {
+  display: block;
+  margin-top: 24rpx;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+.cd-note--empty { margin-top: 0; }
+.cd-notecard-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24rpx;
+}
+.cd-edit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 138rpx;
+  height: 56rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+}
+/* Figma 98:279 把药丸画成 69×28px,视觉照做;命中区靠透明 ::after 撑到 44px 下限,
+ * 别为了过无障碍把稿上的药丸拉高。 */
+.cd-edit::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc((56rpx - 88rpx) / 2);
+  bottom: calc((56rpx - 88rpx) / 2);
+}
+.cd-edit-label {
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-btn-solid-fg);
+}
+
+.cd-tail { height: 48rpx; }
+
+/* —— F 编辑标签与备注弹窗(87:339) —— */
+.cd-editor { padding: 0 8rpx 16rpx; }
+.cd-editor-label {
+  display: block;
+  margin-top: 32rpx;
+  margin-bottom: 20rpx;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.cd-editor-label:first-child { margin-top: 0; }
+.cd-editor-hint {
+  display: block;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+.cd-editor-cancel { margin-left: 12rpx; color: var(--cy-text-title); text-decoration: underline; }
+.cd-editor-error {
+  display: block;
+  margin-top: 12rpx;
+  font-size: var(--cy-font-label);
+  color: var(--cy-danger);
+}
+.cd-chip--removable { padding-right: 12rpx; }
+.cd-chip-x { padding: 0 6rpx; color: var(--cy-text-placeholder); }
+
+/* 新增标签输入框(87:351):44px 高,右侧「添加」 */
+.cd-field {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  padding: 0 28rpx;
+  height: 88rpx;
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-page);   /* 稿 87:351 = #f3f4f4,与页底同色 */
+}
+.cd-field-input { flex: 1; min-width: 0; font-size: var(--cy-font-body); color: var(--cy-text-title); }
+.cd-placeholder { color: var(--cy-text-placeholder); }
+.cd-field-action {
+  flex-shrink: 0;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.cd-field-action--busy { color: var(--cy-text-placeholder); }
+
+/* 备注输入框(87:355):84px 高 + 右下字数 */
+.cd-textarea-wrap {
+  position: relative;
+  padding: 26rpx 28rpx 40rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-page);   /* 稿 87:355 = #f3f4f4 */
+}
+.cd-textarea {
+  width: 100%;
+  height: 112rpx;
+  box-sizing: border-box;
+  font-size: var(--cy-font-body);
+  line-height: 1.5;
+  color: var(--cy-text-title);
+}
+.cd-textarea-count {
+  position: absolute;
+  right: 28rpx;
+  bottom: 14rpx;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-placeholder);
+}
+
+/* 历史跟进(稿外保留能力,见 wxml 注释)。
+ * 排版跟上面的分组同一套:靠间距分行,不画横线 —— 稿里整页没有任何分隔线。 */
+/* 与「新增标签」「客户备注」同一套容器语言:同色填充块 + 同圆角,靠间距分行 */
+.cd-history {
+  margin-top: 20rpx;
+  padding: 8rpx 28rpx 26rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-page);
+}
+.cd-history-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+.cd-history-body { flex: 1; min-width: 0; }
+.cd-history-text { display: block; font-size: var(--cy-font-label); color: var(--cy-text-title); }
+.cd-history-time { display: block; margin-top: 6rpx; font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cd-history-actions { flex-shrink: 0; display: flex; gap: 20rpx; }
+.cd-history-action { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.cd-history-action--danger { color: var(--cy-danger); }
+
+.cd-save { margin-top: 40rpx; }

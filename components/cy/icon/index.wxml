@@ -1,0 +1,1 @@
+<view wx:if="{{name}}" class="cyi cyi--{{name}}" style="width:{{size}}rpx;height:{{size}}rpx" aria-hidden="true"></view>

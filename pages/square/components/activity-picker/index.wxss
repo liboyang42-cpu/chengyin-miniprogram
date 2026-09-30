@@ -1,0 +1,111 @@
+/* 2026-09-02:原 1000/1100 越过整条 token 档。这是底部选择弹层 = sheet 档。 */
+.ap-mask {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cy-z-sheet);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+}
+
+.ap-sheet {
+  width: 100%;
+  max-height: 70vh;
+  background: var(--cy-bg-card);
+  border-radius: var(--cy-radius-lg) var(--cy-radius-lg) 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cy-space-3) var(--cy-page-x);
+  border-bottom: 1rpx solid var(--cy-border-card);
+}
+
+.ap-title {
+  font-size: var(--cy-font-subtitle);
+  font-weight: bold;
+  color: var(--cy-text-title);
+}
+
+.ap-close {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  padding: var(--cy-space-1) var(--cy-space-2);
+}
+
+.ap-body {
+  flex: 1;
+  max-height: 60vh;
+}
+
+.ap-item {
+  display: flex;
+  align-items: center;
+  padding: var(--cy-space-3) var(--cy-page-x);
+  border-bottom: 1rpx solid var(--cy-border-card);
+}
+
+.ap-cover {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-bg-subtle);
+  flex-shrink: 0;
+}
+
+.ap-info {
+  flex: 1;
+  margin-left: var(--cy-space-3);
+  min-width: 0;
+}
+
+.ap-name {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  font-weight: 500;
+}
+
+.ap-meta {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.ap-badge {
+  font-size: var(--cy-font-title);
+  margin-left: var(--cy-space-2);
+  flex-shrink: 0;
+}
+
+/* 生成路线预览图:map 需真实渲染才能截图,故铺在屏内并用遮罩盖住 */
+.ap-gen {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--cy-z-sheet) + 1);
+}
+.ap-gen .rm-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.ap-gen-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-inverse);
+  font-size: var(--cy-font-body);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

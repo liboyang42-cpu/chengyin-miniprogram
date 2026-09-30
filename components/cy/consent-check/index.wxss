@@ -1,0 +1,23 @@
+:host { display: block; }
+
+/* 整行可点:勾选框只有 20px,单独当热区达不到 44px 无障碍下限。 */
+.cck {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-2);
+  min-height: 88rpx;
+  padding: var(--cy-space-2) 0;
+  box-sizing: border-box;
+}
+
+.cck__box { flex: none; margin-top: 4rpx; }
+
+.cck__txt {
+  flex: 1;
+  font-size: var(--cy-font-caption);
+  line-height: 1.5;
+  color: var(--cy-text-body);
+}
+
+/* 合规勾选是关键操作,按下必须有反馈 —— 用户要确信自己真的勾上了 */
+.cck--press { opacity: 0.7; }

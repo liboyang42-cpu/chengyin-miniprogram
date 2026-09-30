@@ -1,0 +1,4 @@
+/* cy-mascot · 猫向导(Figma 组件库 v5.1,node 45:249 / 45:261)
+ * 两态:normal(引路)与 blindfold(蒙眼,盲品挑战专用)。
+ * 图形走 Figma 导出的 SVG,不手绘 —— 手画的耳朵角度和稿对不上。 */
+.ms { display: block; flex: none; }

@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-icon": "/components/cy/icon/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-mascot": "/pages/play/components/mascot/index"
+  }
+}

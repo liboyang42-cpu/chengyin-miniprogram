@@ -1,0 +1,286 @@
+/* 俱乐部 · 活动详情(Figma H1–H6,393px 画板 · 本仓换算 1px = 2rpx,见 --cy-space-4 = 32rpx = 16px)
+ *
+ * 本页的尺寸全部从 Figma 实测。设计里有几个值落在全局 type/radius 阶之外(19px/15px/13px/12.5px/
+ * 11.5px、10px/14px/18px 圆角),不去改全局真源 —— 在本页开一组组件级 token 承接,值旁注明出处。
+ * 这样既保住「和稿一模一样」,也不往 tokens.wxss 里塞一次性的档。 */
+.ctd-page {
+  --ctd-cover-h: 480rpx;          /* 240px */
+  --ctd-head-h: 1044rpx;          /* 522px:封面顶到「主题」分区顶 */
+  --ctd-logo: 128rpx;             /* 64px */
+  --ctd-logo-ring: 6rpx;          /* 3px */
+  --ctd-qa-circle: 104rpx;        /* 52px */
+
+  --ctd-type-section: 38rpx;      /* 19px 分区标题 —— 全局 section-title 是 36rpx(18px),差 1px */
+  --ctd-type-hero: 44rpx;         /* 22px 活动名 = --cy-type-sheet-title 同值,本页显式写出便于比对 */
+  --ctd-type-row: 30rpx;          /* 15px 场次日期 */
+  --ctd-type-body-s: 26rpx;       /* 13px 卡内正文 / 台账入口 */
+  --ctd-type-meta: 25rpx;         /* 12.5px meta 行 / 圆钮标签 / 底栏说明 */
+  --ctd-type-kind: 23rpx;         /* 11.5px 场次类型 chip */
+
+  --ctd-radius-thumb: 20rpx;      /* 10px 主题封面 */
+  --ctd-radius-metric: 28rpx;     /* 14px 核销数据块 */
+  --ctd-radius-cta: 36rpx;        /* 18px 主按钮 */
+
+  background: var(--cy-color-bg-surface);
+  min-height: 100vh;
+}
+
+/* ---------- ① Hero + 标题区 ---------- */
+.ctd-head { position: relative; height: var(--ctd-head-h); }
+
+.ctd-head__cover { position: absolute; left: 0; right: 0; top: 0; height: var(--ctd-cover-h); overflow: hidden; }
+.ctd-head__cover-img { width: 100%; height: 100%; }
+/* 无封面时的兜底。稿上那块紫调渐变是「实景图」的占位,不是 UI 色 —— 照抄等于把
+   设计稿的临时状态焊进代码。按 club/detail 的既有做法用中性档,真图由 cover 覆盖。 */
+.ctd-head__cover-fallback {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--cy-space-1-5);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+}
+/* CU-C-147:兜底要自己说清"没有封面"。一枚通用 image 线条图标读起来像资源加载失败,
+   不是"这场活动没配图";图标 + 短文案与 templatedetail 头部、IM 报名卡同一口径,
+   尺寸按 480rpx 的 Hero 放大(no_data.svg 是 4:3,高宽比不能写反)。 */
+.ctd-cover-ph-icon { width: 160rpx; height: 120rpx; flex: 0 0 auto; }
+.ctd-cover-ph-txt { font-size: var(--cy-font-caption); line-height: var(--cy-leading-normal); }
+.ctd-head__scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 55%, rgba(0,0,0,.6) 100%); /* ds-ok: Figma scrim */
+}
+
+.ctd-head__logo {
+  position: absolute; left: var(--cy-space-4); top: 396rpx;   /* 设计 y247 - 封面顶 y49 = 198px */
+  width: var(--ctd-logo); height: var(--ctd-logo);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-raised);
+  border: var(--ctd-logo-ring) solid var(--cy-color-bg-surface);
+  box-sizing: border-box; overflow: hidden;
+}
+.ctd-head__logo-img { width: 100%; height: 100%; }
+
+.ctd-head__status {
+  position: absolute; right: var(--cy-space-4); top: 396rpx;
+  height: 56rpx; padding: 0 20rpx;
+  display: flex; align-items: center; gap: 10rpx;
+  border-radius: var(--cy-radius-pill);
+  background: rgba(0,0,0,.6); /* ds-ok: Figma 状态胶囊压在封面上的半透明底 */
+}
+.ctd-head__status-dot { width: 12rpx; height: 12rpx; border-radius: var(--cy-radius-pill); background: var(--cy-color-text-tertiary); }
+.ctd-head__status-dot--running { background: var(--cy-color-status-success); }
+.ctd-head__status-dot--rejected { background: var(--cy-color-status-danger); }
+.ctd-head__status-dot--reviewing { background: var(--cy-color-status-warning); }
+.ctd-head__status-txt { font-size: var(--cy-type-label); font-weight: 500; line-height: 1.35; color: var(--cy-color-text-primary); }
+
+.ctd-head__title {
+  position: absolute; left: var(--cy-space-4); right: var(--cy-space-4); top: 548rpx;  /* 设计 y323 */
+  font-size: var(--ctd-type-hero); font-weight: 700; line-height: 1.35;
+  color: var(--cy-color-text-primary);
+}
+.ctd-head__meta { position: absolute; left: var(--cy-space-4); top: 618rpx; display: flex; align-items: center; gap: var(--cy-space-3); }
+.ctd-head__meta-item { display: flex; align-items: center; gap: 10rpx; color: var(--cy-color-text-tertiary); }
+.ctd-head__meta-txt { font-size: var(--ctd-type-meta); line-height: 1.35; color: var(--cy-color-text-tertiary); }
+
+.ctd-head__chips { position: absolute; left: var(--cy-space-4); top: 686rpx; display: flex; gap: var(--cy-space-1); }
+.ctd-chip {
+  height: 52rpx; padding: 0 var(--cy-space-3);
+  display: flex; align-items: center; justify-content: center;
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-pill);
+}
+.ctd-chip__txt { font-size: var(--cy-type-label); line-height: 1.35; color: var(--cy-color-text-tertiary); }
+
+/* ---------- ② 四圆钮 ---------- */
+/* 设计 y449 是**画板**坐标(含 49px 状态栏);本块基准是封面顶,故 (449-49)×2 = 800rpx。
+   起初写成 449×2=898rpx —— 圆钮下沿越出 .ctd-head 的 1044rpx,把「核销」标题压住了。
+   单测与 0 console error 都发现不了,是截图看出来的。 */
+.ctd-qa { position: absolute; left: 0; top: 800rpx; display: flex; }
+.ctd-qa__btn { width: 180rpx; display: flex; flex-direction: column; align-items: center; }
+.ctd-qa__btn.is-disabled { opacity: .4; }
+.ctd-qa__circle {
+  width: var(--ctd-qa-circle); height: var(--ctd-qa-circle); margin-top: 20rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-interactive);
+  color: var(--cy-color-text-primary);
+}
+.ctd-qa__label { margin-top: 18rpx; font-size: var(--ctd-type-meta); line-height: 1.35; color: var(--cy-color-text-primary); }
+
+/* ---------- 分区通用 ---------- */
+/* §8.3 贯穿口径:区块之间 20 · 分区标题→本组 16 · 卡与卡 12 · 页边 16 */
+.ctd-sec { padding: 0 var(--cy-space-4); margin-bottom: var(--cy-space-2-5); }
+.ctd-sec__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--cy-space-2); }
+.ctd-sec__tit { font-size: var(--ctd-type-section); font-weight: 700; line-height: 1.35; color: var(--cy-color-text-primary); }
+.ctd-sec__more { display: flex; align-items: center; gap: 6rpx; }
+.ctd-sec__more-txt { font-size: var(--ctd-type-body-s); line-height: 1.35; color: var(--cy-color-text-tertiary); }
+
+/* ---------- ③ 未通过原因 ---------- */
+.ctd-reject {
+  padding: 38rpx;
+  border-radius: var(--cy-radius-xl);
+  background: var(--cy-color-status-danger-soft);
+  border: 2rpx solid var(--cy-color-status-danger-soft);
+}
+.ctd-reject__tit { display: block; font-size: var(--ctd-type-row); font-weight: 700; line-height: 1.35; color: var(--cy-color-status-danger); }
+.ctd-reject__body { display: block; margin-top: var(--cy-space-2); font-size: var(--ctd-type-body-s); line-height: 1.6; color: var(--cy-color-text-primary); }
+
+/* ---------- ④ 核销三块 ---------- */
+.ctd-metrics { display: flex; gap: 22rpx; }          /* 设计 113+11 间距 → 22rpx */
+.ctd-metric {
+  flex: 1 1 0; min-width: 0;
+  padding: var(--cy-space-4) 20rpx var(--cy-space-4) 28rpx;
+  border-radius: var(--ctd-radius-metric);
+  background: var(--cy-color-bg-surface-strong);
+}
+.ctd-metric__num { display: block; font-size: var(--cy-type-display); font-weight: 700; color: var(--cy-color-text-primary); }
+.ctd-metric__label { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+
+/* ---------- ⑤ 主题卡(整页上的卡 = elevated) ---------- */
+.ctd-topic {
+  display: flex; gap: var(--cy-space-3); align-items: flex-start;
+  padding: 20rpx var(--cy-space-3) 20rpx 20rpx;
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-elevated);
+}
+.ctd-topic__cover { flex: none; width: 192rpx; height: 192rpx; border-radius: var(--ctd-radius-thumb); background: var(--cy-color-bg-raised); overflow: hidden; }
+.ctd-topic__cover-img { width: 100%; height: 100%; }
+.ctd-topic__body { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1-5); }
+.ctd-topic__name { font-size: var(--cy-type-card-title); font-weight: 700; color: var(--cy-color-text-primary); }
+.ctd-topic__sub { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.ctd-topic__chips { display: flex; gap: var(--cy-space-1-5); }
+/* 卡在整页上是 elevated,卡内软底 chip 高一档到 raised */
+.ctd-softchip { padding: var(--cy-space-1) var(--cy-space-2); border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-raised); }
+.ctd-softchip__txt { font-size: var(--cy-type-caption); font-weight: 500; color: var(--cy-color-text-primary); }
+.ctd-softchip.is-success .ctd-softchip__txt { color: var(--cy-color-status-success); }
+.ctd-topic__more { display: flex; align-items: center; gap: 8rpx; }
+.ctd-topic__more-txt { font-size: var(--ctd-type-body-s); font-weight: 500; color: var(--cy-color-text-primary); }
+
+/* ---------- ⑥ 接下来 ---------- */
+.ctd-next { padding: var(--cy-space-4) 0; border-radius: var(--cy-radius-xl); background: var(--cy-color-bg-elevated); }
+.ctd-next__row { position: relative; display: flex; align-items: flex-start; padding: 0 var(--cy-space-4) 0 40rpx; }
+.ctd-next__row + .ctd-next__row { margin-top: 44rpx; }
+.ctd-next__dot { position: absolute; left: var(--cy-space-4); top: 14rpx; width: 16rpx; height: 16rpx; border-radius: var(--cy-radius-pill); background: var(--cy-color-text-primary); }
+.ctd-next__main { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.ctd-next__when { font-size: var(--ctd-type-row); font-weight: 700; line-height: 1.35; color: var(--cy-color-text-primary); }
+.ctd-next__who { margin-top: 14rpx; font-size: var(--ctd-type-body-s); line-height: 1.35; color: var(--cy-color-text-tertiary); }
+.ctd-next__eta { margin-top: 12rpx; font-size: var(--cy-type-label); line-height: 1.35; color: var(--cy-color-text-placeholder); }
+.ctd-next__kind {
+  flex: none; height: 48rpx; padding: 0 20rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-interactive);
+}
+/* 坐在 bg-interactive(#4D4D4D)上只能用 text-primary(7.96:1),别降档 */
+.ctd-next__kind-txt { font-size: var(--ctd-type-kind); line-height: 1.35; color: var(--cy-color-text-primary); }
+
+/* ---------- ⑦ 固定底部条 ---------- */
+.ctd-footspacer { height: 258rpx; }
+.ctd-footbar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  z-index: var(--cy-z-sticky);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--cy-color-bg-surface);
+  border-top: 2rpx solid var(--cy-color-border-subtle);
+}
+.ctd-footbar__note { display: flex; align-items: center; justify-content: center; gap: 10rpx; padding: 24rpx 0 0; color: var(--cy-color-text-placeholder); }
+.ctd-footbar__note-txt { font-size: var(--ctd-type-meta); line-height: 1.35; color: var(--cy-color-text-placeholder); }
+.ctd-footbar__cta {
+  height: 110rpx; margin: 26rpx var(--cy-space-4) 24rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--ctd-radius-cta);
+  background: var(--cy-color-action-primary-bg);
+}
+.ctd-footbar__cta-txt { font-size: var(--cy-type-button); font-weight: 500; line-height: 1.35; color: var(--cy-color-action-primary-fg); }
+.ctd-footbar__cta.is-disabled { background: var(--cy-color-bg-surface-strong); }
+.ctd-footbar__cta.is-disabled .ctd-footbar__cta-txt { color: var(--cy-color-text-secondary); }
+
+/* ── 导演台(game-director 整页收编进来后新增)── */
+.ctd-director-state { padding: var(--cy-space-4); }
+.ctd-director-note { padding: 0 var(--cy-space-4) var(--cy-space-2); font-size: var(--cy-type-caption); line-height: 1.5; color: var(--cy-color-text-tertiary); }
+.ctd-director-recaphead { display: flex; align-items: center; justify-content: space-between; padding: 0 var(--cy-space-4); }
+.ctd-director-export { min-height: var(--cy-btn-h-sm); display: flex; align-items: center; padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-raised); color: var(--cy-info); font-size: var(--cy-type-label); }
+.ctd-director-export.is-disabled { opacity: .45; pointer-events: none; }
+/* E-04:导演台现场工具入口行(D4/D5/D6/D8 弹层的唯一入口) */
+.ctd-tools { display: flex; flex-wrap: wrap; gap: var(--cy-space-2); padding: 0 var(--cy-space-4) var(--cy-space-3); }
+
+/* 写入结果未知:这一条是安全出口,做得比普通提示重,别让它看起来像可以忽略的 toast */
+.ctd-director-unknown { margin: 0 var(--cy-space-4) var(--cy-space-3); padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-status-warning-soft); }
+.ctd-director-unknown__title { display: block; font-size: var(--cy-type-body); font-weight: 700; color: var(--cy-color-status-warning); }
+.ctd-director-unknown__sub { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-type-caption); line-height: 1.5; color: var(--cy-color-text-secondary); }
+.ctd-director-unknown__acts { display: flex; gap: var(--cy-space-2); margin-top: var(--cy-space-2); }
+.ctd-director-unknown__act { min-height: var(--cy-btn-h-sm); display: flex; align-items: center; padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-raised); color: var(--cy-color-text-primary); font-size: var(--cy-type-label); }
+
+/* 弹层里补的填写位(组件只给了 slot) */
+.ctd-director-field { display: flex; flex-direction: column; gap: var(--cy-space-2); margin-top: var(--cy-space-3); }
+.ctd-director-field__label { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.ctd-director-field__input { min-height: 120rpx; padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-raised); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); line-height: 1.5; }
+.ctd-director-field__picker { min-height: var(--cy-btn-h); display: flex; align-items: center; padding: 0 var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-raised); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); }
+.ctd-director-field__acts { display: flex; gap: var(--cy-space-2); }
+.ctd-director-field__act { flex: 1; min-height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-raised); color: var(--cy-color-text-primary); font-size: var(--cy-type-body); }
+.ctd-director-field__act--primary { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+.ctd-director-field__act.is-disabled { opacity: .45; pointer-events: none; }
+
+/* HO-26 集合时间:一行,右侧一颗小按钮(「修改」) */
+.ctd-opstime { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-3); margin: 0 var(--cy-space-4) var(--cy-space-3); padding: var(--cy-space-3); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-elevated); }
+.ctd-opstime__main { display: flex; flex-direction: column; gap: var(--cy-space-1); min-width: 0; }
+.ctd-opstime__label { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.ctd-opstime__value { font-size: var(--cy-type-body); font-weight: 500; color: var(--cy-color-text-primary); }
+.ctd-opstime__edit { flex: none; min-height: var(--cy-btn-h-sm); display: flex; align-items: center; padding: 0 var(--cy-space-4); border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-raised); color: var(--cy-color-text-primary); font-size: var(--cy-type-label); }
+.ctd-opstime__hint { font-size: var(--cy-type-caption); line-height: 1.5; color: var(--cy-color-text-tertiary); }
+
+/* 错误态/骨架态给 overlay 导航让位 —— 见 index.wxml 里那段注释。 */
+.ctd-chrome-clear { padding-top: var(--cy-safe-top); }
+
+/* ——— Figma J4 主题设置 / J3 招商台(两张弹层共用行样式)——— */
+.tset { padding: 8rpx var(--cy-page-x) calc(24rpx + env(safe-area-inset-bottom)); }
+.tset-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16rpx; padding: 8rpx 0 16rpx; }
+.tset-name { font-size: var(--cy-font-subtitle); font-weight: 700; }
+.tset-stage { color: var(--cy-color-status-success); font-size: var(--cy-font-caption); }
+.tset-label { display: block; margin: 28rpx 0 12rpx; color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption); font-weight: 500; }
+.tset-row { display: flex; align-items: center; gap: 20rpx; min-height: 120rpx; padding: 0 24rpx;
+  margin-top: 12rpx; background: var(--cy-color-bg-raised); border-radius: var(--cy-radius-md); }
+.tset-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.tset-row-title { font-size: var(--cy-font-body); }
+.tset-row-title--danger { color: var(--cy-color-status-danger); }
+.tset-row-sub { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); line-height: 1.5; }
+.tset-foot { display: block; margin-top: 20rpx; color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption); line-height: 1.6; }
+
+/* ——— J7 商家 / J2 客户 名单(稿 471:449 / 472:449)———
+ * 稿上是平铺名单:没有卡片外框,行与行之间一条发丝线,不是一摞小卡片。 */
+.cli-stats { display: flex; flex-wrap: wrap; gap: 6rpx 20rpx; padding: 4rpx 0 20rpx; }
+.cli-stat { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cli-stat--warning { color: var(--cy-color-status-warning); }
+.cli-stat--success { color: var(--cy-color-status-success); }
+.cli-chips { display: flex; flex-wrap: wrap; gap: 16rpx; padding-bottom: 8rpx; }
+.cli-chip { padding: 12rpx 28rpx; border-radius: var(--cy-radius-pill); font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary); background: var(--cy-color-bg-raised); }
+.cli-chip--on { color: var(--cy-color-bg-page); background: var(--cy-text-title); font-weight: 600; }
+.cli-row { display: flex; align-items: flex-start; gap: 24rpx; padding: 28rpx 0;
+  border-top: 1rpx solid var(--cy-color-border-subtle); }
+.cli-row--first { border-top: 0; }
+.cli-ava { flex: none; width: 72rpx; height: 72rpx; border-radius: 50%;
+  background: var(--cy-color-bg-raised); color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption); display: flex; align-items: center; justify-content: center; }
+.cli-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
+.cli-name { font-size: var(--cy-font-body); font-weight: 600; }
+.cli-sub { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); line-height: 1.5; }
+.cli-sub--muted { opacity: .7; }
+.cli-line { display: flex; align-items: center; gap: 12rpx; }
+.cli-copy { flex: none; color: var(--cy-text-secondary); padding: 4rpx; }
+.cli-right { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 8rpx; }
+.cli-state { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.cli-state--VERIFIED { color: var(--cy-color-status-success); }
+.cli-state--PENDING { color: var(--cy-color-status-warning); }
+.cli-state--CONTACTED { color: var(--cy-color-status-warning); }
+.cli-entry { display: flex; align-items: center; gap: 20rpx; margin-top: 24rpx; padding-top: 28rpx;
+  color: var(--cy-text-secondary); border-top: 1rpx solid var(--cy-color-border-subtle); }
+/* CU-C-76:资格不满足时的同一行入口 —— 不能点,但条件就写在原地 */
+.cli-entry--disabled { color: var(--cy-color-text-disabled); }
+.cli-entry--disabled .cli-sub { color: var(--cy-color-text-disabled); }
+.tset-rule { margin-top: 12rpx; padding: 20rpx 24rpx; background: var(--cy-color-bg-raised);
+  border-radius: var(--cy-radius-md); display: flex; flex-direction: column; gap: 8rpx; }
+.tset-rule-title { font-size: var(--cy-font-body); font-weight: 600; }
+.tset-rule-title--warning { color: var(--cy-color-status-warning); }
+.tset-rule-title--danger { color: var(--cy-color-status-danger); }
+.tset-rule-text { color: var(--cy-text-body); font-size: var(--cy-font-caption); line-height: 1.6; }

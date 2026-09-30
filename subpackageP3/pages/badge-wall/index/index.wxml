@@ -1,0 +1,105 @@
+<!-- 勋章墙:整屏 WebGL 数字装置。canvas 铺满视口,cover-view 做原生层之上的悬浮字幕层/详情 sheet;
+     无 WebGL 或引擎失败 → 静态网格降级(L0)。 -->
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="bw" style="--sbh:{{statusBarHeight}}px; --nbh:{{navBarHeight}}px;">
+
+  <!-- 主体:单 WebGL canvas -->
+  <block wx:if="{{viewMode === 'wall' && (!loaded || badges.length)}}">
+    <canvas wx:if="{{!glFail && !loadFail && !partialFail}}" type="webgl" id="wall" class="bw-gl"
+            disable-scroll="{{true}}"
+            bindtouchstart="onTouch" bindtouchmove="onTouch" bindtouchend="onTouchEnd"
+            bindtouchcancel="onTouchEnd"></canvas>
+
+    <!-- L0 降级:静态网格 -->
+    <scroll-view wx:else scroll-y class="bw-fallback" style="padding-top:{{statusBarHeight + 60}}px;">
+      <view class="bw-fb-grid">
+        <view class="bw-fb-item" wx:for="{{badges}}" wx:key="index" bindtap="onFbTap" data-idx="{{index}}" hover-class="cy-pressed" hover-stay-time="80">
+          <image class="bw-fb-img" src="{{item.iconUrl}}" mode="aspectFit" wx:if="{{item.iconUrl}}"></image>
+          <view class="bw-fb-img bw-fb-ph" wx:else aria-role="img" aria-label="默认勋章图标">
+            <cy-icon name="star" size="48" />
+          </view>
+          <text class="bw-fb-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <scroll-view class="bw-list" scroll-y wx:if="{{viewMode === 'list' && badges.length && !loadFail && !partialFail}}">
+    <block wx:for="{{badgeGroups}}" wx:for-item="group" wx:key="key">
+      <text class="bw-list-h" wx:if="{{group.title}}">{{group.title}}</text>
+      <view class="bw-list-row" wx:for="{{group.items}}" wx:for-item="item" wx:key="_idx" bindtap="onFbTap" data-idx="{{item._idx}}" hover-class="cy-pressed" hover-stay-time="80">
+        <view class="bw-list-mark {{item.locked ? 'is-locked' : ''}}">
+          <image wx:if="{{item.iconUrl}}" src="{{item.iconUrl}}" mode="aspectFit" />
+          <cy-icon wx:else name="star" size="36" />
+        </view>
+        <view class="bw-list-copy">
+          <text class="bw-list-name ep1">{{item.name}}</text>
+          <text class="bw-list-meta ep1">{{item.locked ? '尚未点亮' : (item.time || '已点亮')}} · {{item.tierZh}}</text>
+        </view>
+        <text class="bw-list-state">{{item.locked ? '查看条件' : '查看'}}</text>
+      </view>
+    </block>
+  </scroll-view>
+
+  <cy-empty class="bw-empty-state" fill size="lg" title="还没有点亮勋章"
+    sub="完成一次城市探索或成长里程，第一枚勋章会在这里出现" cta="去探索" bind:cta="goExplore"
+    wx:if="{{loaded && !badges.length && !loadFail && !partialFail}}" />
+
+  <!-- 原生 WebGL 覆盖层:普通 view 会被 canvas 原生层压住,返回必须留在 cover-view 上 -->
+  <cover-view class="bw-top" style="padding-top:{{statusBarHeight}}px;">
+    <cover-view class="bw-top-bar" style="height:{{navBarHeight}}px;">
+      <cover-view class="bw-back-hit" bindtap="goBack" aria-role="button" aria-label="返回" hover-class="cy-pressed" hover-stay-time="80">
+        <cover-view class="bw-back-inner"><cover-image class="bw-back-icon" src="/subpackageP3/images/icon_back.png" mode="aspectFit" /></cover-view>
+      </cover-view>
+    </cover-view>
+    <!-- 信息层与切换控件必须继续使用 cover-view，避免被 WebGL 原生层压住。 -->
+    <cover-view class="bw-cap">
+      <cover-view class="bw-head">
+        <cover-view class="bw-page-title"><cover-view class="bw-cap-t">勋章墙</cover-view></cover-view>
+        <cover-view class="bw-cap-s" wx:if="{{loaded}}">已点亮 {{unlockedCount}} / {{badges.length}} · 还有 {{ lockedCount || 0 }} 枚等待探索</cover-view>
+        <cover-view class="bw-cap-s" wx:else>正在唤醒勋章…</cover-view>
+        <!-- 从玩法侧带 badgeCode 跳进来时的回读结论。找不到就照实说,不假装已落位。
+             ⚠️必须留在 bw-cap 这棵 cover-view 里:普通 view 会被 WebGL 原生层压住,
+             放在 canvas 之外的游离 cover-view 则根本不渲染(2026-08-25 截图实证)。 -->
+        <cover-view class="bw-focus" wx:if="{{focusText}}">{{focusText}}</cover-view>
+        <cover-view class="bw-view-switch">
+          <cover-view class="bw-view-option {{viewMode === 'wall' ? 'is-active' : ''}}" bindtap="setWallMode" hover-class="cy-pressed" hover-stay-time="80">墙</cover-view>
+          <cover-view class="bw-view-option {{viewMode === 'list' ? 'is-active' : ''}}" bindtap="setListMode" hover-class="cy-pressed" hover-stay-time="80">列表</cover-view>
+        </cover-view>
+      </cover-view>
+    </cover-view>
+  </cover-view>
+
+  <!-- 请求失败/部分数据失败:身份卡仍可见,但不能把缺失的城市纪念章静默当成完整结果 -->
+  <cy-error class="bw-error-state" wx:if="{{loadFail || partialFail || (glFail && viewMode === 'wall')}}" fill size="lg"
+    icon="/images/no_data.svg"
+    title="{{loadFail ? '勋章数据没有到达' : partialFail ? '部分勋章数据未到达，当前结果不完整' : glFail ? '勋章墙渲染失败' : ''}}"
+    sub="{{partialFail ? '当前结果不完整，请重试获取全部勋章。' : '网络或渲染暂时失败，重试会重新加载'}}"
+    retry="重试" bind:retry="loadData" />
+
+  <!-- 详情 veil + sheet:同样必须在原生 canvas 之上;外观照玩家场景弹窗 cy-scene-sheet(标题行只放标题与叉) -->
+  <cover-view class="bw-veil {{sheetOn ? 'on' : ''}}" bindtap="closeSheet" catchtouchmove="noop" hover-class="cy-pressed" hover-stay-time="80"></cover-view>
+  <cover-view class="bw-sheet {{sheetOn ? 'on' : ''}}" catchtouchmove="noop">
+    <cover-view class="bw-sh-hd">
+      <cover-view class="bw-sh-name">{{sheet.name}}</cover-view>
+      <cover-view class="bw-sh-x" bindtap="closeSheet" aria-role="button" aria-label="关闭勋章详情" hover-class="cy-pressed" hover-stay-time="80">
+        <cover-view class="bw-sh-x-visual"><cover-image class="bw-sh-x-icon" src="/subpackageP3/images/icon_close_sm.png" mode="aspectFit" /></cover-view>
+      </cover-view>
+    </cover-view>
+    <cover-view class="bw-sh-body">
+      <!-- 类别小胶囊:放在标题下一行(不跟叉挤在标题行);它就是原来「来源」那一格说的事,来源行因此删掉 -->
+      <cover-view class="bw-sh-rar" style="color:{{sheet.rarColor}};">{{sheet.rarZh}}</cover-view>
+      <cover-view class="bw-sh-desc">{{sheet.desc}}</cover-view>
+      <cover-view class="bw-sh-meta">
+        <cover-view class="bw-sm"><cover-view class="bw-sm-k">获得时间</cover-view><cover-view class="bw-sm-v">{{sheet.time || '—'}}</cover-view></cover-view>
+        <cover-view class="bw-sm bw-sm--wide" wx:if="{{sheet.cond}}"><cover-view class="bw-sm-k">{{sheet.time === '未点亮' ? '如何点亮' : '获得条件'}}</cover-view><cover-view class="bw-sm-v">{{sheet.cond}}</cover-view></cover-view>
+      </cover-view>
+      <!-- 双样式:珐琅勋章可进 3D 转台细看;发光勋章墙上本体即是终态 -->
+      <cover-view class="bw-sh-3d" wx:if="{{sheet.style=='enamel'}}" bindtap="goBadge3d" aria-role="button" aria-label="查看 3D 徽章" hover-class="cy-pressed" hover-stay-time="80">查看 3D 徽章<cover-image class="bw-sh-3d-icon" src="/images/icon_right.png" mode="aspectFit" /></cover-view>
+    </cover-view>
+  </cover-view>
+</view>
+</view>

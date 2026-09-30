@@ -1,0 +1,234 @@
+/* cy-qr-voucher · QR 凭证(DS §5.9)
+ * 统一 scene-full 外壳 + 永远浅色码卡 + 纯黑二维码 + 中性定位角 + 中心 logo 挖空。
+ * 品牌紫走 var(--cy-brand)(两主题同值);码卡与其内文为物理浅色(扫码要求,不随主题),
+ * 标题/说明在暗 scrim 上恒为浅色——这些行按门禁规定标 ds-ok 例外。 */
+:host { display: block; }
+
+.qr {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.qr__panel {
+  position: relative;
+  width: 100%;
+  max-width: 600rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: qr-pop var(--cy-motion-standard) var(--cy-ease-out);
+}
+.qr--reduced-motion .qr__panel,
+.qr--reduced-motion .qr__spin { animation: none; }
+
+/* —— 码卡:永远浅色 —— */
+.qr__card {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--cy-space-5);
+  border-radius: var(--cy-radius-lg);
+  background: #FFFFFF;                  /* 码卡物理浅色,不随主题 ds-ok */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.qr__code {
+  position: relative;
+  width: 440rpx;
+  height: 440rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr__img { width: 100%; height: 100%; }
+
+/* 文本防伪码兜底(浅卡内→深字) */
+.qr__code-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-on-light);  /* 浅卡内深字;2026-09-01(D4)由 #0F172B 去墨蓝 */
+  font-size: var(--cy-font-page-title);
+  font-weight: 600;
+  letter-spacing: 8rpx;
+  word-break: break-all;
+  text-align: center;
+}
+
+/* 占位(loading / error) */
+.qr__ph {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--cy-radius-sm);
+  background: #F1F4F7;                  /* 浅卡内浅端 surface-subtle ds-ok */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-2);
+}
+.qr__spin {
+  width: 56rpx;
+  height: 56rpx;
+  border: 6rpx solid #E8ECF1;          /* 浅卡内浅端描边 ds-ok */
+  border-top-color: var(--cy-color-text-primary);
+  border-radius: var(--cy-radius-pill);
+  animation: qr-spin .8s linear infinite;
+}
+/* —— 错误态:直接落在暗 scrim 上,不套白卡 ——
+   占据原码卡那块区域(min-height 对齐 .qr__code 的 440rpx)并垂直居中。 */
+.qr__error {
+  position: relative;
+  width: 100%;
+  min-height: 440rpx;
+  box-sizing: border-box;
+  padding: var(--cy-space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-4);
+}
+.qr__error-ic {
+  width: 240rpx;
+  height: 240rpx;
+  opacity: .9;
+}
+
+.qr__err-content {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--cy-space-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+/* errorText 在错误态里就是标题,走 section-title 档;色随 scrim 恒浅 */
+.qr__err-txt {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  color: #F6F7FA;                      /* scrim 上恒浅 ds-ok */
+  font-size: var(--cy-type-section-title);
+  font-weight: 600;
+  line-height: var(--cy-leading-normal);
+  text-align: center;
+  word-break: break-all;
+}
+/* 白色实心重试按钮(--cy-btn-solid-*),不再是浅卡里那条品牌紫文字链接 */
+.qr__err-retry {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-btn-solid-bg);
+  color: var(--cy-btn-solid-fg);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+}
+.qr__err-retry:active { opacity: .85; }
+
+/* 中性定位角(L 形括号 ×4) */
+.qr__corner {
+  position: absolute;
+  width: 40rpx;
+  height: 40rpx;
+  border: 6rpx solid var(--cy-color-text-primary);
+  border-radius: 4rpx;                  /* 装饰性小角,非标准档 ds-ok */
+}
+.qr__corner--tl { top: calc(var(--cy-space-1-5) * -1);    left: calc(var(--cy-space-1-5) * -1);    border-right: none; border-bottom: none; }
+.qr__corner--tr { top: calc(var(--cy-space-1-5) * -1);    right: calc(var(--cy-space-1-5) * -1);   border-left: none;  border-bottom: none; }
+.qr__corner--bl { bottom: calc(var(--cy-space-1-5) * -1); left: calc(var(--cy-space-1-5) * -1);    border-right: none; border-top: none; }
+.qr__corner--br { bottom: calc(var(--cy-space-1-5) * -1); right: calc(var(--cy-space-1-5) * -1);   border-left: none;  border-top: none; }
+
+/* 中心 logo 挖空 */
+.qr__logo {
+  position: absolute;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--cy-radius-pill);
+  background: #FFFFFF;                  /* 白色挖空,QR 纠错可容忍 ds-ok */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 6rpx #FFFFFF;       /* ds-ok */
+}
+.qr__logo-img {
+  width: 56rpx;
+  height: 56rpx;
+  /* 黑色版 logo 不占主包字节(棘轮已满,2026-09-18):同一张 mark 压黑,与码点同色 */
+  filter: brightness(0);
+}
+
+/* 倒计时(码下方 Caption,浅卡内→深字) */
+.qr__count {
+  margin-top: var(--cy-space-3);
+  color: #64748B;                       /* 浅卡内浅端次级字 ds-ok */
+  font-size: var(--cy-font-caption);
+}
+
+/* —— 标题 / 说明(scrim 上,浅色) —— */
+.qr__title {
+  margin-top: var(--cy-space-5);
+  color: #F6F7FA;                       /* scrim 上恒浅 ds-ok */
+  font-size: var(--cy-font-subtitle);
+  font-weight: 600;
+  text-align: center;
+}
+.qr__desc {
+  margin-top: var(--cy-space-2);
+  color: rgba(255, 255, 255, .72);      /* scrim 上恒浅 ds-ok */
+  font-size: var(--cy-font-body);
+  line-height: var(--cy-leading-normal);
+  text-align: center;
+}
+
+/* —— 次级胶囊(ghost,scrim 上) —— */
+.qr__secondary {
+  margin-top: var(--cy-space-5);
+  min-height: var(--cy-legacy-72);
+  padding: 0 var(--cy-space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  border: 2rpx solid rgba(255, 255, 255, .24);  /* scrim 上浅描边 ds-ok */
+  color: #F6F7FA;                       /* ds-ok */
+  font-size: var(--cy-font-label);
+}
+.qr__secondary:active { opacity: .8; }
+
+/* —— host 档:正文随宿主主题,不再钉死 scrim 浅字 ——
+   上面三条浅色(#F6F7FA / rgba(255,255,255,.72))是为「外面是暗 scrim」写死的。
+   关于页「我的二维码」把 embedded 正文直接铺在页面底上,那层底随身份翻转:
+   商家日间页底 #F3F4F4 + 浅字 = 1.05:1,错误态「玩家个人码待生成」在屏幕上根本不存在。
+   这一档整套改走主题 token —— 商家日间得到 #000 / #404040,玩家暗域仍是浅字。 */
+.qr--host-surface .qr__err-txt { color: var(--cy-color-text-primary); }
+.qr--host-surface .qr__desc { color: var(--cy-color-text-secondary); }
+.qr--host-surface .qr__secondary {
+  color: var(--cy-color-text-primary);
+  border-color: var(--cy-color-border-strong);
+}
+
+@keyframes qr-pop {
+  from { transform: scale(.94); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+@keyframes qr-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

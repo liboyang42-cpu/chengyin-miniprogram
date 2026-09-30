@@ -1,0 +1,92 @@
+<view class="info-shell {{isMerchantView ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="gl-page">
+  <!-- 本页是 infomationdetail 栈首返回的 fallback 落点,而 redirectTo 会把它放在**栈首**
+       ⇒ 裸 cy-nav-bar 的箭头在这里点了不动,整条「详情→列表」链就断在这。接管后有终点。 -->
+  <cy-nav-bar custom-back bind:back="onBack" />
+  <view style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title title="城瘾玩法" safe-top="{{false}}" flush="{{true}}" />
+
+  <!-- 主张句:粗细混排(细体承接语 + 粗体主张)。层级低于上面的页标题,不抢 H1。 -->
+  <view class="gl-hero">
+    <view class="gl-hero-tit"><text class="gl-hero-thin">三种玩法,</text><text class="gl-hero-bold">即开即玩</text></view>
+    <view class="gl-hero-sub">不用先学规则。挑一种出发方式,城市自己会讲下去。</view>
+  </view>
+
+  <!-- 三种玩法:说明 + 各自真实入口 -->
+  <view class="gl-modes">
+    <view class="gl-mode" wx:for="{{modes}}" wx:key="key">
+      <view class="gl-mode-hd">
+        <view class="gl-mode-ico"><cy-icon name="{{item.icon}}" size="44" /></view>
+        <view class="gl-mode-name">{{item.name}}</view>
+        <view class="gl-mode-tag">{{item.tag}}</view>
+      </view>
+      <view class="gl-mode-desc">{{item.desc}}</view>
+      <view class="gl-mode-act">
+        <cy-btn variant="primary" size="sm" class="gl-mode-btn" bindtap="goMode" data-key="{{item.key}}">去看看</cy-btn>
+      </view>
+    </view>
+  </view>
+
+  <!-- 现成玩法:精选前 N 个,不分页、不做成完整列表(完整列表在发布广场) -->
+  <view class="gl-sec">
+    <text class="gl-sec-tit">现成玩法</text>
+    <text class="gl-sec-sub">挑一个直接开始</text>
+  </view>
+
+  <cy-skeleton wx:if="{{tplLoading}}" type="card" count="3" />
+  <cy-error class="cy-fade-in" wx:elif="{{tplError}}" title="现成玩法没能加载出来" sub="{{tplError}}" retry="重新加载" bind:retry="loadTemplates" />
+  <cy-empty wx:elif="{{!templates.length}}" kind="empty" title="还没有上架的现成玩法"
+            sub="玩法上线后会出现在这里。也可以先去发布广场看看别人做了什么。"
+            cta="去发布广场" bind:cta="goTemplateSquare" />
+  <block wx:else>
+    <view class="gl-tpl" wx:for="{{templates}}" wx:key="id" bindtap="goTemplateDetail" data-id="{{item.id}}" hover-class="cy-pressed" hover-stay-time="80">
+      <image wx:if="{{item.imgUrl}}" class="gl-tpl-pic" src="{{item.imgUrl}}" mode="aspectFill" lazy-load="true" />
+      <view wx:else class="gl-tpl-pic gl-tpl-pic--ph">{{item._initial}}</view>
+      <view class="gl-tpl-main">
+        <view class="gl-tpl-name ep1">{{item.title}}</view>
+        <view class="gl-tpl-desc ep2">{{item.description}}</view>
+        <view class="gl-tpl-foot">
+          <text class="gl-tpl-used">{{item._usedText}}</text>
+          <cy-btn variant="primary" size="sm" class="gl-tpl-btn" catchtap="goTemplateDetail" data-id="{{item.id}}">开始</cy-btn>
+        </view>
+      </view>
+    </view>
+    <view class="gl-more" bindtap="goTemplateSquare" hover-class="cy-pressed" hover-stay-time="80">
+      <text class="gl-more-t">更多玩法</text><cy-icon name="arrow-right" size="28" />
+    </view>
+  </block>
+
+  <!-- 玩法文档(CMS /api/common/infomation_list):有内容才出现。
+       它同时是 infomationdetail 在源码里唯一的真实 caller,删掉这段那页就只剩分享链接可达。 -->
+  <view class="gl-sec">
+    <text class="gl-sec-tit">玩法文档</text>
+    <text class="gl-sec-sub">规则与玩法细节</text>
+  </view>
+  <cy-skeleton wx:if="{{docsState === 'loading'}}" type="list" count="2" />
+  <cy-error class="cy-fade-in" wx:elif="{{docsState === 'error'}}" title="玩法文档没能加载出来" sub="{{docsError}}" retry="重试" bind:retry="getList" />
+  <view class="gl-docs cy-fade-in" wx:elif="{{docsState === 'ready'}}">
+    <block wx:for="{{list}}" wx:key="id">
+      <cy-cell wx:if="{{item.usable}}" title="{{item.title}}" description="{{item.description}}" bindtap="goToDetail" data-id="{{item.id}}" />
+      <!-- disabled 显式写 {{true}}:自定义组件的 Boolean 属性写成裸属性时值的语义不稳,
+           不能让「不可点」这条依赖一个模糊写法 -->
+      <cy-cell wx:else disabled="{{true}}" arrow="{{false}}" title="{{item.title || '未命名条目'}}" description="内容待完善，暂不可查看" />
+    </block>
+  </view>
+  <!-- nodata 此前只在 JS 里算,WXML 从没消费 ⇒ 列表为空时零反馈(C03-R1 修过,别回退) -->
+  <block wx:elif="{{docsState === 'empty'}}">
+    <cy-empty wx:if="{{nodata}}" kind="empty" title="暂无玩法说明" sub="内容上线后会出现在这里" />
+  </block>
+
+  <view class="gl-bottom-pad"></view>
+</view>
+
+<!-- 玩法详情 = 三级 ⇒ 页内弹窗,由本页托管;关闭回列表而不是回设置。 -->
+<view class="info-scene-host" wx:if="{{sceneCurrent && sceneCurrent.id === 'settings-how-to-play-detail'}}" catchtouchmove="blockSceneTouch">
+  <cy-scene-sheet show="{{true}}" variant="{{sceneCurrent.variant}}" theme="{{sceneCurrent.theme}}" title="{{sceneCurrent.title}}" can-back="{{sceneCurrent.canBack}}" mask-closable="{{sceneCurrent.maskClosable}}" bind:requestclose="closeScene" bind:back="closeScene">
+    <cy-scene-how-to-play-detail id="howToPlay" detail-id="{{sceneCurrent.params.id}}" theme="{{sceneCurrent.theme}}" bind:back="closeScene" />
+  </cy-scene-sheet>
+</view>
+</view>

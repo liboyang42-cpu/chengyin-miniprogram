@@ -1,0 +1,2 @@
+/* 壳只留页面 chrome;表单样式已随内容搬进 components/cy/scene-club-edit。 */
+.cle-shell{ min-height:100vh; display:flex; flex-direction:column; }

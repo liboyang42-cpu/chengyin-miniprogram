@@ -1,0 +1,78 @@
+/* cy-stat-card · 指标卡网格(商家侧七页规范 §〇.3,对照 Shopify 201)
+ * styleIsolation:isolated,--cy-* token 从页面继承 ⇒ 卡面深浅自动跟随主题,组件不自己判主题。
+ * 黑白系:卡面 / 标签 / 数字全部走中性 token;只有 tone=danger|success 会给数字上状态色,
+ * 那是「状态」不是装饰(DS §8:状态不得只靠颜色 —— 所以状态同时由文案本身承载)。 */
+:host { display: block; }
+
+.sc {
+  display: grid;
+  /* grid-template-columns 由 JS 内联给(列数是运行期变量) */
+  gap: var(--cy-space-2);
+}
+
+.sc__card {
+  min-width: 0;                 /* 网格子项默认 min-width:auto,长数字会把列撑破,必须归零 */
+  box-sizing: border-box;
+  padding: var(--cy-space-3-5);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-elevated);
+  border: 1rpx solid var(--cy-color-border-subtle);
+}
+
+/* 跨列(item.span>1,对应 Shopify 201 里 Top locations / Customers 那几张通栏卡)
+   由 JS 算成内联 grid-column 给到每张卡 —— 见 index.js 里 spanStyle 的说明:
+   写成 .sc__card--spanN 类的话,columns 传 3 而类只有 span2 时会静默塌回 1 列。 */
+
+.sc__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+}
+
+/* 标签:小字弱化,让位给数字(参考图里标签是常规字重的中号灰字) */
+.sc__label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-label);
+  line-height: 1.4;
+  color: var(--cy-color-text-secondary);
+}
+
+/* 右上角小件:占比 / 趋势。中性胶囊,不用色块抢数字的注意力 */
+.sc__trend {
+  flex: none;
+  padding: var(--cy-legacy-4) var(--cy-space-1-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 主数字:整张卡的主角,要够大够显眼(参考图里数字明显重于标签) */
+.sc__value {
+  display: block;
+  margin-top: var(--cy-space-2);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 字号三档,由 JS 按值长度选(见 index.js 的 sizeStep)。
+   实拍发现 2 列卡放不下「¥12,480.50」,只靠 ellipsis 会把金额截断 ——
+   指标卡要进合作结算页,截断金额比字小一号严重,所以长值降档而不是截。
+   ⚠️ 三档必须严格递减。第一版把 sm 写成 --cy-type-page-title(58rpx),
+   它其实比 md 的 --cy-type-display(56rpx)还大 —— 阶梯反着走,长值反而更放不下。
+   现在是 64 → 56 → 36,配合下面 index.js 里按 2 列卡可用宽度(约 279rpx)实测的阈值。 */
+.sc__value--lg { font-size: var(--cy-type-data-xl); }
+.sc__value--md { font-size: var(--cy-type-display); }
+.sc__value--sm { font-size: var(--cy-type-section-title); }
+
+.sc__value--danger { color: var(--cy-color-status-danger); }
+.sc__value--success { color: var(--cy-color-status-success); }
+/* 缺数据的「—」不该和真实数字一样抢眼 */
+.sc__value--missing { color: var(--cy-color-text-tertiary); }

@@ -1,0 +1,197 @@
+<view class="ac-page theme-merchant" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar custom-back bind:back="onNavBack" />
+  <!-- 2026-09-17 用户裁决:结构照 Revolut Business 313(大金额头 + 操作胶囊 + 键值分组 + 求助行),颜色走商家主题。
+       标题留在条件分支外:加载/出错时显示「退款售后」,详情就绪后换成退款金额。 -->
+  <view class="ac-hero-head">
+    <cy-page-title title="{{pageTitle}}" subtitle="{{pageSubtitle}}" safe-top="{{false}}" />
+    <view class="ac-hero-icon" wx:if="{{detail}}" aria-hidden="true"><cy-icon name="finance" size="44" /></view>
+  </view>
+
+  <cy-skeleton wx:if="{{pageState === 'loading'}}" type="card" count="3" />
+  <cy-error wx:elif="{{pageState === 'error'}}" fill size="lg"
+            title="退款售后加载失败" sub="{{errorMessage}}"
+            retry="重新加载" bind:retry="retry" auto-back />
+  <cy-error wx:elif="{{pageState === 'no-permission'}}" fill size="lg"
+            title="当前岗位没有售后查看权限"
+            sub="请联系店主调整经营团队权限"
+            retry="" bind:back="onNavBack" auto-back custom-back />
+
+  <scroll-view wx:elif="{{pageState === 'ready'}}" scroll-y class="ac-scroll" enhanced show-scrollbar="{{false}}">
+    <view class="ac-content">
+      <view class="ac-hero">
+        <view class="ac-actions" wx:if="{{canRespond}}">
+          <view wx:if="{{allowedDecisionMap.AGREE}}" class="ac-decision" data-decision="AGREE" bindtap="onDecisionTap"
+                aria-role="button" aria-label="同意退款申请" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon name="check" size="28" /><text>同意</text>
+          </view>
+          <view wx:if="{{allowedDecisionMap.REJECT}}" class="ac-decision" data-decision="REJECT" bindtap="onDecisionTap"
+                aria-role="button" aria-label="不同意退款申请" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon name="close-sm" size="28" /><text>不同意</text>
+          </view>
+          <view wx:if="{{allowedDecisionMap.EVIDENCE}}" class="ac-decision" data-decision="EVIDENCE" bindtap="onDecisionTap"
+                aria-role="button" aria-label="补充退款凭证" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon name="image" size="28" /><text>补充凭证</text>
+          </view>
+        </view>
+        <text class="ac-readonly-sub" wx:else>{{respondBlockedText}}</text>
+      </view>
+
+      <!-- 三轨是并列事实(平台处理/商家意见/款项结果),各占一行,不画成步骤条。 -->
+      <view class="fin-card ac-card">
+        <view class="ac-kv ac-status-row">
+          <text class="ac-kv-k">平台处理</text>
+          <cy-badge type="status" variant="{{detail.processingVariant}}" label="{{detail.processingText}}" />
+        </view>
+        <view class="ac-kv ac-status-row">
+          <text class="ac-kv-k">商家意见</text>
+          <cy-badge type="status" variant="{{detail.merchantOpinionVariant}}" label="{{detail.merchantOpinionText}}" />
+        </view>
+        <view class="ac-kv ac-status-row">
+          <text class="ac-kv-k">款项结果</text>
+          <cy-badge type="status" variant="{{detail.refundedVariant}}" label="{{detail.refundedText}}" />
+        </view>
+        <view class="ac-kv" wx:if="{{!detail.hasRefundAmount}}">
+          <text class="ac-kv-k">退款金额</text>
+          <text class="ac-kv-v ac-kv-v--mute">{{detail.refundAmountText}}</text>
+        </view>
+        <view class="ac-kv ac-kv--tap" bindtap="copyRefundNo" aria-role="button" aria-label="复制退款单号 {{detail.refundNoText}}"
+              hover-class="cy-pressed" hover-stay-time="80">
+          <text class="ac-kv-k">退款单号</text>
+          <view class="ac-kv-v ac-kv-v--copy"><cy-icon name="copy" size="28" /><text>{{detail.refundNoText}}</text></view>
+        </view>
+        <view class="ac-kv" wx:if="{{detail.createTimeText}}">
+          <text class="ac-kv-k">申请时间</text>
+          <text class="ac-kv-v">{{detail.createTimeText}}</text>
+        </view>
+        <view class="ac-kv" wx:if="{{detail.platformTakeoverText}}">
+          <text class="ac-kv-k">已转平台客服</text>
+          <text class="ac-kv-v">{{detail.platformTakeoverText}}</text>
+        </view>
+        <view class="ac-kv" wx:if="{{detail.refundDeadlineText}}">
+          <text class="ac-kv-k">可退截止</text>
+          <text class="ac-kv-v">{{detail.refundDeadlineText}}</text>
+        </view>
+        <view class="ac-kv" wx:if="{{detail.hasRefundPolicy}}">
+          <text class="ac-kv-k">退款政策快照</text>
+          <view class="ac-kv-v ac-kv-v--stack">
+            <text>{{detail.refundPolicyText}}</text>
+            <text class="ac-kv-meta" wx:if="{{detail.refundPolicyVersionText}}">{{detail.refundPolicyVersionText}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="fin-card ac-card" wx:if="{{detail.reason}}">
+        <text class="ac-kv-k">申请原因</text>
+        <text class="ac-reason-text">{{detail.reason}}</text>
+      </view>
+
+      <!-- 313 的「Customer」组:只放昵称(后端按 CRM 读权限下发,不下发手机号等 PII);没有就整组不出。 -->
+      <view class="fin-group ac-group" wx:if="{{detail.customerNicknameText}}">
+        <view class="ac-group-title">客户</view>
+        <view class="fin-card ac-card">
+          <view class="ac-kv">
+            <text class="ac-kv-k">昵称</text>
+            <text class="ac-kv-v">{{detail.customerNicknameText}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="fin-group ac-group">
+        <view class="ac-group-title">处理记录</view>
+        <view class="fin-card ac-card">
+          <cy-timeline nodes="{{detail.timelineNodes}}" />
+          <block wx:for="{{detail.responses}}" wx:key="id">
+            <view class="ac-evidence-link" wx:if="{{item.hasEvidence}}" catchtap="previewResponseEvidence"
+                  data-index="{{index}}" aria-role="button" aria-label="查看{{item.actorText}}提交的凭证" hover-class="cy-pressed" hover-stay-time="80">
+              <text class="ac-evidence-label">售后凭证</text>
+              <text class="ac-evidence-value">{{item.actorText}}{{item.createTimeText ? ' · ' + item.createTimeText : ''}}</text>
+              <text class="ac-evidence-copy">查看</text>
+            </view>
+            <view class="ac-evidence-link" wx:elif="{{item.evidenceUnavailable}}" aria-label="售后凭证暂不可查看">
+              <text class="ac-evidence-label">售后凭证</text>
+              <text class="ac-evidence-value">暂不可查看</text>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <view class="fin-card ac-help">
+        <cy-cell title="联系平台客服" description="退款审核与款项问题由平台处理" open-type="contact" hairline="{{false}}" />
+      </view>
+    </view>
+  </scroll-view>
+
+  <cy-sheet show="{{respondOpen}}" variant="full" footer
+            nav-title="{{respondStep === 0 ? flow.formTitle : flow.confirmTitle}}"
+            can-back="{{respondStep === 1}}" steps="{{2}}" current="{{respondStep}}"
+            bind:back="onRespondBack" bind:close="onRespondClose">
+    <view class="ac-sheet" wx:if="{{detail}}">
+      <view class="ac-sheet-amount">
+        <view class="ac-hero-icon ac-hero-icon--sm" aria-hidden="true"><cy-icon name="finance" size="36" /></view>
+        <view class="ac-sheet-amount-main">
+          <text class="ac-sheet-amount-title">{{detail.sourceText}}</text>
+          <text class="ac-kv-meta">{{detail.refundNoText}}{{detail.createTimeText ? ' · ' + detail.createTimeText : ''}}</text>
+        </view>
+        <text class="ac-sheet-amount-v {{detail.hasRefundAmount ? '' : 'ac-sheet-amount-v--unknown'}}">{{detail.refundAmountText}}</text>
+      </view>
+
+      <block wx:if="{{respondStep === 0}}">
+        <view class="ac-field-line">
+          <text class="ac-field-label">{{decision === 'REJECT' ? '不同意的原因（必填）' : '说明（选填）'}}</text>
+          <text class="ac-field-count">{{content.length}} / 500</text>
+        </view>
+        <textarea class="ac-textarea" value="{{content}}" maxlength="500"
+                  placeholder="写下可供平台审核的订单事实" placeholder-class="ac-placeholder"
+                  bindinput="onContentInput" />
+        <view wx:if="{{allowedDecisionMap.EVIDENCE}}" class="ac-evidence-field">
+          <text class="ac-field-label">审核凭证{{decision === 'EVIDENCE' ? '（必填）' : '（选填）'}}</text>
+          <view wx:if="{{evidenceKeys.length}}" class="ac-evidence-selected"
+                bindtap="previewEvidence" aria-role="button" aria-label="预览已上传凭证"
+                hover-class="cy-pressed" hover-stay-time="80">
+            <image class="ac-evidence-preview" src="{{evidencePreviewUrl}}" mode="aspectFill" />
+            <view class="ac-evidence-selected-copy">
+              <text class="ac-evidence-selected-title">凭证已上传</text>
+              <text class="ac-field-help">点击预览，可移除后重新选择</text>
+            </view>
+            <view class="ac-evidence-remove" catchtap="removeEvidence" aria-role="button" aria-label="移除凭证"
+                  hover-class="cy-pressed" hover-stay-time="80">移除</view>
+          </view>
+          <view wx:else class="ac-evidence-upload" bindtap="chooseEvidence"
+                aria-role="button" aria-label="选择图片并上传凭证"
+                hover-class="cy-pressed" hover-stay-time="80">
+            <text class="ac-evidence-upload-title">选择图片并上传</text>
+            <text class="ac-field-help">支持相册或拍摄，上传成功后才可提交</text>
+          </view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <text class="ac-confirm-text">{{flow.consequence}}</text>
+        <view class="ac-confirm-card">
+          <view class="ac-kv">
+            <text class="ac-kv-k">处理意见</text>
+            <text class="ac-kv-v">{{flow.formTitle}}</text>
+          </view>
+          <view class="ac-kv">
+            <text class="ac-kv-k">说明</text>
+            <text class="ac-kv-v">{{content || '未填写'}}</text>
+          </view>
+          <view class="ac-kv" wx:if="{{allowedDecisionMap.EVIDENCE}}">
+            <text class="ac-kv-k">审核凭证</text>
+            <text class="ac-kv-v">{{evidenceKeys.length ? '已上传 1 张' : '未上传'}}</text>
+          </view>
+        </view>
+      </block>
+      <cy-inline-error class="ac-field-error" wx:if="{{submitError}}" kind="data"
+        title="售后处理未提交" sub="{{submitError}}" />
+    </view>
+    <view slot="footer" class="ac-sheet-footer">
+      <cy-btn wx:if="{{respondStep === 0}}" variant="primary" disabled="{{!canSubmit}}" bindtap="goRespondConfirm">继续</cy-btn>
+      <cy-btn wx:else variant="primary" loading="{{submitting}}"
+              disabled="{{!canSubmit}}" bindtap="submitResponse">{{submitting ? '提交中…' : flow.submitText}}</cy-btn>
+    </view>
+  </cy-sheet>
+</view>

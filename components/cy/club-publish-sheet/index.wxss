@@ -1,0 +1,29 @@
+:host { display: block; }
+/* ⚠️ 2026-09-02 截图对稿:Figma G1 画板 375 宽,稿上的 px 写进 wxss 一律 ×2。 */
+.cps-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-4);            /* 稿 16px × 2 */
+  padding: var(--cy-space-4);        /* 稿 16px × 2 */
+  margin-bottom: var(--cy-space-3);  /* 卡与卡 稿 12px × 2 */
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-raised);
+}
+.cps-opt:last-child { margin-bottom: 0; }
+.cps-opt__icon {
+  flex-shrink: 0;
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--cy-bg-interactive);
+  color: var(--cy-color-text-primary);
+}
+.cps-opt__text { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 4rpx; padding-top: 6rpx; }
+.cps-opt__title { display: block; color: var(--cy-color-text-primary); font-size: var(--cy-font-subtitle); font-weight: 800; }
+.cps-opt__desc { display: block; color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); line-height: 1.5; }
+
+/* isolated 组件进不来全局 .cy-pressed,本地补一份(同 cy-modal 的既有做法)。 */
+.cy-pressed { opacity: .88; }

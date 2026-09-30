@@ -1,0 +1,230 @@
+@import '../../../style/wizard-intro.wxss';
+.cc-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-bg-page);
+  padding: 0 var(--cy-page-x) calc(220rpx + env(safe-area-inset-bottom)); /* ds-ok: 220rpx 是底部固定CTA栏预留高度,不是排版间距 */
+  box-sizing: border-box;
+}
+
+/* 顶栏 */
+.cc-nav {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cc-back { font-size: var(--cy-font-body); color: var(--cy-text-title); }
+.cc-state { display: flex; flex: 1; min-height: 0; }
+
+/* 进度分段 */
+.cc-progress {
+  display: flex;
+  gap: var(--cy-space-1-5);
+  margin: var(--cy-space-4) 0 var(--cy-space-5);
+}
+.cc-seg {
+  flex: 1;
+  height: 8rpx;
+  border-radius: var(--cy-radius-pill);
+  background: transparent;
+  border: 2rpx solid var(--cy-border-line); /* ds-ok: 未激活白线描边,无对应强度 token */
+  box-sizing: border-box;
+}
+/* 参考图是灰色实心轨道，不是空心描边；用后置规则覆盖旧兼容声明。 */
+/* C40:未到段必须是可见的弱实心(不是近乎透明的描边)。
+ * 2026-09-02 Figma 32:13 绑 action/secondary-bg。 */
+.cc-progress .cc-seg {
+  background: var(--cy-color-action-secondary-bg);
+  border: 0;
+}
+/* 已完成/当前段=白色实心；未完成段保持中性灰。 */
+.cc-seg.active, .cc-seg.done {
+  background: var(--cy-color-text-primary);
+  border-color: var(--cy-color-text-primary);
+}
+
+/* 大问句 */
+.cc-q {
+  line-height: 1.25;
+}   /* 排版走 .cy-h1;保留 lh 1.25 */
+
+/* 单选大类:未选 = 灰透明质感;选中 = 白描边无填充(不再用品牌紫填充),再点取消 */
+.cc-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40rpx var(--cy-space-4);
+  background: var(--cy-bg-glass);
+  border-radius: var(--cy-radius-md);
+  margin-bottom: var(--cy-space-3);
+  border: 1rpx solid var(--cy-border-card);
+  transition: background var(--cy-dur) var(--cy-ease), border-color var(--cy-dur) var(--cy-ease);
+}
+/* 选中 = 整卡翻白底黑字(2026-08-08 用户定)。原来是透明底 + 白描边,
+   在黑页上「选没选中」只靠一圈 1rpx 描边区分,扫一眼看不出来。 */
+.cc-opt.sel {
+  background: var(--cy-text-title);
+  border-color: var(--cy-text-title);
+}
+.cc-opt-t { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); transition: color var(--cy-dur) var(--cy-ease); }
+.cc-opt-s { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-6); transition: color var(--cy-dur) var(--cy-ease); }
+.cc-opt.sel .cc-opt-t { color: var(--cy-text-inverse); }
+.cc-opt.sel .cc-opt-s { color: var(--cy-text-inverse); opacity: .64; } /* ds-ok: 白底上的次级说明,同色降透明比另起一个灰 token 更稳 */
+.cc-radio {
+  width: 40rpx; height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid var(--cy-border-card);
+  background: var(--cy-color-action-secondary-bg);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
+  transition: background var(--cy-dur) var(--cy-ease), border-color var(--cy-dur) var(--cy-ease);
+}
+/* 整卡翻白后,单选点必须跟着反色,否则白点落在白底上直接消失。 */
+.cc-radio.on {
+  border-color: var(--cy-text-inverse);
+  background: transparent;
+}
+.cc-radio.on::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 16rpx; height: 16rpx;
+  border-radius: 50%;
+  background: var(--cy-text-inverse);
+  transform: translate(-50%, -50%);
+}
+
+/* 多选 chips:同款灰透明 / 选中白描边无填充 */
+.cc-chips { display: flex; flex-wrap: wrap; gap: var(--cy-space-3); }
+.cc-chip {
+  min-height: 88rpx;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--cy-space-2-5) 32rpx;
+  background: var(--cy-bg-glass);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-body);
+  border: 1rpx solid var(--cy-border-card);
+  transition: background var(--cy-dur) var(--cy-ease), color var(--cy-dur) var(--cy-ease), border-color var(--cy-dur) var(--cy-ease);
+}
+/* 方向 chip 同理:选中翻白底黑字,不再靠描边表达 */
+.cc-chip.on { background: var(--cy-text-title); color: var(--cy-text-inverse); border-color: var(--cy-text-title); }
+
+/* 资料:封面 + Logo */
+/* Logo 用 position:absolute; bottom:-72rpx 挂在封面下沿,会探出容器本身的盒子往下伸——
+   margin-bottom 必须盖过这 72rpx 探出量,否则下一个字段的标签会被 Logo 压住(实测踩过)。 */
+.cc-imgs { position: relative; margin-bottom: 96rpx; }
+.cc-cover {
+  /* 封面统一 16:9(原来是写死 280rpx,和其它页的封面比例对不上) */
+  width: 100%; aspect-ratio: 16 / 9; height: auto;
+  border-radius: var(--cy-radius-md);
+  overflow: hidden;
+  background: var(--cy-bg-card-2);
+  display: flex; align-items: center; justify-content: center;
+}
+.cc-cover image { width: 100%; height: 100%; }
+.cc-ph {
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-body);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+}
+.cc-logo {
+  position: absolute;
+  left: var(--cy-space-3-5); bottom: calc(var(--cy-legacy-36) * -1);
+  width: 132rpx; height: 132rpx;
+  border-radius: 28rpx; /* ds-ok: Logo 方形头像的圆角,介于 radius-md(24)与 lg(32)之间,没有对应档 */
+  overflow: hidden;
+  background: var(--cy-bg-card-2);
+  border: 6rpx solid var(--cy-bg-page);
+  display: flex; align-items: center; justify-content: center;
+}
+.cc-logo image { width: 100%; height: 100%; }
+.cc-ph-sm {
+  color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+  text-align: center;
+  padding: 0 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-1);
+}
+
+/* 输入 */
+/* 空态/已填态各用专用 token,由字段值驱动(采纳 master #1001,两态不可分是 DESIGN.md 明令禁止的) */
+.cc-input {
+  height: 96rpx;
+  background: var(--cy-color-input-bg-empty);
+  transition: background var(--cy-motion-fast) var(--cy-ease-out);
+  border-radius: var(--cy-radius-md);
+  padding: 0 var(--cy-space-3-5);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  margin-top: 56rpx; /* ds-ok: 现在所有 .cc-input 都同时带 .cc-input--field(margin-top:0)覆盖,这条已不生效,留作 --field 类之外的兜底值 */
+}
+.cc-input.is-filled { background: var(--cy-color-input-bg-filled); }
+.cc-input + .cc-input { margin-top: var(--cy-space-2-5); }
+.cc-textarea.is-filled { background: var(--cy-color-input-bg-filled); }
+.cc-textarea {
+  width: 100%;
+  height: 180rpx;
+  background: var(--cy-color-input-bg-empty);
+  border-radius: var(--cy-radius-md);
+  padding: 24rpx var(--cy-space-3-5);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  margin-top: var(--cy-space-2-5);
+  box-sizing: border-box;
+}
+
+/* 字段:标签在上、输入在下(step3/step4 重新设计,替代裸 placeholder 输入) */
+.cc-field { margin-top: var(--cy-space-5); }
+.cc-field-label { display: block; font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-bottom: var(--cy-space-1-5); }
+.cc-req { color: var(--cy-danger); margin-left: 4rpx; } /* ds-ok: 4rpx 星号贴字像素级微调,非排版间距 */
+.cc-input--field { margin-top: 0; }
+.cc-field .cc-input--field + .cc-input--field { margin-top: 0; }
+
+/* 底部 CTA */
+.cc-bottom {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  padding: 20rpx var(--cy-page-x) calc(24rpx + env(safe-area-inset-bottom));
+  background: var(--cy-bg-card);
+  box-shadow: 0 -8rpx 24rpx rgba(0,0,0,0.04); /* ds-ok: 底部 CTA 栏与内容的分层投影,阴影没有 token 档 */
+}
+
+/* 进场动效用全仓共用的 .cy-rise-in(style/motion-entry.wxss,随 components.wxss 全局生效)。
+ * 减动效兜底必须逐条写在这里 —— app.wxss 那条全局 prefers-reduced-motion 只认系统开关,
+ * 接不住本仓设置页自己的开关,reduced-motion-coverage-contract 也不认它。 */
+.cy-motion-reduced .cc-opt,
+.cy-motion-reduced .cc-opt-t,
+.cy-motion-reduced .cc-opt-s,
+.cy-motion-reduced .cc-radio,
+.cy-motion-reduced .cc-chip { transition: none !important; }
+
+/* ===== 按 G1–G4 稿对齐的头部(2026-09-06) ===== */
+.cc-navright { display: flex; align-items: center; height: 88rpx; padding-right: var(--cy-space-2); }
+.cc-stepcount { font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+.cc-head { margin-bottom: var(--cy-space-5); }
+.cc-eyebrow { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-bottom: var(--cy-space-1-5); }
+.cc-count { margin-top: var(--cy-space-4); font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+/* ⚠️ .cc-opt.sel 的「整卡翻白底黑字」是 2026-08-08 用户裁决,2026-09-06 复核时用户再次确认
+ * 「不是白描边」—— G1 稿画的是深卡+白描边+实心点,这里**有意不跟稿**。别再来对齐。 */
+
+/* 开场屏没有固定底部 CTA,.cc-page 给它预留的 220rpx 会在下面留一段空白,
+ * 让「贴底」变成「悬空」。开场态把这段预留收掉。 */
+.cc-page--intro { padding-bottom: 0; }
+
+/* 必填图例:红星号不能是必填的唯一线索(只靠颜色+符号,读屏与色觉障碍都拿不到)。 */
+.cc-legend { margin-top: 12rpx; font-size: var(--cy-font-label); color: var(--cy-text-secondary); }
+
+/* 提交失败条:补页边并与底部 CTA 留出间隔(采纳 master #1001 的这条,不是设计冲突) */
+.cc-alert { display: block; padding: 0 var(--cy-page-x); margin-bottom: var(--cy-space-4); }

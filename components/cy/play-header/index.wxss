@@ -1,0 +1,71 @@
+:host { display: block; }
+
+.play-header {
+  min-height: 112rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-2) var(--cy-space-4);
+  box-sizing: border-box;
+  color: var(--cy-color-text-primary);
+  background: var(--cy-color-play-surface);
+  border: 1rpx solid var(--cy-color-play-line);
+  border-radius: var(--cy-radius-lg);
+  backdrop-filter: blur(24rpx);
+  -webkit-backdrop-filter: blur(24rpx);
+}
+
+.play-header__copy { min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1); }
+/* 原来这里给「‹ 退出」胶囊让出 200rpx 左内边距 —— 那是状态条写死 top:104rpx、和胶囊肩并肩时的补偿。
+   2026-08-04 状态条改由 chrome.contentTop 定位后,它整条落到退出胶囊**下方**,让位就成了纯空洞:
+   标题被那 200rpx 顶到卡片中间(实拍可见)。改为只留一点点安全余量。
+   ⚠️ 两者是否真的不重叠由 _verify_hud_slots.js 量坐标断言,不是靠这里的注释保证。 */
+.play-header--with-exit .play-header__copy { padding-left: var(--cy-space-1); }
+.play-header__eyebrow { font-size: var(--cy-type-micro); color: var(--cy-color-text-tertiary); letter-spacing: 2rpx; }
+.play-header__title {
+  max-width: 420rpx;
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.play-header__status { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--cy-space-1); }
+.play-header__action {
+  min-width: 88rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content:center;
+}
+.play-header__action-label {
+  min-height:56rpx;
+  padding:0 var(--cy-space-2);
+  display:flex;
+  align-items:center;
+  /* 用户定：只有填充没有描边。原本是 1rpx 描边 + 透明底，在地图浮层上就是一个
+     空心圈 —— 实拍 B12 那颗「更多」正是这样。改成半透明白填充（play 色板里
+     accent-soft 就是给浮层上这类元素用的），描边去掉。 */
+  background:var(--cy-color-play-accent-soft);
+  border-radius:var(--cy-radius-pill);
+  font-size:var(--cy-type-micro);
+  color:var(--cy-color-text-secondary);
+}
+.play-header__progress-text { font-size: var(--cy-type-micro); color: var(--cy-color-text-secondary); font-variant-numeric: tabular-nums; }
+.play-header__track { position: relative; width: 112rpx; height: var(--cy-legacy-6); border-radius: var(--cy-radius-pill); background: var(--cy-color-border-strong); }
+.play-header__fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--cy-color-play-accent); }
+.play-header__dot {
+  position: absolute;
+  top: 50%;
+  width: var(--cy-legacy-14);
+  height: var(--cy-legacy-14);
+  transform: translate(-50%, -50%);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-play-accent);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

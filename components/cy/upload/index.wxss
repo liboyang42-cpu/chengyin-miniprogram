@@ -1,0 +1,115 @@
+/* cy-upload · 图片上传网格(DS §3.13)
+ * 缩略与添加位 160×160rpx、圆角 sm;上传中转圈遮罩、失败保留位就地重试;
+ * 只读 --cy-color-* 语义 token;图上遮罩/角标为恒暗层,不随主题(标 ds-ok)。 */
+:host { display: block; }
+
+.upload__tip {
+  margin-bottom: var(--cy-space-2);
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+  line-height: var(--cy-leading-tight);
+}
+
+.upload__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+}
+
+.upload__item {
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+}
+.upload__img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: var(--cy-radius-sm);
+}
+
+/* —— 状态遮罩(压图,恒暗) —— */
+.upload__mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1);
+  border-radius: var(--cy-radius-sm);
+  background: rgba(0, 0, 0, .5);          /* 图上遮罩恒暗 ds-ok */
+}
+.upload__spin {
+  width: 40rpx;
+  height: 40rpx;
+  border: 4rpx solid rgba(255, 255, 255, .35);   /* 暗遮罩上恒浅 ds-ok */
+  border-top-color: #FFFFFF;                     /* ds-ok */
+  border-radius: var(--cy-radius-pill);
+  animation: cy-upload-spin .8s linear infinite;
+}
+@keyframes cy-upload-spin { to { transform: rotate(360deg); } }
+
+.upload__mask--error { background: rgba(0, 0, 0, .62); }   /* ds-ok */
+.upload__err-txt {
+  color: #FFFFFF;                          /* 暗遮罩上恒浅 ds-ok */
+  font-size: var(--cy-type-micro);
+}
+.upload__retry {
+  color: #FFFFFF;                          /* ds-ok */
+  font-size: var(--cy-type-label);
+  text-decoration: underline;
+}
+
+/* 删除角标:88rpx 触控区悬出格角(吃 gap,不压邻格),视觉 36rpx 圆 */
+.upload__remove {
+  position: absolute;
+  top: -16rpx;
+  right: -16rpx;
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+.upload__remove:active .upload__remove-x { opacity: .7; }
+.upload__remove-x {
+  width: var(--cy-legacy-36);
+  height: var(--cy-legacy-36);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: rgba(0, 0, 0, .55);          /* 图上角标恒暗底白叉 ds-ok */
+  color: #FFFFFF;                          /* ds-ok */
+  font-size: var(--cy-type-micro);
+  line-height: 1;
+}
+
+/* 添加位:同尺寸虚线框 */
+.upload__add {
+  width: 160rpx;
+  height: 160rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-subtle);
+}
+.upload__add:active { opacity: .8; }
+.upload__plus {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-tertiary);
+}
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

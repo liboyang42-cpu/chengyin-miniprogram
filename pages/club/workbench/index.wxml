@@ -1,0 +1,16 @@
+<view class="cw-shell theme-dark" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-nav-bar />
+  <cy-page-title title="俱乐部管理" safe-top="{{false}}" />
+  <!-- 该页仅服务外部直达/历史深链，站内管理已统一进俱乐部详情。 -->
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="1" />
+  <cy-error wx:elif="{{state === 'error'}}" title="没能进入俱乐部管理" sub="{{errorText}}"
+    retry="重试进入" bind:retry="retryRedirect" />
+  <view class="cw-shell-back" wx:if="{{state === 'error'}}" bindtap="onBack"
+    aria-role="button" aria-label="返回俱乐部" hover-class="cy-pressed" hover-stay-time="80">
+    <cy-icon name="back" size="32" />
+    <text>返回俱乐部</text>
+  </view>
+</view>

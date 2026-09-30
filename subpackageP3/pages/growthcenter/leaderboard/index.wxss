@@ -1,0 +1,74 @@
+page { background: var(--cy-bg-page); }
+
+.gc-page {
+  min-height: 100vh;
+  background: var(--cy-bg-page);
+  padding-bottom: var(--cy-space-5);
+  font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
+}
+
+/* period tabs:走 cy-tabs 组件(见 wxml),页面只保留左右边距 */
+.gc-tabs { margin: 0 var(--cy-space-5); }
+.gc-divider { height: 2rpx; background: rgba(255,255,255,0.08); margin: var(--cy-space-3-5) 44rpx 0; } /* ds-ok */
+
+/* 2026-08-19:错误态/说明态已迁到 cy-error / cy-empty(带重试与图标),
+   .gc-state 只剩「加载中…」这一处使用;原 .gc-state--error / --notice 两条
+   随迁移一起删掉,别再往回加 —— 分色现在由组件本身承担。 */
+
+.gc-board { animation: gcFadeRise 0.4s ease both; }
+
+/* podium */
+.gc-podium { display: flex; align-items: flex-end; justify-content: center; gap: var(--cy-space-3-5); padding: var(--cy-space-5) var(--cy-space-5) 0; }
+.gc-pod { display: flex; flex-direction: column; align-items: center; }
+.gc-pod-side { flex: 1; max-width: 208rpx; }
+.gc-pod-first { flex: 1.2; max-width: 260rpx; }
+.gc-crown { font-size: var(--cy-font-title); line-height: 1; color: #F5C542; margin-bottom: 8rpx; filter: drop-shadow(0 0 12rpx rgba(245,197,66,0.8)); } /* ds-ok: 金色皇冠装饰,同排行榜金/银/铜既有配色体系 */
+
+.gc-ring { position: relative; border-radius: 50%; padding: var(--cy-legacy-4); display: flex; align-items: center; justify-content: center; box-shadow: 0 8rpx 28rpx rgba(0,0,0,0.5); } /* ds-ok */
+.gc-ring-1 { width: 172rpx; height: 172rpx; }
+.gc-ring-2 { width: 144rpx; height: 144rpx; }
+.gc-pav { border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; border: 4rpx solid #000; overflow: hidden; position: relative; } /* ds-ok: 头像渐变底上的姓名缩写,同 .gc-badge-disc 既有模式 */
+.gc-pav-1 { width: 160rpx; height: 160rpx; font-size: 64rpx; } /* ds-ok: 领奖台头像尺寸,非文本层级 */
+.gc-pav-2 { width: 132rpx; height: 132rpx; font-size: 52rpx; } /* ds-ok: 领奖台头像尺寸,非文本层级 */
+
+.gc-medal { position: absolute; bottom: calc(var(--cy-space-1-5) * -1); left: 50%; transform: translateX(-50%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #5a3e00; border: 4rpx solid #000; } /* ds-ok */
+.gc-medal-1 { width: 52rpx; height: 52rpx; font-size: var(--cy-font-body); background: linear-gradient(135deg,#FFEFB0,#F5C542); box-shadow: 0 6rpx 16rpx rgba(245,197,66,0.6); } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+.gc-medal-2 { width: 44rpx; height: 44rpx; font-size: var(--cy-font-label); background: linear-gradient(135deg,#FFE08A,#F5C542); box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.5); } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+.gc-medal-3 { width: 44rpx; height: 44rpx; font-size: var(--cy-font-label); color: #4a2e10; background: linear-gradient(135deg,#F3C99A,#D8964B); box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.5); } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+
+.gc-pod-name { margin-top: 24rpx; font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-title); max-width: 200rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-pod-name-1 { margin-top: var(--cy-legacy-26); font-size: var(--cy-font-body); font-weight: 700; max-width: 248rpx; }
+.gc-pod-score { margin-top: 8rpx; display: flex; align-items: center; gap: 8rpx; }
+.gc-dot { width: var(--cy-legacy-22); height: var(--cy-legacy-22); border-radius: 50%; }
+.gc-dot-g { width: 24rpx; height: 24rpx; background: linear-gradient(135deg,#FFE08A,#F5C542); box-shadow: 0 0 12rpx rgba(245,197,66,0.7); } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+.gc-dot-s { background: linear-gradient(135deg,#FFE08A,#F5C542); box-shadow: 0 0 10rpx rgba(245,197,66,0.6); } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+.gc-dot-b { background: linear-gradient(135deg,#F3C99A,#D8964B); box-shadow: 0 0 10rpx rgba(216,150,75,0.6); } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+.gc-num { font-size: var(--cy-font-label); font-weight: 600; color: var(--cy-text-secondary); }
+.gc-num-g { font-size: var(--cy-font-body); font-weight: 700; color: #F5C542; } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+.gc-unit { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.gc-unit-g { color: #a98f3e; } /* ds-ok: 金/银/铜奖牌既有配色体系 */
+
+/* metric toggle:走 cy-tabs chip 变体(见 wxml),这里只补页面级间距 */
+.gc-metric-row { padding: 32rpx var(--cy-space-5) 0; }
+
+/* list */
+.gc-list { padding: var(--cy-space-1-5) var(--cy-space-3-5) 0; }
+.gc-row { display: flex; align-items: center; gap: var(--cy-legacy-26); padding: var(--cy-legacy-22) 16rpx; border-radius: 28rpx; } /* ds-ok */
+.gc-row-rank { width: 40rpx; text-align: center; font-weight: 600; font-size: var(--cy-font-subtitle); color: var(--cy-text-secondary); }
+.gc-avatar { width: var(--cy-space-7); height: var(--cy-space-7); border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: var(--cy-font-subtitle); border: 4rpx solid #000; overflow: hidden; position: relative; } /* ds-ok */
+.gc-avatar-img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.gc-row-name { flex: 1; font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-text-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-row-score { display: flex; align-items: center; gap: var(--cy-legacy-10); }
+
+.gc-row-me { padding: var(--cy-legacy-26) 16rpx; margin-top: 8rpx; border-radius: 32rpx; background: linear-gradient(90deg,rgba(255,255,255,0.10),rgba(255,255,255,0.05)); border: 1rpx solid rgba(255,255,255,0.10); } /* ds-ok */
+.gc-row-rank-me { color: var(--cy-text-title); font-weight: 700; }
+.gc-row-name-me { flex: 1; display: flex; align-items: center; gap: var(--cy-legacy-14); min-width: 0; }
+.gc-me-name { font-size: var(--cy-font-body); font-weight: 700; color: var(--cy-text-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gc-me-tag { flex: none; font-size: var(--cy-font-caption); font-weight: 700; color: #000; background: #F5C542; padding: 2rpx var(--cy-space-1-5); border-radius: 12rpx; } /* ds-ok */
+
+@keyframes gcFadeRise { 0% { opacity: 0; transform: translateY(16rpx); } 100% { opacity: 1; transform: translateY(0); } }
+@keyframes gcBreathe { 0%,100% { box-shadow: 0 0 0 0 rgba(245,197,66,0); } 50% { box-shadow: 0 0 32rpx 4rpx rgba(245,197,66,0.35); } } /* ds-ok: 金色呼吸光晕,同金/银/铜奖牌既有配色体系 */
+.gc-breathe { animation: gcBreathe 3.2s ease-in-out infinite; }
+
+/* 减少动态效果:榜单整块的淡入上移直接到位;内容与配色照常,反馈不归零。 */
+.gc--reduced .gc-board { animation: none; }

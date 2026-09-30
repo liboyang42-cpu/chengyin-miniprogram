@@ -1,0 +1,295 @@
+<wxs src="../../../utils/wxs/money.wxs" module="money" />
+<wxs src="../../../utils/wxs/img.wxs" module="img" />
+<view class="detail theme-dark">
+
+  <cy-empty class="order-load-loading" wx:if="{{loadState==='loading'}}" kind="loading" title="订单详情加载中" />
+
+  <!-- 稿 356:5220:加载失败 = 零按钮的结果半屏,原因停 2s 后自动回订单列表。
+       原来是三颗竖排大钮(重试/返回/客服)的整卡,底下再压一条同义 toast,一件事说两遍。
+       失败不静默:标题 + 后端原因都在面板上,关闭(超时或手动)一律走 backToOrderList。 -->
+  <cy-result-sheet show="{{loadState==='failed_business' || loadState==='failed_network'}}" kind="fail" title="加载失败" why="{{loadErrorText}}" duration="{{2000}}" bind:close="backToOrderList" />
+
+  <view class="david" wx:if="{{loadState==='ready'}}">
+  <!-- 稿 578:2298(D07):大金额与状态先行。头图上依次是实付金额(40px)、
+       路线名(18px)、场次时间(12px)、一颗状态药丸 —— 原来这里印的是
+       「已报名 / 请完成支付后使用票夹」,一句状态加一句提示,金额反而要翻到下面才看得到。
+       ⚠️ 提示语没有删,它跟着退款状态卡一起说(见下)。 -->
+  <view class="hero">
+    <image class="hero-img" lazy-load="true" src="{{heroImage}}" mode="aspectFill" />
+    <view class="hero-mask"></view>
+    <view class="hero-text">
+      <view class="hero-amt">{{money.amount(info.payableAmount)}}</view>
+      <view class="hero-title ep1">{{productTitle}}</view>
+      <view class="hero-when" wx:if="{{whenText}}">{{whenText}}</view>
+      <view class="hero-pill hero-pill--{{statusTone}}" wx:if="{{info.statusText}}">{{info.statusText}}</view>
+    </view>
+  </view>
+
+  <view class="body">
+
+    <!-- 稿 578:2313 那张卡:标题 / 一句话 / 右上角状态词。
+         2026-09-11 用户定「是退款、还是已完成、未开始,要有不同状态的」⇒
+         它不是退款专用卡,每个订单态都出,右上角那个词的颜色跟着状态走。 -->
+    <view class="ocard state-notice" wx:if="{{stateNotice.show}}">
+      <view class="state-notice__head">
+        <text class="state-notice__k">{{stateNotice.title}}</text>
+        <text class="state-notice__tag state-notice__tag--{{statusTone}}" wx:if="{{stateNotice.tag}}">{{stateNotice.tag}}</text>
+      </view>
+      <text class="state-notice__s" wx:if="{{stateNotice.sub}}">{{stateNotice.sub}}</text>
+    </view>
+
+    <!-- 稿 578:2298 的这一段只有「退款状态卡 → 订单明细 → 支付明细」,没有快捷入口卡。
+         2026-09-11 删掉它,三条理由都成立:
+         ① 第一行文案写「进入路线 / 继续探索」,而 goRoute 落的是**票夹**(goPlay → signup),
+            跟底部那颗「查看票夹」是同一个去处 —— 一个说去 A、实际去 B 的重复入口;
+         ② 第二行 goActivity 对主题订单跳的是 is_join=1 的主题详情,而 F12 契约当初就是
+            为了拦这条(那个参数会把那一页的底部 CTA 整条藏掉);
+         ③ 没有这两行之后,这一段与稿的顺序一致。
+         主题/场次详情从票夹的票卡、首页与搜索都进得去,不靠订单页这条近路。 -->
+    <!-- 稿 578:2317/2318「订单明细」:段标题在卡外,卡内是四行「左标签 / 右值」,
+         行与行之间一条 1px 分隔线。原来这里是一张商品卡 + 两列网格 ——
+         两列网格读起来要来回扫,而且把标题、简介、订单事实混在同一张卡里。
+         ⚠️ 稿上这一段只有四行(订单号/票种/日期与时间/集合点)。
+            「订单类型」删掉:它已经写在头图的路线名里;
+            「日期」「时间」「场次」三格并成稿上的「日期与时间」一行,同一个事实不写三遍。 -->
+    <view class="sec-title">订单明细</view>
+    <view class="ocard">
+      <!-- 稿上订单号是一行纯值:动作不混进信息卡,复制走底部「复制订单号」 -->
+      <view class="orow" wx:if="{{info.registrationNo}}">
+        <text class="orow-k">订单号</text>
+        <text class="orow-v">{{info.registrationNo}}</text>
+      </view>
+      <view class="orow" wx:if="{{info.ticketName}}">
+        <text class="orow-k">票种</text>
+        <text class="orow-v">{{info.ticketName}} × {{orderQty}}</text>
+      </view>
+      <view class="orow" wx:if="{{whenText}}">
+        <text class="orow-k">日期与时间</text>
+        <text class="orow-v">{{whenText}}</text>
+      </view>
+      <!-- 稿上这一行的值是蓝色的「外滩源 · 查看」。没有坐标就退回纯文字,不给一个点不动的蓝字 -->
+      <view class="orow" wx:if="{{info.meetingPointDisplayText}}" bindtap="openMeetingPoint"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <text class="orow-k">集合点</text>
+        <text class="orow-v {{info.meetingPointCoordinateMissing ? '' : 'orow-v--link'}}">{{info.meetingPointDisplayText}}{{info.meetingPointCoordinateMissing ? '' : ' · 查看'}}</text>
+      </view>
+    </view>
+
+    <!-- 稿 578:2330/2331「支付明细」:票价 / 微信实付 / 合计,同一套「左标签 右值」的行。
+         合计那一行按稿加重:标签 12 粗、值 17 粗 —— 它是这张卡里唯一要被记住的数。 -->
+    <view class="sec-title">支付明细</view>
+    <view class="ocard">
+      <view class="orow">
+        <text class="orow-k">票价</text>
+        <text class="orow-v">{{money.amount(info.ticketPrice)}} × {{orderQty}}</text>
+      </view>
+      <view class="orow" wx:if="{{showPointPay}}">
+        <text class="orow-k">积分抵扣{{info.pointUsed ? '（' + info.pointUsed + ' 积分）' : ''}}</text>
+        <text class="orow-v">-{{money.amount(info.pointPaymentAmount)}}</text>
+      </view>
+      <view class="orow" wx:if="{{showWechatPay}}">
+        <text class="orow-k">微信实付</text>
+        <text class="orow-v">{{money.amount(info.wechatPaymentAmount)}}</text>
+      </view>
+      <view class="orow orow--total">
+        <text class="orow-k">合计</text>
+        <text class="orow-v">{{money.amount(info.payableAmount)}}</text>
+      </view>
+    </view>
+
+    <!-- 「和队友一起出发」原来插在状态卡和订单明细之间,打断稿的顺序;2026-09-15 挪到支付明细之后 -->
+    <cy-card class="order-card team-order-card" wx:if="{{info.ownerType == 2 && info.registrationStatus == 2 && info.cmsActivity && info.cmsActivity.teamMode == 2}}">
+      <view class="section-title">和队友一起出发</view>
+      <view class="card-desc">按主理人设置的人数上限建队。默认公开，队伍会出现在漫游地图「附近的队伍」里等人申请，由你逐个同意；打开「仅邀请」后只有拿到邀请链接的人能进。组队与否不影响活动举行，也不改变订单与退款规则。</view>
+      <!-- 2026-09-15 地图组队 P 方案:后端建队默认公开(joinMode=2),这颗开关是队长收窄到
+           仅邀请的唯一入口。放在「叫上队友」之前:它决定的是接下来那一支队伍怎么建,
+           点完人数就直接发请求了,事后回到这里改已经来不及。
+           ⚠️ 而且**目前也没有第二次机会**:后端有 POST /api/team/join-mode(队长可随时切),
+              但全仓没有任何前端调用点 —— 队伍详情页还没接这个控件。所以建队这一刻选的
+              公开/仅邀请,当前就是终局。别在文案或注释里承诺「以后去队伍详情改」,
+              那在接上 join-mode 之前都是假保证。 -->
+      <view class="link-row">
+        <text class="link-label">仅邀请可加入</text>
+        <cy-switch checked="{{teamInviteOnly}}" bindchange="onTeamInviteOnlyChange" accessibility-label="仅邀请可加入" />
+      </view>
+      <view class="link-row" bindtap="startOrderTeam" hover-class="cy-pressed" hover-stay-time="80">
+        <text class="link-label">叫上队友</text>
+        <cy-icon class="link-chevron" name="arrow-right" size="28" />
+      </view>
+    </cy-card>
+
+    <!-- 订单进度。稿 578:2298 那一屏里没有它 —— 稿画的是首屏那一段
+         (头图 → 退款卡 → 订单明细 → 支付明细),时间线属于再往下的部分。
+         所以不是删掉,是挪到稿那三段之后,别插在中间把稿的顺序打断。 -->
+    <view class="order-timeline" aria-role="list" aria-label="订单进度">
+      <view class="order-timeline-step is-{{item.state}}" wx:for="{{orderTimeline}}" wx:key="key" aria-role="listitem">
+        <view class="order-timeline-dot"></view>
+        <view class="order-timeline-copy"><text class="order-timeline-title">{{item.label}}</text><text class="order-timeline-time" wx:if="{{item.time}}">{{item.time}}</text></view>
+      </view>
+    </view>
+
+    <!-- 2026-09-17 拍板第 40 条 A 的订单详情入口:已支付成功(或已核销)的单,背后有生效商家且
+         尚未同意时出现(总控裁定从「权益已核销」放宽)。可选,不勾不影响任何主流程;失败在原位显示并可重试。 -->
+    <block wx:if="{{consentOffer.show}}">
+    <view class="sec-title">商家消息</view>
+    <view class="ocard consent-card">
+      <cy-consent-check checked="{{consentChecked}}"
+        text="接收「{{consentOffer.merchantName}}」的活动消息（站内消息，可随时在设置里退订）"
+        bind:change="onConsentChange" />
+      <view class="consent-state" wx:if="{{consentState === 'saving'}}">正在保存…</view>
+      <view class="consent-err" wx:elif="{{consentState === 'failed'}}" aria-role="alert">
+        <text class="consent-err-text">{{consentError}}</text>
+        <text class="consent-err-act" bindtap="onConsentRetry" hover-class="cy-pressed" hover-stay-time="80"
+              aria-role="button" aria-label="重试">重试</text>
+      </view>
+      <view class="consent-ok" wx:elif="{{consentState === 'saved'}}">已同意，可在设置里随时退订</view>
+    </view>
+    </block>
+
+    <!-- 支付信息。2026-09-11 与上面两段统一到稿 578:2318 的行语言(.ocard/.orow):
+         这三张卡本来就是同一个「左标签 右值」的形状,同页养两套词汇没有理由。 -->
+    <block wx:if="{{info.paymentStatus==2}}">
+    <view class="sec-title">支付信息</view>
+    <view class="ocard">
+      <view class="orow" wx:if="{{paymentTimeText}}">
+        <text class="orow-k">支付时间</text>
+        <text class="orow-v">{{paymentTimeText}}</text>
+      </view>
+      <view class="orow" wx:if="{{info.paymentTypeLabel}}">
+        <text class="orow-k">支付方式</text>
+        <text class="orow-v">{{info.paymentTypeLabel}}</text>
+      </view>
+      <view class="orow" wx:if="{{showWechatPay}}">
+        <text class="orow-k">微信实付</text>
+        <text class="orow-v">{{money.amount(info.wechatPaymentAmount)}}</text>
+      </view>
+      <view class="orow" wx:if="{{showPointPay}}">
+        <text class="orow-k">积分实付</text>
+        <text class="orow-v">{{money.amount(info.pointPaymentAmount)}}</text>
+      </view>
+      <!-- 与订单号行一致:动作不进信息卡,交易单号只是一行纯值 -->
+      <view class="orow" wx:if="{{info.transactionId}}">
+        <text class="orow-k">微信交易单号</text>
+        <text class="orow-v">{{info.transactionId}}</text>
+      </view>
+    </view>
+    </block>
+
+    <block wx:if="{{info.realName || info.phone || info.participateDate}}">
+    <view class="sec-title">报名人信息</view>
+    <view class="ocard">
+      <view class="orow" wx:if="{{info.realName}}">
+        <text class="orow-k">姓名</text>
+        <text class="orow-v">{{info.realName}}</text>
+      </view>
+      <view class="orow" wx:if="{{info.phone}}">
+        <text class="orow-k">手机</text>
+        <text class="orow-v">{{info.phone}}</text>
+      </view>
+      <view class="orow" wx:if="{{participateDateText}}">
+        <text class="orow-k">报名日期</text>
+        <text class="orow-v">{{participateDateText}}</text>
+      </view>
+    </view>
+    </block>
+
+    <block wx:if="{{verificationTimeText || expiresAtText}}">
+    <view class="sec-title">凭证与有效期</view>
+    <view class="ocard">
+      <view class="orow" wx:if="{{verificationTimeText}}">
+        <text class="orow-k">核销时间</text>
+        <text class="orow-v">{{verificationTimeText}}</text>
+      </view>
+      <view class="orow" wx:if="{{expiresAtText}}">
+        <text class="orow-k">权益到期</text>
+        <text class="orow-v">{{expiresAtText}}</text>
+      </view>
+    </view>
+    </block>
+
+    <!-- 权益明细 -->
+    <cy-card class="order-card" wx:if="{{info.entitlements && info.entitlements.length}}">
+      <view class="section-title">权益明细</view>
+      <view class="ent-row" wx:for="{{info.entitlements}}" wx:key="chapterId">
+        <view class="ent-name">{{item.chapterName || ('章节 ' + item.chapterId)}}</view>
+        <view class="ent-status">{{item.statusLabel || ''}}</view>
+      </view>
+    </cy-card>
+
+    <!-- 批5 探店日完局面:图鉴(F4)。show=false 时整块不渲染,不留空壳 -->
+    <cy-card class="order-card" wx:if="{{completion.show}}">
+      <view class="section-title">探店图鉴</view>
+      <view class="stamp-grid">
+        <view class="stamp {{item.collected ? 'stamp--on' : ''}}" wx:for="{{completion.stamps}}" wx:key="chapterId">
+          <view class="stamp-name">{{item.title}}</view>
+          <view class="stamp-sub">{{item.subText}}</view>
+        </view>
+      </view>
+      <view class="stamp-progress" wx:if="{{completion.stampProgressText}}">{{completion.stampProgressText}}</view>
+    </cy-card>
+
+    <!-- 批5 通关奖励到账明细:读的是已落库的到账事实,没有就说没有,不写 0 -->
+    <cy-card class="order-card" wx:if="{{completion.show}}">
+      <view class="section-title">通关奖励</view>
+      <block wx:if="{{completion.awards.credited}}">
+        <view class="award-row" wx:for="{{completion.awards.items}}" wx:key="index">
+          <image class="award-icon" wx:if="{{item.iconUrl}}" src="{{item.iconUrl}}" mode="aspectFill" />
+          <view class="award-name">{{item.title}}</view>
+          <view class="award-amount" wx:if="{{item.amountText}}">{{item.amountText}}</view>
+        </view>
+      </block>
+      <view class="award-empty" wx:else>{{completion.awards.emptyText}}</view>
+    </cy-card>
+
+    <!-- 批5 完局后的 J(自愿关注/入群)与 R90(下期回访)入口。全部自愿,不与权益交换 -->
+    <cy-card class="order-card" wx:if="{{completion.revisit.show}}">
+      <view class="section-title">下次再来</view>
+      <view class="revisit-club">{{completion.revisit.clubName}}</view>
+      <view class="revisit-actions">
+        <view class="revisit-btn" wx:if="{{completion.revisit.canFollow}}" bindtap="followClub"
+          aria-role="button" aria-label="关注主办俱乐部" hover-class="cy-pressed" hover-stay-time="80">关注主办俱乐部</view>
+        <view class="revisit-btn" wx:if="{{completion.revisit.canJoin}}" bindtap="joinClub"
+          aria-role="button" aria-label="加入俱乐部" hover-class="cy-pressed" hover-stay-time="80">加入俱乐部</view>
+      </view>
+      <view class="revisit-state" wx:if="{{completion.revisit.joinStateText}}">{{completion.revisit.joinStateText}}</view>
+      <view class="revisit-next {{completion.revisit.hasNextEdition ? 'revisit-next--on' : ''}}"
+        bindtap="goNextEdition" hover-class="cy-pressed" hover-stay-time="80">{{completion.revisit.nextEditionText}}</view>
+    </cy-card>
+
+    <!-- 动态退款政策 -->
+    <cy-card class="order-card">
+      <view class="section-title">退款与客服</view>
+      <view class="refund-main">{{info.refundDeadlineDisplay || info.refundDisplayText || '支付成功后将按订单退款截止时间判断是否可原路退款。'}}</view>
+      <view class="refund-sub">现金退款和积分返还按本单实际支付记录处理，进度以订单查询结果为准。规则有疑问可联系客服。</view>
+      <view class="refund-org" wx:if="{{info.organizerDisplayName}}">{{info.organizerLabel}}：{{info.organizerDisplayName}}</view>
+    </cy-card>
+
+    <!-- 稿 578:2340/2342:底部两颗并排的次级键「联系客服 · 复制订单号」。
+         稿的口径是「动作不混进信息卡」,
+         复制只走这一颗(2026-09-15 订单号行按稿去掉了行内复制)。
+         ⚠️ 稿上只画了这两颗。取消/退款与「查看票夹」是本仓真实存在的动作,
+            不能因为稿没画就删:前者是资损相关的唯一自助出口,
+            后者是订单→票夹这条单向路的入口(2026-09-10 用户定)。
+            排在稿那两颗上面,各占一行,不挤进并排那一排。 -->
+    <view class="secondary-actions">
+      <view wx:if="{{info.registrationStatus==1 || info.canRequestRefund}}" class="sec-btn sec-danger {{cancelling ? 'sec-btn--disabled' : ''}}" bindtap="cancelRegistration" aria-role="button" aria-label="{{cancelling ? '正在处理' : (info.registrationStatus==2 ? '取消并退款' : '取消订单')}}" aria-disabled="{{cancelling}}" hover-class="{{cancelling ? 'none' : 'cy-pressed'}}" hover-stay-time="80">{{cancelling ? '处理中' : (info.registrationStatus==2 ? '取消并退款' : '取消订单')}}</view>
+      <view wx:if="{{showSecondaryTicket}}" class="sec-btn sec-solid" bindtap="goSignInfo" hover-class="cy-pressed" hover-stay-time="80">查看票夹</view>
+    </view>
+    <view class="sec-pair">
+      <button class="sec-pair-btn" open-type="contact" show-message-card="true" send-message-title="订单客服" send-message-path="/subpackageMember/orderinfo/orderinfo?id={{info.id}}">联系客服</button>
+      <view class="sec-pair-btn" wx:if="{{info.registrationNo}}" bindtap="copyOrderNo"
+            aria-role="button" aria-label="复制订单号" hover-class="cy-pressed" hover-stay-time="80">复制订单号</view>
+    </view>
+  </view>
+    <!-- §3.2:主 CTA 固定在底部,不与正文一起滚走。放在 .david(ready 闸)内 ⇒
+         失败/加载态下不会漏出来。sticky 而非 fixed,留在 sheet 的滚动容器里。 -->
+    <view class="bp-cta-bar" wx:if="{{primaryCta === 'pay' || primaryCta === 'ticket'}}">
+      <view wx:if="{{primaryCta === 'pay'}}" class="primary-cta" bindtap="payOrder" aria-role="button" aria-label="去支付" hover-class="cy-pressed" hover-stay-time="80">{{paying ? '支付中...' : '去支付'}}</view>
+      <view wx:elif="{{primaryCta === 'ticket'}}" class="primary-cta" bindtap="goSignInfo" aria-role="button" aria-label="查看票夹" hover-class="cy-pressed" hover-stay-time="80">查看票夹</view>
+    </view>
+  <!-- 队伍人数选择(2026-09-02 由 wx.showActionSheet 收编)。放在 ready 闸内:
+       .detail 的直属子节点必须受 loadState 闸控制,失败态不该还挂着一个弹层。 -->
+  <cy-option-sheet show="{{teamSheetShow}}" title="队伍人数" items="{{teamSheetItems}}"
+                   bind:select="onTeamSheetSelect" bind:cancel="onTeamSheetCancel" />
+</view>
+</view>

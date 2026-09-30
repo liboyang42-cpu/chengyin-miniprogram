@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-icon": "/components/cy/icon/index",
+    "cy-completion-share-card": "/components/cy/completion-share-card/index",
+    "cy-feed-play-card": "/components/cy/feed-play-card/index"
+  }
+}

@@ -1,0 +1,93 @@
+<!-- Figma K3 核销详情 · 俱乐部端。八张稿是同一页的八个态:
+     A–E 五个业务态走同一套布局,只换状态字/核销行/履约轨迹;
+     F 无权限、G 加载失败是整屏态;H 是手机号无查看权限的变体(由服务端决定,不是前端分支)。 -->
+<view class="ckd theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-nav-bar plain />
+  <cy-nav-spacer />
+  <cy-page-title title="核销详情" safe-top="{{false}}" flush="{{true}}" />
+
+  <cy-skeleton wx:if="{{state === 'loading'}}" type="card" count="2" loading-label="正在加载核销详情" />
+  <cy-error wx:elif="{{state === 'denied'}}" fill size="lg"
+            title="核销记录不可见" sub="{{errorText || '当前账号没有查看权限'}}" retry="" bind:back="goBack" auto-back custom-back />
+  <cy-error wx:elif="{{state === 'missing'}}" fill size="lg" title="打不开这条核销记录"
+            sub="{{errorText}}" retry="返回" bind:retry="goBack" auto-back />
+  <cy-error wx:elif="{{state !== 'ready'}}" fill size="lg" title="核销凭证没加载出来"
+            sub="{{errorText}}" retry="重新加载" bind:retry="retry" auto-back />
+
+  <block wx:else>
+    <!-- 客户与核销状态 -->
+    <view class="ckd-head">
+      <cy-avatar class="ckd-ava" size="96" src="{{detail.avatar || '/images/d_profile.png'}}" name="{{detail.displayName}}" />
+      <view class="ckd-head-main">
+        <text class="ckd-name">{{detail.displayName}}</text>
+        <text class="ckd-session">{{detail.sessionTimeText}}</text>
+        <view class="ckd-phone-row">
+          <!-- 服务端已按岗位权限裁过:有权限是号码,没权限是替代说明。前端原样显示。 -->
+          <text class="ckd-phone {{detail.phoneVisible ? '' : 'ckd-phone--masked'}}">{{detail.phoneText}}</text>
+          <!-- 2026-09-09 去掉「复制」:这一格服务端只可能给掩码
+               (ClubCrmAppServiceImpl.phoneText 有权限也走 maskPhone),复制过去是
+               「1385621」这种废字符串。和成员弹层同一个判断,两处保持一致。
+               要真能复制,得后端另开一条按 MEMBER_LIST_READ 下发真号的口子。 -->
+        </view>
+      </view>
+      <view class="ckd-head-state">
+        <text class="ckd-state ckd-state--{{detail.statusCode}}">{{detail.statusText}}</text>
+        <text wx:if="{{detail.statusTimeText}}" class="ckd-state-time">{{detail.statusTimeText}}</text>
+      </view>
+    </view>
+
+    <!-- 凭证本体 -->
+    <view class="ckd-card">
+      <view class="ckd-topic">
+        <image wx:if="{{detail.topicCover}}" class="ckd-cover" src="{{detail.topicCover}}" mode="aspectFill" lazy-load="true" />
+        <view wx:else class="ckd-cover ckd-cover--empty"></view>
+        <view class="ckd-topic-main">
+          <text class="ckd-topic-time">{{detail.sessionTimeText}}</text>
+          <text class="ckd-topic-name">{{detail.topicName || '未命名主题'}}</text>
+          <text wx:if="{{detail.orderNo}}" class="ckd-topic-order">单号 {{detail.orderNo}}</text>
+        </view>
+      </view>
+
+      <view class="ckd-divider"></view>
+
+      <!-- 六行值一律右对齐到卡片内边缘(照稿) -->
+      <view class="ckd-kv"><text class="ckd-k">票种</text><text class="ckd-v">{{detail.ticketText}}</text></view>
+      <view class="ckd-kv"><text class="ckd-k">下单时间</text><text class="ckd-v">{{detail.orderTimeText}}</text></view>
+      <view class="ckd-kv"><text class="ckd-k">实付</text>
+        <text class="ckd-v ckd-v--amount {{detail.statusCode === 'REFUNDED' ? 'ckd-v--muted' : ''}}">{{detail.paidAmountText}}</text></view>
+      <view class="ckd-kv"><text class="ckd-k">核销时间</text>
+        <text class="ckd-v {{detail.statusCode === 'VERIFIED' ? 'ckd-v--verified' : ''}}">{{detail.verifyTimeText}}</text></view>
+      <view class="ckd-kv"><text class="ckd-k">核销门店</text><text class="ckd-v">{{detail.storeName}}</text></view>
+      <view class="ckd-kv"><text class="ckd-k">操作人</text><text class="ckd-v">{{detail.operatorName}}</text></view>
+
+      <view class="ckd-divider"></view>
+
+      <!-- 履约轨迹。已退款(railStep = -1)整条不亮 —— 这条单没走完履约。 -->
+      <view class="ckd-rail">
+        <view class="ckd-rail-line"></view>
+        <view class="ckd-rail-step" wx:for="{{rail}}" wx:key="key">
+          <view class="ckd-dot ckd-dot--{{item.tone}}"></view>
+          <text class="ckd-rail-label ckd-rail-label--{{item.tone}} {{item.current ? 'is-current' : ''}}">{{item.label}}</text>
+        </view>
+      </view>
+      <text wx:if="{{detail.statusCode === 'REFUNDED'}}" class="ckd-note">这单已退款，履约轨迹不再推进。</text>
+    </view>
+
+    <!-- 清退退款(2026-09-09 从报名名册行内挪来)。canRefund 由服务端判:
+         主理人本人 + 这单已付款未核销,两条都成立才给按钮。 -->
+    <view wx:if="{{detail.canRefund}}" class="ckd-foot">
+      <cy-inline-error wx:if="{{refundErrorUnknown}}" kind="network" title="退款结果待确认" sub="{{refundErrorText}}"
+                       action="重新查询" bind:action="retryRefundReadback" />
+      <cy-inline-error wx:elif="{{refundErrorText}}" kind="data" title="退款没有完成" sub="{{refundErrorText}}"
+                       action="重试" bind:action="refund" />
+      <view class="ckd-refund {{refunding || refundErrorUnknown ? 'is-disabled' : ''}}" bindtap="refund"
+            aria-role="button" aria-label="清退并退款给 {{detail.displayName || '该玩家'}}"
+            aria-disabled="{{refunding || refundErrorUnknown}}"
+            hover-class="{{refunding || refundErrorUnknown ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+        {{refunding ? '正在退款…' : '清退并退款'}}
+      </view>
+      <text class="ckd-foot-note">退款按购买时冻结的政策执行；已核销的单退不了。</text>
+    </view>
+  </block>
+</view>

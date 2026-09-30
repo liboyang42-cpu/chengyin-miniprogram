@@ -1,0 +1,41 @@
+<view class="ticket-scene">
+  <cy-error wx:if="{{state === 'error'}}" fill="{{true}}" size="lg" title="入场码没生成出来" sub="{{errorText}}" retry="重试" bind:retry="retry" />
+
+  <block wx:else>
+    <!-- #568 票券终态移入场景组件：白票、黑色 Code 带、咬口和放大码层都只保留一份。 -->
+    <view class="voucher__card">
+      <view class="voucher__top">
+        <view class="voucher__amt">
+          <text class="voucher__amt-n">入场</text>
+          <text class="voucher__amt-u">码</text>
+        </view>
+        <image class="voucher__qr" wx:if="{{state === 'ready'}}" src="{{qr}}" mode="aspectFit" />
+        <view class="voucher__qr voucher__qr--empty" wx:else>生成中…</view>
+      </view>
+      <view class="voucher__notch">
+        <text class="voucher__code">Code : {{code || '——'}}</text>
+      </view>
+      <view class="voucher__foot">
+        <text class="voucher__exp">{{countdown || '正在签发动态码…'}}</text>
+        <text class="voucher__name">城瘾活动入场码</text>
+        <text class="voucher__desc">出示给商家 / 俱乐部扫码核销 · 按屏幕倒计时自动失效</text>
+      </view>
+    </view>
+    <view class="voucher__acts">
+      <view class="voucher__back" bindtap="close" aria-role="button" aria-label="返回" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="back" size="40" /></view>
+      <view class="voucher__cta {{state === 'ready' ? '' : 'voucher__cta--disabled'}}" bindtap="openBigQr" aria-role="button" aria-disabled="{{state !== 'ready'}}" hover-class="{{state !== 'ready' ? 'none' : 'cy-pressed'}}" hover-stay-time="80">现在核销！</view>
+    </view>
+  </block>
+
+  <view class="bigqr-mask" wx:if="{{bigQr}}" bindtap="closeBigQr" aria-role="button" aria-label="关闭二维码" hover-class="cy-pressed" hover-stay-time="80"></view>
+  <view class="bigqr-under" wx:if="{{bigQr}}"></view>
+  <view class="bigqr" wx:if="{{bigQr}}">
+    <view class="bigqr__head">
+      <view class="bigqr__close" bindtap="closeBigQr" aria-role="button" aria-label="关闭" hover-class="cy-pressed" hover-stay-time="80"><cy-icon name="close" size="44" /></view>
+    </view>
+    <image class="bigqr__img" src="{{qr}}" mode="aspectFit" />
+    <view class="bigqr__title">出示给商家核销</view>
+    <view class="bigqr__desc">动态码按屏幕倒计时失效，过期请重新获取</view>
+    <view class="bigqr__alt" bindtap="retry" aria-role="button" aria-label="刷新二维码" hover-class="cy-pressed" hover-stay-time="80">刷新二维码</view>
+  </view>
+</view>

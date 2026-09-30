@@ -1,0 +1,116 @@
+/* cy-nav-bar · L2 详情页导航(文档1 §1.2 / §7)
+ * 左返回 · 中标题(居中,左右区宽度固定防偏移) · 右 action 槽。
+ * overlay:hero 首屏透明;scrolled:页面滚动后转 glass 实底。色随主题。 */
+:host {
+  display: block;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: var(--cy-z-nav);          /* T9:导航档 */
+}
+.nav {
+  transition: background var(--cy-dur) var(--cy-ease), border-color var(--cy-dur) var(--cy-ease);
+}
+.nav--overlay {
+  background: transparent;
+  border-bottom: 2rpx solid transparent;
+}
+/* 实底态与页面同底、无分隔线、无毛玻璃(商家域 D-1/D-2 拍板样式,2026-07-29 推广为全站默认)。
+ * 底色仍走 --cy-comp-nav-bg 钩子:默认值在 tokens.wxss 已改为页面同底;
+ * 类作用域主题(theme-topic-editor / theme-light)在各自块里重设该钩子(别名在 page{} 已就地解析,追不回)。 */
+.nav--solid {
+  background: var(--cy-comp-nav-bg);
+  border-bottom: 2rpx solid var(--cy-comp-nav-border);
+}
+/* plain:二级页统一形态(Revolut 式)——导航区与页面同底色,无分界,滚动不变;
+ * 大标题不在本组件内,由页面把 cy-page-title 放滚动内容顶部 */
+.nav--plain {
+  background: var(--cy-bg-page);
+  border-bottom: 2rpx solid transparent;
+}
+.nav__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+/* 左返回:触控热区 ≥88rpx */
+.nav__back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-title);          /* chevron 用 currentColor,随主题 */
+}
+.nav__back--press { opacity: .5; }
+/* 内层:默认 = 视觉裸 chevron,**不得有可见圆背景**(2026-07-29 设计裁决,覆盖此前的圆 chip 默认态)。
+ * 二级页返回只留箭头本身,色随 currentColor(= --cy-text-title)随主题走;
+ * 外层 .nav__back 保持 88rpx(≥44pt)命中区 —— 视觉收掉了,触控面积一点没少。
+ * ⚠️ 别在这里加 background / border / border-radius:契约 ds-ada-foundation-contract 的负控盯着。 */
+.nav__back-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+/* pill:hero 大图上的玻璃胶囊 —— 这是压在照片上「没有底就看不见箭头」的专门语义,
+ * 由页面显式 opt-in,不是默认态,故不受"裸 chevron"裁决影响。
+ * 非 hero 页不得使用(契约 secondary-nav-consistency 的负控在管)。 */
+.nav__back-inner--pill {
+  width: var(--cy-comp-nav-back-size);
+  height: var(--cy-comp-nav-back-size);
+  border-radius: 50%;
+  background: var(--cy-bg-glass);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border: 1rpx solid var(--cy-border-card);
+}
+/* 亮 hero(用户封面图)用深色 scrim,白箭头才可见 */
+.nav__back-inner--pill-dark {
+  background: rgba(0, 0, 0, 0.42);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.nav__back-icon { color: currentColor; }
+/* 中标题:左右留固定 gutter,右侧 action 变宽也不挤偏标题 */
+.nav__title {
+  position: absolute;
+  left: 96rpx;
+  right: 96rpx;
+  text-align: center;
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* tint:nav 文字/箭头色与页面主题解耦(浅 hero 用 dark,暗 hero 用 light) */
+/* 2026-09-01(D4):原 #0F172B 是 7-31「去墨蓝」那轮点名清掉的蓝相(B-R=+28),这处漏了。
+   换 ink-900 中性深墨,明度不变,视觉无损。tint 是强制色,所以走 --cy-color-text-on-light —— 那个 token 只在 page{} 定义、各主题块不重声明,因此不会跟着父主题翻转。 */
+.nav--tint-dark .nav__back, .nav--tint-dark .nav__title { color: var(--cy-color-text-on-light); }
+.nav--tint-light .nav__back, .nav--tint-light .nav__title { color: #FFFFFF; }
+.nav__actions {
+  position: absolute;
+  right: var(--cy-page-x);
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+/* 离线条:绝对定位在导航条正下方(:host 是 fixed),不改变页面版式。
+ * 条本身底色是半透明 warning-soft,压在内容/封面上读不清,所以这一层垫实底 + 留边距(与 searchmap 同形)。 */
+.nav__offline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  padding: var(--cy-space-2) var(--cy-space-4);
+  background: var(--cy-comp-nav-bg);
+}

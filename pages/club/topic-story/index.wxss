@@ -1,0 +1,352 @@
+/* 俱乐部端「剧情与玩法」· Figma J1-A 228:125 / J1-B 228:142 / J1-C 241:126。
+   稿上 px → 本页 rpx 一律 ×2(375pt 画板)。色/字号/圆角只走 token,见 PR 里的映射说明。 */
+
+/* 铺满层底色必须与固定顶栏同色(--cy-color-bg-page),否则顶栏下缘出色带
+   —— 契约 custom-nav-page-surface-contract 盯着。稿上是 #0a0a0b,这里让位给该契约。 */
+.story-page {
+  min-height: 100vh;
+  padding: 0 var(--cy-page-x) 56rpx;
+  box-sizing: border-box;
+  background: var(--cy-color-bg-page);
+}
+.club-nav-spacer { width: 100%; }
+
+/* —— Tabs · 路线 / 玩法(228:135):走 cy-tabs,只在页面侧给外间距 —— */
+.story-tabs { display: block; margin-bottom: 12rpx; }
+
+/* —— 章节头(237:126)—— */
+.story-chapter__head {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 40rpx 0 24rpx;
+}
+.story-chapter__title {
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+.story-chapter__meta {
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* —— 站点时间轴(237:129)—— */
+.story-stops { position: relative; }
+.story-stops__line {
+  position: absolute;
+  left: 26rpx;
+  top: 28rpx;
+  bottom: 28rpx;
+  width: 4rpx;
+  border-radius: 2rpx; /* ds-ok: 2rpx 时间轴,量表最小圆角是 16rpx */
+  background: var(--cy-color-border-strong);
+}
+/* 竖线是整条容器高的绝对定位,最后一站的卡片有多高、线就往下拖多长 ——
+   看起来就是「1 2 3 之后还出头一截」。这里用页面底色把最后一个圆点以下那截盖掉。
+   ⚠️ 不能改成 bottom 定值:每一站的卡片高度不一样,定值只在某一种数据下刚好。 */
+.story-stop:last-child::after {
+  content: '';
+  position: absolute;
+  left: 26rpx;
+  top: 28rpx;
+  bottom: 0;
+  width: 4rpx;
+  background: var(--cy-color-bg-page);
+}
+.story-stop {
+  position: relative;
+  display: flex;
+  gap: var(--cy-space-3);
+  align-items: flex-start;
+}
+.story-stop__seq {
+  flex: none;
+  width: 56rpx;
+  height: 56rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-raised);
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+}
+.story-walk {
+  position: relative;
+  padding: 12rpx 0 12rpx 92rpx;
+  font-size: var(--cy-type-micro);
+  font-weight: 500;
+  color: var(--cy-color-text-tertiary);
+}
+
+/* —— 站点卡 / Stop card(Figma 组件 264:163)—— */
+.stop-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: var(--cy-space-3);
+  align-items: flex-start;
+  padding: 20rpx 24rpx 20rpx 20rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-raised);
+}
+.stop-card__cover {
+  flex: none;
+  width: 234rpx;
+  height: 160rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-surface-strong);
+}
+.stop-card__cover--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-tertiary);
+}
+.stop-card__text {
+  flex: 1;
+  min-width: 0;
+  height: 152rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  overflow: hidden;
+}
+.stop-card__time {
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-primary);
+}
+.stop-card__name {
+  height: 88rpx;
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+}
+.stop-card__addr {
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  color: var(--cy-color-text-primary);
+}
+.stop-card__addr-text {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* —— 空章节卡(237:219)—— */
+
+/* —— 玩法 tab:章节 chip(230:126)—— */
+.story-chips {
+  width: 100%;
+  white-space: nowrap;
+  padding: 28rpx 0;
+}
+.story-chips__track { display: inline-flex; gap: var(--cy-space-2); }
+.story-chip {
+  flex: none;
+  padding: 16rpx var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-interactive);
+  font-size: var(--cy-type-label);
+  font-weight: 400;
+  color: var(--cy-color-text-primary);
+}
+.story-chip--on {
+  background: var(--cy-color-action-primary-bg);
+  font-weight: 500;
+  color: var(--cy-color-action-primary-fg);
+}
+
+/* —— 段头(259:156 / 259:164)—— */
+.story-sec {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-4);
+  padding-bottom: 20rpx;
+}
+.story-sec--play { margin-top: 44rpx; padding-bottom: var(--cy-space-3); }
+.story-sec__title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-card-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+.story-sec__extra {
+  flex: none;
+  font-size: var(--cy-type-caption);
+  color: var(--cy-color-text-tertiary);
+}
+
+/* —— 本章剧情卡(259:160)—— */
+.story-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 28rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-raised);
+}
+.story-card__text {
+  font-size: var(--cy-type-body);
+  line-height: 1.6;
+  color: var(--cy-color-text-secondary);
+}
+.story-card__text--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.story-card__text--muted { color: var(--cy-color-text-tertiary); }
+.story-card__more {
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+}
+
+/* —— 玩法模板卡(259:168,复用 PostCard/分享模板 的模板封面)—— */
+.play-card {
+  position: relative;
+  width: 100%;
+  height: 496rpx;
+  margin-bottom: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+  background: var(--cy-color-bg-surface-strong);
+}
+.play-card__cover { position: absolute; inset: 0; width: 100%; height: 100%; }
+.play-card__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .55) 55%, rgba(0, 0, 0, .92) 100%); /* ds-ok: 照片上的文字可读性遮罩,与 pages/roam 同一手法 */
+}
+.play-card__badge {
+  position: absolute;
+  left: 28rpx;
+  top: 28rpx;
+  padding: 10rpx 20rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-overlay);
+  font-size: var(--cy-type-caption);
+  font-weight: 600;
+  color: var(--cy-color-text-primary);
+}
+.play-card__seq {
+  position: absolute;
+  right: 28rpx;
+  top: 28rpx;
+  width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-overlay);
+  font-size: var(--cy-type-label);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+}
+.play-card__foot {
+  position: absolute;
+  left: 28rpx;
+  right: 28rpx;
+  bottom: 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3);
+}
+.play-card__title {
+  font-size: var(--cy-type-sheet-title);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+.play-card__meta {
+  margin-top: 8rpx;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-secondary);
+}
+.play-card__acts { display: flex; gap: 20rpx; }
+.play-btn {
+  flex: 1;
+  min-width: 0;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-type-button);
+  font-weight: 600;
+}
+.play-btn--ghost {
+  background: var(--cy-color-play-accent-soft);
+  color: var(--cy-color-text-primary);
+}
+.play-btn--solid {
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+}
+
+/* —— J1-C 查看答案弹窗内容(241:128)—— */
+.ans { padding-bottom: var(--cy-space-3); }
+/* CU-C-152:玩法名当副信息,允许换行(word-break),字号用 caption,和下面的段标签区分。 */
+.ans__node {
+  margin-bottom: var(--cy-space-3);
+  font-size: var(--cy-type-caption);
+  line-height: 1.5;
+  color: var(--cy-color-text-tertiary);
+  word-break: break-word;
+}
+.ans__state {
+  padding: 40rpx 0;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-tertiary);
+  text-align: center;
+}
+.ans__state--err { color: var(--cy-color-status-danger); }
+.ans__label {
+  margin-bottom: 12rpx;
+  font-size: var(--cy-type-caption);
+  font-weight: 500;
+  color: var(--cy-color-text-tertiary);
+}
+.ans__block {
+  margin-bottom: var(--cy-space-3);
+  padding: 26rpx 28rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-raised);
+}
+.ans__block--hints { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.ans__text {
+  font-size: var(--cy-type-body);
+  line-height: 1.5;
+  color: var(--cy-color-text-primary);
+}
+.ans__text--muted { color: var(--cy-color-text-secondary); }
+.ans__answer {
+  font-size: var(--cy-type-section-title);
+  font-weight: 700;
+  color: var(--cy-color-status-success);
+}
+.ans__notice {
+  margin-top: var(--cy-space-2);
+  padding: 20rpx 24rpx;
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-status-warning-soft);
+  font-size: var(--cy-type-caption);
+  line-height: 1.5;
+  color: var(--cy-color-text-primary);
+}

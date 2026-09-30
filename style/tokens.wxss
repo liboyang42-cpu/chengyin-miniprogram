@@ -1,0 +1,1525 @@
+/* ============================================================
+ * 城瘾 Questify 设计 Token —— v2 语义层(2026-07-12,DS v2.0 §2 / §10.1)
+ *
+ * 全站唯一视觉变量真源。基础 page{} = 玩家端 consumer-night(纯黑 #000000 中性灰阶;
+ * 品牌紫 --cy-ref-violet-500 仅商家域与极特殊场景引用,玩家域 brand/route 已全部去紫),
+ * 任意页面不挂 class 即继承暗底;.theme-light{} = 商家端 merchant-day 逃生口。
+ *
+ * ── 结构(DS §10.1 alias 过渡策略,禁止 7,055 处大爆炸替换)──
+ *   ① v2 语义真值层:--cy-color-* / --cy-type-* / --cy-motion-*(组件/新页面只读这层)。
+ *   ② 旧名 alias 层:--cy-旧名: var(--cy-新名);全站零结构改动,R1 对比度修正随别名直接生效。
+ *      · 例外:半透明叠加色(--cy-bg-subtle / --cy-white-4 / --cy-white-64)保留字面值,
+ *        其"并入不透明表面/文字"的语义合并推迟到逐页迁移(batch 5),避免本批产生非对比度类视觉漂移。
+ *   ③ 保留原名层:布局/圆角/间距/动效缓动/业务色(route 五色),v2 值相同,不参与语义化。
+ *   一版迁移后(引用清零)删除 ② 别名层。
+ *
+ * 约定:新组件 / 迁移页面一律读 --cy-color-* 语义 token,禁止硬编码色值与旧名。
+ * ============================================================ */
+
+page {
+  /* ==========================================================
+   * ⓪ 原子色层(T8,2026-07-14;DS §2 色板名)
+   * 仅供语义层引用;组件/页面禁止直读(DS §2.1:Primitive→Semantic→Component→Page)。
+   * 只收编跨主题复用 ≥2 处的色板值;单用值留在语义层字面。
+   * ========================================================== */
+  --cy-ref-violet-500: #7A5CFF;   /* 品牌紫 */
+  --cy-ref-violet-700: #6A4AF0;   /* 浅底文字级紫 */
+  --cy-ref-red-700:    #D0323B;   /* R1 危险(白字 5.0:1) */
+  --cy-ref-green-700:  #0B7A57;   /* R1 浅端成功 */
+  --cy-ref-amber-700:  #96610A;   /* R1 浅端警告 */
+  --cy-ref-blue-600:   #2563EB;   /* R1 浅端信息 */
+  --cy-ref-blue-400:   #4C86FF;   /* R1 暗端信息 */
+  --cy-ref-amber-500:  #F59F00;   /* 稀有金 */
+  --cy-ref-yellow-400: #FFEE32;   /* 角色选择高亮：高明度社交地图黄 */
+  --cy-ref-ink-900:    #181818;   /* 深墨(浅端文字,2026-07-31 去墨蓝:原 #0F172B B-R=+28 可感知偏蓝,
+                                     按相对亮度不变、只中性化色相换算得出,商家域 text-primary 是全仓
+                                     唯一引用点,直接改原语,不留双真源) */
+  --cy-ref-gray-900:   #33363C;   /* 商家中性灰(2026-07-31:商家配色禁墨蓝,CTA/选中改灰,不带蓝色相) */
+
+  /* ==========================================================
+   * ① v2 语义真值层 —— 玩家端 consumer-night(DS §2.3)
+   * ========================================================== */
+
+  /* —— 表面 / 背景(分层靠明度,不靠阴影) —— */
+  /* 2026-08-05 去紫相:原阶梯 #020104/#0A090D/#100E15/#18151F 的 hue 都落在 255-260°、
+     饱和度 18-20%。单看色卡不明显,大面积铺开(输入框、卡片填充、弹窗底)就是可见的紫。
+     用户点名"填充的搜索框/输入框看起来是紫色的"即此,不是某个组件用错了 brand 色。
+     新值保明度(±1.3%)只降饱和到 3-5%,对齐参考图的 iOS 灰阶(饱和 1-3%)。
+     ⚠️ 这是 7-31「去墨蓝」的同类问题:那轮清掉了蓝相 #0F172B,紫相留到了现在。 */
+  /* ═══ 中性面七档 · 什么语义下用哪一档(2026-09-01 定稿)═══
+     判据是「这块东西在层级里是什么」,不是「看起来该多深」。选错档的典型症状是
+     要靠加描边才分得开 —— 那说明你贴到了相邻档上,应该往上跳一档而不是描边。
+
+       page         页底。整屏的最底层,除全屏画布外不做他用。
+       surface      贴着页底的大块面:分组容器、区块底。与 page 只差 ΔL*=2.7,
+                    单独出现几乎看不出,所以别拿它当卡片底(见 §300 那条教训)。
+                    ⚠ 弹层底**不在这一档**:弹窗走本文件下方的「弹窗角色档」
+                    (--cy-comp-sheet-role-*),玩家域面板是 #1C1C1E、卡片再上一档,
+                    因为它压在 .56 遮罩后的暗页上,拿 surface 会与页底糊成一片。
+       surface      贴着页底的大块面:弹层底、分组容器。与 page 只差 ΔL*=2.7,
+                    单独出现几乎看不出,所以别拿它当卡片底(见 §300 那条教训)。
+                    ⚠ 弹层底**不在这一档**:弹窗走本文件下方的「弹窗角色档」
+                    (--cy-comp-sheet-role-*),玩家域面板是 #1C1C1E、卡片再上一档,
+                    因为它压在 .56 遮罩后的暗页上,拿 surface 会与页底糊成一片。
+       surface-subtle  分隔线、行分隔、以及「沉在卡里」的次级块(卡内 meta chip)。
+       elevated     卡片。页面上可独立点击/成组的内容块,默认走这一档。
+       raised       卡中卡 与 输入框底。已经在卡里、还要再起一层的东西。
+       surface-strong  大面积强对比面:封面兜底、图片占位、深色输入已填态。
+       interactive  可交互控件的底:圆形动作钮、头像占位、未选中 chip、sheet handle。
+                    它表达的是「这里可以点」,不是「这里更高」—— 所以不参与
+                    卡片层级,不要拿它当卡片或分组底。
+
+     禁止:失效/禁用态不要用本组任何一档表达,走 text-disabled + 不改底色;
+           半透明分层(rgba 白)只用于描边与蒙层,不要用来伪造第八档面。
+
+     ⚠ 配字规则(实测对比度,别凭感觉配):
+       坐在 interactive(#4D4D4D)上的文字**只能**用 text-primary —— 实测
+         primary 7.96:1 ✅ / secondary 4.21:1(仅大字)/ tertiary 2.68:1 ❌ / placeholder 2.32:1 ❌
+       坐在 raised(#2A2A2C)上,tertiary 4.55:1 刚过 AA,secondary 以上都安全。
+       换句话说:底越亮,能配的字越少。把 chip/头像底提到 interactive 的同时
+       必须把里面的字一起提到 primary,否则就是「底变亮了、字更看不清」。 */
+  --cy-color-bg-page:           #000000;
+  --cy-color-bg-surface:        #0A0A0B;
+  --cy-color-bg-surface-subtle: #141416;
+  --cy-color-bg-elevated:       #1C1C1E;              /* R1:夜端改实色,压任何底可见 */
+  /* 2026-09-01 补断层:elevated(L*10.3)到 surface-strong(L*24.9)一步跨了 ΔL*=14.6,
+     是前三档(2.7/3.6/3.9)的四倍 —— 卡中卡和输入框只能二选一地贴到相邻档上,
+     所以 §300 那条注释才要靠「把卡片底提到 elevated」跳档绕过去。
+     实测 Revolut Business 609 张深色屏,其中性阶梯是 L* 等差、步长 3~4;
+     本档取 #2A2A2C(L*14.5,ΔL*=4.2)把序列补成 2.7/3.6/3.9/4.2/10.4。 */
+  --cy-color-bg-raised:         #2A2A2C;
+  /* 2026-08-06 走查拍板:订单重点卡与深色输入完成态共用 Revolut 中灰。
+     仍放在 semantic 层,页面只引用 token,不把 #3B3B3D 散落到业务样式。 */
+  --cy-color-bg-surface-strong: #3B3B3D;
+  /* 2026-09-01 对齐 Brand Handbook:手册 Player 模式一直有 color/bg/interactive=#4D4D4D
+     (圆钮/头像/未选中 chip 的底),但真源这边缺这一档,导致手册画得出、前端写不出。 */
+  --cy-color-bg-glass:          rgba(28,28,30,.82);
+
+  /* 深色输入四态(2026-08-06 DECIDE-4):未填/已填的底与占位/正文分别建语义出口。
+     空底复用既有 elevated,已填底复用上面的 strong surface。 */
+  --cy-color-input-bg-empty:    var(--cy-color-bg-elevated);
+  --cy-color-input-bg-filled:   var(--cy-color-bg-surface-strong);
+  --cy-color-input-text:        #F2F2F4;
+
+  /* —— 文本(R1 对比度实测修正) —— */
+  /* 2026-08-05 去色相:原值 B-R 偏离 +4~+14,和背景阶梯是同一个紫/蓝相问题。
+     新值由原值**保明度、饱和度归零**算得 —— 明度决定对比度,所以 R1 当年为达标
+     调出来的对比度一个都没变(97.3 / 71.8 / 56.9 / 52.4%,与调整前逐位相同)。 */
+  --cy-color-text-primary:      #F8F8F8;
+  --cy-color-text-secondary:    #B7B7B7;              /* R1:原 #A6A8B0 */
+  --cy-color-text-tertiary:     #919191;              /* R1:原 #5E606A 不达标 */
+  --cy-color-text-placeholder:  #868686;              /* R1:原 #5E606A,输入框底上仅 3.6:1 */
+  --cy-color-text-disabled:     rgba(255,255,255,.40);
+  --cy-color-text-inverse:      #0A0A0A;              /* 白底上的反色字（8-05 去色相，原 #09080C） */
+
+  /* 首页内容卡（Figma 3586:13013 / 13074 / 13132）：暗色首页中的固定浅卡与图片蒙层。 */
+  --cy-color-home-feed-surface:      #F0F0EE;
+  --cy-color-home-feed-text:         #111111;
+  --cy-color-home-feed-muted:        #888888;
+  --cy-color-home-feed-tag-bg:       rgba(17,17,17,.08);
+  --cy-color-home-feed-count:        #F97316;
+  --cy-color-home-upcoming-mask:     rgba(0,0,0,.50);
+  --cy-color-home-upcoming-text:     #FFFFFF;
+  --cy-color-home-upcoming-sub:      rgba(255,255,255,.60);
+  --cy-color-home-upcoming-desc:     rgba(255,255,255,.55);
+  --cy-color-home-upcoming-accent:   #E8FF00;
+
+  /* —— 深色输入状态(2026-08-06 DECIDE-4) —— */
+  /* 2026-09-03 用户当面定:**空态亮、填写后暗**(与浅端「空白、填灰」成镜像)。
+     判据是"看一眼就知道这栏填没填"—— 暗端页面是黑的,空槽比页面亮才像个待填的槽。 */
+  --cy-color-input-idle-bg:     #3B3B3D;
+  --cy-color-input-filled-bg:   #1C1C1E;
+  --cy-color-input-filled-fg:   #F2F2F4;
+  --cy-color-input-placeholder: #A3A3A5;
+
+  /* —— 描边 —— */
+  --cy-color-border-subtle:     rgba(255,255,255,.08);
+  --cy-color-border-strong:     rgba(255,255,255,.16);
+  --cy-color-sheet-handle: #5A5A5A;          /* 2026-09-15 抓手实色(稿 356-5220),.16 白压在 #141416 上只有 #353535 看不清 */
+  --cy-color-result-fail-badge: #F94D5C;          /* 2026-09-15 失败徽章稿色(356-5220 实取);图形非文字,白 i 对它 3.4:1 过 3:1 */
+
+  /* —— 交互态 / 遮罩(T4,2026-07-14) —— */
+  --cy-color-state-pressed: rgba(255,255,255,.10);   /* 通用按压 overlay(组件 hover-class 用) */
+  --cy-color-overlay:       rgba(0,0,0,.56);         /* sheet / modal 遮罩 */
+  --cy-opacity-disabled:    0.4;                     /* 禁用控件整体透明度；不可替代文字 disabled 色 */
+
+  /* —— 动作 —— */
+  --cy-color-action-primary-bg:   #F8F8F8;            /* 主 CTA:星白底（8-05 去色相） */
+  --cy-color-action-primary-fg:   #0A0A0A;            /*         深墨字 */
+  --cy-color-action-secondary-bg: rgba(255,255,255,.08);
+  /* 强制暗面会嵌在任意父主题中，文字动作不能随父主题翻转明暗。 */
+  --cy-color-action-primary-fg-on-dark:   #F8F8F8;
+  --cy-color-action-secondary-fg-on-dark: #B7B7B7;
+  /* 同理的反向档(2026-09-01 D4):强制压在浅底上的文字/图标(nav tint-dark、
+     浅色券卡内的深字)。与 -on-dark 一样**只在 page{} 定义、各主题块不重声明**,
+     这样它就不会跟着父主题翻转 —— 这正是这类"强制色"和 text-inverse 的区别。
+     值 = --cy-ref-ink-900,不写 #0F172B(那是 7-31 已清掉的墨蓝)。 */
+  --cy-color-text-on-light: #181818;
+  --cy-color-action-danger-bg:    var(--cy-ref-red-700);   /* 白字 5.0:1 */
+  --cy-color-action-danger-fg:    #FFFFFF;
+
+  /* —— 品牌 / 选中 ——
+     2026-08-01:用户「整个玩家版的页面都要改 现在都是紫色的」。参考 Revolut Business 的
+     黑白层级:未选=灰,已选/主操作=白实心,全程无紫。玩家域(本默认作用域 + .theme-dark)
+     的 brand/selection 由品牌紫改中性亮白,全站约 70 处 var(--cy-brand) 消费点(进度条填充、
+     选中态、徽章、等级数字等)随根值一次生效,不逐页改。
+     ⚠️ 只动玩家域:.theme-merchant / .theme-topic-editor 两个作用域保持原值,不受影响。
+     ⚠️ 紫色参考值 --cy-ref-violet-500 仍保留在 ① 层供商家域继续引用,不删。 */
+  --cy-color-selection:     var(--cy-color-text-primary);
+  --cy-color-brand:         var(--cy-color-text-primary);
+  /* 2026-08-01 去紫第二轮:渐变亮端与软底也不能带紫相,否则渐变 CTA / 徽章软底
+     观感上仍然是"紫的"。只改这两个定义值,约 20 个消费点随根值走,不逐点改。 */
+  --cy-color-brand-strong:  var(--cy-color-text-secondary);  /* 渐变亮端:复用已有中性灰,ΔE≈24 可辨且不新增色值 */
+  --cy-color-brand-soft:    rgba(248,248,248,.12);   /* 软底 = text-primary 的透明版 */
+
+  /* —— Play 三模式专用黑白语言 —— */
+  --cy-color-play-accent:       #FFFFFF;
+  --cy-color-play-accent-soft:  rgba(255,255,255,.14);
+  --cy-color-play-ink-muted:    rgba(255,255,255,.62);
+  --cy-color-play-page:         #050505;
+  --cy-color-play-surface-base: #0A0A0A;
+  --cy-color-play-surface-subtle:#111111;
+  --cy-color-play-elevated:     #181818;
+  --cy-color-play-ink:          #090909;
+  --cy-color-play-surface:      rgba(10,10,10,.92);
+  --cy-color-play-surface-solid:#101010;
+  --cy-color-play-line:         rgba(255,255,255,.22);
+  /* Figma Roadmap / Infinity 的共享浅色叙事域。Infinity 只复用滚动结构，
+     按用户偏好不沿用 Atlys 纯黑舞台；Roadmap 仍保留源稿紫色路径。 */
+  --cy-color-play-story-page:        #FFFFFF;
+  --cy-color-play-story-surface:     #F6F7FA;
+  --cy-color-play-story-text:        #111111;
+  --cy-color-play-story-muted:       #5E6470;
+  /* 比 Figma 原始浅线略深，保证白底非文本边界达到 3:1。 */
+  --cy-color-play-story-line:        #8B8F99;
+  --cy-color-play-story-accent:      #4B46F5;
+  --cy-color-play-story-accent-soft: rgba(75,70,245,.14);
+  --cy-color-play-story-accent-fade: #8C91A0;
+  --cy-color-play-story-cta-fg:      #FFFFFF;
+  --cy-play-route:              #FFFFFF;
+  --cy-play-route-2:            #D9D9D9;
+  --cy-play-route-3:            #A6A6A6;
+  --cy-play-route-4:            #737373;
+  --cy-play-route-5:            #404040;
+  --cy-play-marker-border:      #111111;
+  /* 2026-09-05 地图角色色(Figma《V2｜城瘾游戏头像地图》aJaPDtyMwb7UfzQBUaTWhE):青=自己/队友 · 金=商家可互动 · 粉=限时活动 · 奶油=个人局 · 灰=已满/已完成。
+     canvas 侧同值在 utils/play-visual-tokens.js MAP_AVATAR_COLORS,两处必须一致 */
+  --cy-play-role-player:        #4FD3D0;
+  --cy-play-role-player-soft:   rgba(79,211,208,.16);
+  --cy-play-role-merchant:      #E7A84B;
+  --cy-play-role-merchant-soft: rgba(231,168,75,.16);
+  --cy-play-role-event:         #F45B75;
+  --cy-play-role-event-soft:    rgba(244,91,117,.16);
+  --cy-play-role-cream:         #FFF0CF;
+  --cy-play-role-dim:           #5A6A6C;
+  /* 2026-09-09 主题按**玩法**分色(不再按发布者身份):城市定向绿 · 自由探索蓝。
+     地图描边、主题标签底色、搜索结果的针共用这两个值;
+     canvas 侧同值在 MAP_AVATAR_COLORS.cityRoute / .freeExplore,两处必须一致 */
+  --cy-play-role-city:          #4ADE80;
+  --cy-play-role-city-soft:     rgba(74,222,128,.16);
+  --cy-play-role-free:          #5A90D6;
+  --cy-play-role-free-soft:     rgba(90,144,214,.16);
+  /* 星星 = 这家有玩法,仅此一义(同值 MAP_AVATAR_COLORS.gameStar) */
+  --cy-play-role-gamestar:      #F5B301;
+
+  /* —— 状态色(R1:暗端取 400–600 段) —— */
+  /* 2026-09-01 拍板(D3):玩家域成功绿统一到 #22C55E —— 原来页面是 #12B886、
+     弹层被 --cy-comp-sheet-player-success 换成 #22C55E,同一个「已完成」点开弹层会换个绿。
+     用户选「把弹层那个扶正」,所以这里跟过去,两处从此同值。
+     ⚠️ --cy-route-3 也是 #12B886,那是路线业务色不是状态色,不要一起改。 */
+  --cy-color-status-success:     #22C55E;
+  --cy-color-status-warning:     #D58300;              /* 2026-09-02 追平 Figma amber/600(原 #C77A00):压 #0A0A0B 由 5.85:1 提到 6.67:1 */
+  --cy-color-status-danger:      #E5484D;             /* R1:原 #FF3E55 */
+  --cy-color-status-info:        var(--cy-ref-blue-400); /* R1:原 #2F74FF,elevated 上不足 */
+  --cy-color-status-danger-soft: rgba(229,72,77,.14);
+  --cy-color-status-neutral-soft: rgba(145,145,145,.16);   /* 2026-09-01:状态胶囊软底,与其余五支同构(本域 text-tertiary 的低透明版) */
+  --cy-color-rare-soft: rgba(245,159,0,.14);          /* 同上;rare 与 warning 同为琥珀,按手册「同色靠图标区分」的既有做法,不换色相 */
+  --cy-color-rare-fg: var(--cy-color-rare);   /* 夜间琥珀压在自己的软底上 7.6:1,直接用本色 */
+  --cy-color-status-success-soft: rgba(34,197,94,.14);   /* 卡片状态软底(event/work-item/metric);随 D3 跟到 #22C55E */
+  --cy-color-status-warning-soft: rgba(213,131,0,.18);   /* 跟 #D58300 同步 */
+  --cy-color-status-info-soft:    rgba(76,134,255,.14);
+
+  /* —— v5.1 玩法主题色(Figma 组件库 v5.1,node 45:248)——
+     2026-08-27 用户拍板:「不一定非得都是黑色的,游戏可以是不同颜色的」。
+     此前这批玩法沿用去色相的主 CTA + 状态色,结果九个玩法长得一模一样;
+     而稿里它们本来各有各的颜色(绿的照片框、蓝的输入、朱砂的印)。
+
+     ⚠️ 为什么不复用 --cy-color-status-*:那三个的语义是成功/危险/信息。
+     计步的绿是「低碳」、音乐角的绿是「到点」、见证的红是「还在计时」——
+     借状态色来表达玩法身份,语义是错的,而且以后调状态色会连带改玩法长相。
+
+     ⚠️ 只在暗档定义:玩法只出现在玩家深色页,不进商家浅色档,
+     所以不加进 .theme-light —— 加了就要同步 merchant-light.wxss(见 ds-theme-sync-check)。
+     取值来自 Figma 稿原色;蓝取 blue-400 而非稿里的 #2973FF(R1:后者在 elevated 上对比度不足)。 */
+  --cy-color-playkit-taste:   #33C773;   /* 盲品:茶汤绿 */
+  --cy-color-playkit-silent:  #FF6B35;   /* 沉默点单:表演橙 */
+  --cy-color-playkit-craft:   #2EC4B6;   /* DIY 命名:调配青 */
+  --cy-color-playkit-music:   #8C5CFF;   /* 治愈音乐角:夜曲紫 */
+  --cy-color-playkit-night:   #5B8DEF;   /* 午夜电台:午夜蓝 */
+  --cy-color-playkit-carbon:  #A3C644;   /* 低碳行动:苔草黄绿 */
+  --cy-color-playkit-sign:    #E5484D;   /* 今日城市签:朱砂 */
+  --cy-color-playkit-ai:      #B06CFF;   /* AI 参考分:电子紫(稿 47:319 的紫系,与音乐角错开) */
+  --cy-color-playkit-merit:   #E8B44A;   /* 赛博木鱼:功德金 */
+  --cy-color-playkit-sticker: #F06292;   /* 城市贴纸图鉴:相纸粉 */
+  --cy-color-playkit-slow:    #7E8CE0;   /* 跨日慢任务:暮蓝 —— 属于「慢」这一族,不抢答题类的注意力 */
+
+  /* ⚠️ 十色两两不同是有意的:玩家在地图上连着遇到两站,如果两个玩法同色,
+     那这套「一个游戏一个颜色」等于没做。最初我给盲品/低碳同绿、音乐角/AI 同紫、
+     DIY/午夜电台同蓝 —— 2026-08-27 用户指出后拆开。
+     木鱼与贴纸图鉴此前压根没上色(它们也是玩法,不是配件),一并补上。 */
+
+  /* —— 天色系统(Figma ADA 借鉴卡 B 条 ← Moonlitt / Tide Guide)——
+     地图与 HUD 按玩家此刻的现实时间换色温:「城市在你手机里过一天」。
+     判定见 utils/daylight.js;它纯装饰、不参与任何判定 —— 与之相对,午夜电台的开放
+     判定走**服务端时钟**,两者不能混。
+     值都是低透明度叠加层:底图不动,压在暗色地图上做色温偏移。
+     ⚠️ 透明度是截图审出来的,不是拍脑袋:黄昏最初给 .16,实拍整张地图糊成棕色、
+     盖过路网本身;清晨给 .12 又几乎看不出来。四档要的是「能认出来但仍看得清地图」。 */
+  --cy-color-daylight-dawn:  rgba(255, 226, 186, .15);   /* 清晨:米白偏暖 */
+  --cy-color-daylight-day:   rgba(214, 232, 255, .05);   /* 白天:几乎无,只提一点清透 */
+  --cy-color-daylight-dusk:  rgba(255, 138, 66,  .10);   /* 黄昏:暖橙 */
+  --cy-color-daylight-night: rgba(38, 62, 128,  .20);    /* 夜晚:深蓝 */
+
+  /* —— 骨架(R1:暗端需可见,禁与卡面同色) —— */
+  --cy-color-skeleton-base:      #191919;
+  --cy-color-skeleton-highlight: #242424;
+  /* 2026-09-02 帖文 UI 整改 A1:Figma 有、代码一直没有的 6 档。medal-* 是名次不是状态,
+     别拿 status/warning 或 rare 顶替;skeleton-on-sheet 专给玻璃面板上的骨架(比页面亮)。 */
+  --cy-color-bg-interactive:                        #4D4D4D;
+  /* ⚠️ AA 豁免,边界写死:只给「危险文字 on interactive 表面(#4D4D4D)」这一种组合。
+     #4D4D4D 太亮,红字在它上面无解 —— 实测 #E5484D 仅 2.16:1、#FF3B4F 2.41:1,
+     往合规方向调最红只到 #FFA8AE(已成粉)。不得外扩到其它底色;
+     也不覆盖 --cy-color-status-danger(那条是深底上的常规危险文字,R1 压到 #E5484D 仍有效)。 */
+  --cy-color-status-danger-on-interactive:          #FF3B4F;
+  --cy-color-medal-gold:                            #FFCB3C;
+  --cy-color-medal-silver:                          #D6D6D6;
+  --cy-color-medal-bronze:                          #F58C41;
+  --cy-color-skeleton-on-sheet:                     #303038;
+
+  /* —— 模板页「连体 tab + 紫面」(2026-08-26 定稿,画板 16)——
+     ⚠️ 紫在这里是**内容面**,不是 brand。--cy-brand 的约 70 个消费点一个都不动
+     (2026-08-01 用户拍板「玩家版全去紫」仍然有效,那条管的是 selection/brand)。
+     面用顶部渐变往下淡出:紫只落在 tab 连接处 / chips / banner,列表区回到近黑
+     —— 封面是大地色系自绘 key art,压在高彩紫上会互相打架。 */
+  --cy-color-panel-accent-top:   #5B2A9D;
+  --cy-color-panel-accent-mid:   #341A55;
+  --cy-color-panel-accent-deep:  #180E24;
+  --cy-color-panel-accent-base:  #0B0810;
+  /* 扫光:必须比它所在的面亮,否则是一圈自己看不见的动画(换面色时要一起重算) */
+  --cy-color-glow-sweep:         #FFFFFF;
+  --cy-color-glow-sweep-soft:    #EFEDFA;
+
+  /* —— 业务色(自 v1 收编,不参与主题语义) —— */
+  --cy-color-rare: var(--cy-ref-amber-500);           /* 稀有徽章 / 榜首(仅图形与大字) */
+
+  /* —— 字阶(主题无关;DS §2.6) —— */
+  /* Dynamic Type(2026-08-22):--cy-type-scale 由页面按用户的微信字号设置注入(见 utils/font-scale.js)。
+   * 默认 1,不注入时与改造前逐字等价(calc(28rpx * 1) === 28rpx)。
+   * ⚠️ 为什么整体等比缩放而不是只放大正文:只放大 body/label 会让它逼近甚至超过 section-title,
+   *   字号层级直接塌掉。等比缩放保住层级差。
+   * ⚠️ 为什么 data-xl / display 不参与:它们已是 56-64rpx 的巨号,再放大必然破版;
+   *   HIG 对超大展示字也是同样处理(Dynamic Type 的 ramp 在大号段趋平)。 */
+  --cy-type-scale: 1;
+  --cy-type-data-xl:       64rpx;   /* 金额 / 里程 / 核心数字(不参与缩放:已够大,放大必破版) */
+  --cy-type-data-2xl:      84rpx;   /* 2026-08-25 新增:tab 页 hero 主角数字。data-xl(32px) 与 page/display 标题只差几 px,同屏两个大字会打架 */
+  --cy-type-display:       56rpx;   /* Hero / 完成时刻,低频(不参与缩放,同上) */
+  --cy-type-page-title:    calc(58rpx * var(--cy-type-scale));   /* L1 标题(ddd 标准,2026-07-31 全仓统一,原 48rpx) */
+  /* 玩法屏 HUD 读数(2026-09-24):倒计时、骰子点数、秒表、罗盘度数、估数。
+     全站最大档 page-title 只到 58rpx,再往上是 HUD 的尺度、不是页面标题的尺度,所以单列。
+     ⚠️ 与 data-xl / display 同口径:**不参与缩放** —— 已够大,放大必破版。
+     玩法屏原先 136 处硬编码字号里 125 处落回了全站 ramp,只有这 11 处真的超出全站尺度。 */
+  --cy-play-display-xl:    112rpx;   /* 骰子点数 / 环心读数 */
+  --cy-play-display-2xl:   132rpx;   /* 弹球、罗盘度数 */
+  --cy-play-display-3xl:   168rpx;   /* 安静保持、喊一嗓子、反应时 */
+  --cy-play-display-4xl:   252rpx;   /* 秒表读数 */
+  --cy-play-display-5xl:   296rpx;   /* 估数 hero */
+  --cy-type-section-title: calc(36rpx * var(--cy-type-scale));   /* 模块标题 */
+  --cy-type-sheet-title:   calc(44rpx * var(--cy-type-scale));   /* 2026-08-10 新增:弹窗大标题(节点/主题编辑弹窗把被编辑对象的
+                                       名字当标题)。稿值 22px;card-title(32) 撑不起来、
+                                       page-title(58) 太重,中间原本是空的。 */
+  --cy-type-card-title:    calc(32rpx * var(--cy-type-scale));   /* 卡片 / 详情标题 */
+  --cy-type-button:        calc(32rpx * var(--cy-type-scale));   /* 主 / 次按钮文字(sm 按钮 28rpx) */
+  --cy-type-body:          calc(28rpx * var(--cy-type-scale));   /* 正文 */
+  --cy-type-label:         calc(24rpx * var(--cy-type-scale));   /* Tab / 字段标签 / Chip */
+  --cy-type-caption:       calc(22rpx * var(--cy-type-scale));   /* 时间 / 辅助信息 */
+  --cy-type-micro:         calc(20rpx * var(--cy-type-scale));   /* Badge 最小档;禁止更小 */
+  --cy-type-home-feed-eyebrow: 26rpx;
+  --cy-type-home-feed-title:    44rpx;
+  --cy-type-home-feed-tag:      20rpx;
+
+  /* 等宽数字字族(主题无关):跳动的读数(HUD 距离/用时、countUp 金额)必须列宽固定,
+     否则 1↔0 换位整条数字会左右抖。首选 font-variant-numeric: tabular-nums,
+     本 token 是它的字族回退 —— 两条要一起给,只给前者在不支持该特性的机型上等于没给。 */
+  --cy-font-numeric: "SF Mono", "DIN Alternate", ui-monospace, Menlo, Consolas, monospace;
+
+  /* —— 动效时长(主题无关;DS §2.10 + 2026-07-14 对标 M3 补全家族) ——
+   * 视觉调整入口:改本组 token,全站动效跟随;禁止页面/组件再写字面时长。
+   * press < fast < standard < slow < celebrate,分别对应:按压回弹/微交互/局部状态/浮层出入/庆祝时刻 */
+  --cy-motion-press:     80ms;      /* 按钮按压回弹(触觉级,勿加长) */
+  --cy-motion-fast:     140ms;      /* Chip / Tab / 按钮态切换 */
+  --cy-motion-standard: 220ms;      /* 页面局部状态 / modal 弹出 */
+  --cy-motion-slow:     350ms;      /* sheet 上滑 / 浮层出入 / 页面级过场 */
+  --cy-motion-celebrate: 600ms;     /* 完成·徽章·稀有时刻(confetti/stamp 家族) */
+  /* skeleton → 内容 的交叉淡切:两层同时补间,总时长就是这一个数(不是 out+in 相加)。
+     比 standard 短一档 —— 首屏内容出现要抢眼但不能让人等。
+     ⚠️ utils/motion.js 的 FADE_SWAP_MS 是本值的 JS 镜像(WXSS 变量在 JS 里读不到,
+        只能各留一份);两处漂移由 ds-ada-foundation-contract 的契约判红。 */
+  --cy-motion-fade-swap: 200ms;
+  /* loading 转圈的单轮时长(cy-btn / cy-empty 共用同一形制的 spinner)。
+     不归进 press…celebrate 那条「交互反馈」梯子 —— 那五档描述的是一次性过渡的快慢,
+     而这是 infinite 循环的**转速**,语义不同类,借用哪一档都会在调那一档时被误伤。 */
+  --cy-motion-spinner-cycle: 700ms;
+  --cy-motion-flight-cycle: 5720ms; /* 城市定向 FocusFlight 单轮时间轴 */
+  --cy-motion-success-cycle: 5330ms; /* 创建成功 Luma 单轮时间轴 */
+  /* 发布快捷菜单：自下而上错峰，每项轻微越过终点再回落。 */
+  --cy-comp-publish-trigger: 104rpx;
+  --cy-comp-publish-icon: 72rpx;
+  --cy-comp-publish-label: 40rpx;
+  --cy-comp-publish-player-glass: rgba(0,0,0,.48);
+  --cy-comp-publish-merchant-glass: rgba(255,255,255,.58);
+  --cy-comp-publish-stagger: 65ms;
+  --cy-comp-publish-float: 500ms;
+  --cy-comp-publish-ease: cubic-bezier(.18, 1.65, .35, 1);
+
+  /* —— 弹层 / 折叠动效档(2026-09-02;Figma 40:3「动效 token · 全部有出处」逐行落地) ——
+   * 上面 press…celebrate 那五档描述的是「反馈快慢」的相对梯子,本组描述的是**具体手势**的
+   * 实测规格 —— 稿里每一行都标了出处(M3 easing/duration token,或 awesome-ios-design-md
+   * 逆向出的 Peloton / Clubhouse / Hevy 真实 App 值),所以不复用那五档、也不去改它们的值:
+   * 改 slow(350) 会连页面级过场一起动,而稿只裁决了 sheet 这一个手势。
+   * ⚠️ 进/出成对且**出必须短于进**(M3 exit 规则)—— sheet-modal-exit-motion-contract 判红。 */
+  --cy-motion-sheet-in:   300ms;   /* 半屏 sheet 升起(Peloton Class Filter Sheet) */
+  --cy-motion-sheet-out:  250ms;   /* 半屏 sheet 落下(Clubhouse「leave quietly」) */
+  --cy-motion-expand:     300ms;   /* 行内展开:折叠组 / 更多工具(M3 emphasized-decelerate) */
+  --cy-motion-collapse:   200ms;   /* 行内收起(M3:exit/collapse 用更短时长) */
+  --cy-motion-crossfade:  150ms;   /* chip 选中的白底 cross-fade;也是减动效兜底的统一时长
+                                      (M3 duration-short-4)。与 --cy-motion-fast(140ms)
+                                      差 10ms 是有意保留:fast 是「Chip/Tab/按钮态切换」这条
+                                      语义梯子上的一档,改它会牵动全站控件;本档只服务
+                                      cross-fade 这一个手势。 */
+  --cy-motion-check-fill: 120ms;   /* 勾选框方框填充(Hevy「Set check」);整行 wash 走 crossfade */
+
+  /* —— 缓动家族(收编全站事实标准,原字面散落各页) —— */
+  --cy-ease-out:    cubic-bezier(.22,.61,.36,1);  /* 减速收尾:入场 / 上滑 / 浮层(原 roam/play 事实标准) */
+  --cy-ease-spring: cubic-bezier(.2,1.4,.5,1);    /* 过冲弹性:徽章 stamp / 庆祝元素落位 */
+  /* M3 官方三条(m3.material.io/styles/motion/easing-and-duration/tokens-specs)。
+   * 与上面 --cy-ease-out 并存而不是替换它:那条是本仓 roam/play 的事实标准,
+   * 换掉会把既有 60+ 处入场观感一起改掉,而稿只裁决了弹层/折叠这几个手势。 */
+  /* ⚠️ 2026-09-06 起零消费方:cy-sheet 的升起/遮罩淡入已按用户裁决改读 --cy-ease-standard。
+   * 留着不删 —— 它是 M3 三条里的一条(accelerate 2 处、emphasized-decelerate 4 处仍在用),
+   * 单删一条会让这个家族缺口,且并行分支可能正引用它。谁下次确认无人要再删。 */
+  --cy-ease-decelerate:            cubic-bezier(0, 0, .2, 1);    /* 通用「进入」减速档(当前无消费方) */
+  --cy-ease-accelerate:            cubic-bezier(.4, 0, 1, 1);    /* 退出:sheet 落下 / 行内收起 */
+  --cy-ease-emphasized-decelerate: cubic-bezier(.05, .7, .1, 1); /* 强调进入:行内展开 / chevron 转向 */
+  /* 2026-09-06 用户裁决:弹层升起与落下都要「慢快慢」。此前进场 decelerate(快→慢)、
+   * 退场 accelerate(慢→快)是照 Figma 稿 40:3 / 41:117 落的,用户看过实机后改了口径,
+   * 以用户为准 —— 稿那两条不再是 cy-sheet 的判据(club-motion-spec-contract 已同步改写)。
+   * 值同 M2/M3 standard,与下面 ①''' 层的遗留别名 --cy-ease 同值,新代码读这条。 */
+  --cy-ease-standard: cubic-bezier(.4, 0, .2, 1);   /* 慢快慢:弹层升起 / 落下 */
+
+  /* ==========================================================
+   * ①'' 组件 token 层(T2,2026-07-14;DTCG tier-3 / M3 comp)
+   * 组件 wxss 只读本层 + 布局 token;页面不读本层。改版只动映射,不动组件实现。
+   * 值 = 现状零漂移映射;按钮尺寸三档沿用既有 --cy-btn-h/-h-sm/-h-xs。
+   * ========================================================== */
+  /* 按钮 */
+  --cy-comp-btn-radius:       var(--cy-radius-md);
+  --cy-comp-btn-primary-bg:   var(--cy-color-action-primary-bg);
+  --cy-comp-btn-primary-fg:   var(--cy-color-action-primary-fg);
+  --cy-comp-btn-secondary-bg: var(--cy-bg-subtle);
+  --cy-comp-btn-secondary-fg: var(--cy-color-text-secondary);
+  /* 搜索输入框 */
+  --cy-comp-search-idle-bg:     var(--cy-color-input-idle-bg);
+  --cy-comp-search-filled-bg:   var(--cy-color-input-filled-bg);
+  --cy-comp-search-filled-fg:   var(--cy-color-input-filled-fg);
+  --cy-comp-search-placeholder: var(--cy-color-input-placeholder);
+  /* 卡片 */
+  /* 2026-08-05 去描边(规范真源 §5)：卡片原本靠 1rpx 描边和页面底分界，因为
+     bg-surface(#0A0A0B) 与 bg-page(#000000) 的明度差只有 3.9%，不描边就糊在一起。
+     参考体系的做法是**拉开填充明度差**而不是加描边(页面纯黑 vs 卡片 #1C1C1E
+     = 11.4%)，所以这里把卡片底提到 elevated 一档，描边随之可以去掉。
+     ⚠️ 只改这个组件钩子，不动 --cy-color-bg-surface 本身 —— 那一档还有别的消费方。 */
+  --cy-comp-card-bg:     var(--cy-color-bg-elevated);
+  --cy-comp-card-border: transparent;
+  --cy-comp-card-radius: var(--cy-radius-lg);
+  --cy-comp-card-pad:    var(--cy-space-4);
+  /* 表面规范(ADA,2026-07-29):暗端卡靠「顶缘 1rpx 高光」起层,浅端卡靠投影起层。
+     两者互斥:各主题块把用不上的那一档设成透明/零阴影,组件侧固定写两段 box-shadow,
+     不做 if。--cy-comp-card-highlight 是颜色(组件内拼成 inset 顶缘线),
+     --cy-comp-card-shadow-day 是完整 box-shadow 值。 */
+  --cy-comp-card-highlight:  rgba(255,255,255,.08);
+  --cy-comp-card-shadow-day: 0 0 0 0 transparent;
+  --cy-comp-cell-fill-bg:    var(--cy-color-bg-surface-subtle);
+  /* Figma 220:761 Roadmap 是游玩暗色域中的固定浅色页面，不随父主题翻黑。
+     这些值只描述该组件的源稿角色；业务文案和节点数据仍由 pages/play 提供。 */
+  --cy-comp-play-roadmap-bg:          var(--cy-color-play-story-page);
+  --cy-comp-play-roadmap-text:        var(--cy-color-play-story-text);
+  --cy-comp-play-roadmap-muted:       var(--cy-color-play-story-muted);
+  --cy-comp-play-roadmap-line:        var(--cy-color-play-story-line);
+  --cy-comp-play-roadmap-accent:      var(--cy-color-play-story-accent);
+  --cy-comp-play-roadmap-accent-soft: var(--cy-color-play-story-accent-soft);
+  --cy-comp-play-roadmap-accent-fade: var(--cy-color-play-story-accent-fade);
+  --cy-comp-play-roadmap-cta-fg:      var(--cy-color-play-story-cta-fg);
+  /* 封面兜底(组件 cy-cover-fallback):文字封面的字号。
+     默认按列表卡的封面尺寸取卡片标题档;hero 等大面消费方在自己那侧覆写本钩子放大。 */
+  --cy-comp-cover-fallback-font: var(--cy-type-card-title);
+  /* Tab 栏:fill 变体单 item 的最小宽度(含内距,组件侧 box-sizing:border-box)。
+     只是极短标签(一个字)的下限兜底 —— 「几个 tab 开始横滑」由标签内容宽决定,不由这一档决定:
+     两字标签实测约 104rpx,390pt 屏一行约放得下 7 个,再多自动转横滑。
+     ⚠️ 这一档定大了会反过来把行撑爆:150rpx 时 4 个 tab 就溢出(实测),故取 96rpx。 */
+  --cy-comp-tabs-fill-min-w: 96rpx;
+  /* 标签 */
+  --cy-comp-tag-h:      40rpx;
+  --cy-comp-tag-pad-x:  18rpx;
+  --cy-comp-tag-radius: var(--cy-radius-pill);
+  /* 开关(cy-switch,2026-07-31 第8批新建:此前项目里没有共享 switch 组件/token,
+     各页各写一套,是"营业中开关是墨蓝色"这类残留的根因之一)。
+     微信原生 <switch> 的 color 属性只吃字面量颜色,不认 CSS var()——故这里的 token
+     仅供组件 wxss 做尺寸缩放(zoom 兼容性优于 transform:scale,不影响原生点击热区),
+     开启态颜色由组件 JS 里的字面量常量给出,真源是下面这一条(别各自发明新绿)。
+     ⚠️ 2026-09-02:真源从 --cy-color-status-success 换成 --cy-comp-switch-on。
+        status/success 是**文字用的绿**,为了在暗底上过 4.5:1 而调亮;同一个亮度当轨道这种
+        **大色块**就显得发白,白滑块压上去只有 2.55:1,边界糊。轨道要的是饱和度与边界,
+        不是文字对比度 —— 所以单开一档,而不是去改基色(改基色会让全站绿字掉出 AA)。 */
+  --cy-comp-switch-scale: 0.8;
+  /* 开关开启态轨道底。三个域同值:它是控件填充,不随明暗域变。
+     白滑块 3.41:1 · 压卡 #1C1C1E 4.99:1。对应 Brand Handbook 的 color/control/switch-on。
+     ⚠️ 微信原生 <switch> 的 color 只吃字面量、不认 var(),实值镜像在
+        components/cy/switch/index.js 的 DEFAULT_COLOR,两处同步维护。 */
+  --cy-comp-switch-on: #0E9E73;
+  /* 列表行 */
+  --cy-comp-cell-min-h:    96rpx;
+  --cy-comp-cell-pad-x:    var(--cy-space-4);
+  --cy-comp-cell-press-bg: var(--cy-color-bg-surface-subtle);
+  /* 导航(2026-07-29 导航统一:实底=页面同底、无分隔线,原玻璃带样式废止) */
+  --cy-comp-nav-bg:     var(--cy-color-bg-page);
+  --cy-comp-nav-border: transparent;
+  --cy-comp-nav-blur:   24rpx;
+  /* 浮动返回钮的直径(hero 玻璃胶囊 pill / 地图浮动退出钮共用一个钩子,改一处两边同步)。
+     ⚠️ 2026-07-29 设计裁决:**二级页返回是视觉裸 chevron,没有可见圆背景**,
+     所以默认态不读本钩子 —— 它只服务于「压在照片/地图上,没有底就看不见箭头」这一类浮动场景。 */
+  --cy-comp-nav-back-size:    64rpx;
+  /* 图标尺寸三层配对(DS §4.5):hit 是透明/可见命中盒，circle 是视觉圆框，glyph 是图标盒。
+     glyph 只能随语义配对消费，不建立脱离圆框的 24/32/40/48 绝对档位。
+     常规 glyph:circle 保持 40%–55%；hit 一律 >=88rpx。 */
+  --cy-comp-icon-pair-compact-hit:     88rpx;
+  --cy-comp-icon-pair-compact-circle:  64rpx;
+  --cy-comp-icon-pair-compact-glyph:   32rpx;
+  --cy-comp-icon-pair-standard-hit:    88rpx;
+  --cy-comp-icon-pair-standard-circle: 88rpx;
+  --cy-comp-icon-pair-standard-glyph:  40rpx;
+  /* 用户已裁决的构图例外；登记详情与 optical 元数据见 components/cy/icon/spec.json。
+     searchmap 虽与 compact 同值，仍单独登记以保护其页面边缘锚点与既有负控。 */
+  --cy-comp-icon-exception-play-primary-hit:       124rpx;
+  --cy-comp-icon-exception-play-primary-circle:    124rpx;
+  --cy-comp-icon-exception-play-primary-glyph:      61rpx;
+  --cy-comp-icon-exception-merchant-quick-hit:      120rpx;
+  --cy-comp-icon-exception-merchant-quick-circle:   120rpx;
+  --cy-comp-icon-exception-merchant-quick-glyph:     44rpx;
+  --cy-comp-icon-exception-searchmap-back-hit:      var(--cy-comp-icon-pair-compact-hit);
+  --cy-comp-icon-exception-searchmap-back-circle:   var(--cy-comp-icon-pair-compact-circle);
+  --cy-comp-icon-exception-searchmap-back-glyph:    var(--cy-comp-icon-pair-compact-glyph);
+  --cy-comp-icon-exception-roam-history-frame:      138rpx;
+  --cy-comp-icon-exception-roam-history-glyph:       61rpx;
+  /* 创建完成动效：两枚图标是构图尺寸，不能并入正文文字阶。 */
+  --cy-comp-success-close-icon-size: 42rpx;
+  --cy-comp-success-mark-icon-size:  70rpx;
+  --cy-comp-success-mark-fg:         #FFFFFF;
+  /* 结果面板(cy-result-sheet)徽章上的 glyph。与上面那条同值但不共用:那条的名字
+     只说得通 success,而本条 fail / loading 也要读 —— 借个会说谎的名字比多一行贵。
+     和它一样是「填色徽章上的对比前景」,不随宿主明暗切换(徽章底自己是状态色),
+     所以只在 page{} 定义一次、靠继承覆盖各主题,不进浅端块。 */
+  --cy-comp-result-mark-fg:          #FFFFFF;
+  /* 结果面板 loading 环的活动弧。稿(Payment Sheet States 24:17「加载环 / Spinner」)在
+     浅色与深色两档用的是**同一个**紫,不随宿主明暗翻色,所以和上面那条一样只在
+     page{} 定义一次、靠继承覆盖各主题。
+     ⚠️ 不能读 --cy-color-brand:那是「本主题的强调色」,玩家域解析成 text-primary(白)、
+     商家域解析成中性灰 —— 稿子要的紫在任何一档都不会出现(2026-09-05 实拍抓到)。
+     取 --cy-ref-violet-500(#7A5CFF,品牌紫)而不是稿里的 #7c5cfc:两者肉眼同色,
+     但前者是仓库已有的原子色,不为差 2/255 再立一个新色值。 */
+  --cy-comp-result-spinner:          var(--cy-ref-violet-500);
+  /* 结果面板失败态(稿 356-5220,2026-09-15 对稿):构图尺寸,不随主题,只在 page{} 定义一次。
+     标题 17px / 原因 13.5px 不在文字阶上(阶是 16/14/12),稿给的是这两个值;仍乘 type-scale 跟随系统字号。 */
+  --cy-comp-result-fail-title-size:    calc(34rpx * var(--cy-type-scale));
+  --cy-comp-result-fail-title-tracking: -0.34rpx;
+  --cy-comp-result-fail-reason-size:   calc(27rpx * var(--cy-type-scale));
+  --cy-comp-result-fail-reason-radius: 30rpx;
+  --cy-comp-result-fail-badge-gap:     48rpx;
+  --cy-comp-result-fail-reason-gap:    156rpx;   /* 标题 → 原因条,导出图实测约 78px */
+  --cy-comp-result-fail-reason-h:      104rpx;   /* 原因条 336×52 的 52 */
+  --cy-comp-result-fail-panel-radius:  28px;
+  /* 裁剪页:纯黑取景台。舞台底不用 --cy-color-bg-page(#020104 带一丝紫),
+     裁剪要的是中性黑,免得给用户的图垫出偏色。框线单列一档——
+     --cy-color-border-strong 只有 .16,压在照片上看不见,而框线是这里唯一的操作指示。 */
+  --cy-comp-crop-stage-bg:  #000000;
+  --cy-comp-crop-bar-bg:    var(--cy-color-bg-elevated);
+  --cy-comp-crop-frame-line: rgba(255, 255, 255, .72);
+  /* 底部动作条(ADA,2026-07-29;组件 cy-footer-bar)
+     2026-08-07 D25：底部主 CTA 不再另起 96rpx 档，全站统一消费 --cy-btn-h。 */
+  --cy-comp-footer-pad-y: var(--cy-space-3);
+  /* 动作条的**占位总高**,给页面用来留底部空白(组件 fixed,不占文档流)。
+     = 上内距 + 按钮 + 下内距 + 安全区,与 index.wxss 的盒子构成逐项对应。
+     以前只在 index.js 注释里提过这个名字却没人定义 —— 页面照着写会解析成空值,
+     等于没留空白、最后一条内容被动作条压住。契约里有负控盯着它与盒子构成不漂移。 */
+  --cy-comp-footer-h: calc(var(--cy-btn-h) + var(--cy-comp-footer-pad-y) * 2 + env(safe-area-inset-bottom));
+  /* 底部面板 */
+  --cy-comp-sheet-bg:     var(--cy-color-bg-glass);
+  --cy-comp-sheet-blur:   24rpx;   /* 弹窗玻璃模糊档位,与 --cy-comp-nav-blur 同档 */
+  --cy-comp-sheet-radius: 24px;
+
+  /* T5 胶囊弹窗(Figma 339:740)。稿上圆角 14pt = 28rpx —— 落在 --cy-radius-md(24) 与
+     -lg(32) 中间,两边都差 2pt。按仓库既有惯例走组件级 token,不硬编码也不勉强靠档。
+     ⚠️ 几何量只定义这一处;颜色才需要 7 块主题镜像。 */
+  --cy-comp-popover-radius: 28rpx;
+  /* morph 进场时「内容比壳晚一步现身」的错峰量(2026-08-26)。
+   * 不借 --cy-motion-press:那是「按钮按压回弹,触觉级,勿加长」的触觉档,
+   * 借过来会让「调按压手感」顺手改掉弹窗的内容错峰 —— 语义外挪,两者没有共变理由。 */
+  --cy-comp-sheet-morph-delay: 80ms;
+  --cy-comp-sheet-title-size: 28px;
+  --cy-comp-sheet-title-leading: 42px;
+  --cy-comp-sheet-title-tracking: -0.1772px;
+  --cy-comp-sheet-header-pad-x: 20px;
+  --cy-comp-sheet-header-pad-top: 20px;
+  --cy-comp-sheet-header-pad-bottom: 14px;
+  --cy-comp-sheet-body-pad-x: 16px;
+  /* 2026-08-10 删掉 --cy-comp-sheet-width(392.975px = iPhone 14 画板宽):它是核稿参考值,
+     却被当成布局约束挂在 .ss__stack 上,把面板夹到 393px,>393px 的机器右侧露出底层页。
+     留着这个 token 就是留着下一次有人再把它挂上去的引子 —— 面板本就该满宽,不需要宽度 token。 */
+  /* 弹层面板的**顶部安全上限**:所有全屏类面板共用这一个,别各写各的 vh。
+     2026-09-02 早些时候一度按手册写成 92vh,实测**在三种机型上全部压住微信右上角胶囊**:
+       iPhone 14   92vh → 面板顶 67.5pt,胶囊底 91pt
+       14 Pro      92vh → 68.2pt vs 103pt(88vh 的 102.2pt 也照样压)
+       SE          92vh → 53.4pt vs 64pt
+     根因是写死 vh 与安全区无关 —— 安全区一变(刘海/灵动岛/无刘海),同一个 vh 就落到不同位置。
+     唯一正确的写法是**从安全区反算**:--cy-safe-top = env(safe-area-inset-top) + 88rpx(导航行高)
+     = 胶囊行底边,再减 8px 视觉余量。T3 全屏与 T4 全屏叠全屏共用它。
+
+     ★ 收编前全站三个口径互相打架,都会盖过导航栏:
+         components/cy/sheet     .sh--full   height/max-height: 96vh
+         components/cy/scene-sheet .ss--full  height: 579.135px(从 Figma 画板量的绝对值
+                                             —— 小屏占 87%、大屏只占 62%,等于没有约束)
+         components/cy/scene-sheet .ss__panel max-height: 100vh
+       外加 components/cy/advanced-game 的 88vh 与 tokens 里零消费方的 --cy-sheet-immersive-h: 91vh。
+       现在**全部指向本 token**,新增弹层也只许用它 —— 由 sheet-top-safe-area-contract 钉死。 */
+  --cy-comp-sheet-top-gap:    16rpx;   /* 8px:面板顶与胶囊底之间的视觉余量(2026-09-02 用户定) */
+  --cy-comp-sheet-max-height: calc(100vh - var(--cy-safe-top) - var(--cy-comp-sheet-top-gap));
+  --cy-comp-sheet-full-height: var(--cy-comp-sheet-max-height);
+  --cy-comp-sheet-border-width: 0.714px;
+  /* 375px 设备上 44px = 88rpx:热区与 Figma 31.996px 视觉圆分离。 */
+  --cy-comp-sheet-close-hit-size: 88rpx;
+  --cy-comp-sheet-close-size: 31.996px;
+  --cy-comp-sheet-close-font-size: 16px;
+  /* 2026-08-07 批四复查：统一弹窗必须压住宿主页标题，player 面板改为固定实底；
+     glass 仍留给真正需要透景的局部表面，不能再做整张 sheet 的承载底。 */
+  --cy-comp-sheet-player-bg: #1C1C1E;
+  /* 弹窗玻璃底的深端钉死值:不能引用 --cy-color-bg-glass(theme-light/merchant 会把它覆成白玻璃,
+   * 变量继承穿透组件样式隔离,白页弹窗会变白底白字) */
+  /* 2026-09-03 Brand Handbook 410-121 §③ 去蓝紫(参 Revolut 纯中性灰):30 → 28 */
+  --cy-comp-sheet-player-glass: rgba(28, 28, 28, .82);
+  /* 弹窗角色档(2026-08-07 用户拍板:弹窗双规范——玩家页=深玻璃,商家页=白)。
+   * 基础=玩家值;.theme-light/.theme-merchant 块整组切白(就地求值快照,须整组重声明)。 */
+  --cy-comp-sheet-role-glass: var(--cy-comp-sheet-player-glass);
+  --cy-comp-sheet-role-page: var(--cy-comp-sheet-player-page);
+  --cy-comp-sheet-role-surface: var(--cy-comp-sheet-player-surface);
+  --cy-comp-sheet-role-card: var(--cy-comp-sheet-player-card);
+  --cy-comp-sheet-role-elevated: var(--cy-comp-sheet-player-elevated);
+  --cy-comp-sheet-role-text: var(--cy-comp-sheet-player-text);
+  --cy-comp-sheet-role-text-secondary: var(--cy-comp-sheet-player-text-secondary);
+  --cy-comp-sheet-role-muted: var(--cy-comp-sheet-player-muted);
+  --cy-comp-sheet-role-action-secondary: var(--cy-comp-sheet-player-action-secondary);
+  --cy-comp-sheet-role-divider: var(--cy-comp-sheet-player-divider);
+  --cy-comp-sheet-role-border-strong: var(--cy-comp-sheet-player-border-strong);
+  --cy-comp-sheet-role-btn-bg: var(--cy-comp-sheet-player-text);
+  --cy-comp-sheet-role-btn-fg: var(--cy-comp-sheet-player-page);
+  --cy-comp-sheet-role-card-shadow: 0 0 0 0 transparent;
+  /* 2026-09-03 按 Brand Handbook 410-121 §③「深色阶去蓝紫」改:#020104 带一点蓝,
+   * 参考 Revolut Business 的纯中性灰阶,弹窗内页底就是纯黑。 */
+  --cy-comp-sheet-player-page: #000000;
+  --cy-comp-sheet-player-surface: rgba(28,28,36,.90);
+  /* 同上:#303038 偏蓝紫 → 中性 #2C2C2C */
+  --cy-comp-sheet-player-elevated: #2C2C2C;
+  /* 弹层内的 raised / interactive:玻璃面板上的卡要比面板高一档,控件底再高一档。
+     值取全局暗端同名档,因为玩家弹层本就是暗的;单独出口是为了让
+     scene-sheet 能把整条中性阶覆盖完,不留穿透缺口(2026-09-02)。 */
+  --cy-comp-sheet-player-raised: #2A2A2C;
+  --cy-comp-sheet-player-surface-strong: #3B3B3D;
+  --cy-comp-sheet-player-interactive: #4D4D4D;
+  --cy-comp-sheet-player-text: #FFFFFF;
+  --cy-comp-sheet-player-text-secondary: rgba(255,255,255,.70);
+  /* 同上:面内卡改实色 #242424 —— 半透明白叠在不同面板上会飘,实色才压得住 */
+  --cy-comp-sheet-player-card: #242424;
+
+  /* T2 居中弹窗(危险确认)的面板 —— Brand Handbook 410-121 §⑥「P3 / P4 两处看不见」。
+   * 它原来读 --cy-bg-card = #0A0A0B,压在 #000000 的页底上几乎等于隐形,规范样张里
+   * 这一型是明显更浅的一档。这是 T2 专用,别拿去改 T1/T3(那两型仍走 §③ 的深调)。 */
+  --cy-comp-modal-panel: #4D4D4D;
+  --cy-comp-sheet-player-divider: rgba(255,255,255,.07);
+  --cy-comp-sheet-player-border: rgba(255,255,255,.20);
+  --cy-comp-sheet-player-border-strong: rgba(255,255,255,.16);
+  /* 遮罩只负责压低面板外的宿主；面板本身已改实底，避免宿主页标题透进正文。
+     保留 .30 是为了面板外仍能辨认来处，不能再靠面板透明度制造玻璃感。 */
+  --cy-comp-sheet-player-overlay: rgba(0,0,0,.30);
+  --cy-comp-sheet-player-close-bg: rgba(255,255,255,.12);
+  --cy-comp-sheet-player-close-fg: rgba(255,255,255,.70);
+  --cy-comp-sheet-player-inset-shadow: inset 0 10px 20.4px 3px rgba(0,0,0,.25);
+  --cy-comp-sheet-player-action-secondary: rgba(255,255,255,.10);
+  --cy-comp-sheet-player-muted: rgba(255,255,255,.45);
+  /* D3 之后与 --cy-color-status-success 同值。这里必须留字面量:scene-sheet 是
+     「强制玩家皮肤」层,嵌在商家页里也要出玩家色,不能继承环境。
+     ⚠️ 改绿要同时改 5 处(2026-09-01 自审数过,别再写"两处"):
+       style/tokens.wxss  page{} 的 status-success 与 -soft
+       style/tokens.wxss  .theme-dark 的 status-success 与 -soft
+       style/tokens.wxss  本行 --cy-comp-sheet-player-success
+       style/dark-mode.wxss  系统深色下商家域的镜像值
+       components/cy/switch/index.js  DEFAULT_COLOR(原生 switch 读不到 CSS 变量) */
+  --cy-comp-sheet-player-success: #22C55E;
+  /* Airbnb 177/179 风格:弹窗面板本身就是纯白,行直接坐在白底上,靠发丝线分组 ——
+     原来是 #EBEBEB 浅灰底 + 白卡,那正是「白卡叠白卡」要去掉的东西(§3.3)。 */
+  --cy-comp-sheet-merchant-bg: #FFFFFF;
+  --cy-comp-sheet-merchant-glass: #FFFFFF;   /* 用户拍板:商家弹窗不透明纯白,无半透明 */
+  /* 行与行之间的发丝线,以及行高/字号(Airbnb 的行是大留白 + 细线,不是胶囊卡) */
+  --cy-comp-sheet-merchant-row-line: rgba(0,0,0,.08);
+  --cy-comp-sheet-merchant-row-h: 112rpx;
+  --cy-comp-sheet-merchant-row-size: 32rpx;
+  --cy-comp-sheet-merchant-page: #F8F9FA;
+  --cy-comp-sheet-merchant-elevated: #FFFFFF;
+  /* 商家弹层是白面板:raised 取比白低一档的灰,interactive 取白卡,与日间域口径一致。 */
+  --cy-comp-sheet-merchant-raised: #E6E6E6;
+  /* 白面板上的 surface-strong = 日间控件填充底,与 PR #978 给浅色域定的同值 */
+  --cy-comp-sheet-merchant-surface-strong: #E4E4E4;
+  --cy-comp-sheet-merchant-interactive: #FFFFFF;
+  --cy-comp-sheet-merchant-text-secondary: #404040;
+  --cy-comp-sheet-merchant-text-tertiary: #6B6B6B;
+  --cy-comp-sheet-merchant-border: #ECECEC;
+  --cy-comp-sheet-merchant-border-subtle: rgba(0,0,0,.07);
+  --cy-comp-sheet-merchant-border-strong: #DBDBDB;
+  --cy-comp-sheet-merchant-close-bg: rgba(167,167,167,.12);
+  --cy-comp-sheet-merchant-close-fg: rgba(0,0,0,.70);
+  --cy-comp-sheet-merchant-inset-shadow: none;
+  --cy-comp-sheet-merchant-surface-subtle: rgba(0,0,0,.07);
+  --cy-comp-sheet-merchant-title: #000000;
+  --cy-comp-sheet-merchant-secondary: #F1F4F7;
+  --cy-comp-sheet-merchant-overlay: rgba(0,0,0,.56);
+  --cy-comp-sheet-merchant-success: #0B7A57;
+  --cy-comp-sheet-invite-border-player: rgba(255,255,255,.78);
+  --cy-comp-sheet-invite-border-merchant: #000000;
+  --cy-comp-sheet-invite-qr-bg: #FFFFFF;
+  --cy-comp-sheet-invite-missing-bg-player: rgba(255,255,255,.07);
+  --cy-comp-sheet-invite-missing-bg-merchant: rgba(0,0,0,.06);
+  --cy-comp-sheet-card-radius: 28rpx;
+  /* 分组卡(Figma 3914:13557/13589):行不再各自成卡,而是同一张 .07 卡里靠发丝线分行。
+     组间标题 16px/600 顶在卡外上方 20px 处。 */
+  --cy-comp-sheet-group-bg:     rgba(255,255,255,.07);
+  --cy-comp-sheet-group-radius: 28rpx;   /* 14px */
+  --cy-comp-sheet-group-line:   rgba(255,255,255,.07);
+  --cy-comp-sheet-group-title-size: 32rpx;  /* 16px */
+  --cy-comp-sheet-history-card-radius: 32rpx;
+  --cy-comp-sheet-filter-radius: 20px;
+  --cy-comp-sheet-metric-radius: 20rpx;
+  --cy-comp-sheet-status-radius: 10rpx;  /* 5px(稿 3902:13804),原 8rpx=4px */
+  --cy-comp-sheet-invite-qr-radius: 12rpx;
+  --cy-comp-sheet-invite-missing-radius: 24rpx;
+  --cy-comp-sheet-invite-button-radius: 58rpx;
+  --cy-comp-sheet-invite-indicator-radius: 10rpx;
+  --cy-comp-sheet-sound-status-size: 30rpx;
+  --cy-comp-sheet-invite-title-size: 40rpx;
+  --cy-comp-sheet-invite-description-size: 26rpx;
+  --cy-comp-sheet-history-filter-size: 26rpx;   /* 13px */
+  --cy-comp-sheet-history-status-size: 20rpx;   /* 10px */
+  --cy-comp-sheet-history-value-size: 32rpx;    /* 16px(稿 3902:13831,原 30rpx=15px 偏小) */
+  --cy-comp-sheet-history-code-size: 64rpx;     /* 32px */
+  /* 登机牌卡的字距与层级(Figma 3902:13780)。这几档灰阶是刻意分开的:
+     日期 .45 > 时长 .40 > 城市/指标标签 .35 —— 合成一档会把"次要"和"更次要"压平。 */
+  --cy-comp-sheet-history-chip-fg:    rgba(255,255,255,.75);
+  --cy-comp-sheet-history-date-fg:    rgba(255,255,255,.45);
+  --cy-comp-sheet-history-dur-fg:     rgba(255,255,255,.40);
+  --cy-comp-sheet-history-muted-fg:   rgba(255,255,255,.35);
+  --cy-comp-sheet-history-code-track:  -0.2338px;
+  --cy-comp-sheet-history-value-track: -0.3125px;
+  --cy-comp-sheet-history-status-track: 0.9172px;
+  --cy-comp-sheet-history-label-track:  0.0645px;
+  --cy-comp-sheet-player-history-card: rgba(255,255,255,.06);
+  --cy-comp-sheet-player-history-metric: rgba(255,255,255,.05);
+  --cy-comp-sheet-route-arrow-size: 34rpx;
+  --cy-comp-sheet-shadow-card: 0 2rpx 10rpx rgba(0,0,0,.28);
+  --cy-comp-sheet-activity-scrim: linear-gradient(180deg, rgba(0,0,0,0) 25%, rgba(0,0,0,.78) 100%);
+  /* 封面/照片装饰(主题无关:照片遮罩/渐变/白字,不随明暗切换;卡片组件读本层) */
+  --cy-comp-scrim:          rgba(0,0,0,.46);
+  --cy-comp-oncover-fg:     rgba(255,255,255,.96);
+  --cy-comp-oncover-fg-dim: rgba(255,255,255,.72);
+  --cy-comp-cover-scrim:    linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,.28) 55%, transparent);
+  /* 顶部向下 scrim:地图/照片铺到屏幕顶边时,压住状态栏与顶部控件的白色前景。
+     与 --cy-comp-cover-scrim 同族、方向相反:cover 承载底部标题所以起手 .82;
+     顶部这层要顶住最浅的地图瓦片,取 .72 —— 等价于 --cy-comp-scrim(.46)叠两层
+     (1-(1-.46)²≈.71),即页面此前自行叠层的做法,收进 token 后不再各页自算。
+     --cy-comp-scrim-top-h:消费方在元素上内联注入「满色段高度」(通常 = 系统状态栏实高),
+     满色段严格盖到状态栏底边再淡出;不注入时退化为 0px = 从顶边直接淡出的普通压深。
+     与本段其余 scrim 一致:主题无关(白字那一层),各 theme 块均不覆写。 */
+  --cy-comp-scrim-top-h:    0px;
+  --cy-comp-scrim-top:      linear-gradient(to bottom, rgba(0,0,0,.72) 0, rgba(0,0,0,.72) var(--cy-comp-scrim-top-h, 0px), transparent 100%);
+  --cy-comp-rare-soft:      rgba(245,159,0,.14);
+  --cy-comp-profile-avatar-ring: var(--cy-ref-violet-500);
+
+  /* ==========================================================
+   * ② 旧名 alias 层 —— 过渡期兼容 7,055 处引用,一版后删
+   * ========================================================== */
+
+  /* 背景 */
+  --cy-bg-page:        var(--cy-color-bg-page);
+  --cy-bg-card:        var(--cy-color-bg-surface);
+  --cy-bg-card-2:      var(--cy-color-bg-surface-subtle);
+  --cy-bg-glass:       var(--cy-color-bg-glass);
+  --cy-bg-elevated:    var(--cy-color-bg-elevated);
+  --cy-bg-raised:      var(--cy-color-bg-raised);
+  --cy-bg-interactive: var(--cy-color-bg-interactive);
+  --cy-bg-accent-weak: var(--cy-color-brand-soft);
+  --cy-bg-subtle:      rgba(255,255,255,0.04);   /* 保留字面:半透明微亮底,语义合并推迟逐页迁移 */
+
+  /* 文本 */
+  --cy-text-title:       var(--cy-color-text-primary);
+  --cy-text-body:        var(--cy-color-text-secondary);   /* v1 body → v2 secondary */
+  --cy-text-secondary:   var(--cy-color-text-tertiary);    /* v1 secondary → v2 tertiary */
+  --cy-text-tertiary:    var(--cy-color-text-tertiary);    /* 2026-08-28 收口历史漏名 */
+  --cy-text-sub:         var(--cy-color-text-secondary);   /* 交互标签/刷新说明，强于 tertiary */
+  --cy-text-muted:       var(--cy-color-text-tertiary);    /* 非交互弱提示 */
+  --cy-text-placeholder: var(--cy-color-text-placeholder);
+  --cy-text-inverse:     var(--cy-color-text-inverse);
+
+  /* 描边 */
+  --cy-border-card: var(--cy-color-border-subtle);
+  --cy-border-line: var(--cy-color-border-strong);
+  --cy-border: var(--cy-color-border-subtle);
+  --cy-color-border-default: var(--cy-color-border-strong);
+
+  /* 表面历史漏名 */
+  --cy-surface: var(--cy-color-bg-surface);
+
+  /* 品牌 / 功能色 */
+  --cy-brand:         var(--cy-color-brand);
+  --cy-brand-soft:    var(--cy-color-brand-soft);
+  --cy-accent:        var(--cy-color-brand);
+  --cy-accent-strong: var(--cy-color-brand-strong);
+  --cy-accent-soft:   var(--cy-color-brand-soft);
+  --cy-info:          var(--cy-color-status-info);
+  --cy-success:       var(--cy-color-status-success);
+  --cy-danger:        var(--cy-color-status-danger);
+  --cy-danger-soft:   var(--cy-color-status-danger-soft);
+  --cy-gold:          var(--cy-color-rare);
+
+  /* white-* 系列(2026-07-03 增量;-8/-16/-40 语义并入,-4/-64 半透明保留字面) */
+  --cy-white-4:  rgba(255,255,255,0.04);
+  --cy-white-8:  var(--cy-color-border-subtle);
+  --cy-white-16: var(--cy-color-border-strong);
+  --cy-white-40: var(--cy-color-text-disabled);
+  --cy-white-64: rgba(255,255,255,0.64);   /* 保留字面:半透明次级文字,合并推迟逐页迁移 */
+  --cy-price:    #FFFFFF;                   /* 金额数字;护栏在组件层做 */
+
+  /* 字号别名 */
+  --cy-font-page-title: var(--cy-type-page-title);
+  --cy-font-display:    40rpx;   /* ⚠ 废弃:无 1:1 目标,迁移时逐处判断并入 section-title 36 / page-title 48 */
+  --cy-font-display-xl: var(--cy-type-display);
+  --cy-font-title:      var(--cy-type-section-title);
+  --cy-font-sheet-title: var(--cy-type-sheet-title);
+  --cy-font-subtitle:   var(--cy-type-card-title);
+  --cy-font-body:       var(--cy-type-body);
+  --cy-font-label:      var(--cy-type-label);
+  --cy-font-caption:    var(--cy-type-caption);
+  --cy-font-micro:      var(--cy-type-micro);
+
+  /* 动效别名 */
+  --cy-dur-fast: var(--cy-motion-fast);
+  --cy-dur:      var(--cy-motion-standard);
+
+  /* 实心 CTA 别名 */
+  --cy-btn-solid-bg: var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg: var(--cy-color-action-primary-fg);
+
+  /* ==========================================================
+   * ③ 保留原名层 —— 布局 / 圆角 / 间距 / 缓动 / 业务色(v2 值相同,不语义化)
+   * ========================================================== */
+
+  /* 路线五色(章节分段,贯通"编辑→游玩";游玩态使用上方 --cy-play-route*) */
+  /* 2026-08-05 去紫(用户裁决:紫色只在极特殊情况用)。首色改中性,与 fabu 的
+     ROUTE_COLORS[0] 恢复一致 —— 那边 2026-08-01 就已经改中性了,注释写着「故意
+     不再与 --cy-route 逐一对应…是否一并去紫待总控裁决」,这次一并裁掉。 */
+  /* 两种主题模式的主打色(2026-08-11 用户定)。城市定向 = 地图上定向路线那个蓝(与 --cy-route-2 同值),
+     自由探索 = 绿。只在「选模式」这一处做身份标识,不参与状态语义(状态色仍走 status-*)。
+     -soft 是同色低透明度底:创作域整体中性,这里需要一点颜色把两条路分开,但不能压过正文。 */
+  --cy-color-mode-city:      #155DFC;
+  --cy-color-mode-city-soft: rgba(21,93,252,.10);
+  --cy-color-mode-roam:      #00A63E;
+  --cy-color-mode-roam-soft: rgba(0,166,62,.10);
+
+  --cy-route:    #1A1A1A;
+  --cy-route-2:  #155DFC;   /* 2026-08-05 对齐 fabu JS：两份真源原本漂着 #2F74FF/#155DFC 两个几乎同色的蓝(hue 220 vs 221)，以 <map> 实际在用的 JS 那份为准；--cy-route-2 无 CSS 消费点 */
+  --cy-route-3:  #12B886;
+  --cy-route-4:  #0CA5A5;   /* 原 #7048E8 hue=255° 与首色同片紫;改青,与其余四色(蓝221/绿162/橙39/粉339)拉开 */
+  --cy-route-5:  #F59F00;
+
+  /* 地图 */
+  --cy-map-h: 520rpx;
+
+  /* 圆角 */
+  --cy-radius-sm:   16rpx;
+  --cy-radius-md:   24rpx;
+  --cy-radius-lg:   32rpx;
+  --cy-radius-xl:   40rpx;   /* 2026-08-10 新增:创作域卡片统一 20px 圆角(Figma 4028:13649),lg 撑不到 */
+  --cy-radius-2xl:  44rpx;   /* 首页 Feed 白卡 22px 圆角（Figma 3586:13074 / 13132） */
+  --cy-radius-pill: 999rpx;
+
+  /* 沉浸式编辑版式:保留约一成背景,用于高专注输入页。 */
+  /* 2026-09-02:原为 91vh,同样压胶囊。当前零消费方,但留着就是下一个人的坑,直接指向安全上限。 */
+  --cy-sheet-immersive-h:      var(--cy-comp-sheet-max-height);
+  --cy-sheet-immersive-radius: 88rpx;
+  --cy-sheet-immersive-grab-w: 86rpx;
+  --cy-sheet-immersive-grab-h: 12rpx;
+
+  /* 阴影(暗底不用投影) */
+  --cy-shadow-card: none;
+
+  /* 层级阶(T9,2026-07-14):页面内容自由区 z<80;浮层一律走本阶,禁自排字面 z 值。
+   * 收编前乱象:date-sheet 333 / fragment 200 / modal·sheet 挤 95 —— 现语义分档 */
+  --cy-z-tabbar:    80;    /* 自定义 tabBar */
+  --cy-z-sticky:    85;    /* 页内吸顶条(低于导航档:同档会盖住 cy-nav-bar,见 components/cy/tabs T9)。
+                              2026-08-19 补:此前 4 处 var(--cy-z-sticky) 引用的是一个**从未定义**的名字,
+                              calc/var 取不到值时整条 z-index 声明作废 ⇒ 吸顶层级静默回落。 */
+  --cy-z-nav:       90;    /* 导航条 / 吸顶 tab */
+  --cy-z-sheet:    800;    /* 底部面板 / 抽屉(含遮罩) */
+  --cy-z-popover:  850;    /* T5 胶囊弹窗(贴触发点的轻动作菜单)。压过 sheet:它总是「最后被打开的那个」,
+                              该盖住把它唤出来的那层;但必须低于 modal —— 确认闸是决策关卡,不许被菜单挡。 */
+  --cy-z-modal:    900;    /* 居中弹窗 / 全屏凭证(必须压过 sheet) */
+  --cy-z-toast:    950;    /* 轻提示(预留;原生 toast 不受控) */
+  --cy-z-celebrate: 990;   /* 庆祝 / 碎片 / 徽章全屏层(最高) */
+
+  /* 间距(8rpx 基准) */
+  --cy-space-1: 8rpx;
+  --cy-space-2: 16rpx;
+  --cy-space-3: 24rpx;
+  --cy-space-4: 32rpx;
+  --cy-space-5: 48rpx;
+  --cy-space-6: 64rpx;
+  --cy-space-7: 80rpx;          /* v3 新增:等分64-96中点,补space-6→space-8序号空档 */
+  --cy-space-8: 96rpx;          /* v2 新增:Hero / 空态顶部呼吸 */
+  --cy-space-1-5: 12rpx;        /* v3 新增:等分8-16中点 */
+  --cy-space-2-5: 20rpx;        /* v3 新增:等分16-24中点,全站最高频缺口值 */
+  --cy-space-3-5: 28rpx;        /* v3 新增:等分24-32中点 */
+  --cy-page-x:  32rpx;
+  /* v3 新增:高频历史值,非设计刻度,来自组件库既有随手取值(不落在8rpx阶梯上),谨慎复用,不作为新写代码的首选间距 */
+  --cy-legacy-4:  4rpx;
+  --cy-legacy-6:  6rpx;
+  --cy-legacy-10: 10rpx;
+  --cy-legacy-14: 14rpx;
+  --cy-legacy-18: 18rpx;
+  --cy-legacy-22: 22rpx;
+  --cy-legacy-26: 26rpx;
+  --cy-legacy-36: 36rpx;
+  --cy-legacy-72: 72rpx;
+
+  /* 行高 */
+  --cy-leading-tight:  1.3;
+  --cy-leading-normal: 1.6;
+  --cy-leading-loose:  1.75;
+
+  /* 按钮尺寸 */
+  --cy-btn-h:     88rpx;
+  --cy-btn-h-sm:  64rpx;
+  --cy-btn-h-xs:  56rpx;   /* sheet/弹窗顶栏文字钮 */
+  --cy-btn-pad-x: 40rpx;
+
+  /* 缓动 */
+  --cy-ease: cubic-bezier(.4, 0, .2, 1);
+
+  /* 安全区 */
+  --cy-safe-top:    calc(env(safe-area-inset-top) + 88rpx);
+  --cy-safe-bottom: calc(env(safe-area-inset-bottom) + 24rpx);
+
+  /* 浮动控件避让(模板库 §2.5):
+   * --cy-float-gap = 浮动控件与其下方元素(tabBar / 吸底 CTA)的最小安全间距;
+   * --cy-tabbar-h  = 自定义 tabBar(components/tabBar)占位高:16+44+4+24+16 ≈ 104rpx + 安全区。
+   * 浮钮压在 tabBar 上的页用 bottom: calc(var(--cy-tabbar-h) + var(--cy-float-gap))。*/
+  --cy-float-gap:   24rpx;
+  --cy-tabbar-h:    calc(104rpx + env(safe-area-inset-bottom));
+}
+
+/* ============================================================
+ * 逃生口:商家端 merchant-day —— 根节点 class="theme-light"
+ * 只覆盖 v2 --cy-color-* 真 token 的日值(DS §2.4),旧名别名经 var() 自动跟随;
+ * 另覆盖少数保留字面的旧 token(半透明 / price / 阴影)的日值。
+ * 字号 / 间距 / 圆角等主题无关 token 继承基础 page{}。
+ * 2026-07-14 T1 单真源收敛:.theme-merchant(共享页商家模式)并入本块,
+ *   日间键值只此一处;merchant-light.wxss 的 page{} 镜像由
+ *   scripts/ds-theme-sync-check.sh 锁一致(WXSS 无 mixin,page{} 机制逃不掉镜像)。
+ * ============================================================ */
+page.theme-light,
+.theme-light,
+.theme-merchant {
+  /* v2 语义真值(day) */
+  /* 2026-08-10 用户按 Trip Way 取色定为 #F3F4F4(前值 #F9F9F9)。
+     动机不是"加冷相"而是"加对比":原 #F9F9F9 比白卡(#FFFFFF)只深 6 级,卡片压在
+     页面底上几乎分不出层,看着发闷;#F3F4F4 深 12 级,白卡才浮得起来。
+     色相上它几乎仍是中性(红绿蓝极差 1/255、HSL 饱和度 4.3%),不碰 §1.2 的 ≤5% 闸,
+     也不动 2026-08-05「去紫相」那轮结论 —— 那轮针对的是按钮和卡片的紫,不是背景。
+     ⚠️ merchant-light.wxss 是本块的 page{} 镜像,由 scripts/ds-theme-sync-check.sh
+     锁一致 —— 改这里必须同步改那里。 */
+  --cy-color-bg-page:           #F3F4F4;
+  --cy-color-bg-surface:        #FFFFFF;
+  /* 2026-08-10 #F4F4F4 → #EEEEEE。上面那条把页底 #F9F9F9 → #F3F4F4 时漏了 subtle:
+     #F4F4F4 压在 #F3F4F4 上逐通道只差 1/255,对比度 1.002:1 —— 整个商家域的「槽」类元素
+     (输入框、搜索框、状态 chip)等于没有底色。改灰前是 1.045:1,弱但还在;改灰后归零。
+     与 .theme-topic-editor 取同值,理由同上面页底那条:两个日间域挨着出现,别差半级。 */
+  --cy-color-bg-surface-subtle: #EEEEEE;   /* vs 页底 1.053:1,三级文字 4.59:1 */
+  --cy-color-bg-elevated:       #FFFFFF;
+  --cy-color-bg-surface-strong: #E4E4E4;   /* 日间控件填充底(步进键/已填输入)。此前本块未重声明,浅色页继承玩家档 #3B3B3D,黑加减号压上去 1.88:1 几乎不可见(2026-09-02) */
+  --cy-color-bg-raised:         #E6E6E6;   /* 2026-09-01 日间对应档:比 surface-subtle 再深一级 */
+  --cy-color-bg-interactive:    #FFFFFF;   /* 日间控件底=白卡,与手册 Merchant/Topic editor 模式一致 */
+  --cy-color-bg-glass:          rgba(255,255,255,.88);
+
+  --cy-color-text-primary:      #000000;   /* 2026-08-07 用户拍板:商家版黑=纯黑 */
+  --cy-color-text-secondary:    #404040;              /* 2026-07-31 去墨蓝:原 #334155 B-R=+34 */
+  --cy-color-text-tertiary:     #6B6B6B;              /* 2026-07-31 去墨蓝:原 #5D6C85 B-R=+40(R1 之前是 原#64748B) */
+  --cy-color-text-placeholder:  #6F6F6F;              /* 2026-08-25:#737373 在商家页底 #F3F4F4 上只有 4.30:1,placeholder 不属于 WCAG 的 disabled 豁免,
+                                                     改 #6F6F6F(页底 4.56 / 卡底 5.02)。原注:2026-07-31 去墨蓝:原 #64748B B-R=+39(R1 之前是 原#94A3B8 白底仅 2.56:1) */
+  --cy-color-text-disabled:     #737373;              /* 手册 Merchant text/disabled */
+  --cy-color-text-inverse:      #FFFFFF;
+
+  /* 2026-09-03 用户当面纠正:方向反了 —— **没填写是白色、填写之后是灰色**。
+     本条原为「空态灰槽、填写态改白」,与新口径相反,按新口径改回。 */
+  --cy-color-input-idle-bg:     #FFFFFF;
+  --cy-color-input-filled-bg:   #EFEFEF;
+  --cy-color-input-text:        var(--cy-color-text-primary);
+  --cy-color-input-filled-fg:   var(--cy-color-text-primary);
+  --cy-color-input-placeholder: var(--cy-color-text-placeholder);
+  --cy-comp-search-idle-bg:     var(--cy-color-input-idle-bg);
+  --cy-comp-search-filled-bg:   var(--cy-color-input-filled-bg);
+  --cy-comp-search-filled-fg:   var(--cy-color-input-filled-fg);
+  --cy-comp-search-placeholder: var(--cy-color-input-placeholder);
+
+  --cy-color-border-subtle:     #E8E8E8;              /* 商家浅端:卡内分组线对白卡 ≥1.2:1 */
+
+  /* 导航钩子:别名在 page{} 已就地解析,类作用域主题必须自带(2026-07-29 导航统一) */
+  --cy-comp-nav-bg:             var(--cy-color-bg-page);
+  --cy-comp-nav-border:         transparent;
+  /* 表面规范(ADA):浅端不要顶缘高光,改用投影起层。
+     ⚠️ 起层手段**二选一**(2026-07-29 复核阻塞项 3):投影与描边同时出现 = 一张卡两条外沿,
+     浅底上尤其脏。本域选投影,所以描边必须同步关掉;白底细线域(theme-topic-editor)
+     则相反 —— 那边零投影、留描边。两边都只有一条外沿。 */
+  --cy-comp-card-highlight:     transparent;
+  --cy-comp-card-shadow-day:    0 2rpx 8rpx rgba(15,23,43,.48);
+  --cy-comp-card-border:        transparent;
+  --cy-comp-cell-fill-bg:       #EAEAEA;
+  /* ★ 底部面板钩子：与 merchant-light.wxss 同源。不补它，浅端弹窗会「一半变一半没变」
+     —— --cy-comp-sheet-bg 在上面的 page{} 里已就地求值成深色快照并按值继承，
+     本块只重声明 --cy-color-bg-surface 管不到它；而文字色靠变量继承能穿透
+     isolated 组件边界 ⇒ 文字变深、底色还黑，成了黑底深灰字。 */
+  --cy-comp-sheet-bg:           var(--cy-color-bg-surface);
+  --cy-text-title:              var(--cy-color-text-primary);
+  --cy-color-border-strong:     #DBDBDB;              /* 2026-07-31 去墨蓝:原 #D6DCE5 B-R=+15 */
+  --cy-color-sheet-handle: #DBDBDB;              /* 日间抓手 = 原 border-line 取值,不变 */
+  --cy-color-result-fail-badge: #F94D5C;
+
+  --cy-color-state-pressed: rgba(15,23,43,.06);
+  --cy-color-overlay:       rgba(0,0,0,.56);
+
+  --cy-color-action-primary-bg:   #000000;   /* 2026-08-07 用户拍板:主 CTA 纯黑(覆盖 7-31 中性灰) */
+  --cy-color-action-primary-fg:   #FFFFFF;            /*         白字 */
+  --cy-color-action-secondary-bg: #EEEEEE;
+  --cy-color-action-danger-bg:    var(--cy-ref-red-700);
+  --cy-color-action-danger-fg:    #FFFFFF;
+
+  --cy-color-selection:     var(--cy-ref-gray-900);
+  /* 2026-07-31:商家配色禁墨蓝/紫(速查表"商家端专项规则"),强调色改中性灰 */
+  --cy-color-brand:         var(--cy-ref-gray-900);
+  --cy-color-brand-strong:  var(--cy-ref-gray-900);
+  --cy-color-brand-soft:    #EAEBEE;
+
+  --cy-color-status-success:     var(--cy-ref-green-700);
+  --cy-color-status-warning:     var(--cy-ref-amber-700);
+  --cy-color-status-danger:      var(--cy-ref-red-700);
+  --cy-color-status-info:        var(--cy-ref-blue-600);
+  --cy-color-status-danger-soft: rgba(208,50,59,.10);
+  --cy-color-status-neutral-soft: rgba(107,107,107,.12);   /* 2026-09-01:状态胶囊软底,与其余五支同构(本域 text-tertiary 的低透明版) */
+  --cy-color-rare-soft: rgba(245,159,0,.12);          /* 同上;rare 与 warning 同为琥珀,按手册「同色靠图标区分」的既有做法,不换色相 */
+  --cy-color-rare-fg: var(--cy-ref-amber-700);   /* 浅端必须压深:--cy-color-rare(#F59F00)注释写明「仅图形与大字」,
+                                                    当文字压在 rare-soft 上只有 1.94:1,连大字 3.0 都不到;amber-700 为 4.76:1 */
+  --cy-color-status-success-soft: rgba(11,122,87,.10);    /* 浅端卡片状态软底 */
+  --cy-color-status-warning-soft: rgba(150,97,10,.12);
+  --cy-color-status-info-soft:    rgba(37,99,235,.10);
+
+  --cy-color-skeleton-base:      #ECEFF3;
+  --cy-color-skeleton-highlight: #F6F8FA;
+  /* 2026-09-02 帖文 UI 整改 A1:Figma 有、代码一直没有的 6 档。medal-* 是名次不是状态,
+     别拿 status/warning 或 rare 顶替;skeleton-on-sheet 专给玻璃面板上的骨架(比页面亮)。 */
+  --cy-color-status-danger-on-interactive:          var(--cy-ref-red-700);
+  --cy-color-medal-gold:                            #D27D08;
+  --cy-color-medal-silver:                          #717171;
+  --cy-color-medal-bronze:                          #D6600B;
+  --cy-color-skeleton-on-sheet:                     #ECEFF3;
+
+  /* 模板页紫面 —— 浅端(商家域)取极淡紫,保持同一套 wxss 可用 */
+  --cy-color-panel-accent-top:   #EFE7FB;
+  --cy-color-panel-accent-mid:   #F6F2FC;
+  --cy-color-panel-accent-deep:  #FBFAFE;
+  --cy-color-panel-accent-base:  #FFFFFF;
+  --cy-color-glow-sweep:         #7C3AED;
+  --cy-color-glow-sweep-soft:    #A97CF0;
+
+  /* 保留字面旧 token 的日值(半透明 / 阴影 / 金额) */
+  --cy-bg-subtle:   #f8fafc;
+  --cy-white-4:     rgba(0,0,0,0.03);
+  --cy-white-64:    rgba(0,0,0,0.62);
+  --cy-price:       var(--cy-color-text-primary);   /* 2026-07-31:批8 已把这条从字面 #0f172b
+                                   改成指向 text-primary(去重复字面量,单真源,见集成树 tokens.wxss:467
+                                   的既有注释);本轮把 --cy-ref-ink-900 本身去墨蓝后,这里跟着自动变灰,
+                                   不用再留字面值 */
+  --cy-shadow-card: 0 4rpx 16rpx rgba(0,0,0,0.04);   /* 浅色用投影分层 */
+
+  /* ② 旧名 alias 快照重估:WXSS 变量在 page{} 里就地求值、按值继承(见上文 sheet-bg 注释),
+   * 白域必须整组重声明,否则旧名元素读到深色快照 —— 2026-08-07 实证:
+   * official-mine 卡片(--cy-bg-elevated)、merchantapply2 类别 chip(--cy-bg-card-2)在白页上发黑。 */
+  --cy-bg-page:        var(--cy-color-bg-page);
+  --cy-bg-card:        var(--cy-color-bg-surface);
+  --cy-comp-modal-panel: var(--cy-color-bg-surface);
+  --cy-bg-card-2:      var(--cy-color-bg-surface-subtle);
+  --cy-bg-glass:       var(--cy-color-bg-glass);
+  --cy-bg-elevated:    var(--cy-color-bg-elevated);
+  --cy-bg-raised:      var(--cy-color-bg-raised);
+  --cy-bg-interactive: var(--cy-color-bg-interactive);
+  --cy-bg-accent-weak: var(--cy-color-brand-soft);
+  --cy-text-body:        var(--cy-color-text-secondary);
+  --cy-text-secondary:   var(--cy-color-text-tertiary);
+  --cy-text-placeholder: var(--cy-color-text-placeholder);
+  --cy-text-inverse:     var(--cy-color-text-inverse);
+  --cy-border-card: var(--cy-color-border-subtle);
+  --cy-border-line: var(--cy-color-border-strong);
+  --cy-brand:         var(--cy-color-brand);
+  --cy-brand-soft:    var(--cy-color-brand-soft);
+  --cy-accent:        var(--cy-color-brand);
+  --cy-accent-strong: var(--cy-color-brand-strong);
+  --cy-accent-soft:   var(--cy-color-brand-soft);
+  --cy-info:          var(--cy-color-status-info);
+  --cy-success:       var(--cy-color-status-success);
+  --cy-danger:        var(--cy-color-status-danger);
+  --cy-danger-soft:   var(--cy-color-status-danger-soft);
+  --cy-gold:          var(--cy-color-rare);
+  --cy-white-8:  var(--cy-color-border-subtle);
+  --cy-white-16: var(--cy-color-border-strong);
+  --cy-white-40: var(--cy-color-text-disabled);
+  --cy-btn-solid-bg: var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg: var(--cy-color-action-primary-fg);
+  /* ★ 与 .theme-topic-editor 同一个洞(见该块注释):cy-btn 读的是 comp 档,comp 档在
+     page{} 就地求值成深色快照(#F8F8F8 星白底 + 深墨字)并按【值】继承,只补上面那对
+     action 档管不到它。2026-09-06 实测:本主题里 variant="primary" 的计算值是
+     rgb(248,248,248) —— 浅灰底压在 #F3F4F4 页底上几乎看不见,而 Figma 71:279 / 87:358
+     要的是纯黑底白字。topic-editor 补过、merchant 漏了,这里补齐(primary + secondary 四支)。 */
+  --cy-comp-btn-primary-bg: var(--cy-color-action-primary-bg);
+  --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+  --cy-comp-btn-secondary-bg: var(--cy-color-bg-surface-subtle);
+  --cy-comp-btn-secondary-fg: var(--cy-color-text-primary);
+
+  /* 弹窗角色档切白(2026-08-07 用户拍板:商家页弹窗=白) */
+  --cy-comp-sheet-role-glass: var(--cy-comp-sheet-merchant-glass);
+  --cy-comp-sheet-role-page: var(--cy-comp-sheet-merchant-page);
+  --cy-comp-sheet-role-surface: var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-card: var(--cy-comp-sheet-merchant-surface-subtle);
+  --cy-comp-sheet-role-elevated: var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-text: var(--cy-comp-sheet-merchant-title);
+  --cy-comp-sheet-role-text-secondary: var(--cy-comp-sheet-merchant-text-secondary);
+  --cy-comp-sheet-role-muted: var(--cy-comp-sheet-merchant-text-tertiary);
+  --cy-comp-sheet-role-action-secondary: var(--cy-comp-sheet-merchant-close-bg);
+  --cy-comp-sheet-role-divider: var(--cy-comp-sheet-merchant-border-subtle);
+  --cy-comp-sheet-role-border-strong: var(--cy-comp-sheet-merchant-border-strong);
+  --cy-comp-sheet-role-btn-bg: var(--cy-comp-sheet-merchant-title);
+  --cy-comp-sheet-role-btn-fg: var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-card-shadow: 0 2rpx 8rpx rgba(15,23,43,.06);
+}
+
+/* 主题创建域：浅底、白卡、彩色强调（2026-08-09 用户拍板改回设计稿配色）。
+ * 真源 = docs/design/城市解谜游戏创建.dc.html：浅灰画布 + 白卡 + 主蓝 #2F6DF0，
+ * 状态色分蓝(信息)/绿(成功)/红(错误)/橙(警示·必填)四支，不再压平成黑白灰。
+ * ⚠️ 稿里的 #16A36A / #F5455C / #FF7A45 在白底上分别只有 3.24 / 3.57 / 2.6 : 1，
+ *    承载文字会掉出 WCAG AA。这里保留同色相、压深到 ≥4.5:1；软底沿用稿值。
+ *    对比度由 tests/unit/topic-editor-theme-contract.test.js 逐条实算锁住。
+ * 根节点挂 .theme-topic-editor；新页面/组件只读语义 token。 */
+page.theme-topic-editor,
+.theme-topic-editor {
+  /* 导航钩子(同 theme-light,2026-07-29 导航统一)。读语义真值层
+     --cy-color-bg-page(本块下方就近定义为 #FFFFFF),不写字面值——否则本块
+     一旦调深浅两色就会跟顶栏脱钩,静默出现顶栏/正文不同底的色带。 */
+  --cy-comp-nav-bg:             var(--cy-color-bg-page);
+  --cy-comp-nav-border:         transparent;
+  /* 表面规范(ADA/DS §5「只填充无描边」):卡片既不要高光也不要投影,
+     层级**只靠填充明度差**表达 —— 灰页 #F3F4F4 与白卡 #FFFFFF 差 12 级。
+     ⚠️ 2026-08-10 之前 bg-page 也是 #FFFFFF:白卡压在白页上差 0 级,既没投影也没描边,
+     于是整页看着是内容平铺、根本看不出有卡(用户实拍反馈)。改灰底不是配色偏好,
+     是把这条「靠明度差起层」的规范真正通上电。 */
+  --cy-comp-card-highlight:     transparent;
+  --cy-comp-card-shadow-day:    0 0 0 0 transparent;
+  /* ★ 底部面板钩子:同 .theme-merchant 那一处的理由。cy-date-sheet 消费的是
+     --cy-comp-sheet-bg(不是下面那组 role-*),而它在 page{} 里已就地求值成深色快照
+     并按值继承 —— 本块只重声明 --cy-color-bg-surface 管不到它。不补这一行,
+     创作页里的时间选择器就是「黑底 + 深灰字」(2026-09-08 用户逐屏走查实拍)。 */
+  --cy-comp-sheet-bg:           var(--cy-color-bg-surface);
+  /* 弹窗角色档(2026-08-10 补齐)。cy-sheet 的 .sh__panel 只消费 --cy-comp-sheet-role-*,
+     基础 page{} 把这组指向 player(暗)。.theme-light/.theme-merchant 早已整组切白,
+     本块此前**整组缺席** ⇒ 白底创建域拉起的是玩家黑弹窗,零报错
+     (2026-08-10 实拍 pages/publish/fabu 主题详情弹窗;同一个洞还打中 merchant/citynode、
+     merchant/citynode/create、publish/activity、subpackageMember/couponInfo 四页)。
+     ⚠️ 必须整组重声明:别名在 page{} 已就地求值成暗端快照,只补其中几个会半黑半白。
+     契约:tests/unit/popup-theme-scope-contract.test.js(按组件实际消费的名字校验,能判红)。 */
+  --cy-comp-sheet-role-glass:            var(--cy-comp-sheet-merchant-glass);
+  --cy-comp-sheet-role-page:             var(--cy-comp-sheet-merchant-page);
+  --cy-comp-sheet-role-surface:          var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-card:             var(--cy-comp-sheet-merchant-surface-subtle);
+  --cy-comp-sheet-role-elevated:         var(--cy-comp-sheet-merchant-elevated);
+  --cy-comp-sheet-role-text:             var(--cy-comp-sheet-merchant-title);
+  --cy-comp-sheet-role-text-secondary:   var(--cy-comp-sheet-merchant-text-secondary);
+  --cy-comp-sheet-role-muted:            var(--cy-comp-sheet-merchant-text-tertiary);
+  --cy-comp-sheet-role-action-secondary: var(--cy-comp-sheet-merchant-close-bg);
+  --cy-comp-sheet-role-divider:          var(--cy-comp-sheet-merchant-border-subtle);
+  --cy-comp-sheet-role-border-strong:    var(--cy-comp-sheet-merchant-border-strong);
+  --cy-comp-sheet-role-btn-bg:           var(--cy-comp-sheet-merchant-title);
+  --cy-comp-sheet-role-btn-fg:           var(--cy-comp-sheet-merchant-elevated);
+  /* 创建域是「白底细线」层级,不要投影(同本块上方 --cy-comp-card-shadow-day 的决定),
+     所以这一条不照抄 .theme-merchant 的卡片投影。 */
+  --cy-comp-sheet-role-card-shadow:      0 0 0 0 transparent;
+  --cy-text-title:              var(--cy-color-text-primary);
+  --cy-text-secondary:          var(--cy-color-text-tertiary);
+  /* 2026-08-10 与商家版取同一个灰(见上方 .theme-light/.theme-merchant 块的 #F3F4F4)。
+     取同值而不是另挑一个:两个日间域挨着出现(商家从工作台点进主题编辑器),
+     底色差半级会读成"换了个 App"。该值 HSL 饱和度 4.3%,在 §1.2 的中性灰 ≤5% 闸内。 */
+  --cy-color-bg-page:           #F3F4F4;
+  --cy-color-bg-surface:        #FFFFFF;
+  /* 2026-08-10 #F1F1F1 → #EEEEEE。页底改灰(#FFFFFF→#F3F4F4)后 subtle 没跟着动,
+     对页底只剩 1.025:1 —— 输入框/空图位/状态 chip 这些拿它当底的「槽」在灰页上糊掉了。
+     subtle 的语义是**凹下去的槽**(iOS tertiary / Primer canvas.subtle 都比所在面更深),
+     不是浮起来的卡(那是 --cy-color-bg-surface 的白)。
+     取 #EEEEEE 而不是更深:再深一级三级文字 #626C7E 就掉到 4.44 破 AA。
+     想要 iOS 级的 1.1+ 层次,得先压暗 text-tertiary —— 那是全局改动,另立卡。 */
+  --cy-color-bg-surface-subtle: #EEEEEE;   /* vs 页底 1.053:1,三级文字 4.56:1 */
+  --cy-color-bg-elevated:       #FFFFFF;
+  --cy-color-bg-surface-strong: #E4E4E4;   /* 日间控件填充底(步进键/已填输入)。此前本块未重声明,浅色页继承玩家档 #3B3B3D,黑加减号压上去 1.88:1 几乎不可见(2026-09-02) */
+  --cy-color-bg-raised:         #E6E6E6;   /* 2026-09-01 日间对应档:比 surface-subtle 再深一级 */
+  --cy-color-bg-interactive:    #FFFFFF;   /* 日间控件底=白卡,与手册 Merchant/Topic editor 模式一致 */
+  --cy-color-bg-glass:          rgba(255,255,255,.96);
+
+  /* 2026-08-11 用户裁决「蓝色字体改成灰色,不符合我们的品牌设计语言」。
+     这一整条原本是墨蓝色阶(#1A2233/#465064/…),实测 couponInfo 的 .item-tit 计算值
+     rgb(70,80,100)、页面正文色 rgb(26,34,51) —— 蓝分量明显高于红绿,肉眼就是青蓝调。
+     ★ 2026-07-31 那轮「去墨蓝」只扫了 .theme-light / merchant-light,**漏了本域**:
+     .theme-topic-editor 是类选择器,优先级压过 merchant-light 的 page{} 中性值,
+     所以发布/创建域这 13 个页面一直还是蓝的。取值与 merchant-light 去墨蓝后的中性阶对齐,
+     不另起一套灰。 */
+  --cy-color-text-primary:      #000000;              /* 原 #1A2233 */
+  --cy-color-text-secondary:    #404040;              /* 原 #465064 */
+  --cy-color-text-tertiary:     #6B6B6B;              /* 原 #626C7E */
+  --cy-color-text-placeholder:  #737373;              /* 原 #8B94A4 */
+  --cy-color-text-disabled:     #737373;              /* 空态灰;填写态描边改黑,见 cy-field */
+  --cy-color-text-inverse:      #FFFFFF;
+
+  /* 2026-09-03 用户当面纠正:创建域同浅端口径 —— 没填写是白色、填写之后是灰色。 */
+  --cy-color-input-idle-bg:     #FFFFFF;
+  --cy-color-input-filled-bg:   #EFEFEF;
+  --cy-color-input-text:        var(--cy-color-text-primary);
+  --cy-color-input-filled-fg:   var(--cy-color-text-primary);
+  --cy-color-input-placeholder: var(--cy-color-text-placeholder);
+  --cy-comp-search-idle-bg:     var(--cy-color-input-idle-bg);
+  --cy-comp-search-filled-bg:   var(--cy-color-input-filled-bg);
+  --cy-comp-search-filled-fg:   var(--cy-color-input-filled-fg);
+  --cy-comp-search-placeholder: var(--cy-color-input-placeholder);
+
+  --cy-color-border-subtle:     #E8E8E8;              /* 空态描边灰 */
+  --cy-color-border-strong:     #DBDBDB;
+  --cy-color-sheet-handle: #DBDBDB;
+  --cy-color-result-fail-badge: #F94D5C;
+  --cy-color-state-pressed:     rgba(0,0,0,.06);
+  --cy-color-overlay:           rgba(0,0,0,.56);
+
+  /* 2026-09-01:创建域不许蓝。选中/brand 跟商家走中性灰;次按钮删淡蓝出口。 */
+  --cy-color-action-primary-bg: #000000;
+  --cy-color-action-primary-fg: #FFFFFF;
+  --cy-color-action-secondary-bg:#EEEEEE;
+  --cy-color-selection:         #33363C;
+  --cy-color-brand:             #33363C;
+  --cy-color-brand-strong:      #000000;
+  --cy-color-brand-soft:        #EAEBEE;
+
+  /* ② 旧名 alias 层补全(2026-07-31):本块此前只写了 v2 语义真值,没有像
+     page{} 那样同步声明 v1 旧别名 —— 实测(merchant/citynode 用户截图)证明
+     组件层跨 styleIsolation 边界读 var() 时,并不总能穿透到本块的 v2 覆盖值,
+     旧别名会退回继承外层(暗色)默认值,导致同一页面上下两截背景色不一致。
+     这里直接把本块已定义的 v2 值照抄一份 v1 别名,不做语义合并、不影响其它主题。 */
+  --cy-bg-page:        var(--cy-color-bg-page);
+  --cy-bg-card:        var(--cy-color-bg-surface);
+  --cy-comp-modal-panel: var(--cy-color-bg-surface);
+  --cy-bg-card-2:      var(--cy-color-bg-surface-subtle);
+  --cy-bg-glass:       var(--cy-color-bg-glass);
+  --cy-bg-elevated:    var(--cy-color-bg-elevated);
+  --cy-bg-raised:      var(--cy-color-bg-raised);
+  --cy-bg-interactive: var(--cy-color-bg-interactive);
+  --cy-bg-accent-weak: var(--cy-color-brand-soft);
+  --cy-text-body:        var(--cy-color-text-secondary);
+  --cy-text-placeholder: var(--cy-color-text-placeholder);
+  --cy-text-inverse:     var(--cy-color-text-inverse);
+  --cy-border-card: var(--cy-color-border-subtle);
+  --cy-border-line: var(--cy-color-border-strong);
+  --cy-brand:         var(--cy-color-brand);
+  --cy-brand-soft:    var(--cy-color-brand-soft);
+  --cy-accent:        var(--cy-color-brand);
+  --cy-accent-strong: var(--cy-color-brand-strong);
+  --cy-accent-soft:   var(--cy-color-brand-soft);
+  --cy-info:          var(--cy-color-status-info);
+  --cy-success:       var(--cy-color-status-success);
+  --cy-danger:        var(--cy-color-status-danger);
+  --cy-btn-solid-bg: var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg: var(--cy-color-action-primary-fg);
+  /* ★ cy-btn 读的是 comp 档,不是上面那对 action 档。comp 档在 page{} 里就地求值成
+     深色快照(#F8F8F8 星白底 + 深墨字)并按【值】继承,只改 action 档管不到它 ——
+     2026-08-10 实拍:本主题里所有 variant="primary" 都是浅灰底深字,而稿子
+     (4028:13649「编辑故事流」/「预览」)是纯黑底白字。同一个洞旁边的
+     --cy-btn-solid-* 已经补过,这两支漏了。 */
+  --cy-comp-btn-primary-bg: var(--cy-color-action-primary-bg);
+  --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+  /* secondary 是同一个洞的另一半(2026-08-11 实拍补):comp 档在 page{} 冻成深色语义,
+     落到白底上就是【浅灰底 + 浅灰字】—— 玩法选择页的「自己建一个玩法」当场读不出来。
+     上一轮只补了 primary 两支,secondary 漏了。 */
+  --cy-comp-btn-secondary-bg: var(--cy-color-bg-surface-subtle);
+  --cy-comp-btn-secondary-fg: var(--cy-color-text-primary);
+
+  /* 状态四支回到稿的色相。基色承载文字/描边(白底 ≥4.5:1),软底是稿原值。 */
+  --cy-color-status-success:      #0C7A50;   /* 稿 #16A36A 压深:3.24 → 5.35:1 */
+  --cy-color-status-success-soft: #E4F5EC;
+  --cy-color-status-warning:      #B85C10;   /* 稿 #FF7A45 压深:2.60 → 4.59:1 */
+  --cy-color-status-warning-soft: #FDF3DF;
+  /* -strong 档 = 印在自己软底上的文字色。基色只保证白底 ≥4.5,压到同色系软底上会掉:
+     实测 brand 4.14 / info 4.06 / warning 4.17,全在线下。口径统一为「基色压深到
+     白底 ≈6.5:1」(与既有 --cy-color-brand → --cy-color-brand-strong 的 4.60→6.58 同幅度),
+     实底 CTA 仍用基色,不动稿的主色。三对都由本域契约逐条实算锁住。 */
+  --cy-color-status-warning-strong: #92490D;  /* 白底 6.60:1 · 软底 5.99:1 */
+  --cy-color-status-danger:       #D2263C;   /* 稿 #F5455C 压深:3.57 → 5.14:1(软底上 4.78) */
+  --cy-color-status-danger-soft:  #FFF4F5;
+  --cy-color-status-neutral-soft: #EDEDEF;   /* 2026-09-01:状态胶囊软底,与其余五支同构(本域 text-tertiary 的低透明版) */
+  --cy-color-rare-soft: #FFF3DD;          /* 同上;rare 与 warning 同为琥珀,按手册「同色靠图标区分」的既有做法,不换色相 */
+  --cy-color-rare-fg: var(--cy-ref-amber-700);   /* 浅端必须压深:--cy-color-rare(#F59F00)注释写明「仅图形与大字」,
+                                                    当文字压在 rare-soft 上只有 1.94:1,连大字 3.0 都不到;amber-700 为 4.77:1 */
+  --cy-color-status-info:         #2F6DF0;   /* 稿主蓝原值,4.58:1 已过 AA */
+  --cy-color-status-info-soft:    #EAF1FF;
+  --cy-color-status-info-strong:  #1F55C8;   /* 同 brand-strong · 白底 6.58:1 · 软底 5.80:1 */
+  --cy-color-skeleton-base:     #E3E6EC;
+  --cy-color-skeleton-highlight:#F1F1F1;
+  /* 2026-09-02 帖文 UI 整改 A1:Figma 有、代码一直没有的 6 档。medal-* 是名次不是状态,
+     别拿 status/warning 或 rare 顶替;skeleton-on-sheet 专给玻璃面板上的骨架(比页面亮)。 */
+  --cy-color-status-danger-on-interactive:          #D2263C;
+  --cy-color-medal-gold:                            #D27D08;
+  --cy-color-medal-silver:                          #717171;
+  --cy-color-medal-bronze:                          #D6600B;
+  --cy-color-skeleton-on-sheet:                     #E3E6EC;
+
+  /* 模板页紫面 —— 浅端(商家域)取极淡紫,保持同一套 wxss 可用 */
+  --cy-color-panel-accent-top:   #EFE7FB;
+  --cy-color-panel-accent-mid:   #F6F2FC;
+  --cy-color-panel-accent-deep:  #FBFAFE;
+  --cy-color-panel-accent-base:  #FFFFFF;
+  --cy-color-glow-sweep:         #7C3AED;
+  --cy-color-glow-sweep-soft:    #A97CF0;
+  --cy-shadow-card:             none;
+
+  /* 简单 AI 对话画布：暖白至浅紫的引导式创作环境。
+   * 只在主题编辑域消费；紫色负责“继续创作/发送”这一条动作，不替代表单状态。 */
+  --cy-color-ai-canvas-top:       #FCF8FC;
+  --cy-color-ai-canvas-mid:       #F7F0FD;
+  --cy-color-ai-canvas-bottom:    #EEE2F8;
+  --cy-color-ai-surface:          #FFFDFF;
+  --cy-color-ai-surface-glass:    rgba(255,253,255,.78);
+  --cy-color-ai-border:           #E5D8F1;
+  --cy-color-ai-ink:              #37263F;
+  --cy-color-ai-muted:            #75627B;
+  --cy-color-ai-accent-soft:      #E5D3F4;
+  --cy-color-ai-accent:           #B89BE0;
+  --cy-color-ai-accent-strong:    #6E4C83;
+}
+
+/* 兼容:历史页面(首页 / 广场)根节点挂了 class="theme-dark"。
+ * 基础 page{} 已是暗色,该 class 现等价于无操作;显式声明以防被 .theme-light 误覆盖。 */
+page.theme-dark,
+.theme-dark {
+  /* 逃生口(2026-07-29 复核阻塞项 3):.theme-dark 可能嵌在浅色区域内(广场
+     商家态里切回玩家态的子树)。自定义属性沿 DOM 继承,父级 .theme-light 已把
+     这些键覆成日值,子节点若不重声明,只会继续继承浅值——"暗色已是默认"只对
+     顶层成立,嵌套场景必须显式写回。值与 page{} 的暗色语义真值层逐字同步。 */
+  /* 与 page{} 同步去紫相，理由见上面那段 */
+  /* 浅端块覆盖过它，深端逃生口必须写回，否则嵌套时弹窗底停在浅值 */
+  --cy-comp-sheet-bg: var(--cy-color-bg-glass);
+  --cy-color-bg-page: #000000;
+  --cy-color-bg-surface: #0A0A0B;
+  --cy-color-bg-surface-subtle: #141416;
+  --cy-color-bg-elevated: #1C1C1E;
+  --cy-color-bg-surface-strong: #3B3B3D;   /* 日间块把它覆成 #E4E4E4,本逃生口要还原(2026-09-02) */
+  --cy-color-bg-raised: #2A2A2C;
+  --cy-color-bg-glass: rgba(28,28,30,.82);
+  --cy-color-text-primary: #F8F8F8;
+  --cy-color-text-secondary: #B7B7B7;
+  --cy-color-text-tertiary: #919191;
+  --cy-color-text-placeholder: #868686;
+  --cy-color-text-disabled: rgba(255,255,255,.40);
+  --cy-color-text-inverse: #0A0A0A;
+  --cy-color-input-idle-bg: #3B3B3D;   /* 2026-09-03:同上,空亮填暗 */
+  --cy-color-input-filled-bg: #1C1C1E;
+  --cy-color-input-text: #F2F2F4;
+  --cy-color-input-filled-fg: #F2F2F4;
+  --cy-color-input-placeholder: #A3A3A5;
+  --cy-comp-search-idle-bg: var(--cy-color-input-idle-bg);
+  --cy-comp-search-filled-bg: var(--cy-color-input-filled-bg);
+  --cy-comp-search-filled-fg: var(--cy-color-input-filled-fg);
+  --cy-comp-search-placeholder: var(--cy-color-input-placeholder);
+  --cy-color-border-subtle: rgba(255,255,255,.08);
+  --cy-comp-card-highlight: rgba(255,255,255,.08);
+  --cy-comp-card-shadow-day: 0 0 0 0 transparent;
+  --cy-comp-card-border: var(--cy-color-border-subtle);
+  --cy-comp-cell-fill-bg: var(--cy-color-bg-surface-subtle);
+  --cy-text-title: var(--cy-color-text-primary);
+  --cy-color-border-strong: rgba(255,255,255,.16);
+  --cy-color-sheet-handle: #5A5A5A;
+  --cy-color-result-fail-badge: #F94D5C;
+  --cy-color-state-pressed: rgba(255,255,255,.10);
+  --cy-color-overlay: rgba(0,0,0,.56);
+  --cy-color-action-primary-bg: #F8F8F8;
+  --cy-color-action-primary-fg: #0A0A0A;
+  --cy-color-action-secondary-bg: rgba(255,255,255,.08);
+  --cy-color-action-danger-bg: var(--cy-ref-red-700);
+  --cy-color-action-danger-fg: #FFFFFF;
+  /* 与默认(玩家)作用域同步去紫,理由见上方 page{} 里那段注释 */
+  --cy-color-selection: var(--cy-color-text-primary);
+  --cy-color-brand: var(--cy-color-text-primary);
+  --cy-color-brand-strong: var(--cy-color-text-secondary);   /* 同默认域,见上方注释 */
+  --cy-color-brand-soft: rgba(248,248,248,.12);
+  --cy-color-status-success: #22C55E;                    /* D3:与 page{} 同步 */
+  --cy-color-status-warning: #D58300;                    /* 同上:保留 9-02 的对比度实测值 */
+  --cy-color-status-danger: #E5484D;
+  --cy-color-status-info: var(--cy-ref-blue-400);
+  --cy-color-status-danger-soft: rgba(229,72,77,.14);
+  --cy-color-status-neutral-soft: rgba(145,145,145,.16);   /* 2026-09-01:状态胶囊软底,与其余五支同构(本域 text-tertiary 的低透明版) */
+  --cy-color-rare-soft: rgba(245,159,0,.14);          /* 同上;rare 与 warning 同为琥珀,按手册「同色靠图标区分」的既有做法,不换色相 */
+  --cy-color-rare-fg: var(--cy-color-rare);   /* 夜间琥珀压在自己的软底上 7.6:1,直接用本色 */
+  --cy-color-status-success-soft: rgba(34,197,94,.14);
+  --cy-color-status-warning-soft: rgba(213,131,0,.18);   /* 跟 #D58300 同步 */
+  --cy-color-status-info-soft: rgba(76,134,255,.14);
+  --cy-color-skeleton-base: #16141C;
+  --cy-color-skeleton-highlight: #211E29;
+  --cy-color-bg-interactive:                        #4D4D4D;
+  --cy-color-status-danger-on-interactive:          #FF3B4F;
+  --cy-color-medal-gold:                            #FFCB3C;
+  --cy-color-medal-silver:                          #D6D6D6;
+  --cy-color-medal-bronze:                          #F58C41;
+  --cy-color-skeleton-on-sheet:                     #303038;
+
+  /* —— 模板页「连体 tab + 紫面」(2026-08-26 定稿,画板 16)——
+     ⚠️ 紫在这里是**内容面**,不是 brand。--cy-brand 的约 70 个消费点一个都不动
+     (2026-08-01 用户拍板「玩家版全去紫」仍然有效,那条管的是 selection/brand)。
+     面用顶部渐变往下淡出:紫只落在 tab 连接处 / chips / banner,列表区回到近黑
+     —— 封面是大地色系自绘 key art,压在高彩紫上会互相打架。 */
+  --cy-color-panel-accent-top:   #5B2A9D;
+  --cy-color-panel-accent-mid:   #341A55;
+  --cy-color-panel-accent-deep:  #180E24;
+  --cy-color-panel-accent-base:  #0B0810;
+  /* 扫光:必须比它所在的面亮,否则是一圈自己看不见的动画(换面色时要一起重算) */
+  --cy-color-glow-sweep:         #FFFFFF;
+  --cy-color-glow-sweep-soft:    #EFEDFA;
+  --cy-bg-subtle: rgba(255,255,255,0.04);
+  --cy-white-4: rgba(255,255,255,0.04);
+  --cy-white-64: rgba(255,255,255,0.64);
+  --cy-price: #FFFFFF;
+  --cy-shadow-card: none;
+  /* ② 旧名 alias 快照重估:与 .theme-light/.theme-merchant 块对称(嵌套主题时不许停在浅值上) */
+  --cy-bg-page:        var(--cy-color-bg-page);
+  --cy-bg-card:        var(--cy-color-bg-surface);
+  --cy-comp-modal-panel: #4D4D4D;   /* 暗端同 page{}:危险确认面板要浮起来 */
+  --cy-bg-card-2:      var(--cy-color-bg-surface-subtle);
+  --cy-bg-glass:       var(--cy-color-bg-glass);
+  --cy-bg-elevated:    var(--cy-color-bg-elevated);
+  --cy-bg-raised:      var(--cy-color-bg-raised);
+  --cy-bg-interactive: var(--cy-color-bg-interactive);
+  --cy-bg-accent-weak: var(--cy-color-brand-soft);
+  --cy-text-body:        var(--cy-color-text-secondary);
+  --cy-text-secondary:   var(--cy-color-text-tertiary);
+  --cy-text-placeholder: var(--cy-color-text-placeholder);
+  --cy-text-inverse:     var(--cy-color-text-inverse);
+  --cy-border-card: var(--cy-color-border-subtle);
+  --cy-border-line: var(--cy-color-border-strong);
+  --cy-brand:         var(--cy-color-brand);
+  --cy-brand-soft:    var(--cy-color-brand-soft);
+  --cy-accent:        var(--cy-color-brand);
+  --cy-accent-strong: var(--cy-color-brand-strong);
+  --cy-accent-soft:   var(--cy-color-brand-soft);
+  --cy-info:          var(--cy-color-status-info);
+  --cy-success:       var(--cy-color-status-success);
+  --cy-danger:        var(--cy-color-status-danger);
+  --cy-danger-soft:   var(--cy-color-status-danger-soft);
+  --cy-gold:          var(--cy-color-rare);
+  --cy-white-8:  var(--cy-color-border-subtle);
+  --cy-white-16: var(--cy-color-border-strong);
+  --cy-white-40: var(--cy-color-text-disabled);
+  --cy-btn-solid-bg: var(--cy-color-action-primary-bg);
+  --cy-btn-solid-fg: var(--cy-color-action-primary-fg);
+  /* 与 .theme-merchant 对称重声明(嵌套主题不停在浅值):cy-btn 读的 comp 档 */
+  --cy-comp-btn-primary-bg: var(--cy-color-action-primary-bg);
+  --cy-comp-btn-primary-fg: var(--cy-color-action-primary-fg);
+  --cy-comp-btn-secondary-bg: var(--cy-color-bg-surface-subtle);
+  --cy-comp-btn-secondary-fg: var(--cy-color-text-primary);
+
+  /* 弹窗角色档(2026-08-07 用户拍板:弹窗双规范——玩家页=深玻璃,商家页=白)。
+   * .theme-dark 对称重声明(嵌套主题不停在浅值)。 */
+  --cy-comp-sheet-role-glass: var(--cy-comp-sheet-player-glass);
+  --cy-comp-sheet-role-page: var(--cy-comp-sheet-player-page);
+  --cy-comp-sheet-role-surface: var(--cy-comp-sheet-player-surface);
+  --cy-comp-sheet-role-card: var(--cy-comp-sheet-player-card);
+  --cy-comp-sheet-role-elevated: var(--cy-comp-sheet-player-elevated);
+  --cy-comp-sheet-role-text: var(--cy-comp-sheet-player-text);
+  --cy-comp-sheet-role-text-secondary: var(--cy-comp-sheet-player-text-secondary);
+  --cy-comp-sheet-role-muted: var(--cy-comp-sheet-player-muted);
+  --cy-comp-sheet-role-action-secondary: var(--cy-comp-sheet-player-action-secondary);
+  --cy-comp-sheet-role-divider: var(--cy-comp-sheet-player-divider);
+  --cy-comp-sheet-role-border-strong: var(--cy-comp-sheet-player-border-strong);
+  --cy-comp-sheet-role-btn-bg: var(--cy-comp-sheet-player-text);
+  --cy-comp-sheet-role-btn-fg: var(--cy-comp-sheet-player-page);
+  --cy-comp-sheet-role-card-shadow: 0 0 0 0 transparent;
+  /* comp 别名重声明:见基础 page 规则内「导航」段注释。 */
+  --cy-comp-nav-bg:     var(--cy-color-bg-page);
+  --cy-comp-nav-border: var(--cy-color-border-subtle);
+}
+
+/* ============================================================
+ * .theme-game —— 玩法域「游戏皮」(2026-08-27)
+ *
+ * 为什么要这个作用域:玩家端全站是 consumer-night(纯黑),但玩法页需要读作
+ * 「进了另一个空间」——用户拍板游戏要和其余页面不一样。做法沿用 .theme-light /
+ * .theme-topic-editor 的既有手法:挂 class 换域,不改基础 page{}。
+ *
+ * ⚠️ 本块是**叠加层,不是独立主题域**:玩法页根节点挂 class="theme-light theme-game" ——
+ *    日间语义值与 ② 旧名 alias 全部来自既有 .theme-light 块那一处真源,本块只加游戏增量。
+ *    这样做的原因:tokens.wxss 自己警告过「别名在 page{} 已就地求值成暗端快照,只补其中几个
+ *    会半黑半白」,而 theme-light-alias-snapshot-contract 正是盯这条。与其再抄一份完整日值
+ *    (多一处要同步的真源),不如复用已经过 R1 对比度验收的那一块。
+ *    若日后玩法域要脱离商家日值独立演进,再把它提升成 .theme-topic-editor 那样的完整块。
+ *
+ * 颜色零新增:强调红/黄/绿全部指向 ⓪ 原子色层已有值 —— red-700 的白字对比度 5.0:1 是
+ * 现成结论,不用重测;换成更亮的橙红(如 #EE3124)白字只有 4.12:1,达不到 R1 的 4.5:1。
+ * 页面/组件只读本块的 --cy-game-*,禁止在玩法页 wxss 里写字面色值。
+ * ============================================================ */
+page.theme-game,
+.theme-game {
+  /* —— 强调色:玩法域的主操作与判定反馈 —— */
+  --cy-game-accent:        var(--cy-ref-red-700);      /* 主键底(白字 5.0:1) */
+  --cy-game-accent-fg:     #FFFFFF;
+  --cy-game-accent-soft:   rgba(208,50,59,.10);        /* red-700 的软底,同 brand-soft 手法 */
+  --cy-game-marker:        var(--cy-ref-amber-500);    /* 目标刻度标记 */
+  --cy-game-win:           var(--cy-ref-green-700);    /* 判定「完美/优秀」(浅端 R1 成功色) */
+
+  /* —— 判定结果的整屏泛色底:三档各一,均为对应原子色的软底 —— */
+  --cy-game-flood-win:     rgba(11,122,87,.14);
+  --cy-game-flood-ok:      rgba(245,159,0,.16);
+  --cy-game-flood-miss:    rgba(208,50,59,.12);
+
+  /* —— 玩法专用字号:DS 最大档 data-2xl(84rpx)是 tab 页 hero 数字,
+        停表读数是全屏唯一主角,再大一档才压得住场;只在本域生效,不进全站字阶。 —— */
+  --cy-game-type-hero:     132rpx;
+  --cy-game-type-readout:  64rpx;
+}

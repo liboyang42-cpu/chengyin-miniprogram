@@ -1,0 +1,21 @@
+/* 取景照原型 camPanel(2026-09-11 用户裁决「不是 canon 了 用原型的」)。1px = 1.923rpx。
+   卡:left/right 14px、height 352px、radius 22px、阴影 0 18px 44px rgba(0,0,0,.7);
+   ✕:32×32 半透黑圆,卡左上 12/12;快门:62 白圆 + 4px 半透白描边,居中压在卡底边内 18px。
+   卡外一层压暗,让取景卡是这屏唯一的焦点(原型这一屏底下是地图,这里没有地图可露)。 */
+.sc-root { position: relative; width: 100vw; height: 100vh; overflow: hidden; background:#08090B; } /* ds-ok 原型 --bg */
+.sc-dim { position: absolute; z-index: 1; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,.62); } /* ds-ok 原型 .dim */
+.sc-card { position: absolute; z-index: 2; border-radius: 42rpx; overflow: hidden; background: #000; /* ds-ok 原型 .cam radius 22px */
+  box-shadow: 0 35rpx 85rpx rgba(0,0,0,.7); } /* ds-ok 原型 .cam 0 18px 44px rgba(0,0,0,.7) */
+.sc-live-cam { width: 100%; height: 100%; display: block; }
+.sc-x { position: absolute; z-index: 6; width: 62rpx; height: 62rpx; border-radius: var(--cy-radius-pill);
+  background: rgba(0,0,0,.5); color: #FFFFFF; display: flex; align-items: center; justify-content: center; } /* ds-ok 原型 .cam__x 32px */
+.sc-x::after { content: ''; position: absolute; left: 50%; top: 50%; width: 88rpx; height: 88rpx; transform: translate(-50%,-50%); }
+.sc-shutter { position: absolute; z-index: 6; border-radius: var(--cy-radius-pill); box-sizing: border-box;
+  background: #FFFFFF; border: 8rpx solid rgba(255,255,255,.45); /* ds-ok 原型 .cam__shutter 62 + 4px 描边 */
+  box-shadow: 0 12rpx 35rpx rgba(0,0,0,.5); } /* ds-ok 原型 0 6px 18px rgba(0,0,0,.5) */
+.sc-save-error { position: absolute; z-index: 7; box-sizing: border-box; display: flex; align-items: flex-end; padding: var(--cy-space-2); }
+.sc-save-error cy-inline-error { width: 100%; }
+.sc-review-actions { position: absolute; z-index: 5; display: flex; align-items: center; justify-content: center; gap: var(--cy-space-2); }
+.sc-physical-action { min-width: 124rpx; /* ds-ok: 两颗按钮并排贴合取景卡宽度 */ box-sizing: border-box; padding: var(--cy-space-2) var(--cy-legacy-18); /* ds-ok: 与取景卡左右内边距同一档 */ border-radius: var(--cy-radius-pill); text-align: center; font-size: var(--cy-type-label); font-weight: 800; color: var(--cy-color-text-primary); background: var(--cy-color-bg-glass); border: 2rpx solid var(--cy-color-border-strong); /* ds-ok: 实体按键细边，不是布局间距 */ }
+.sc-physical-action-primary { color: var(--cy-color-action-primary-fg); background: var(--cy-color-action-primary-bg); }
+.sc-physical-action.on { opacity: .6; }

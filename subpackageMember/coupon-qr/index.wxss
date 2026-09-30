@@ -1,0 +1,67 @@
+/* M0-2 优惠券出示页(结果态样式;亮码态由 cy-qr-voucher 呈现) */
+.cq-page {
+  min-height: 100vh;
+  background: var(--cy-color-bg-page);
+  padding: var(--cy-space-5) var(--cy-page-x);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cq-entry-state {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.cq-poll-error {
+  position: fixed;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: calc(var(--cy-space-5) + env(safe-area-inset-bottom));
+  z-index: 79;
+  pointer-events: none;
+}
+
+/* 卡壳交给 cy-card,此处只留页面布局特化。 */
+.cq-card {
+  width: 100%;
+  margin-bottom: var(--cy-space-5);
+}
+.cq-name { color: var(--cy-color-text-primary); font-size: var(--cy-type-card-title); font-weight: 600; }
+.cq-desc { color: var(--cy-color-text-secondary); font-size: var(--cy-type-label); margin-top: var(--cy-space-2); line-height: var(--cy-leading-normal); }
+.cq-valid { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); margin-top: var(--cy-space-3); }
+
+.cq-result {
+  margin-top: var(--cy-space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cq-badge {
+  /* 120rpx 圆配 64rpx 字形,占比 0.53 对齐 merchantapply3 成功章先例 */
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-status-success);
+  /* 反色字:text-primary 在绿底上暗端仅 2.38:1,过不了大字号 3.0 阈值(DS §11 实测) */
+  color: var(--cy-color-text-inverse);
+  font-size: var(--cy-type-data-xl);
+  line-height: 120rpx;
+  text-align: center;
+  animation: cq-pop 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cq-result-text { color: var(--cy-color-text-primary); font-size: var(--cy-type-section-title); font-weight: 600; margin-top: var(--cy-space-4); }
+.cq-result-sub { color: var(--cy-color-text-tertiary); font-size: var(--cy-type-label); margin-top: var(--cy-space-2); }
+.cq-expired .cq-result-text { color: var(--cy-color-text-secondary); }
+
+@keyframes cq-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 减少动态效果:核销成功徽章的弹入是位移+缩放,直接到位;徽章本身与文案照常显示,反馈不归零。 */
+.cq--reduced .cq-badge { animation: none; }

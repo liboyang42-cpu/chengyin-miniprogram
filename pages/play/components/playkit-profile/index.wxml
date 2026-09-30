@@ -1,0 +1,44 @@
+<!-- 出生登记:一张表填完就有了身份。头像可选、题目来自商家配置(1–8 条)。
+     整屏台面与十九个玩法共用 cy-play-stage(退出 / 判定屏都是它那套):
+     这一屏没有计时也没有次数,台面只负责退出与判定层。 -->
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="pf g-col {{reducedMotion ? 'pk--reduced' : ''}}">
+    <view class="g-kicker">{{title || '出生登记'}}</view>
+    <view class="pf__lead pk-in" wx:if="{{lead}}">{{lead}}</view>
+
+    <!-- 头像位:可选时不逼玩家先拍照,必填时才明说 -->
+    <view class="pf__ava" wx:if="{{avatarEnabled}}" bindtap="onAvatar"
+          aria-role="button" aria-label="{{avatarUrl ? '换一张头像' : '选一张头像'}}"
+          hover-class="pf__ava--press" hover-stay-time="80">
+      <image wx:if="{{avatarUrl}}" class="pf__ava-img" src="{{avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="pf__ava-ph"><cy-icon name="camera" size="52" /></view>
+      <view class="pf__ava-t">{{avatarUrl ? '换一张' : (avatarRequired ? '放一张照片' : '放张照片（可选）')}}</view>
+    </view>
+
+    <view class="pf__qs pk-in pk-in--2">
+      <view class="pf__q" wx:for="{{questions}}" wx:key="key">
+        <view class="pf__label">
+          <text>{{item.label || item.key}}</text>
+          <text class="pf__req" wx:if="{{item.required}}">必填</text>
+        </view>
+        <input wx:if="{{item.kind !== 'pick'}}" class="pf__input"
+               value="{{form[item.key]}}" maxlength="{{item.maxLength}}"
+               placeholder="写在这里" placeholder-class="pf__input-ph"
+               data-key="{{item.key}}" bindinput="onInput"
+               aria-label="{{item.label || item.key}}" />
+        <view class="pf__opts" wx:else>
+          <view class="pf__opt {{form[item.key] === opt.key ? 'is-on' : ''}}"
+                wx:for="{{item.options}}" wx:for-item="opt" wx:key="key"
+                data-key="{{item.key}}" data-opt="{{opt.key}}" bindtap="onPick"
+                aria-role="radio" aria-checked="{{form[item.key] === opt.key}}"
+                hover-class="pf__opt--press" hover-stay-time="80">{{opt.label || opt.key}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="pf__done" wx:if="{{done}}">档案已提交，往后翻就是你的名字了</view>
+  </view>
+
+  <view class="g-btn {{ctaDisabled ? 'g-btn--disabled' : ''}}" bindtap="onSubmit"
+        aria-role="button" aria-label="{{ctaLabel}}" hover-class="g-btn--press" hover-stay-time="80">{{ctaLabel}}</view>
+</cy-play-stage>

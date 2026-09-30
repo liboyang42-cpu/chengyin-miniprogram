@@ -1,0 +1,5 @@
+<view class="tag tag--{{variant}} {{selected ? 'is-selected' : ''}}">
+  <cy-icon wx:if="{{_icon}}" class="tag__icon" name="{{_icon}}" size="24" />
+  <view wx:if="{{dot}}" class="dot"></view>
+  <slot></slot>
+</view>

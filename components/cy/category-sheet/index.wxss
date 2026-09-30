@@ -1,0 +1,49 @@
+/* cy-category-sheet · 半屏分类清单(参考图1:设置/勾选类清单弹窗)。走 token,双主题自适配。 */
+:host { display: block; }
+
+.cs-list {
+  padding: var(--cy-space-2) var(--cy-page-x) 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2-5);
+}
+/* UI-13(2026-09-18):一行两个 + 语义 icon。后端 icon 各品类共用占位图,
+   展示改用 utils/category-icon.js 映射出的 cy-icon(iconName)。 */
+.cs-li {
+  width: calc((100% - var(--cy-space-2-5)) / 2);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+  border: 2rpx solid transparent;
+  position: relative;
+}
+.cs-li--on { border-color: var(--cy-text-title); }
+.cs-li--disabled { opacity: 0.4; }
+.cs-li-ico {
+  width: 42rpx;
+  height: 42rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-title);
+}
+.cs-li-txt {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cs-li-ok { width: 32rpx; height: 32rpx; flex-shrink: 0; color: var(--cy-text-title); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

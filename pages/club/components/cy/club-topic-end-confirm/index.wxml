@@ -1,0 +1,11 @@
+<cy-modal
+  show="{{show}}"
+  title="结束主题"
+  content="{{contentText}}"
+  confirm-text="结束并退款"
+  cancel-text="再想想"
+  danger="{{true}}"
+  loading="{{loading}}"
+  bind:confirm="onConfirm"
+  bind:cancel="onCancel"
+/>

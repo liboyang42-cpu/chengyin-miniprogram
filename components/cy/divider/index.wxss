@@ -1,0 +1,14 @@
+:host { display: block; }
+
+.dv--hairline { height: 2rpx; background: var(--cy-color-border-subtle); }
+.dv--inset { margin-left: var(--cy-page-x); margin-right: var(--cy-page-x); }
+.dv--inset-lead { margin-left: 120rpx; margin-right: var(--cy-page-x); }
+
+.dv--labelled { display: flex; align-items: center; gap: var(--cy-space-3); }
+.dv__line { flex: 1; height: 2rpx; background: var(--cy-color-border-subtle); }
+.dv__text { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+
+.dv--gap { background: var(--cy-color-bg-surface-subtle); }
+.dv--gap.dv--sm { height: var(--cy-space-3); }
+.dv--gap.dv--md { height: var(--cy-space-4); }
+.dv--gap.dv--lg { height: var(--cy-space-5); }

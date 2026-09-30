@@ -1,0 +1,37 @@
+<cy-play-stage id="cy-play-stage" skin="estimate" show="{{show}}" back-label="退出"
+               limit-seconds="{{limitSeconds}}" tries="{{maxTries}}"
+               bind:back="onClose" bind:verdict="onVerdict">
+  <view class="g-col es">
+    <!-- ⚠️ 原型里 header(title, sub) 的第二个参数**不显示**:.hdr .s{display:none}。
+         那是「删除提示语」那条拍板的结果 —— 屏幕上已经摆着能点的东西了,
+         再写一句怎么点,等于承认那个东西自己说不清楚。副标题只留给读屏器。 -->
+    <view class="es__q" aria-label="{{title}}，上下滑动选一个数">{{title}}</view>
+
+    <!-- 滚筒:屏上只留三个数。中间那个是实的,上下两个是它的**镜像** ——
+         翻过来、发虚、发淡。参考图上一个数配一条倒影,三个数就是上下各一条。
+         手势交给原生 picker-view(惯性与吸附它做得比手写好),外观自己画。 -->
+    <view class="es__reel">
+      <view class="es__lane es__lane--up">{{prevText}}</view>
+      <view class="es__lane es__lane--mid">{{curText}}</view>
+      <view class="es__lane es__lane--down">{{nextText}}</view>
+      <picker-view class="es__picker" indicator-class="es__ind" value="{{pickerValue}}"
+                   bindchange="onScroll" aria-label="估一个数，上下滑动">
+        <picker-view-column>
+          <view wx:for="{{ticks}}" wx:key="*this"></view>
+        </picker-view-column>
+      </picker-view>
+    </view>
+    <view class="es__unit" wx:if="{{unit}}">{{unit}}</view>
+
+    <!-- 这儿原先还有一行「X 揭晓」。删掉的理由:猜数字是**当场判档、当场发分**
+         (服务端 submitEstimate 直接给 HIT / CLOSE / MISS),没有「事后由商家公布」这回事,
+         全链路没有一处产出 revealAt/revealHour —— 留着它只会在夹具里演一句
+         玩家永远看不到的话,实测还会把 CTA 压出重叠。要做揭晓就连服务端一起做。 -->
+    <view class="es__fb" wx:if="{{feedback}}">{{feedback}}</view>
+  </view>
+
+  <view class="g-btn {{locked ? 'g-btn--disabled' : ''}}" bindtap="onSubmit"
+        aria-role="button" aria-label="提交这个数" hover-class="g-btn--press" hover-stay-time="80">
+    {{locked ? '这一关结束了' : '就这个数'}}
+  </view>
+</cy-play-stage>

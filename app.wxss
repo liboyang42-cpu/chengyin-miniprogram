@@ -1,0 +1,32 @@
+  /* 设计 Token(机制层,唯一视觉变量真源) */
+@import './style/tokens.wxss';
+/* 全局样式 */
+@import './style/lib.wxss';
+/* 公共样式 */
+@import './style/common.wxss';
+/* 组件库 class 体系(.cy-btn / .cy-card / .cy-chip …,依赖 tokens) */
+/* 系统深色模式:必须排在 tokens 之后 —— 同特异度靠源码顺序取胜。
+   单独成文件而不并进 tokens.wxss:多个既有主题契约用扁平正则解析 tokens.wxss,
+   认不了嵌套的 @media,并进去会让它们把本块误判成业务域主题根。 */
+@import './style/dark-mode.wxss';
+
+@import './style/components.wxss';
+
+/* 全局基调:暗色默认(深空黑;背景/文字走 token,全站任意页自动继承)。个别浅色页根节点挂 class="theme-light"。 */
+page {
+  background: var(--cy-bg-page);
+  color: var(--cy-text-body);
+  /* 全站统一行间距基准:未单独设 line-height 的文本一律继承此值,
+     消除"各页默认行高不一"的根因。元素若显式设固定 rpx 行高(居中用)仍以自身为准。 */
+  line-height: var(--cy-leading-normal);
+}
+
+/* 无障碍:尊重系统「减弱动态效果」——大动效退化为近瞬时(对齐 ADA / DS 文档3 §B.1/D.2)。
+ * 支持该媒体特性的机型生效;不支持则该块自动不匹配,无副作用。 */
+@media (prefers-reduced-motion: reduce) {
+  view, button, image, text, scroll-view, swiper, cover-view, movable-view {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,15 @@
+<!-- 协议类长文 = 全屏弹窗(用户定)。footer 关掉:只读长文没有底部 CTA,
+     退出走顶栏 ✕(cy-sheet full 变体自带)。canBack 不传 = 首步不显示返回箭头。 -->
+<!-- 只绑 bind:close:本弹窗从不置 dirty,cy-sheet 在非 dirty 时 requestclose 与 close 会**同时**发,
+     两个都绑等于每次关闭触发两遍 onClose(向上多发一次 close 事件)。 -->
+<cy-scene-sheet variant="full" show="{{show}}" theme="{{theme}}" title="{{doc ? doc.title : ''}}" footer="{{false}}"
+  bind:requestclose="onClose">
+  <view class="agr-sheet" wx:if="{{doc}}">
+    <text class="agr-sheet__intro">{{doc.intro}}</text>
+    <view class="agr-sheet__section" wx:for="{{doc.sections}}" wx:key="h">
+      <text class="agr-sheet__h">{{item.h}}</text>
+      <text class="agr-sheet__p">{{item.p}}</text>
+    </view>
+    <text class="agr-sheet__meta">生效日期：{{doc.updatedAt}}</text>
+  </view>
+</cy-scene-sheet>

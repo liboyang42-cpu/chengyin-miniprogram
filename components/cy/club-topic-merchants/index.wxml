@@ -1,0 +1,56 @@
+<cy-scene-sheet
+  wx:if="{{show}}"
+  show="{{true}}"
+  variant="half"
+  title="商家"
+  mask-closable="{{true}}"
+  bind:close="onClose"
+>
+  <view class="ctm">
+    <cy-skeleton wx:if="{{loadState === 'loading'}}" type="form-section" count="4" loading-label="正在读取商家信息" />
+    <cy-error wx:elif="{{loadState === 'error'}}" title="商家信息没能打开" sub="{{loadErrorText}}" retry="重试" bind:retry="onRetry" />
+    <cy-empty wx:elif="{{loadState === 'empty'}}" kind="empty" title="还没有站点承接" sub="去招商弹窗邀请商家承接吧" />
+
+    <block wx:elif="{{loadState === 'ready'}}">
+      <view class="ctm__card">
+        <block wx:for="{{stations}}" wx:key="name" wx:for-item="station">
+          <view class="ctm__hairline" wx:if="{{index > 0}}"></view>
+          <view class="ctm__row">
+            <view class="ctm__text">
+              <text class="ctm__title">{{station.name}}</text>
+              <text class="ctm__meta">{{station.meta}}</text>
+            </view>
+            <text class="ctm__status ctm__status--{{station.statusTone || 'default'}}">{{station.statusLabel}}</text>
+          </view>
+          <!-- 安全铁律:这一行只认 station.contact 有没有值,不看 station.status 是什么 ——
+               号码本就该由后端只在合作确认后才下发,前端没有"藏"这一步。 -->
+          <block wx:if="{{station.contact}}">
+            <view class="ctm__hairline"></view>
+            <view class="ctm__row" data-phone="{{station.contact.phone}}" bindtap="onCallContact" aria-role="button" aria-label="拨打{{station.contact.name}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="ctm__text">
+                <text class="ctm__title">联系人 {{station.contact.name}} · {{station.contact.phoneMasked}}</text>
+              </view>
+              <text class="ctm__action">拨打</text>
+            </view>
+          </block>
+        </block>
+      </view>
+
+      <text class="ctm__section">招商与条款</text>
+      <view class="ctm__card">
+        <block wx:for="{{onboarding}}" wx:key="mode" wx:for-item="entry">
+          <view class="ctm__hairline" wx:if="{{index > 0}}"></view>
+          <view class="ctm__row" data-mode="{{entry.mode}}" bindtap="onOpenOnboarding" aria-role="button" aria-label="{{entry.label}}" hover-class="cy-pressed" hover-stay-time="80">
+            <view class="ctm__text">
+              <text class="ctm__title">{{entry.label}}</text>
+              <text class="ctm__meta">{{entry.sub}}</text>
+            </view>
+            <text class="ctm__action">{{entry.pendingCount}} 待审</text>
+          </view>
+        </block>
+      </view>
+
+      <text class="ctm__footnote">联系方式在商家接受合作后才下发;未确认的商家不展示手机号。</text>
+    </block>
+  </view>
+</cy-scene-sheet>

@@ -1,0 +1,8 @@
+/* 页面局部内容的一次性轻入场。只改变 opacity/translateY，不改变布局。 */
+.cy-rise-in { animation: cy-rise-in var(--cy-motion-standard) var(--cy-ease-out) both; }
+.cy-motion-reduced .cy-rise-in { animation: none !important; }
+
+@keyframes cy-rise-in {
+  0% { opacity: 0; transform: translateY(12rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}

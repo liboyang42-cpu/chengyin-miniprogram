@@ -1,0 +1,53 @@
+:host { display: block; }
+
+.cc {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--cy-color-bg-surface);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-lg);
+  box-shadow: var(--cy-shadow-card);
+  overflow: hidden;
+}
+.cc--press { transform: scale(.985); transition: transform var(--cy-motion-press) var(--cy-ease); }
+
+.cc__cover { position: relative; width: 100%; padding-bottom: 75%; background-color: var(--cy-color-bg-surface-subtle); overflow: hidden; }
+.cc--hero .cc__cover { padding-bottom: 56.25%; }
+.cc__cover-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
+.cc__cover-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--cy-color-text-tertiary); }
+.cc--coming-soon .cc__cover-img { filter: grayscale(1) brightness(.55); }
+
+.cc__status {
+  position: absolute; top: 24rpx; right: 24rpx; z-index: 2;
+  display: inline-flex; align-items: center; gap: var(--cy-legacy-6);
+  height: 40rpx; padding: 0 var(--cy-legacy-14); border-radius: var(--cy-radius-pill);
+  background: var(--cy-comp-scrim); color: var(--cy-comp-oncover-fg);
+  font-size: var(--cy-type-micro); font-weight: 600;
+  backdrop-filter: blur(8rpx);
+}
+
+.cc__cap {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 1;
+  padding: var(--cy-space-6) var(--cy-space-4) var(--cy-space-4);
+  background: var(--cy-comp-cover-scrim);
+  display: flex; flex-direction: column; gap: var(--cy-legacy-6);
+}
+.cc__name { font-size: var(--cy-type-card-title); font-weight: 700; color: var(--cy-comp-oncover-fg); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc--hero .cc__name { font-size: var(--cy-type-page-title); }
+.cc--coming-soon .cc__name { color: var(--cy-comp-oncover-fg-dim); }
+.cc__sub { font-size: var(--cy-type-caption); color: var(--cy-comp-oncover-fg-dim); }
+
+.cc__body { padding: var(--cy-space-4); display: flex; flex-direction: column; gap: var(--cy-space-2); }
+.cc__plabel { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.cc__pl-strong { color: var(--cy-color-text-primary); font-weight: 600; }
+.cc__track { height: 8rpx; border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-surface-subtle); overflow: hidden; margin-top: var(--cy-legacy-6); }
+/* 进度用 transform:scaleX() 而不是 width —— width 每帧触发 layout+paint,scaleX 只走合成层。
+   ⚠️ 右端圆角会被横向压扁(左端由 __track 的 overflow:hidden + pill 裁切,不受影响)。
+      条高 8rpx、圆角 4rpx,压扁后肉眼几乎不可辨;**改完仍需模拟器截图比对**,别只信这段注释。 */
+.cc__fill { height: 100%; width: 100%; border-radius: var(--cy-radius-pill); background: var(--cy-color-brand); transform-origin: left center; transform: scaleX(0); transition: transform var(--cy-motion-standard) var(--cy-ease); }
+.cc__fill--completed { background: var(--cy-color-status-success); }
+
+.cc__next { display: flex; align-items: center; gap: 8rpx; margin-top: var(--cy-space-2); color: var(--cy-color-brand-strong); font-size: var(--cy-type-body); }
+.cc__next-pre { color: var(--cy-color-text-tertiary); }
+.cc__next-t { color: var(--cy-color-text-primary); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc__next--soon { color: var(--cy-color-text-tertiary); }
+.cc__next--soon > .cc__next-soon-text { color: var(--cy-color-text-tertiary); }

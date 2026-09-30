@@ -1,0 +1,11 @@
+<!-- 深链兼容壳(§4.1):站内从「账户收益」点开的是弹窗;这一页只服务外部直达。 -->
+<view class="fin-shell theme-merchant" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <!-- E-01(2026-09-16 P0):去页级 merchant 守卫。/api/coop/finance 只按登录人取数
+       (ApiCoopController:926-934),不要求商家行 —— 挂着它把俱乐部主理人挡在分润明细外。 -->
+  <cy-nav-bar custom-back bind:back="goBack" />
+  <cy-page-title title="分润明细" safe-top="{{false}}" flush="{{true}}" />
+  <cy-scene-merchant-profit id="merchantProfit" />
+</view>

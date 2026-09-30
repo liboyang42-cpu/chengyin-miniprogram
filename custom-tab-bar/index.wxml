@@ -1,0 +1,1 @@
+<!-- 空 shim:真实底栏是页内 components/tabBar(见 index.js 注释)。渲染空视图,0 高度,不占位。 -->

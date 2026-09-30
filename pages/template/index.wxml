@@ -1,0 +1,156 @@
+<page-meta page-style="{{ pageMetaStyle }}"></page-meta>
+<view class="tpl-page {{ isMerchant ? 'theme-merchant' : 'theme-dark' }}" style="--template-safe-top: {{ safeTop }}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+
+  <!-- ====== PAGE HEADER(画板05 2026-08-20:头像+铃铛;玩家态无标题,商家态 2026-08-25 补居中标题;胶囊避让沿用 safeTop) ====== -->
+  <view class="topbar" style="height: {{ safeTop }}px;">
+    <view style="height: {{ statusBarHeight }}px;"></view>
+    <view class="titBar" style="height: {{ titBarHeight }}px; padding-right: {{ headerRightInset }}px;">
+      <!-- 2026-09-19 用户拍板:模板页左上角头像商家态与玩家态都撤掉(入口各有他路:商家底栏「我的」/玩家 member tab) -->
+      <view class="tpl-hd-space"></view>
+      <!-- 2026-08-25:商家「模板」tab 补居中标题,与商家其余页 / 「我的」同一形态。
+           玩家「发布」tab 维持画板05 的无标题顶栏,不受影响。 -->
+      <text wx:if="{{ isMerchant }}" class="tpl-hd-title">模板</text>
+      <image class="tpl-bell" src="/images/icon_bell.svg" mode="aspectFit" bindtap="goInbox" aria-role="button" aria-label="消息"  hover-class="cy-pressed" hover-stay-time="80"/>
+    </view>
+  </view>
+  <view style="height: {{ safeTop }}px;"></view>
+
+  <!-- ====== L1 文字 tab + 搜索(同一行) ======
+       2026-08-26 画板 16:一级只答「你要的是哪一种东西」——
+       主题 = 一条路线(cms_topic,整包复制成草稿);游戏 = 一个地点上的一次互动
+       (cms_template_library,挂到主题的某个节点上)。两者卡片形态与主操作都不同,
+       所以必须分开列,不能混排。 -->
+  <view class="tpl-toprow">
+    <cy-tabs class="tpl-l1" variant="attached" tabs="{{ tabItems }}" active="{{ tab }}" bind:change="switchTab" />
+    <view class="tpl-search" bindtap="goSearch" aria-role="button" aria-label="搜索模板主题与玩法" hover-class="cy-pressed" hover-stay-time="80">
+      <image class="tpl-search-ico" src="/images/icon_search.svg" mode="aspectFit" />
+      <text class="tpl-search-ph">搜索主题与玩法模板</text>
+    </view>
+  </view>
+  <view class="merchant-readonly-note"
+    wx:if="{{operationScope && merchantAccessLoaded && !canManageMerchantProjects}}">
+    当前岗位可浏览模板；发布、复制和配置由店主或店长操作
+  </view>
+
+  <!-- ====== 内容面(紫渐变,与选中 tab 连体) ====== -->
+  <view class="tpl-panel">
+
+    <!-- L2 卡片式标签。第一项是「推荐」不是「全部」:activeCat=0 走的是运营编排,
+         不是全量 —— 叫「全部」会让用户以为看到了所有模板。 -->
+    <scroll-view class="tpl-chips" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{ home.categoryList.length }}">
+      <view class="tpl-chip {{ activeCat === 0 ? 'tpl-chip--on' : '' }}" data-id="0" bindtap="switchCat"
+        aria-role="button" aria-label="推荐" hover-class="cy-pressed" hover-stay-time="80">推荐</view>
+      <view class="tpl-chip {{ activeCat === item.id ? 'tpl-chip--on' : '' }}" wx:for="{{ home.categoryList }}" wx:key="id"
+        data-id="{{ item.id }}" bindtap="switchCat"
+        aria-role="button" aria-label="{{ item.categoryName }}" hover-class="cy-pressed" hover-stay-time="80">{{ item.categoryName }}</view>
+    </scroll-view>
+
+    <!-- ====== 四态:互斥,只有局部错误允许与内容同屏 ====== -->
+    <!-- CU-M-64:搜索是页内行为,必须能看出在看什么、能一键回到全部 -->
+    <view wx:if="{{ searchKeyword }}" class="tpl-on-search">
+      <text class="tpl-on-search__txt">正在搜索「{{ searchKeyword }}」</text>
+      <view class="tpl-on-search__clear" bindtap="clearTemplateSearch" aria-role="button" aria-label="清除搜索关键词" hover-class="cy-pressed" hover-stay-time="80">清除</view>
+    </view>
+    <cy-skeleton wx:if="{{ loading && !listLoaded }}" type="list" count="3" />
+    <cy-error class="fill-slot cy-fade-in" wx:elif="{{ errorMsg && !listLoaded }}" fill="{{true}}" size="lg"
+      title="{{ errorMsg }}" sub="" bindretry="retryTemplateLoad" />
+    <!-- 空态把 banner 计入:单条数据时 banner 吃掉唯一内容、两个列表全空,
+         只看列表会让空态与 banner 大卡同屏 -->
+    <cy-empty class="fill-slot" wx:elif="{{ listLoaded && !banner.id && !topList.length && !tailList.length }}" fill="{{true}}" size="lg" kind="empty"
+      title="{{ emptyTitle }}" sub="{{ emptySub }}" cta="刷新试试" bindcta="retryTemplateLoad" />
+    <view wx:if="{{ loading && listLoaded }}" class="tpl-refreshing" aria-role="status" aria-live="polite">正在同步最新内容…</view>
+
+    <!-- ====== Banner:一张头牌,带扫光描边 ====== -->
+    <block wx:if="{{ banner.id }}">
+      <view class="sec-hd sec-hd-top">
+        <text class="sec-title">{{ bannerTitle }}</text>
+      </view>
+      <view class="feat-slide">
+        <view class="feat-glow">
+          <view class="feat-glow__sweep" aria-hidden="true"></view>
+          <view class="feat-glow__face feat-media" data-item="{{ banner }}" bindtap="jumpDetail" hover-class="cy-pressed" hover-stay-time="80">
+            <image wx:if="{{ banner.imgUrl && !banner._coverFail }}" lazy-load="true" class="feat-bgimg" src="{{ banner.imgUrl }}"
+              mode="aspectFill" data-target="banner" data-key="{{ banner.id }}" binderror="onDetailCoverError" />
+            <view wx:else class="feat-bgimg cover-error" aria-role="img" aria-label="{{ banner._title }} 的封面未能加载">
+              <image class="cover-error-icon" src="{{ coverErrorSrc }}" mode="aspectFit" />
+              <text class="cover-error-text">封面暂不可用</text>
+            </view>
+            <view class="feat-chip">{{ banner._metaText }}</view>
+          </view>
+        </view>
+        <view class="feat-text">
+          <view class="feat-txtcol">
+            <text class="feat-title ep1">{{ banner._title }}</text>
+            <text class="feat-sub ep1" wx:if="{{ banner._subText }}">{{ banner._subText }}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <cy-inline-error wx:if="{{ttUseError}}" title="模板未能生成草稿" sub="{{ttUseError}}" action="重试" bind:action="retryUseTt" />
+
+    <!-- ====== 一个列表:选中品类置顶,其余不筛掉继续显示 ======
+         库存少的时候筛选要退化成排序:约 27 个玩法 ÷ 9 个品类 ≈ 每类 3 个,
+         硬筛下去大部分品类只剩一两张甚至空,比「点了没反应」更糟。 -->
+    <view class="sec-hd" wx:if="{{ topList.length }}">
+      <text class="sec-title">{{ topTitle }}</text>
+    </view>
+    <view class="cml-list cy-fade-in" wx:if="{{ topList.length }}">
+      <view class="cml-card" wx:for="{{ topList }}" wx:key="id" data-item="{{ item }}" bindtap="jumpDetail" hover-class="cy-pressed" hover-stay-time="80">
+        <image wx:if="{{ item._iconUrl }}" class="cml-pic cml-pic--art" src="{{ item._iconUrl }}" mode="aspectFit" aria-hidden="true" />
+        <image wx:elif="{{ item.imgUrl && !item._coverFail }}" lazy-load="true" class="cml-pic" src="{{ item.imgUrl }}"
+          mode="aspectFill" data-list="topList" data-idx="{{ index }}" data-key="{{ item.id }}" binderror="onCoverError" />
+        <view wx:else class="cml-pic cover-error" aria-role="img" aria-label="{{ item._title }} 的封面未能加载">
+          <image class="cover-error-icon" src="{{ coverErrorSrc }}" mode="aspectFit" />
+          <text class="cover-error-text">封面暂不可用</text>
+        </view>
+        <view class="cml-info">
+          <text class="cml-name ep1">{{ item._title }}</text>
+          <view class="cml-meta">
+            <text>{{ item._metaText }}</text>
+            <text class="cml-dot" wx:if="{{ item._statusText }}">·</text>
+            <text wx:if="{{ item._statusText }}">{{ item._statusText }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="sec-hd" wx:if="{{ tailList.length }}">
+      <text class="sec-title">其他模板</text>
+      <text class="sec-sub">不筛掉，继续显示</text>
+    </view>
+    <view class="cml-list cy-fade-in" wx:if="{{ tailList.length }}">
+      <view class="cml-card" wx:for="{{ tailList }}" wx:key="id" data-item="{{ item }}" bindtap="jumpDetail" hover-class="cy-pressed" hover-stay-time="80">
+        <image wx:if="{{ item._iconUrl }}" class="cml-pic cml-pic--art" src="{{ item._iconUrl }}" mode="aspectFit" aria-hidden="true" />
+        <image wx:elif="{{ item.imgUrl && !item._coverFail }}" lazy-load="true" class="cml-pic" src="{{ item.imgUrl }}"
+          mode="aspectFill" data-list="tailList" data-idx="{{ index }}" data-key="{{ item.id }}" binderror="onCoverError" />
+        <view wx:else class="cml-pic cover-error" aria-role="img" aria-label="{{ item._title }} 的封面未能加载">
+          <image class="cover-error-icon" src="{{ coverErrorSrc }}" mode="aspectFit" />
+          <text class="cover-error-text">封面暂不可用</text>
+        </view>
+        <view class="cml-info">
+          <text class="cml-name ep1">{{ item._title }}</text>
+          <view class="cml-meta">
+            <text>{{ item._metaText }}</text>
+            <text class="cml-dot" wx:if="{{ item._statusText }}">·</text>
+            <text wx:if="{{ item._statusText }}">{{ item._statusText }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- P2-16:底部留出 tabBar + 悬浮发布钮的安全间距,末条内容不再被压住。
+         ⚠️ 这段留白是必需的，不是多余 —— 画板 11 第 4 条。 -->
+    <view class="tpl-bottom-safe"></view>
+  </view>
+
+  <!-- 发布展开时渐隐，返回时上浮回落。 -->
+  <view class="fab {{publishSheetShow ? 'fab--open' : ''}} {{reducedMotion ? 'fab--reduced' : ''}}" id="publish-fab" wx:if="{{isMerchant && (!operationScope || canManageMerchantProjects)}}" bindtap="openPublishSheet" hover-class="cy-pressed" hover-stay-time="80" aria-role="button" aria-label="发布">
+    <cy-icon name="plus" size="48" />
+  </view>
+  <cy-publish-sheet id="template-publish-menu" merchant="{{isMerchant}}" show="{{ publishSheetShow }}" pub="{{ pub }}" scope="{{operationScope}}" bind:close="closePublishSheet" />
+  <tabBar mode="{{ isMerchant ? 'merchant' : 'consumer' }}" activeKey="{{ isMerchant ? 'template' : '' }}" raised="{{ tabBarRaised }}" dark="{{ !isMerchant }}" monochrome="{{ !isMerchant }}" />
+</view>

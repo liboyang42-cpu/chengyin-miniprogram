@@ -1,0 +1,2 @@
+@import "../../../style/merchant-light.wxss";
+@import "./design.wxss";

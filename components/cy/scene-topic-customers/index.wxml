@@ -1,0 +1,48 @@
+<cy-scene-sheet show="{{show}}" variant="full" theme="player" title="客户" can-back
+                bind:requestclose="onClose" bind:back="onClose">
+  <view class="tc">
+    <view class="tc-counts" wx:if="{{summary}}">
+      <text class="tc-count">{{summary.soldText}}</text>
+      <text class="tc-count tc-count--warning">{{summary.pendingText}}</text>
+      <text class="tc-count tc-count--warning">{{summary.contactedText}}</text>
+      <text class="tc-count tc-count--success">{{summary.verifiedText}}</text>
+    </view>
+
+    <view class="tc-chiprow">
+      <view class="tc-chip {{filterKey === item.key ? 'tc-chip--on' : ''}}"
+            wx:for="{{filters}}" wx:key="key" data-key="{{item.key}}" bindtap="onFilterTap"
+            aria-role="button" aria-pressed="{{filterKey === item.key}}" aria-label="按 {{item.label}} 筛选"
+            hover-class="cy-pressed" hover-stay-time="80">{{item.label}}</view>
+    </view>
+
+    <cy-skeleton wx:if="{{state === 'loading'}}" type="list" count="4" loading-label="正在加载本主题客户" />
+    <cy-empty wx:elif="{{state === 'no-permission'}}" kind="no-permission"
+              title="当前岗位没有客户查看权限" sub="{{errorText}}" />
+    <cy-error wx:elif="{{state === 'error'}}" title="客户名单加载失败" sub="{{errorText}}"
+              retry="重试加载" bind:retry="retry" />
+    <cy-empty wx:elif="{{state === 'empty'}}" title="这个主题还没有人报名" sub="有人买票之后，这里会按场次列出来。" />
+
+    <block wx:else>
+      <view class="tc-session" wx:for="{{summary.sessions}}" wx:for-item="session" wx:key="key">
+        <view class="tc-session-head">
+          <text class="tc-session-time">{{session.timeText}}</text>
+          <text class="tc-session-count">{{session.headText}}</text>
+        </view>
+        <view class="tc-row" wx:for="{{session.rows}}" wx:key="key">
+          <cy-avatar class="tc-ava" size="80" src="{{item.avatar || ''}}" name="{{item.displayName}}" />
+          <view class="tc-body">
+            <view class="tc-main">
+              <text class="tc-name">{{item.displayName}}</text>
+              <text wx:if="{{item.orderNo}}" class="tc-line">{{item.orderNo}}</text>
+              <text wx:if="{{item.phoneText}}" class="tc-line">{{item.phoneText}}</text>
+            </view>
+            <view class="tc-side">
+              <text class="tc-status tc-status--{{item.tone}}">{{item.statusText}}</text>
+              <text class="tc-time">{{item.timeText}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+</cy-scene-sheet>

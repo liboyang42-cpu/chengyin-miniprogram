@@ -1,0 +1,9 @@
+<view wx:if="{{_show}}" class="bd bd--{{type}} bd--{{variant}} {{overlay ? 'bd--overlay' : ''}} {{disabled ? 'bd--disabled' : ''}}">
+  <!-- 没传 icon 就按 variant 取默认(见 index.js 的 VARIANT_ICON);neutral 无默认图标,
+       渲染成纯文字胶囊。原来的 wx:else 分支画的是 bd__dot 色点 —— Do not use 页禁的形态,已删。 -->
+  <block wx:if="{{type === 'status'}}">
+    <cy-icon wx:if="{{_icon}}" name="{{_icon}}" size="24" />
+    <text class="bd__label">{{label}}</text>
+  </block>
+  <text wx:elif="{{type === 'count'}}" class="bd__count">{{_text}}</text>
+</view>

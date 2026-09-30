@@ -1,0 +1,279 @@
+.signup {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* UI-17(2026-09-18):整页一张完整票卡 —— 标题条删掉后,背景图必须铺满全屏(含状态栏/返回行),
+   否则顶部仍留一段页面黑。固定层 + 主题色遮罩,票卡浮在上面。 */
+.signup .ztbg {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(50rpx); opacity: .5;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.signup-scrim {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(0, 0, 0, .3), rgba(0, 0, 0, .6) 30%); /* ds-ok: 沿用原 .main 的遮罩渐变(压在用户照片上,不随主题翻转) */
+}
+
+.signup .main {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  /* UI-17 二次返修:底部安全区(Home 指示条)不算可视区,卡不在它里面居中。 */
+  box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* UI-17 二次返修:导航以下、底部安全区以上的区域里,把票名 + 卡 + 指示点这一列
+   水平垂直居中。名称带与指示点区等高(各 140rpx,见下),所以卡的上下留白对称 ——
+   卡的几何中心正好落在区域中点,不是「名字+卡+点」整体的中点。 */
+.signup .wrap {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* 票名:卡外、紧贴卡顶之上。140rpx 高与 swiper 的指示点区等高 ⇒ 卡上下留白对称;
+   文字压在带底,留 20rpx 与卡顶的呼吸。文字色/字号走 token,不硬编码;字号用 L1 页标题(用户嫌卡片标题字号太小)。 */
+.signup .ticket-name {
+  width: 520rpx;
+  height: 140rpx;
+  box-sizing: border-box;
+  padding-bottom: var(--cy-space-2-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.signup .ticket-name__state {
+  display: block;
+  width: 100%;
+  margin-top: var(--cy-space-1);
+  text-align: center;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.signup .ticket-name__t {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: var(--cy-font-page-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+
+.signup .toolbar {
+  position: relative;
+  margin: 44rpx var(--cy-page-x) var(--cy-legacy-18) var(--cy-page-x); /* ds-ok: 44rpx 是 r1-c04-order-ticket-contract.test.js 锁定的横向边距修复值,不改 */
+}
+
+.signup .toolbar button {
+  position: absolute;
+  right: var(--cy-space-3-5);
+  margin: 0;
+  width: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.signup .toolbar button image {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+/*
+.signup .slides {
+  padding-top: var(--cy-space-4);
+  width: 610rpx;
+  margin: 0 auto;
+}*/
+
+/* .signup .slides swiper {
+  height: 92%;
+  box-shadow: none !important;
+} */
+/* UI-17 二次返修:卡整体放大到约屏宽 69%(520rpx;上一版 450rpx,600rpx 用户嫌太大),
+   居中交给 .wrap,卡顶不再顶到导航下面。flex-shrink:0 防小屏被挤扁。 */
+.signup .slides {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* 卡高 = 520rpx × 16/9(上一版 450×800 的原比例)≈ 924rpx;swiper 再加 140rpx 指示点区。
+   放大后连同票名一起仍完整落在安全区内,不压导航、不被指示点截断。 */
+.signup .slides swiper {
+  height: 1064rpx;
+  box-shadow: none !important;
+}
+
+.swiper-item-content {
+  width: 100%;
+  height: 924rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* .active 只改 height/transform;transition: all 会把未来新增的任何属性一并卷入。 */
+  transition: height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* ds-ok: 沿用改写前 `transition: all 0.4s cubic-bezier(...)` 的实测时长与曲线,只把属性显式化 */
+  transform-origin: center center;
+  position: relative;
+}
+
+.swiper-item-content.active {
+  height: 924rpx !important;
+  transform: scale(1);
+}
+
+.swiper-item-content.inactive {
+  height: 924rpx !important;
+  transform: scale(0.9);
+  filter: blur(6rpx);
+}
+/* 票结构(ADA §二E):非活跃卡靠 transform:scale(.9)+blur 退到次级即可,
+   原来那条「图缩到 80%」会把上下两段的比例一起拆散 ⇒ 改由整张票统一缩放。 */
+
+/* UI-17 返修(2026-09-18):卡面就是一张完整票图 —— 上段票面 + 打孔虚线 + 下段票根(含
+   票名/状态/入口文字)整体撤掉,不再叠任何可见文字。整卡点击由 swiper-item 的 goTicket 承接,
+   票名与状态只留在 aria-label(读屏可达)。路线票与场次票仍是同一外形,由 aspectFill 统一裁切。 */
+.tk{ width: 100%; height: 100%; position: relative; overflow: hidden; border-radius: var(--cy-radius-lg); }
+.tk-face{ position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+.signup .slides image {
+  border-radius: var(--cy-radius-lg);
+  width: 100%;
+  height: 100%;
+  /*border: 4rpx solid rgba(255, 255, 255, 0.9); */
+}
+/* 票面图的圆角交给 .tk(overflow:hidden)统一裁,图自身留方角,否则票面四角会被图自己的圆角削进去。 */
+.signup .slides .tk-face image { border-radius: 0; }
+/* .signup .slides image {
+  border-radius: 60rpx;
+  width: 576rpx;
+  height: calc(100% - 100rpx) !important;
+  border: 10rpx solid rgba(255, 255, 255, 0.9); box-shadow: 8rpx 8rpx 8rpx rgba(255, 255, 255, .5);
+} */
+/* 活动 */
+.wallet{
+  overflow: hidden;
+}
+.wallet .list {
+  padding: var(--cy-space-6) var(--cy-legacy-72) var(--cy-space-7) var(--cy-legacy-72);
+  box-sizing: border-box;
+  height:100%;
+  overflow-y:auto;
+}
+
+.wallet .list .li {
+  margin-bottom: var(--cy-space-5);
+}
+
+.wallet .list .li .item {
+  height: 368rpx;
+  border-radius: 80rpx;
+  position: relative;
+  overflow: hidden;
+  border: 10rpx solid rgba(255, 255, 255, 0.9);
+}
+
+.wallet .list .li .item image {
+  width: 100%;
+  border-radius: 80rpx; vertical-align: top;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+
+/* 2026-07-31:优惠券票卡(.david、.david_tkb_li 系、.hong)已随"删除票夹页优惠券 tab"整体搬到
+   独立的 subpackageMember/coupon(见 wt3b-visual-semantics-contract.test.js 的 P1-5 契约,已随实现迁移)。 */
+
+/* 2026-07-31:原 position:fixed + top/left:50% 是"整屏居中"(会把内容顶到状态栏/标题下面去算中点),
+   和用户明确的"标题下方到屏幕底部这段剩余空间里居中"不是一回事。改成 flex:1 让出的正常文档流子项,
+   居中交给 cy-empty/cy-error 的 fill 变体做(.signup 根节点已经是 flex-col + height:100vh)。 */
+.davidwu{ position: relative; z-index: 1; width: 100%; overflow: hidden; display: flex; flex-direction: column; flex: 1; }
+/* cy-empty/cy-error 是 styleIsolation:isolated 组件,宿主标签默认 display:block,
+   组件内部的 flex:1 要宿主自己也是 flex 容器才生效,从页面外部补一层。 */
+.fill-slot{ display: flex !important; flex-direction: column !important; flex: 1 !important; min-height: 0 !important; }
+
+/* 2026-07-31:优惠券详情弹框(.tkbg/.tkbox*)随优惠券 tab 一起删除,不再在本页触发。 */
+
+/* UI-17:卡外的票名大字、票面 meta(名称/场次时间)与票根文字都已删——返修后票面零文字,
+   票名/状态只在 aria-label 里出现(见 index.wxml 顶部说明)。 */
+
+/* 票夹里的队伍入口(2026-09-04 判定表补的那条)。跟着当前票走,没有队伍整行不出。 */
+.team-entry {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  bottom: env(safe-area-inset-bottom);
+  display: flex;
+  align-items: center;
+  padding: var(--cy-space-4);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card);
+}
+
+@media (max-height: 700px) {
+  .signup {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .signup .main {
+    flex: none;
+    overflow: visible;
+  }
+
+  .signup .wrap {
+    flex: none;
+    height: 1204rpx;
+  }
+
+  .team-entry {
+    position: static;
+    margin: var(--cy-space-4) var(--cy-page-x) 0;
+  }
+}
+
+.team-entry__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+}
+
+.team-entry__k {
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+.team-entry__v {
+  margin-left: var(--cy-space-2-5);
+  min-width: 0;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-muted);
+}
+
+.team-entry__n {
+  margin-right: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-muted);
+}

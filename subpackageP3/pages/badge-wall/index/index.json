@@ -1,0 +1,16 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "white",
+  "navigationBarTitleText": "勋章墙",
+  "backgroundColor": "#000000",
+  "backgroundTextStyle": "dark",
+  "disableScroll": true,
+  "usingComponents": {
+    "cy-icon": "/components/cy/icon/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index"
+  }
+}

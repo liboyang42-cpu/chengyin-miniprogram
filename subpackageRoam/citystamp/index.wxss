@@ -1,0 +1,157 @@
+/* 城市贴纸 / 今日城市签 · 投一张换一张(§6.4)
+ *
+ * ★ 这份是从「城瘾玩法试玩台」**逐条抄下来的**,不是照着做的。
+ *   换算只有一条:原型是 390px 宽的机身,小程序 750rpx 满宽 ⇒ 1px = 1.923rpx,四舍五入。
+ *   颜色、阴影、渐变、遮罩、时间曲线、百分比一律原值,一个都没重算。
+ *   机身与出纸槽的拉丝纹理是原型里那两张 base64 位图,解码成 printer-body.jpg /
+ *   printer-slot.jpg 放同目录 —— 同样的像素,只是不再内联(base64 比原图还大三成)。
+ *
+ * 只在这三处偏离,各有理由:
+ *   ① 顶边 padding-top 由页面按微信胶囊实测坐标给(原型是写死的 92px);
+ *   ② 可点的小方块(返回钮、拍照钮)视觉尺寸照抄 36px,热区用透明 ::after 撑到 88rpx ——
+ *      本仓 X12 要求命中区 ≥44px,而撑热区不改变它看起来多大;
+ *   ③ 那两组 @keyframes 拆成分腿 transition 由 JS 驱动:本仓 keyframes 是只准降的棘轮。
+ *      时间与曲线按原值分腿(.5s 的 45% 拆成 225ms + 275ms,.36s 的 38% 拆成 137ms + 223ms)。
+ */
+
+/* ===== 页底:垫本模式的地图,城市签那两屏是黑玻璃,街道和点位要透得出来(§6.5) ===== */
+.cs{ position:relative; width:100%; height:100vh; overflow:hidden; background:#000; } /* ds-ok 兜底纯黑 */
+.cs__bg{ position:absolute; left:0; top:0; width:100%; height:100%; }
+.cs__bg--ph{ background:#0F1621; } /* ds-ok 与漫游地图同底,截图没拿到时不露黑洞 */
+
+/* ===== 取景框(原型 .cam):半屏落在地图上,地图和底部按钮仍在 ===== */
+/* 原型 left/right:14px top:96px height:352px radius:22px */
+/* 取景卡的样式整段搬去 components/cy/proto-cam —— 漫游与集邮册也用同一件。 */
+
+/* ===== 黑玻璃(原型 .sg):44% 黑 + 18px 模糊 ===== */
+.sg{ position:absolute; left:0; top:0; right:0; bottom:0; z-index:40; display:flex; flex-direction:column;
+  padding-left:38rpx; padding-right:38rpx; padding-bottom:50rpx; color:#F2F2F4; /* ds-ok 原型 padding 92px 20px 26px */
+  background:rgba(8,8,10,.44); backdrop-filter:blur(18px) saturate(135%); } /* ds-ok §6.5 裁决字面值 */
+.sg__nav{ display:flex; align-items:center; padding:0 4rpx; flex:none; } /* ds-ok 原型 grid 36px 1fr 36px */
+/* 视觉 36×36 照抄;热区 ::after 撑到 88rpx */
+.sg__navbtn{ position:relative; width:69rpx; height:69rpx; border-radius:var(--cy-radius-pill);
+  background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; /* ds-ok 照抄原型 */
+  color:#FFFFFF; font-size:31rpx; flex:none; } /* ds-ok 照抄原型 */
+.sg__navbtn::after{ content:''; position:absolute; left:50%; top:50%; width:88rpx; height:88rpx;
+  transform:translate(-50%,-50%); }
+.sg__navbtn--ghost{ background:transparent; }
+.sg__navbtn--ghost::after{ content:none; }
+.sg__navt{ flex:1; min-width:0; text-align:center; }
+.sg__navt-b{ display:block; font-size:31rpx; font-weight:600; color:#FFFFFF; } /* ds-ok 原型 16px */
+.sg__navt-s{ display:block; margin-top:4rpx; font-size:23rpx; color:rgba(255,255,255,.55); } /* ds-ok 原型 12px */
+
+/* ===== 打印机:拉丝银。纹理是位图,叠倒角与边缘暗线;出纸槽内凹,槽口上沿一线高光 ===== */
+.sgprinter{ position:relative; z-index:6; margin:42rpx 8rpx 0; height:127rpx; border-radius:25rpx; overflow:hidden; flex:none; /* ds-ok 照抄原型 */
+  background:#B9BCC2 url("./printer-body.jpg") center/cover no-repeat; /* ds-ok 原型那张拉丝纹理位图 */
+  box-shadow:0 35rpx 58rpx -19rpx rgba(20,22,26,.45),0 2rpx 0 rgba(255,255,255,.55) inset,0 -2rpx 0 rgba(0,0,0,.22) inset, /* ds-ok 照抄原型 */
+   0 0 0 2rpx rgba(60,64,70,.55); } /* ds-ok 照抄原型 */
+/* 倒角与两侧边缘暗线。原型是 ::before,小程序里 ::before 同样可用 */
+.sgprinter::before{ content:''; position:absolute; left:0; top:0; right:0; bottom:0; pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,0) 22%,rgba(0,0,0,0) 60%,rgba(0,0,0,.16) 100%), /* ds-ok 照抄原型 */
+   linear-gradient(90deg,rgba(0,0,0,.14),rgba(0,0,0,0) 8%,rgba(0,0,0,0) 92%,rgba(0,0,0,.14)); } /* ds-ok 照抄原型 */
+.sgprinter__slot{ position:absolute; left:31rpx; right:31rpx; top:48rpx; height:29rpx; border-radius:4rpx; /* ds-ok 照抄原型 */
+  background:#141517 url("./printer-slot.jpg") center/cover no-repeat; /* ds-ok 原型那张槽内纹理位图 */
+  box-shadow:inset 0 6rpx 10rpx rgba(0,0,0,.95),inset 0 -2rpx 0 rgba(255,255,255,.08),0 2rpx 0 rgba(255,255,255,.65),0 -2rpx 0 rgba(0,0,0,.35); } /* ds-ok 照抄原型 */
+/* 撕断后槽里留的那一小截纸头,下边锯齿 */
+.sgprinter__stub{ position:absolute; left:38rpx; right:38rpx; top:63rpx; height:13rpx; background:#FFFFFF; /* ds-ok 纸 */
+  -webkit-mask:linear-gradient(-45deg,transparent 8rpx,#000 0) 0 100%/15rpx 12rpx repeat-x,linear-gradient(45deg,transparent 8rpx,#000 0) 8rpx 100%/15rpx 12rpx repeat-x,linear-gradient(#000,#000) 0 0/100% calc(100% - 12rpx) no-repeat; /* ds-ok 遮罩是形状不是颜色 */
+  mask:linear-gradient(-45deg,transparent 8rpx,#000 0) 0 100%/15rpx 12rpx repeat-x,linear-gradient(45deg,transparent 8rpx,#000 0) 8rpx 100%/15rpx 12rpx repeat-x,linear-gradient(#000,#000) 0 0/100% calc(100% - 12rpx) no-repeat; } /* ds-ok 同上 */
+.sgscrew{ position:absolute; width:12rpx; height:12rpx; border-radius:var(--cy-radius-pill); top:15rpx;
+  background:radial-gradient(circle at 40% 35%,#EEF0F3,#8E939A 60%,#5C6168); /* ds-ok 照抄原型 */
+  box-shadow:0 2rpx 0 rgba(255,255,255,.5),inset 0 0 0 2rpx rgba(0,0,0,.25); } /* ds-ok 照抄原型 */
+/* 螺丝上那道刻线 —— 原型有,之前漏了 */
+.sgscrew::after{ content:''; position:absolute; left:2rpx; right:2rpx; top:5rpx; height:2rpx;
+  background:rgba(0,0,0,.45); transform:rotate(35deg); } /* ds-ok 照抄原型 */
+.sgscrew--1{ left:17rpx; }
+.sgscrew--2{ right:17rpx; }
+.sgscrew--3{ left:17rpx; top:auto; bottom:15rpx; }
+.sgscrew--4{ right:17rpx; top:auto; bottom:15rpx; }
+
+/* ===== 热敏小票:撕之前底边锯齿;撕下来之后顶边也是锯齿(撕口),底边保持 ===== */
+.sgpaperwrap{ position:relative; z-index:5; margin:-63rpx 42rpx 0; overflow:hidden;
+  padding:63rpx 15rpx 65rpx; flex:0 1 auto; min-height:0; } /* ds-ok 照抄原型 */
+.sgpaper{ position:relative; transform-origin:50% 0; }
+.sgpaper.held{ margin-top:27rpx; } /* ds-ok 原型 14px */
+.sgslip{ position:relative; background:#FFFFFF; color:#17191C; padding:27rpx 31rpx 19rpx; /* ds-ok 照抄原型 */
+  box-shadow:0 27rpx 54rpx -12rpx rgba(20,22,26,.35),0 2rpx 4rpx rgba(20,22,26,.12); } /* ds-ok 照抄原型 */
+.sgslip::after{ content:''; display:block; position:absolute; left:0; right:0; bottom:-15rpx; height:17rpx;
+  background:linear-gradient(-45deg,transparent 12rpx,#FFFFFF 0) 0 0/23rpx 17rpx,linear-gradient(45deg,transparent 12rpx,#FFFFFF 0) 12rpx 0/23rpx 17rpx; } /* ds-ok 照抄原型 */
+.sgpaper.held .sgslip::before{ content:''; display:block; position:absolute; left:0; right:0; top:-15rpx; height:17rpx;
+  background:linear-gradient(135deg,transparent 12rpx,#FFFFFF 0) 0 0/23rpx 17rpx,linear-gradient(225deg,transparent 12rpx,#FFFFFF 0) 12rpx 0/23rpx 17rpx; } /* ds-ok 照抄原型 */
+.sgslip__photo{ display:block; width:100%; height:288rpx; margin:4rpx 0 0; border-radius:6rpx; } /* ds-ok 照抄原型 */
+.sgslip__hr{ height:0; border-top:2rpx dashed #D7DAE0; margin:17rpx 0; } /* ds-ok 照抄原型 */
+.sgslip__od{ display:flex; align-items:center; justify-content:space-between; gap:15rpx; } /* ds-ok 原型 grid 1fr auto */
+.sgslip__od-r{ text-align:right; }
+.sgslip__k{ display:block; font-size:20rpx; color:#8A9099; } /* ds-ok 原型 10.5px */
+.sgslip__k--lead{ margin-bottom:12rpx; } /* ds-ok 原型 margin-bottom:6px */
+.sgslip__addr{ display:block; margin-top:4rpx; font-size:33rpx; font-weight:700; line-height:1.25; letter-spacing:-.01em; } /* ds-ok 照抄原型 */
+.sgslip__big{ display:block; margin-top:4rpx; font-size:50rpx; font-weight:700; letter-spacing:-.01em; line-height:1.1; } /* ds-ok 照抄原型 */
+.sgslip__sm{ display:block; margin-top:4rpx; font-size:21rpx; color:#5B6169; } /* ds-ok 照抄原型 */
+.sgslip__grid{ display:flex; gap:15rpx; } /* ds-ok 原型 grid 1fr 1fr gap 10px 8px */
+.sgslip__grid > view{ flex:1; min-width:0; }
+.sgslip__v{ display:block; margin-top:4rpx; font-size:25rpx; font-weight:600; } /* ds-ok 照抄原型 */
+.sgslip__poem{ position:relative; margin-top:4rpx; padding:15rpx 19rpx 12rpx; border-radius:12rpx; /* ds-ok 照抄原型 6px */
+  background:#F5F6F8; min-height:123rpx; } /* ds-ok 照抄原型 */
+.sgslip__poem .poem{ font-size:27rpx; font-weight:600; line-height:1.8; color:#17191C; } /* ds-ok 照抄原型 */
+.sgcover{ position:absolute; left:0; top:0; width:100%; height:100%; border-radius:12rpx; } /* ds-ok 贴合上一行圆角 */
+.sgbar{ display:flex; align-items:flex-end; justify-content:center; height:58rpx; margin:4rpx auto 0; width:82%; } /* ds-ok 照抄原型 */
+.sgbar__i{ display:block; height:100%; background:#17191C; } /* ds-ok 照抄原型 */
+
+/* ===== 留言条:写给下一个人的那张纸,在打印机下面;投进去 = 缩进出纸槽 ===== */
+.sgnote{ position:relative; z-index:5; margin:19rpx 42rpx 0; padding:27rpx 31rpx 23rpx; border-radius:6rpx; /* ds-ok 照抄原型 */
+  background:#FFFFFF; color:#17191C; flex:none; transform-origin:50% 0; /* ds-ok 纸就是白的 */
+  box-shadow:0 27rpx 54rpx -12rpx rgba(20,22,26,.35),0 2rpx 4rpx rgba(20,22,26,.12); } /* ds-ok 照抄原型 */
+.sgnote__h{ display:flex; align-items:flex-start; justify-content:space-between; gap:19rpx; }
+.sgnote__hl{ min-width:0; }
+.sgnote__ht{ display:block; font-size:25rpx; font-weight:600; } /* ds-ok 原型 13px */
+.sgnote__c{ display:block; margin-top:4rpx; font-size:21rpx; color:#8A9099; } /* ds-ok 原型 11px */
+/* 视觉 36×36 照抄;它可点(去重拍),热区 ::after 撑到 88rpx */
+.sgnote__shot{ position:relative; flex:none; width:69rpx; height:69rpx; border-radius:15rpx; /* ds-ok 照抄原型 36px/8px */
+  border:2rpx dashed #C9CDD3; color:#5B6169; /* ds-ok 照抄原型 */
+  display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.sgnote__shot::after{ content:''; position:absolute; left:50%; top:50%; width:88rpx; height:88rpx;
+  transform:translate(-50%,-50%); }
+.sgnote__shot.has{ border-style:solid; border-color:#17191C; } /* ds-ok 照抄原型 */
+.sgnote__shot image{ width:100%; height:100%; display:block; }
+.sgnote__ta{ display:block; width:100%; height:119rpx; margin-top:19rpx; padding:12rpx 0; box-sizing:border-box;
+  border-bottom:2rpx dashed #C9CDD3; font-size:29rpx; font-weight:600; line-height:1.7; color:#17191C; } /* ds-ok 原型 font:600 15px/1.7 */
+.sgnote__ph{ color:#B3B8C0; font-weight:500; } /* ds-ok 照抄原型 */
+.sgnote__meta{ display:flex; justify-content:space-between; margin-top:15rpx; font-size:21rpx; color:#8A9099; } /* ds-ok 照抄原型 */
+
+/* ===== 信箱 = 实物照片。只有「信滑进投信口」这一层是叠上去的,位置按原图量的比例定 ===== */
+.sgpb{ position:relative; z-index:4; flex:1; min-height:0; margin:12rpx 0 0;
+  display:flex; align-items:center; justify-content:center; } /* ds-ok 照抄原型 */
+.sgpb__wrap{ position:relative; display:flex; max-width:431rpx; max-height:100%; } /* ds-ok 原型 max-width:224px */
+.sgpb.armed .sgpb__wrap{ transform:translateY(-10rpx) scale(1.035); } /* ds-ok 原型 -5px */
+.sgpb.armed .sgpb__slot{ box-shadow:0 0 0 4rpx rgba(255,255,255,.55) inset; } /* ds-ok 照抄原型 */
+.sgpb__img{ display:block; max-width:100%; max-height:100%; width:auto; height:auto;
+  filter:drop-shadow(0 31rpx 38rpx rgba(20,22,26,.34)); } /* ds-ok 原型 drop-shadow(0 16px 20px ...) */
+.sgpb__slot{ position:absolute; left:6.5%; top:21.2%; width:50%; height:8.4%; overflow:hidden;
+  transform:rotate(2.15deg); transform-origin:0 0; } /* ds-ok 照抄原型,比例值别改成绝对值 */
+.sgpb__letter{ position:absolute; left:2%; right:2%; top:-110%; height:100%; background:#FBFAF6; /* ds-ok 信纸,照抄原型 */
+  box-shadow:0 2rpx 4rpx rgba(0,0,0,.55); } /* ds-ok 照抄原型 */
+
+.sgempty{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:15rpx; padding:0 42rpx; }
+.sgempty__t{ font-size:31rpx; font-weight:600; color:#FFFFFF; } /* ds-ok 黑玻璃上的正文 */
+.sgempty__s{ font-size:25rpx; color:rgba(255,255,255,.6); text-align:center; line-height:1.6; } /* ds-ok 同上 */
+
+.sghint{ display:block; margin-top:4rpx; text-align:center; font-size:23rpx; color:rgba(255,255,255,.6); flex:none; } /* ds-ok 照抄原型 */
+.sgfoot{ margin-top:auto; flex:none; padding-bottom:env(safe-area-inset-bottom); }
+.sgbtn{ display:block; width:100%; padding:29rpx; box-sizing:border-box; border-radius:var(--cy-radius-pill);
+  background:#FFFFFF; color:#111114; font-size:29rpx; font-weight:600; text-align:center; } /* ds-ok 照抄原型 */
+.sgbtn.is-off{ opacity:.28; } /* ds-ok 原型 [disabled] 同值 */
+.sglnk{ display:block; width:100%; text-align:center; padding:23rpx; box-sizing:border-box;
+  font-size:25rpx; color:rgba(255,255,255,.6); /* ds-ok 照抄原型 13px */
+  text-decoration:underline; text-underline-offset:6rpx; } /* ds-ok 原型 underline-offset:3px */
+
+/* 页面样式表拿不到全局按压类,补一份 */
+.cy-pressed{ opacity:.88; }
+
+/* 「减少动态效果」时信滑进投信口与箱子那一顿都直接落定 —— 结果照给,过程不播。 */
+.cs--reduced-motion,
+.cs--reduced-motion view,
+.cs--reduced-motion text,
+.cs--reduced-motion image{
+  animation-duration:1ms !important;
+  animation-iteration-count:1 !important;
+  transition-duration:1ms !important; }

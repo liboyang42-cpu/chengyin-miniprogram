@@ -1,0 +1,71 @@
+<block wx:if="{{state === 'loading'}}">
+  <view class="session-status" aria-role="status">正在读取本次漫游</view>
+  <view class="session-skeleton"><view class="session-skeleton__row"></view><view class="session-skeleton__row"></view><view class="session-skeleton__row"></view></view>
+</block>
+<cy-error wx:elif="{{state === 'error'}}" class="session-state-fill" fill title="这次漫游暂时打不开" sub="本地记录读取失败，原记录不会被删除。" retry="重试" bind:retry="retry" />
+<cy-empty wx:elif="{{state === 'empty'}}" class="session-state-fill" fill size="lg" kind="missing-param" title="找不到这次漫游" sub="这条足迹可能已被清理，返回历史重新选择。" cta="返回漫游历史" bind:cta="back" />
+
+<!-- PR 600 本次漫游正文；标题栏由外层 scene-sheet / 深链页提供。 -->
+<view wx:else class="ss">
+  <view class="route-replay">
+    <view class="route-replay__head">
+      <view class="route-replay__copy">
+        <text class="route-replay__eyebrow">本次路线</text>
+        <text class="route-replay__date">{{session.dateFull}}</text>
+      </view>
+      <view class="route-replay__play" wx:if="{{routeSegs.length && replayState !== 'playing'}}" bindtap="startReplay" aria-role="button" aria-label="{{replayState === 'done' ? '重新回放本次路线' : '回放本次路线'}}" hover-class="cy-pressed" hover-stay-time="80">
+        <text>{{replayState === 'done' ? '重新回放' : '回放路线'}}</text><cy-icon class="route-replay__play-icon" name="play" size="24" />
+      </view>
+      <view class="route-replay__skip" wx:elif="{{replayState === 'playing'}}" bindtap="skipReplay" aria-role="button" aria-label="跳过路线回放" hover-class="cy-pressed" hover-stay-time="80">跳过</view>
+    </view>
+    <view class="route-replay__map">
+      <view class="route-replay__canvas" wx:if="{{routeSegs.length}}">
+        <view class="route-replay__segment" wx:for="{{replaySegs}}" wx:key="i" style="left:{{item.x}}rpx;top:{{item.y}}rpx;width:{{item.len}}rpx;transform:rotate({{item.deg}}deg)"></view>
+        <view class="route-replay__poi route-replay__poi--{{item.tone}}" wx:for="{{routePoiDots}}" wx:key="i" style="left:{{item.x}}rpx;top:{{item.y}}rpx"></view>
+      </view>
+      <view class="route-replay__empty" wx:else>这次没有记录到连续轨迹</view>
+    </view>
+    <view class="route-replay__progress" wx:if="{{routeSegs.length}}">
+      <view class="route-replay__track"><view class="route-replay__fill" style="width:{{replayProgress || 0}}%"></view></view>
+      <text wx:if="{{replayState === 'playing'}}">正在沿足迹前进 · {{replayProgress || 0}}%</text>
+      <text wx:else>{{replayState === 'done' ? '路线回放完成' : '完整足迹 · 可随时回放'}}</text>
+    </view>
+  </view>
+
+  <view class="kv">
+    <view class="kv__row"><text class="kv__k">总距离</text><text class="kv__v">{{session.distanceText || 0}} 公里</text></view>
+    <view class="kv__row"><text class="kv__k">时长</text><text class="kv__v">{{session.time}}</text></view>
+    <view class="kv__row"><text class="kv__k">探店</text><text class="kv__v">{{session.shopsText || 0}} 家</text></view>
+    <view class="kv__row"><text class="kv__k">探索度</text><text class="kv__v">{{session.explorePctText || 0}}%</text></view>
+  </view>
+
+  <view class="rw__hd">解锁奖励</view>
+  <view class="rw" wx:if="{{session.medal || session.shopMedalName}}">
+    <view class="rw__row" wx:if="{{session.medal}}">
+      <view class="rw__hex rw__hex--gold"><cy-icon name="star" size="46" /></view>
+      <view class="rw__copy"><text class="rw__name">{{session.medal}}</text><text class="rw__cat">成就</text></view>
+    </view>
+    <view class="rw__row" wx:if="{{session.shopMedalName}}">
+      <view class="rw__hex rw__hex--gold"><cy-icon name="star" size="46" /></view>
+      <view class="rw__copy"><text class="rw__name">{{session.shopMedalName}}</text><text class="rw__cat">成就</text></view>
+    </view>
+  </view>
+  <view class="rw__empty" wx:else>这次没有解锁新奖励</view>
+
+  <view class="rw__hd">点亮地点</view>
+  <view class="rw" wx:if="{{session.pois.length}}">
+    <view class="rw__row" wx:for="{{session.pois}}" wx:key="name">
+      <view class="rw__hex"><cy-icon name="{{item.iconName}}" size="46" /></view>
+      <view class="rw__copy">
+        <text class="rw__name">{{item.name}}</text>
+        <text class="rw__cat">{{item.catLabel || '点亮'}}</text>
+      </view>
+    </view>
+  </view>
+  <view class="rw__empty" wx:else>这次没有点亮新地点</view>
+
+  <view class="ss-ctaw" wx:if="{{!snapshot}}">
+    <view class="ss-cta" bindtap="share" aria-role="button" aria-label="分享足迹卡" hover-class="cy-pressed" hover-stay-time="80">分享足迹卡</view>
+  </view>
+  <view class="ss-tail"></view>
+</view>

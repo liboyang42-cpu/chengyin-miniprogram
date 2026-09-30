@@ -1,0 +1,36 @@
+<view class="sd" wx:if="{{detail}}">
+  <view class="sd__hero order-summary">
+    <view class="sd__hero-head">
+      <view>
+        <text class="sd__perspective">{{detail.perspective}}</text>
+        <text class="sd__title">{{detail.title}}</text>
+      </view>
+      <cy-badge type="status" variant="{{detail.statusVariant}}" label="{{detail.status}}" />
+    </view>
+    <text class="sd__amount-label">{{detail.amountLabel}}</text>
+    <text class="sd__amount">{{detail.amount}}</text>
+  </view>
+
+  <view class="sd__section" wx:if="{{detail.lines.length}}">
+    <text class="sd__section-title">金额分解</text>
+    <view class="sd__rows">
+      <view class="sd__row" wx:for="{{detail.lines}}" wx:key="key">
+        <text class="sd__key">{{item.label}}</text>
+        <text class="sd__value {{item.strong ? 'sd__value--strong' : ''}}">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="sd__section order-timeline" wx:if="{{detail.timeline.length}}">
+    <text class="sd__section-title">结算进度</text>
+    <view class="sd__timeline">
+      <view class="sd__event" wx:for="{{detail.timeline}}" wx:key="key">
+        <view class="sd__rail"><view class="sd__dot"></view></view>
+        <view class="sd__event-copy">
+          <text class="sd__event-label">{{item.label}}</text>
+          <text class="sd__event-time">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

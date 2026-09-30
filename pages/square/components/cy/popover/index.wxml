@@ -1,0 +1,22 @@
+<!-- cy-popover · T5 胶囊弹窗(Figma 339:740)。
+     稿子的组件说明把边界写死了:贴在触发点旁边、不占整屏、**不给遮罩**、无标题、无 ✕,点外面即关。
+     用途是一次性轻动作菜单(关注 / 访问主页 / 举报 / 复制链接)。
+     ⚠️ 不许居中、不许铺满宽度 —— 一居中就变成 T2(半屏 sheet)了。
+     ⚠️ 不复用 cy-dropdown:它的触发器是自己的 slot,而 T5 的触发点长在别的组件里
+        (帖文头像在 cy-post-card 内),量不到。所以锚点矩形由调用方在点击时实测传进来。 -->
+<view class="pop" wx:if="{{_render}}">
+  <!-- 「点外面即关」的承接层。稿说「不给遮罩」指的是**不压暗**,不是不要这一层 ——
+       没有它就只能靠冒泡,而帖文卡自己 bindtap 会先把点击吃掉,弹窗关不掉。
+       所以这里是**全透明**的命中层:视觉上等于没有,行为上接住外部点击。 -->
+  <view class="pop__catch" bindtap="onClose" aria-role="button" aria-label="关闭菜单"></view>
+
+  <!-- 面板与上面那层是**兄弟**,不是父子 —— 点面板不会冒泡到承接层,
+       所以不需要 catchtap="noop" 吞冒泡。少一个裸可点元素,也少一处按压反馈缺口。 -->
+  <view class="pop__panel" style="{{panelStyle}}">
+    <view class="pop__item" wx:for="{{items}}" wx:key="key" data-key="{{item.key}}" bindtap="onPick"
+          aria-role="button" aria-label="{{item.label}}" hover-class="cy-pressed" hover-stay-time="80">
+      <cy-icon wx:if="{{item.icon}}" name="{{item.icon}}" size="36" />
+      <view class="pop__label">{{item.label}}</view>
+    </view>
+  </view>
+</view>

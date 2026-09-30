@@ -1,0 +1,4 @@
+<view class="node node--{{state}}">
+  <view wx:if="{{state === 'active' && pulse && !reducedMotion}}" class="pulse"></view>
+  <view class="core"></view>
+</view>

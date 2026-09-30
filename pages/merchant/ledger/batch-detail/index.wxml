@@ -1,0 +1,51 @@
+<view class="order-detail theme-merchant">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-access-gate id="cy-access-gate" kind="merchant" need="canReadFinance" /><cy-nav-bar title="对公结算" custom-back bind:back="onNavBack" /><view class="order-detail__spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view><block wx:if="{{detail}}"><cy-progress-status class="order-detail__refresh" wx:if="{{loadState === 'refreshing'}}" title="正在更新结算详情" sub="现有详情仍可查看" /><cy-inline-error class="order-detail__refresh" wx:elif="{{loadState === 'stale-error'}}" kind="{{errorKind}}" title="结算详情没有更新" sub="{{errorText}}" action="重试" bind:action="retryLoad" />
+  <!-- 卡1:hero 唯一大数字 + 状态 chip + 打款事实 -->
+  <view class="fin-hero" aria-role="region" aria-label="{{detail.batch.periodYm}} 批次净额 {{detail.batch.amountDisplay || detail.batch.amountFallback}}，{{detail.batch.paymentText}}">
+    <text class="fin-hero__lab">{{detail.batch.periodYm}} 批次净额</text>
+    <text class="fin-hero__amt" wx:if="{{detail.batch.amountText != null}}">{{detail.batch.amountDisplay}}</text>
+    <text class="fin-hero__amt fin-hero__amt--mute" wx:else>{{detail.batch.amountFallback}}</text>
+    <view class="fin-hero__chips">
+      <cy-badge type="status" variant="{{detail.batch.stateVariant}}" label="{{detail.batch.paymentText}}" />
+      <cy-badge wx:if="{{detail.batch.invoiceText}}" type="status" variant="neutral" label="{{detail.batch.invoiceText}}" />
+    </view>
+    <view class="fin-kv" wx:if="{{detail.batch.isPaid}}"><text class="fin-kv__k">打款日期</text><text class="fin-kv__v">{{detail.batch.paidAtText}}</text></view>
+    <view class="fin-kv ledger-detail-action" wx:if="{{detail.batch.isPaid && detail.batch.payVoucherNo}}" aria-role="button" aria-label="复制打款凭证" bindtap="copyVoucher" hover-class="ledger-detail-action--press" hover-stay-time="80"><text class="fin-kv__k">打款凭证</text><text class="fin-kv__v fin-kv__v--link">{{detail.batch.payVoucherNo}} · 复制</text></view>
+  </view>
+
+  <!-- 卡2:对账单。收入/调整/净额本是同一张单,原来被拆成三张卡,是这页「空」的主因。 -->
+  <view class="fin-group">
+    <view class="fin-group__title">批次对账单</view>
+    <view class="fin-card">
+      <view class="fin-row" wx:for="{{detail.earningEntries}}" wx:key="entryKey">
+        <view class="fin-row__main"><text class="fin-row__t1">{{item.sourceText}}</text></view>
+        <text class="fin-row__v fin-row__v--pos">{{item.amountDisplay}}</text>
+      </view>
+      <view class="fin-row" wx:for="{{detail.adjustments}}" wx:key="entryKey">
+        <view class="fin-row__main"><text class="fin-row__t1">{{item.sourceText}}</text></view>
+        <text class="fin-row__v fin-row__v--neg">{{item.amountDisplay}}</text>
+      </view>
+      <view class="fin-row" wx:if="{{!detail.earningEntries.length && !detail.adjustments.length}}">
+        <view class="fin-row__main"><text class="fin-row__t1">本批次没有可列明的条目</text><view class="fin-row__t2">明细在履约成立后逐条计入</view></view>
+      </view>
+      <view class="fin-kv fin-kv--total"><text class="fin-kv__k">批次净额</text><text class="fin-kv__v">{{detail.batch.amountDisplay || detail.batch.amountFallback}}</text></view>
+    </view>
+  </view>
+
+  <!-- 卡3:打款进度。原来整卡只有「当前状态 平台已打款」一行 —— 一行不配拥有一张卡。
+       未来节点不给日期(附录 C:禁「预计打款日期」假承诺)。 -->
+  <view class="fin-group" wx:if="{{detail.timeline.length}}">
+    <view class="fin-group__title">打款进度</view>
+    <view class="fin-card fin-card--pad">
+      <view class="fin-tl" aria-role="list" aria-label="打款进度">
+        <view class="fin-tl__step fin-tl__step--{{item.state}}" wx:for="{{detail.timeline}}" wx:key="label" aria-role="listitem" aria-label="{{item.label}}，{{item.state === 'done' ? '已完成' : (item.state === 'now' ? '进行中' : '待处理')}}{{item.at ? '，' + item.at : ''}}">
+          <view class="fin-tl__a">{{item.label}}</view>
+          <view class="fin-tl__b" wx:if="{{item.at}}">{{item.at}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</block><block wx:elif="{{loadState === 'loading'}}"><cy-skeleton type="amount" count="{{1}}" /><cy-skeleton type="card" count="{{2}}" /></block><cy-empty class="order-detail__state" wx:elif="{{loadState === 'missing-param'}}" kind="missing-param" size="lg" fill title="缺少结算批次标识" sub="请返回结算列表重新进入" cta="返回上一页" bind:cta="onNavBack" /><cy-empty class="order-detail__state" wx:elif="{{loadState === 'missing-record'}}" kind="empty" size="lg" fill title="结算批次不可见" sub="这条记录可能已撤回或不属于当前账号" cta="返回结算列表" bind:cta="onNavBack" /><cy-error class="order-detail__state cy-fade-in" wx:else fill size="lg" title="结算详情没加载出来" sub="{{errorText}}" retry="重试" bind:retry="retryLoad" auto-back /></view>

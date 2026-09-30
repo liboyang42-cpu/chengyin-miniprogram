@@ -1,0 +1,241 @@
+<view class="review-page theme-merchant" style="padding-top: {{statusBarHeight + navBarHeight}}px;">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+  <cy-danger-confirm id="dc-reply-delete" bind:confirm="onConfirmDeleteReply" />
+  <!-- 公开查看评价是玩家入口(页面调 /api/merchant/reviews/public),不挂商家门禁;
+       回复/举报等商家专属操作只在 manage 模式,才需要门禁兜底。 -->
+  <cy-access-gate wx:if="{{mode === 'manage'}}" id="cy-access-gate" kind="merchant" need="" />
+  <!-- CU-M-11(2026-09-23 用户确认):就绪态左侧已有「口碑」大标题,顶栏不再重复;其它态没有大标题,顶栏兜底。 -->
+  <cy-nav-bar title="{{pageState === 'ready' ? '' : pageTitle}}" custom-back bind:back="onNavBack" />
+
+  <cy-skeleton wx:if="{{pageState === 'loading'}}" type="card" count="4" />
+  <!-- 未登录不再整屏拦:管理态静默登录后自动加载;拒权/失败只留这条内联错误 + 重试。 -->
+  <cy-inline-error class="review-inline-error" wx:elif="{{pageState === 'no-permission'}}" kind="data"
+                   title="没有口碑管理权限" sub="当前账号不能查看、回复或举报商家口碑。"
+                   action="重新加载" bind:action="retry" />
+  <cy-inline-error class="review-inline-error" wx:elif="{{pageState === 'error'}}" kind="error"
+                   title="评价加载失败" sub="{{errorMessage}}" action="重新加载" bind:action="retry" />
+  <cy-empty wx:elif="{{pageState === 'empty'}}" fill size="lg"
+            title="还没有真实到店评价"
+            sub="{{mode === 'manage' ? '新评价会在这里显示；商家不能修改用户原评。' : '完成到店核销后，可为本次真实体验留下评价。'}}"
+            cta="重新加载" bind:cta="retry" />
+
+  <scroll-view wx:elif="{{pageState === 'ready'}}" class="review-scroll" scroll-y enhanced
+               show-scrollbar="{{false}}" lower-threshold="160" bindscrolltolower="loadMore">
+    <view class="review-content">
+      <view class="review-summary">
+        <text class="review-title">口碑</text>
+        <view class="review-rating-line">
+          <text class="review-score-value">{{averageRating}}</text>
+          <view class="review-rating-stars">
+            <image wx:for="{{ratingStars}}" wx:key="value" class="review-score-star"
+                   src="{{item.filled ? '/images/merchant/reviews/icon-star-filled.svg' : '/images/merchant/reviews/icon-star-muted.svg'}}" mode="aspectFit" />
+          </view>
+          <text class="review-score-copy">{{total || 0}} 条已核销评价<block wx:if="{{mode === 'manage'}}"> · 商家不能改用户原评</block></text>
+        </view>
+      </view>
+
+      <!-- CU-M-13:待回复/回复率是经营数据,只给管理态;公开页突出评分与评价本身。 -->
+      <view wx:if="{{mode === 'manage'}}" class="review-stats-grid">
+        <view class="review-stat-card">
+          <view class="review-stat-icon review-stat-icon--reply">
+            <image src="/pages/merchant/images/merchant/reviews/icon-bubble.svg" mode="aspectFit" />
+          </view>
+          <text class="review-stat-value">{{pendingReplyCount}}</text>
+          <text class="review-stat-label">待回复</text>
+          <text class="review-stat-sub">回复后可修改</text>
+        </view>
+        <view class="review-stat-card">
+          <view class="review-stat-icon review-stat-icon--month">
+            <image src="/pages/merchant/images/merchant/reviews/icon-plus.svg" mode="aspectFit" />
+          </view>
+          <text class="review-stat-value">{{monthNewCount}}</text>
+          <text class="review-stat-label">本月新增</text>
+          <text class="review-stat-sub">来自本月核销评价</text>
+        </view>
+        <view class="review-stat-card">
+          <view class="review-stat-icon review-stat-icon--rate">
+            <image src="/pages/merchant/images/merchant/reviews/icon-check-blue.svg" mode="aspectFit" />
+          </view>
+          <text class="review-stat-value">{{replyRatePct || 0}}%</text>
+          <text class="review-stat-label">已回复率</text>
+          <text class="review-stat-sub">按全量公开评价计算</text>
+        </view>
+        <view class="review-stat-card">
+          <view class="review-stat-icon review-stat-icon--score">
+            <image src="/pages/merchant/images/merchant/reviews/icon-star-outline.svg" mode="aspectFit" />
+          </view>
+          <text class="review-stat-value">{{averageRating}}</text>
+          <text class="review-stat-label">近 30 天均分</text>
+          <text class="review-stat-sub">公开评价平均分</text>
+        </view>
+      </view>
+
+      <view class="review-segments" aria-role="tablist">
+        <view class="review-segment {{activeFilter === 'all' ? 'review-segment--active' : ''}}"
+              data-filter="all" bindtap="setReviewFilter" aria-role="tab" hover-class="cy-pressed" hover-stay-time="80">全部</view>
+        <!-- CU-M-12:「待回复」按 canReply 过滤,公开态 canReply 恒 false ⇒ 必空;只在管理态出现。 -->
+        <view wx:if="{{mode === 'manage'}}" class="review-segment {{activeFilter === 'pending' ? 'review-segment--active' : ''}}"
+              data-filter="pending" bindtap="setReviewFilter" aria-role="tab" hover-class="cy-pressed" hover-stay-time="80">待回复 {{pendingReplyCount}}</view>
+        <view class="review-segment {{activeFilter === 'low' ? 'review-segment--active' : ''}}"
+              data-filter="low" bindtap="setReviewFilter" aria-role="tab" hover-class="cy-pressed" hover-stay-time="80">低分</view>
+        <view class="review-segment {{activeFilter === 'photo' ? 'review-segment--active' : ''}}"
+              data-filter="photo" bindtap="setReviewFilter" aria-role="tab" hover-class="cy-pressed" hover-stay-time="80">有图</view>
+      </view>
+
+      <view wx:if="{{mode === 'public' && eligibility.canCreate}}" class="review-compose">
+        <view class="review-section-head">
+          <view>
+            <text class="review-section-title">写下这次体验</text>
+            <text class="review-section-sub">核销已验证 · 提交后平台复核，过审后公开；原评不可编辑</text>
+          </view>
+          <text class="review-count">{{content.length}} / 1000</text>
+        </view>
+        <view class="review-stars review-stars--input" aria-role="radiogroup" aria-label="体验评分">
+          <view wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="review-star-hit"
+                data-rating="{{item}}" bindtap="selectRating" aria-role="radio"
+                aria-label="{{item}} 星" aria-checked="{{rating === item}}" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon class="review-star {{rating >= item ? 'review-star--filled' : ''}}"
+                     name="star" size="48" />
+          </view>
+        </view>
+        <textarea class="review-textarea" value="{{content}}" maxlength="1000"
+                  placeholder="说说环境、服务和真实到店感受" placeholder-class="review-placeholder"
+                  bindinput="inputContent" />
+        <view class="review-image-grid">
+          <view wx:for="{{images}}" wx:key="*this" class="review-uploaded">
+            <image src="{{item}}" mode="aspectFill" />
+            <view class="review-image-remove" data-index="{{index}}" catchtap="removeImage" aria-role="button" aria-label="删除第{{(index + 1) || '—'}}张图片" hover-class="{{submitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80"><cy-icon name="close-sm" size="24" /></view>
+          </view>
+          <view wx:if="{{images.length < 9}}" class="review-image-add" bindtap="chooseImages" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">
+            <cy-icon class="review-image-plus" name="plus" size="32" /><text>添加图片</text>
+          </view>
+        </view>
+        <text class="review-help">最多 9 张；图片必须来自城瘾现有上传链路。</text>
+        <cy-inline-error wx:if="{{submitError}}" class="review-error" kind="data"
+                         title="评价未提交" sub="{{submitError}}" />
+        <cy-btn class="review-submit" variant="primary" loading="{{submitting}}"
+                disabled="{{!canSubmit || submitting}}" bindtap="submitReview">
+          {{submitting ? '提交中…' : '提交真实评价'}}
+        </cy-btn>
+      </view>
+
+      <!-- CU-M-170:这段资格说明原本只要「不可评价」就常驻在列表上方,已有公开评价时
+           访客只想看口碑,却被一整张后台准入规则卡把列表往下推。改成:屏上确实一条评价都没有
+           才说明为什么不能写;有评价就先给评价本身。 -->
+      <view wx:elif="{{mode === 'public' && !items.length}}" class="review-eligibility-note">
+        <text class="review-eligibility-title">{{eligibility.reasonCode === 'LOGIN_REQUIRED' ? '登录后查看评价资格' : eligibility.reasonCode === 'AMBIGUOUS_LEGACY_MERCHANT_SCOPE' ? '该主体有多家门店，暂不可评价' : eligibility.reasonCode === 'MERCHANT_UNAVAILABLE' ? '该门店当前不可评价' : '到店核销后可评价'}}</text>
+        <text class="review-eligibility-sub">{{eligibility.reasonCode === 'AMBIGUOUS_LEGACY_MERCHANT_SCOPE' ? '历史核销尚未保存具体门店，平台不会替你猜测归属。' : '本人报名并在这家店完成核销后才能评价。'}}</text>
+      </view>
+
+      <view wx:if="{{!filteredItems.length && items.length}}" class="review-filter-empty">
+        还没有符合条件的评价
+      </view>
+
+      <view wx:for="{{filteredItems}}" wx:key="id" wx:for-index="reviewIndex" class="review-card">
+        <view class="review-author">
+          <view class="review-avatar-wrap">
+            <image wx:if="{{item.authorAvatar}}" class="review-avatar" src="{{item.authorAvatar}}" mode="aspectFill" />
+            <view wx:else class="review-avatar review-avatar--fallback">城</view>
+          </view>
+          <view class="review-author-main">
+            <view class="review-author-line">
+              <text class="review-author-name">{{item.authorNickname}}</text>
+              <view class="review-verified" wx:if="{{item.verifiedRedemption}}">
+                <image src="/pages/merchant/images/merchant/reviews/icon-check-green.svg" mode="aspectFit" />
+                <text>核销已验证</text>
+              </view>
+            </view>
+            <view class="review-meta-line">
+              <view class="review-card-stars">
+                <image wx:for="{{item.stars}}" wx:key="value" class="review-card-star"
+                       src="{{item.filled ? '/images/merchant/reviews/icon-star-small.svg' : '/images/merchant/reviews/icon-star-muted.svg'}}"
+                       mode="aspectFit" />
+              </view>
+              <text class="review-time">{{item.createTimeText}}</text>
+              <text wx:if="{{mode === 'manage'}}" class="review-status review-status--{{item.statusClass}}">{{item.statusText}}</text>
+            </view>
+          </view>
+        </view>
+
+        <text class="review-body">{{item.content}}</text>
+        <view wx:if="{{item.imageUrls.length}}" class="review-photo-grid">
+          <image wx:for="{{item.imageUrls}}" wx:key="*this" wx:for-index="imageIndex"
+                 class="review-photo" src="{{item}}" mode="aspectFill"
+                 data-review-index="{{reviewIndex}}" data-image-index="{{imageIndex}}" bindtap="previewImage"
+                 aria-role="button" aria-label="预览评价图片 {{imageIndex + 1}}" hover-class="cy-pressed" hover-stay-time="80" />
+        </view>
+
+        <view wx:if="{{item.merchantReply && replyReviewId === item.id && replyEditing}}" class="review-reply-inline">
+          <view class="review-reply-input-shell">
+            <input class="review-reply-input" value="{{replyContent}}" maxlength="500"
+                   placeholder="修改公开回复…" placeholder-class="review-placeholder"
+                   focus="{{replyReviewId === item.id}}" bindinput="inputReply" />
+          </view>
+          <view class="review-reply-cancel" bindtap="cancelEditReply"
+                aria-role="button" hover-class="{{replySubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">取消</view>
+          <view class="review-reply-send" data-id="{{item.id}}"
+                bindtap="tapReplySend"
+                aria-role="button" aria-label="保存修改后的公开回复" hover-class="{{replySubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+            <image src="/pages/merchant/images/merchant/reviews/icon-send.svg" mode="aspectFit" />
+          </view>
+        </view>
+
+        <view wx:elif="{{item.merchantReply}}" class="review-reply">
+          <!-- CU-M-42:"你的回复"是商家视角用语,公开态访客看到的这条是商家写的回复,必须换称呼。 -->
+          <text class="review-reply-label">{{mode === 'manage' ? '你的回复' : '商家回复'}}<text wx:if="{{item.repliedAtText}}"> · {{item.repliedAtText}}</text></text>
+          <text class="review-reply-content">{{item.merchantReply}}</text>
+          <view wx:if="{{item.canEditReply}}" class="review-actions">
+            <view class="review-action" data-id="{{item.id}}"
+                  bindtap="openEditReply" aria-role="button" hover-class="{{replySubmitting || reportSubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">修改回复</view>
+            <view class="review-action review-action--danger" data-id="{{item.id}}"
+                  bindtap="askDeleteReply" aria-role="button" hover-class="{{replySubmitting || reportSubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">删除回复</view>
+          </view>
+        </view>
+
+        <view wx:elif="{{mode === 'manage' && item.canReply}}" class="review-reply-inline">
+          <view wx:if="{{replyReviewId === item.id}}" class="review-reply-input-shell">
+            <input class="review-reply-input" value="{{replyContent}}" maxlength="500"
+                   placeholder="写下公开回复…" placeholder-class="review-placeholder"
+                   focus="{{replyReviewId === item.id}}" bindinput="inputReply" />
+          </view>
+          <view wx:else class="review-reply-input-shell" data-id="{{item.id}}" bindtap="openReply"
+                aria-role="button" hover-class="cy-pressed" hover-stay-time="80">
+            <text class="review-reply-placeholder">写下公开回复…</text>
+          </view>
+          <view class="review-reply-send" data-id="{{item.id}}"
+                bindtap="tapReplySend"
+                aria-role="button" aria-label="发送公开回复" hover-class="{{replySubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">
+            <image src="/pages/merchant/images/merchant/reviews/icon-send.svg" mode="aspectFit" />
+          </view>
+        </view>
+        <cy-inline-error wx:if="{{replyReviewId === item.id && replyError}}" class="review-error" kind="data"
+                         title="回复未提交" sub="{{replyError}}" />
+
+        <view class="review-actions">
+          <view wx:if="{{item.canReport}}" class="review-action" data-id="{{item.id}}"
+                bindtap="openReport" aria-role="button" hover-class="{{reportSubmitting || replySubmitting ? 'none' : 'cy-pressed'}}" hover-stay-time="80">举报</view>
+        </view>
+
+        <view wx:if="{{reportReviewId === item.id}}" class="review-editor">
+          <text class="review-editor-title">提交平台复核</text>
+          <text class="review-editor-sub">举报只会进入统一审核队列，不代表内容已经下架。</text>
+          <textarea class="review-textarea review-textarea--compact" value="{{reportReason}}" maxlength="500"
+                    placeholder="请说明不实、攻击、广告或其他违规事实" placeholder-class="review-placeholder" bindinput="inputReport" />
+          <cy-inline-error wx:if="{{reportError}}" class="review-error" kind="data"
+                           title="举报未提交" sub="{{reportError}}" />
+          <view class="review-editor-actions">
+            <cy-btn variant="ghost" disabled="{{reportSubmitting}}" bindtap="cancelReport">取消</cy-btn>
+            <cy-btn variant="primary" loading="{{reportSubmitting}}" disabled="{{reportSubmitting || !reportReason}}"
+                    bindtap="submitReport">提交举报</cy-btn>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{loadingMore}}" class="review-loading-more">正在加载更多…</view>
+      <view wx:elif="{{hasMore}}" class="review-load-more" bindtap="loadMore" aria-role="button" hover-class="cy-pressed" hover-stay-time="80">加载更多</view>
+      <view wx:elif="{{items.length}}" class="review-list-end">已经到底了</view>
+    </view>
+  </scroll-view>
+</view>

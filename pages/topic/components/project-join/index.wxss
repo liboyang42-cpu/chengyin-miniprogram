@@ -1,0 +1,1127 @@
+@import '/style/merchant-light.wxss';
+
+/* ============================================================
+ * 我的参与视图 —— 2026-08-04 按 Figma 重做
+ * 页面 = 浅灰底 + 一列白色圆角卡;每张卡要么是一个入口,要么是一组数字。
+ * 二级内容(玩法规则/剧情/条款原文)一律不在本页铺开,点进去看。
+ * ============================================================ */
+
+/* 底部操作栏是 fixed 的,末尾分组要留出它的高度 */
+.page { padding-bottom: 260rpx; }  /* ds-ok: 量表外遗留值,复核保留 */
+.page-pad {
+  /* 底栏是 fixed 的,这块留白替它占位。2026-09-06:「退出与暂停规则」按稿挪进底栏后
+     底栏高了约 88rpx,这里跟着加,否则最后一段正文会被压在按钮下面。 */
+  height: calc(var(--cy-btn-h) + 88rpx + var(--cy-space-6));
+}
+
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 480rpx;  /* ds-ok: 封面比例按稿,非量表值 */
+}
+.hero-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.hero-img--fallback {
+  background: linear-gradient(135deg, var(--cy-bg-subtle), var(--cy-border-line));
+}
+.hero-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, 0.62)); /* ds-ok: 图片压暗 scrim,方向/停点按稿 */
+}
+.hero-status {
+  position: absolute;
+  right: var(--cy-space-3);
+  bottom: 76rpx;  /* ds-ok: 与角标底对齐,按稿 */
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+  padding: 10rpx var(--cy-space-3);  /* ds-ok: 胶囊内距按稿 */
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-comp-scrim);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-text-inverse);
+}
+.hero-status-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--cy-text-inverse);
+}
+.hero-status-dot.state-danger  { background: var(--cy-danger); }
+.hero-status-dot.state-running { background: var(--cy-success); }
+.hero-status-dot.state-ok      { background: var(--cy-accent); }
+.hero-status-dot.state-neutral { background: var(--cy-color-status-warning); }
+
+/* 角标:我这一站的现场图,压在 hero 下边界 */
+.ident {
+  position: absolute;
+  left: var(--cy-space-3);
+  bottom: -32rpx;  /* ds-ok: 压边界的负偏移,按稿 */
+}
+.ident-img {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: var(--cy-radius-md);
+  border: 4rpx solid var(--cy-bg-page);
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, 0.15);  /* ds-ok: 投影按稿 */
+  display: block;
+  background: var(--cy-bg-subtle);
+}
+.ident-img--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-font-caption);
+  font-weight: 700;
+  color: var(--cy-text-secondary);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* ===== 标题 / 时间 / 标签 ===== */
+.head {
+  padding: 68rpx var(--cy-page-x) 0;  /* ds-ok: 让开角标的负偏移 */
+}
+.head-title {
+  font-size: var(--cy-font-page-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-tight);
+}
+.head-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cy-space-3);
+  margin-top: var(--cy-space-2);
+}
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+.head-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-1-5);
+  margin-top: var(--cy-space-2-5);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--cy-space-1) var(--cy-space-2-5);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-accent-weak);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-text-body);
+}
+.chip--sm {
+  padding: 6rpx var(--cy-space-2);  /* ds-ok: 玩法卡里的小标签,按稿 */
+  font-size: var(--cy-font-caption);
+  font-weight: 400;
+}
+
+/* ===== 未通过:驳回原因告示条 =====
+   软底只做底,正文仍用 text-title —— 同色系软底配同色文字会把对比度吃掉。 */
+.reject {
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-danger-soft);
+}
+.reject-title {
+  font-size: var(--cy-font-label);
+  font-weight: 700;
+  color: var(--cy-danger);
+}
+.reject-text {
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+}
+
+/* ===== 四个关系入口 ===== */
+.qa {
+  display: flex;
+  padding: var(--cy-space-4) var(--cy-page-x) var(--cy-space-1);
+}
+.qa-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+}
+.qa-btn--tap { opacity: .6; }
+.qa-ico {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  background: var(--cy-bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qa-ico-img {
+  width: 48rpx;
+  height: 48rpx;
+}
+.qa-label {
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-text-title);
+}
+
+/* ===== 分组:标题在卡外,内容在白卡里 ===== */
+.sec {
+  padding: var(--cy-space-4) var(--cy-page-x) 0;
+}
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--cy-space-2-5);
+}
+.sec-title {
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-tight);
+}
+.sec-action {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-text-secondary);
+}
+.sec-empty {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+.sec-empty--todo {
+  color: var(--cy-danger);
+  font-weight: 600;
+}
+.card {
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  overflow: hidden;
+}
+.card--flush { padding: 0; }
+.card-body { padding: var(--cy-space-3); }
+.card-hr {
+  height: 1rpx;
+  background: var(--cy-border-card);
+  margin: var(--cy-space-2-5) 0;
+}
+
+/* ===== 核销:一行三格 ===== */
+.metrics {
+  display: flex;
+  gap: var(--cy-space-2);
+}
+.metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cy-space-1);
+  padding: var(--cy-space-3) var(--cy-space-1);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card);
+}
+.metric-n {
+  font-family: var(--cy-font-family-numeric, inherit);
+  font-size: 60rpx;  /* ds-ok: 数字比正文量表大一档,按稿 */
+  font-weight: 500;
+  line-height: 1;
+  color: var(--cy-text-title);
+}
+.metric-n--pending { color: var(--cy-danger); }
+.metric-n--done    { color: var(--cy-success); }
+.metric-l {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.metrics + .sec-empty { margin-top: var(--cy-space-2); }
+
+.checkin-actions {
+  margin-top: var(--cy-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-2);
+}
+.checkin-hint {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.checkin-btns {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+.checkin-btn { flex: 1; min-width: 0; }
+
+/* ===== 承接的章节 ===== */
+.card-cover {
+  position: relative;
+  width: 100%;
+  height: 296rpx;  /* ds-ok: 卡内封面比例按稿 */
+}
+.card-cover-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.card-cover-img--fallback {
+  background: linear-gradient(135deg, var(--cy-bg-subtle), var(--cy-border-line));
+}
+.card-cover-scrim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55)); /* ds-ok: 压暗 scrim 按稿 */
+}
+.card-cover-chev {
+  position: absolute;
+  right: var(--cy-space-3);
+  top: var(--cy-space-3);
+  color: var(--cy-text-inverse);
+}
+.fact-eyebrow {
+  display: block;
+  font-size: var(--cy-font-caption);
+  font-weight: 500;
+  letter-spacing: 1rpx;
+  color: var(--cy-text-placeholder);
+}
+.fact-main {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-tight);
+}
+.fact-node {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-text-body);
+}
+.fact-tail {
+  font-size: var(--cy-font-label);
+}
+.fact-tail-k { color: var(--cy-text-secondary); }
+.fact-tail-v { color: var(--cy-text-title); font-weight: 600; }
+.fact-tail-sep { color: var(--cy-border-line); margin: 0 var(--cy-space-1-5); }
+
+/* ===== 这一站玩什么 ===== */
+.game {
+  display: flex;
+  gap: var(--cy-space-3);
+}
+.game-img {
+  width: 160rpx;
+  height: 160rpx;
+  flex: none;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-subtle);
+}
+.game-img--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-placeholder);
+}
+.game-text { flex: 1; min-width: 0; }
+.game-name {
+  display: block;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+}
+.game-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-1);
+  margin-top: var(--cy-space-1-5);
+}
+.game-verify {
+  display: block;
+  margin-top: var(--cy-space-1-5);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+
+/* 玩家能拿到:贴在玩法卡里的浅底条 */
+.reward {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2-5);
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+}
+.reward-medal {
+  width: 80rpx;
+  height: 80rpx;
+  flex: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;  /* ds-ok: emoji 兜底字号 */
+  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);  /* ds-ok: 勋章金色装饰渐变,非语义色 */
+}
+.reward-medal-img { width: 56rpx; height: 56rpx; }
+.reward-text { flex: 1; min-width: 0; }
+.reward-title {
+  display: block;
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.reward-sub {
+  display: flex;
+  gap: var(--cy-space-3);
+  margin-top: 4rpx;  /* ds-ok: 两行贴合,按稿 */
+  font-size: var(--cy-font-label);
+}
+.reward-sub-a { color: var(--cy-text-body); }
+.reward-sub-b { color: var(--cy-text-placeholder); }
+
+/* 我是这套玩法的作者 */
+.creator {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2-5);
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-2-5);
+  border-radius: var(--cy-radius-md);
+  border: 1rpx solid var(--cy-color-status-info-soft);
+  background: var(--cy-color-status-info-soft);
+}
+.creator-ico {
+  width: 76rpx;
+  height: 76rpx;
+  flex: none;
+  border-radius: 50%;
+  background: var(--cy-info);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.creator-ico-img { width: 36rpx; height: 36rpx; }
+.creator-text { flex: 1; min-width: 0; }
+.creator-title {
+  display: block;
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-info);
+}
+.creator-btn {
+  flex: none;
+  padding: var(--cy-space-1-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-info);
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-inverse);
+}
+
+/* ===== 接下来:虚线时间轴 ===== */
+.tl-item { display: flex; gap: var(--cy-space-3); }
+.tl-rail {
+  width: 20rpx;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10rpx;  /* ds-ok: 圆点与首行文字对齐 */
+}
+.tl-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: var(--cy-text-title);
+  flex: none;
+}
+.tl-line {
+  flex: 1;
+  width: 0;
+  margin-top: var(--cy-space-1);
+  border-left: 2rpx dashed var(--cy-border-line);
+}
+.tl-body { flex: 1; min-width: 0; padding-bottom: var(--cy-space-3-5); }
+.tl-item:last-child .tl-body { padding-bottom: 0; }
+.tl-line1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+}
+.tl-when {
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.tl-src {
+  flex: none;
+  padding: 4rpx var(--cy-space-2);  /* ds-ok: 小徽标内距,按稿 */
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-accent-weak);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.tl-meta {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+}
+.tl-arrival {
+  display: block;
+  margin-top: 4rpx;  /* ds-ok: 两行贴合,按稿 */
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-placeholder);
+}
+
+/* ===== 开场前要准备 ===== */
+.prep-label {
+  display: block;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+.prep-text {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+  line-height: var(--cy-leading-normal);
+}
+/* 稿 88:3956 的「确认玩家报名名单」暂时只做提示(2026-09-10 用户定):
+   一句话,不带勾选框 —— 上面那三个勾都是按字段算出来的,这一条没有字段可算。 */
+.prep-hint {
+  margin-top: var(--cy-space-2-5);
+  padding-top: var(--cy-space-2-5);
+  border-top: 1rpx solid var(--cy-border-card);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+.prep + .todos {
+  margin-top: var(--cy-space-2-5);
+  padding-top: var(--cy-space-2-5);
+  border-top: 1rpx solid var(--cy-border-card);
+}
+.todo {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+.todo + .todo { margin-top: var(--cy-space-2); }
+.todo-box {
+  width: 36rpx;
+  height: 36rpx;
+  flex: none;
+  border-radius: var(--cy-radius-sm);
+  border: 2rpx solid var(--cy-border-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.todo-box--done {
+  background: var(--cy-text-title);
+  border-color: var(--cy-text-title);
+}
+.todo-check { width: 20rpx; height: 20rpx; }
+.todo-text {
+  font-size: var(--cy-font-label);
+  color: var(--cy-danger);
+}
+.todo-text--done {
+  color: var(--cy-text-placeholder);
+  text-decoration: line-through;
+}
+
+/* ===== 整页错误态 ===== */
+.load-error {
+  margin: 120rpx var(--cy-page-x) 0; /* ds-ok: 量表外遗留值,复核保留 */
+  text-align: center;
+}
+.load-error-title {
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.load-error-tip {
+  margin: var(--cy-space-2) 0 var(--cy-space-4);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* ===== 底部操作栏 ===== */
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 0 var(--cy-page-x) calc(env(safe-area-inset-bottom) + var(--cy-space-3));
+  /* 固定/粘性底栏必须自带不透明底,否则下方内容从 padding 区透出来,按钮看上去压在正文上
+     (2026-08-19 C27 实拍坐实同一病因)。 */
+  background: var(--cy-bg-page);
+}
+.club {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3) 0;
+}
+.club + .club { border-top: 1rpx solid var(--cy-border-card); }
+
+.rules {
+  min-height: 88rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cy-space-1);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* ===== 抽屉内容 =====
+   ⚠️ 必须放在父组件里,不能放 project-drawer:内容是 slot 传进去的,
+   slot 内容属于父组件、吃父组件的样式。写在子组件里一行都不生效。
+
+   结构按稿:面板(浅灰底)里是「粗黑大标题 + 白卡列表」的分组,
+   不是把行直接铺在浅灰上。 */
+
+.dg-sub {
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  margin-bottom: var(--cy-space-2);
+}
+/* 白卡:一组一张,条目之间细分隔线 */
+.dcard {
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-bg-card);
+  overflow: hidden;
+}
+
+/* 一行:头像 + 名称/站点/电话 */
+.dr {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3);
+}
+.dr + .dr { border-top: 1rpx solid var(--cy-border-card); }
+.dr-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  flex: none;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-subtle);
+}
+.dr-avatar--round { border-radius: 50%; }
+.dr-avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-secondary);
+}
+.dr-text { flex: 1; min-width: 0; }
+.dr-line1 {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1-5);
+  /* 不换行:名字过长时省略它,而不是把状态标签挤到下一行 */
+  min-width: 0;
+}
+.dr-line1 .dr-name { flex: 0 1 auto; min-width: 0; }
+.dr-line1 .dr-tag { flex: none; }
+.dr-name {
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.dr-tag {
+  padding: 2rpx var(--cy-space-2);  /* ds-ok: 小徽标内距,按稿 */
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-accent-weak);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.dr-tag--ok   { background: var(--cy-color-status-success-soft); color: var(--cy-success); }
+.dr-tag--wait { background: var(--cy-color-status-warning-soft); color: var(--cy-color-status-warning); }
+.dr-sub {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-body);
+}
+/* 电话 + 复制图标(按稿是图标,不是文字按钮) */
+.dr-phone {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  margin-top: var(--cy-space-1);
+}
+.dr-phone-n {
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-body);
+  letter-spacing: 1rpx;
+}
+.dr-copy-img { width: 32rpx; height: 32rpx; }
+.dr-copy {
+  width: var(--cy-btn-h);
+  height: var(--cy-btn-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-placeholder);
+}
+.dr-right { flex: none; text-align: right; }
+.dr-state {
+  font-size: var(--cy-font-label);
+  font-weight: 600;
+  color: var(--cy-text-placeholder);
+}
+.dr-state--arrived { color: var(--cy-success); }
+/* 已退款:这行不是待办也不是成绩,用危险色标出来,别让它混进「还没来」里 */
+.dr-state--refunded { color: var(--cy-danger); }
+.dr-time {
+  display: block;
+  margin-top: 4rpx;  /* ds-ok: 两行贴合,按稿 */
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-placeholder);
+}
+
+
+.dn + .dn { border-top: 1rpx solid var(--cy-border-card); }
+
+/* 玩家:汇总 + 筛选 + 场次分组 */
+.dsum {
+  display: flex;
+  gap: 16rpx;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+.dsum-n { font-weight: 700; color: var(--cy-text-title); }
+/* ⚠️ 2026-09-08 补「已接洽」这一档时发现这两个颜色是反的:
+   待核销(还欠着的活)一直是绿的、已核销(已经做完的)一直是红的。
+   实拍并排才看见 —— 读代码看不出来,token 名都对,只是配错了语义。
+   现在:待核销 = warning(要你去做)、已接洽 = 中性(人已经在店里了,等确认)、
+        已核销 = success(做完了)。 */
+.dsum-pending { color: var(--cy-color-status-warning); }
+.dsum-contacted { color: var(--cy-text-secondary); }
+.dsum-redeemed { color: var(--cy-success); }
+.dsum-pending .dsum-n, .dsum-contacted .dsum-n, .dsum-redeemed .dsum-n { color: inherit; }
+.dfil {
+  display: flex;
+  gap: 34rpx;
+  margin-top: 32rpx;
+}
+.dfil-item {
+  flex: 1;
+  height: 68rpx;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2);
+  text-align: center;
+  font-size: 26rpx; /* ds-ok: Figma 25:125 筛选项 13px */
+  color: var(--cy-text-secondary);
+}
+.dfil-item--on {
+  background: var(--cy-text-title);
+  color: var(--cy-btn-solid-fg);
+  font-weight: 600;
+}
+.drun {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2);
+  margin: var(--cy-space-4) 0 var(--cy-space-2);
+}
+.drun-when {
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.drun-src {
+  padding: 2rpx var(--cy-space-2);  /* ds-ok: 小徽标内距,按稿 */
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-accent-weak);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.dempty {
+  padding: var(--cy-space-6) var(--cy-space-3);
+  text-align: center;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+  line-height: var(--cy-leading-normal);
+}
+
+/* Figma 25:125：商家和俱乐部名单共用同一组尺寸，仅由服务端决定是否给电话。 */
+.player-list { margin-top: 54rpx; }
+.player-row {
+  position: relative;
+  min-height: 181rpx;
+  gap: 34rpx;
+  padding: 0;
+  align-items: flex-start;
+}
+.player-row::after {
+  content: '';
+  position: absolute;
+  left: 132rpx;
+  right: 26rpx;
+  bottom: 0;
+  height: 1rpx;
+  background: var(--cy-border-card);
+}
+.player-row .dr-avatar { width: 92rpx; height: 92rpx; }
+.player-row .dr-text { margin-top: -12rpx; }
+.player-row .dr-name { font-size: var(--cy-font-subtitle); line-height: 42rpx; }
+.player-row .dr-sub,
+.player-row .dr-phone-n { font-size: 27rpx; line-height: 34rpx; } /* ds-ok: Figma 25:125 电话 13.5px */
+.player-row .dr-sub { margin-top: 4rpx; }
+.player-row .dr-phone { margin-top: 12rpx; gap: 4rpx; }
+.player-row .dr-copy { position: relative; width: 29rpx; height: 29rpx; }
+.player-row .dr-copy::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+.player-row .dr-copy-img { width: 29rpx; height: 29rpx; }
+.player-row .dr-right { margin-top: 16rpx; }
+.player-row .dr-state,
+.player-row .dr-time { font-size: var(--cy-font-label); line-height: 36rpx; }
+/* ⚠️ 2026-09-08:这三行原来把 pending 涂成 success、arrived/redeemed 涂成 danger,
+   跟上面基础规则的 .dr-state--arrived{success} 正好相反 —— 后面的 .player-row 覆盖赢了,
+   于是「已核销」在名单里是红的、「待核销」是绿的。实拍并排才看见。
+   现在与汇总行同一套语义:待核销=要你去做(warning)、已接洽=中性、已核销=做完了(success)。 */
+.player-row .dr-state--pending { color: var(--cy-color-status-warning); }
+.player-row .dr-state--contacted { color: var(--cy-text-secondary); }
+.player-row .dr-state--arrived,
+.player-row .dr-state--redeemed { color: var(--cy-success); }
+
+/* ===== 现场核销答案 =====
+   后端只对中标商家下发(auditStatus==1),没下发时整块 wx:if 不出,
+   所以这里不需要也不应该再做一层前端身份判断。 */
+.game-answer {
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-subtle);
+}
+.game-answer-q {
+  display: block;
+  margin-bottom: var(--cy-space-1-5);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+.game-answer-row {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+.game-answer-label {
+  flex: none;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-placeholder);
+}
+.game-answer-v {
+  flex: 1;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+/* 承接多站切换条。用 DS token,不硬编码颜色/间距(ds-hardcode-gate 会判红) */
+.my-stations { padding: var(--cy-space-3) var(--cy-page-x) 0; }
+.my-stations__hint { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); margin-bottom: var(--cy-space-2); }
+.my-stations__bar { white-space: nowrap; }
+.my-stations__item {
+  display: inline-block; padding: var(--cy-space-2) var(--cy-space-3);
+  margin-right: var(--cy-space-2); border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-subtle); color: var(--cy-text-secondary);
+  font-size: var(--cy-font-caption);
+}
+.my-stations__item--on { background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }
+
+/* 「更多」抽屉的分组头与禁用行(2026-09-05) */
+.dgroup-head {
+  display: block;
+  padding: var(--cy-space-4) var(--cy-space-1) var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+/* 抽屉里的一行:标题 + 说明 + 右侧箭头/标签。
+   ⚠️ 2026-09-05 补:这四个类之前只写了 wxml 没写样式,行渲染成裸元素 ——
+   标题和说明挤在同一行、箭头掉到下一行、左右没有内边距。
+   全仓门禁一条都没红(样式缺失不是任何一道静态门禁的判据),截图走查才看见。
+   排版对齐同文件的 .dr(俱乐部抽屉那一行),不另起一套。 */
+.dpick {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  /* 稿 468:1126 的行内距是 16px 横 / 14px 竖 —— 原来上下也用 16px,行比稿高 4px,
+     四行叠下来抽屉就长出小半屏 */
+  padding: var(--cy-space-3-5) var(--cy-space-4);
+}
+.dpick + .dpick { border-top: 1rpx solid var(--cy-border-card); }
+.dpick-text { flex: 1; min-width: 0; }
+.dpick-name {
+  display: block;
+  font-size: var(--cy-font-subtitle);
+  font-weight: 500;   /* 稿 Inter:Medium;原来不写权重,落到 400 比稿细一档 */
+  color: var(--cy-text-title);
+}
+.dpick-sub {
+  display: block;
+  margin-top: 4rpx;   /* ds-ok: 稿标题↔副文案是 2px,量表最小档 8rpx 会把两行拉开 */
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.dpick--off { opacity: .42; }
+/* 行尾 chevron 用次要色 —— 它是「可以点进去」的暗示,不该和标题抢重量 */
+.dpick-chev { flex: none; color: var(--cy-text-placeholder); }
+
+/* 章节 / 节点抽屉(2026-09-05,Figma 439:6336 / 336:461)。
+   分组头带右侧计数时用这一行,单独一个头仍直接用 .dgroup-head */
+.dgroup-head-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.cs-count {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.cs-sub {
+  display: block;
+  padding: var(--cy-space-2) var(--cy-space-1) 0;
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.cs-story { padding: var(--cy-space-4); }
+.cs-story-text {
+  display: block;
+  font-size: var(--cy-font-body);
+  line-height: 1.7;
+  color: var(--cy-text-body);
+}
+/* 折叠成 4 行:剧情动辄一整段,抽屉里全铺开会把「本章玩法」挤到屏外 */
+.cs-story-text--fold {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+.cs-story-more {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  margin-top: var(--cy-space-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+/* 奖励卡跟上一块之间留一档间距(它没有分组头顶着) */
+.dcard--reward { margin-top: var(--cy-space-4); }
+.cs-story-chev {
+  display: flex;
+  transform: rotate(90deg);
+}
+.cs-story-chev.is-open { transform: rotate(-90deg); }
+.cs-node {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3) var(--cy-space-4);
+}
+.cs-node-img {
+  flex: none;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-bg-card-2);
+}
+.cs-node-img--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-tertiary);
+}
+.cs-node-text { flex: 1; min-width: 0; }
+.cs-node-name {
+  display: block;
+  font-size: var(--cy-font-subtitle);
+  color: var(--cy-text-title);
+}
+.cs-node-play {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.cs-node-mine {
+  flex: none;
+  padding: var(--cy-space-1) var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.dpick-name--danger { color: var(--cy-danger); }
+.dpick-tag {
+  flex: none;
+  padding: var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-bg-card-2);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+/* 稿 468:1162:开关类标签的「开」用软绿(#E4F5EE 底 / #0E7A57 字),
+   与进度行的「已通过」同一对 token;「关」和「可改/不可用」仍是中性灰。
+   ⚠️ 必须排在 .dpick-tag **之后** —— 同特异度下后写的赢,写在前面整条会被基类覆盖掉。 */
+.dpick-tag--on {
+  background: var(--cy-color-status-success-soft);
+  color: var(--cy-success);
+}
+
+/* ===== 进度状态线(2026-09-05,取代原 .tl-* 场次时间轴)=====
+   虚线跨行连通:线从上一个圆点中心画到本行底,圆点压在线上,行与行之间不断口 */
+.pg { display: flex; flex-direction: column; }
+/* 稿 88:3924:行与轨道之间 10px,行下留白 10px */
+.pg-item { position: relative; display: flex; gap: 20rpx; padding-bottom: 20rpx; }
+.pg-item:last-child { padding-bottom: 0; }
+/* 圆点与右边卡片垂直居中:轨道是 flex,高度跟着卡片撑开(.pg-item 默认 stretch),
+   居中交给 align-items —— 原来写死 top:28rpx,两行高的卡片上圆点就顶在上面。 */
+.pg-rail {
+  position: relative; flex: none; width: 28rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.pg-dot {
+  position: relative; z-index: 1;              /* 圆心 x = 轨道中线 14rpx,与 .pg-line 同轴 */
+  width: 20rpx; height: 20rpx; border-radius: 50%;
+  background: var(--cy-success);
+}
+.pg-dot--wait { background: var(--cy-bg-card); border: 4rpx solid var(--cy-border-line); }
+.pg-dot--now  { background: var(--cy-text-title); }
+.pg-dot--bad  { background: var(--cy-danger); }
+/* 稿里这条线是**三条首尾相接的 dash 向量**(y 19→80→142→224),
+   每一段正好从这个圆点的中心连到下一个圆点的中心 —— 连起来是一整条,不是每张卡各画一段。
+   ⚠️ 卡片高度不固定(有的带副文案),所以不能算「下一个圆心在哪」。
+      改成每行自己画两截:上半 top:0→50%、下半 50%→行底(含 20rpx 行间距)。
+      50% 取的是轨道高度,而轨道高度 = 卡片高度 ⇒ 50% 就是圆心。
+      两行的截面在行边界重合,连起来就是一整条穿过每个圆心的线。 */
+.pg-line {
+  position: absolute;
+  left: 12rpx;                 /* 12 + 4/2 = 14rpx = 轨道中线,与圆心同轴 */
+  width: 0;
+  border-left: 4rpx dashed var(--cy-success);
+}
+.pg-line--top { top: 0; bottom: 50%; }
+.pg-line--bot { top: 50%; bottom: -20rpx; }   /* -20rpx = .pg-item 的 padding-bottom */
+.pg-line--wait { border-left-color: var(--cy-border-line); }
+.pg-line--now  { border-left-color: var(--cy-text-title); }
+.pg-line--bad  { border-left-color: var(--cy-danger); }
+.pg-card {
+  flex: 1; min-width: 0;
+  /* 稿 447:1054:16px 横 / 14px 竖 */
+  padding: var(--cy-space-3-5) var(--cy-space-4);
+  background: var(--cy-bg-card);
+  border-radius: var(--cy-radius-lg);
+}
+.pg-top { display: flex; align-items: center; flex-wrap: wrap; gap: var(--cy-space-2); }
+.pg-label { font-size: var(--cy-font-subtitle); font-weight: 700; color: var(--cy-text-title); }
+.pg-label--wait { font-weight: 500; color: var(--cy-text-secondary); }
+.pg-time { font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+.pg-tag {
+  margin-left: auto;
+  padding: var(--cy-space-1) var(--cy-space-3);
+  border-radius: var(--cy-radius-pill);
+  font-size: var(--cy-font-caption);
+  background: var(--cy-bg-card-2); color: var(--cy-text-secondary);
+}
+/* 稿 88:3776 实测取色:已通过 = 软绿底 #E4F5EE + 绿字,进行中 = 实心绿 #0E9E73 + 反白字。
+   原来两档共用灰底,「现在走到哪一步」这条线上唯一在动的那一格反而最不显眼。 */
+.pg-tag--done { background: var(--cy-color-status-success-soft); color: var(--cy-success); }
+.pg-tag--now  { background: var(--cy-success); color: var(--cy-text-inverse); }
+.pg-tag--bad { background: var(--cy-danger-soft); color: var(--cy-danger); }
+.pg-sub { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-text-secondary); }
+
+/* 稿 439:6336:剧情正文上面先写是哪一章 */
+.cs-story-name {
+  display: block;
+  margin-bottom: var(--cy-space-2);
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+
+/* 稿 439:6336 底部「当前承接章节」块:章节 / 站 / 分润 */
+.cs-mine-t {
+  display: block;
+  font-size: var(--cy-font-body);
+  font-weight: 600;
+  color: var(--cy-text-title);
+}
+.cs-mine-s {
+  display: block;
+  margin-top: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.cs-mine-f {
+  display: block;
+  margin-top: var(--cy-space-2-5);
+  padding-top: var(--cy-space-2-5);
+  border-top: 1rpx solid var(--cy-border-card);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-tertiary);
+}
+.cs-mine-v { color: var(--cy-text-title); font-weight: 600; }

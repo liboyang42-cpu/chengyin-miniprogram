@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-switch": "/components/cy/switch/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-error": "/components/cy/error/index"
+  }
+}

@@ -1,0 +1,185 @@
+/* 自由探索商家权益页。深色底与 play 页同族;色值全部走中性,守 play 主路径的单色约定。 */
+.mp{ min-height:100vh; background:#0D0E12; } /* ds-ok 与 .pbar 同一枚页面底色 */
+
+.mp-hero{ position:relative; height:660rpx; overflow:hidden;
+  border-radius:0 0 52rpx 52rpx; background:#1A1D24; } /* ds-ok 商家封面底,与瓦片同族 */
+.mp-hero__im{ width:100%; height:100%; }
+.mp-hero__ph{ width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,.12); } /* ds-ok 无封面占位,弱到不抢 */
+.mp-hero__vig{ position:absolute; left:0; right:0; top:0; bottom:0;
+  background:linear-gradient(180deg, rgba(0,0,0,.34) 0%, rgba(0,0,0,0) 34%, rgba(0,0,0,.30) 100%); } /* ds-ok 保证浮层可读 */
+.mp-back{ position:absolute; left:var(--cy-page-x); z-index:6; width:var(--cy-btn-h); height:var(--cy-btn-h);
+  border-radius:var(--cy-radius-pill); display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.42); color:var(--cy-color-text-primary); } /* ds-ok 压在图上的玻璃面 */
+.mp-tag{ display:inline-block; margin-bottom:var(--cy-space-2); padding:8rpx 20rpx;
+  border-radius:var(--cy-radius-pill); font-size:19rpx; font-weight:700; letter-spacing:3rpx; /* ds-ok 眉标,比 caption 小 */
+  background:rgba(255,255,255,.10); color:var(--cy-color-text-tertiary); } /* ds-ok 眉标底 */
+
+.mp-head{ padding:var(--cy-space-4) var(--cy-page-x) 0; }
+.mp-name{ font-size:52rpx; font-weight:700; line-height:1.24; /* ds-ok 商家名是这一页的主角 */
+  color:var(--cy-color-text-primary); } /* ds-ok 商家名是这一页的主角 */
+.mp-meta{ margin-top:var(--cy-space-3); display:flex; flex-direction:column; gap:12rpx; }
+.mp-mc{ display:flex; align-items:baseline; gap:12rpx; }
+.mp-mc__k{ flex:none; font-size:18rpx; font-weight:700; letter-spacing:3rpx; /* ds-ok 字距标签,比 caption 小 */
+  color:var(--cy-color-text-tertiary); } /* ds-ok 字距标签,比 caption 小 */
+.mp-mc__v{ flex:1; min-width:0; font-size:28rpx; font-weight:600; /* ds-ok 与字距标签配对的值 */
+  color:var(--cy-color-text-primary); } /* ds-ok 与标签配对的值 */
+
+/* 双联纸票:中性纸色,不引暖色(与 play 主路径同一条单色约定) */
+.mp-tk{ margin:var(--cy-space-4) var(--cy-page-x) 0; display:flex; overflow:hidden;
+  border-radius:var(--cy-radius-lg);
+  background:linear-gradient(150deg,#E8EAEC 0%,#D8DBDE 58%,#C6CACE 100%); /* ds-ok 票面纸色 */
+  box-shadow:0 24rpx 48rpx rgba(0,0,0,.42); } /* ds-ok 压在深底上的票面投影 */
+.mp-tk__l{ flex:1; min-width:0; padding:26rpx 28rpx; display:flex; flex-direction:column; }
+.mp-tk__brand{ font-size:19rpx; font-weight:700; letter-spacing:3rpx; color:#5C626A; /* ds-ok 票面深灰,票是浅面不进夜端语义层 */
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } /* ds-ok 票面深灰 */
+.mp-tk__main{ margin-top:16rpx; }
+.mp-tk__amt{ font-size:64rpx; font-weight:700; line-height:1; color:#14171C; } /* ds-ok 票面主数字 */
+.mp-tk__amt--word{ font-size:40rpx; } /* ds-ok 无面额时的文字版,比数字版小一档 */
+.mp-tk__what{ margin-top:10rpx; font-size:26rpx; font-weight:700; color:#2B3038; } /* ds-ok 票面正文 */
+.mp-tk__foot{ margin-top:auto; padding-top:20rpx; display:flex; gap:28rpx; }
+.mp-tk__cell{ display:flex; flex-direction:column; }
+.mp-tk__k{ font-size:17rpx; font-weight:700; letter-spacing:2rpx; color:#7A8089; } /* ds-ok 票面标签 */
+.mp-tk__v{ margin-top:5rpx; font-size:23rpx; font-weight:700; color:#14171C; } /* ds-ok 票面值 */
+.mp-tk__cut{ width:2rpx; border-left:2rpx dashed rgba(90,96,104,.5); } /* ds-ok 撕口虚线 */
+.mp-tk__r{ flex:none; width:196rpx; padding:26rpx 22rpx; display:flex; flex-direction:column; }
+.mp-tk__exp{ margin-top:8rpx; font-size:30rpx; font-weight:700; color:#14171C; } /* ds-ok 票面值 */
+
+.mp-sec{ margin-top:var(--cy-space-5); padding:0 var(--cy-page-x); }
+.mp-sec__h{ font-size:28rpx; font-weight:700; color:var(--cy-color-text-primary); } /* ds-ok 分区标题 */
+.mp-sec__s{ margin-left:var(--cy-space-2); font-size:20rpx; font-weight:400; /* ds-ok 分区副标,比 caption 小 */
+  color:var(--cy-color-text-tertiary); } /* ds-ok 分区副标 */
+.mp-sec__p{ margin-top:var(--cy-space-2); font-size:var(--cy-type-body); line-height:1.74;
+  color:var(--cy-color-text-secondary); } /* ds-ok 正文 */
+
+.mp-tpl{ margin-top:var(--cy-space-3); display:flex; align-items:center; gap:22rpx;
+  padding:24rpx; border-radius:var(--cy-radius-lg);
+  background:var(--cy-color-play-surface-solid); border:1rpx solid var(--cy-color-play-line); }
+.mp-tpl__ic{ flex:none; width:88rpx; height:88rpx; border-radius:var(--cy-radius-md);
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.07); color:var(--cy-color-text-primary); } /* ds-ok 模板占位底 */
+.mp-tpl__b{ flex:1; min-width:0; display:flex; flex-direction:column; gap:8rpx; }
+.mp-tpl__n{ font-size:28rpx; font-weight:700; color:var(--cy-color-text-primary); } /* ds-ok 模板名 */
+.mp-tpl__v{ font-size:21rpx; color:var(--cy-color-text-tertiary); } /* ds-ok 完成方式,比 caption 小 */
+.mp-note{ margin-top:var(--cy-space-2-5); font-size:21rpx; line-height:1.66; /* ds-ok 免责说明,比 caption 小 */
+  color:var(--cy-color-text-tertiary); } /* ds-ok 同上 */
+.mp-note__b{ color:var(--cy-color-text-secondary); font-weight:600; }
+
+.mp-proof{ margin-top:var(--cy-space-3); display:flex; flex-direction:column; gap:16rpx; }
+.mp-proof__row{ display:flex; align-items:center; gap:20rpx; padding:22rpx;
+  border-radius:var(--cy-radius-lg); border:1rpx solid var(--cy-color-play-line);
+  color:var(--cy-color-text-tertiary); background:var(--cy-color-play-surface-solid); }
+.mp-proof__row>text{ flex:none; width:48rpx; height:48rpx; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; background:var(--cy-color-border-subtle); }
+.mp-proof__row>view{ display:flex; flex-direction:column; gap:6rpx; }
+.mp-proof__row.is-done{ color:var(--cy-color-text-primary); border-color:var(--cy-color-play-line); }
+.mp-proof__t{ font-size:var(--cy-font-body); font-weight:700; }
+.mp-proof__s{ font-size:var(--cy-font-caption); line-height:1.5; color:var(--cy-color-text-tertiary); }
+.mp-stat{ margin-top:var(--cy-space-3); display:grid; grid-template-columns:repeat(3,1fr); gap:12rpx; }
+.mp-stat>view{ padding:22rpx 12rpx; display:flex; flex-direction:column; align-items:center; gap:8rpx;
+  border-radius:var(--cy-radius-md); background:var(--cy-color-play-surface-solid); border:1rpx solid var(--cy-color-play-line); }
+.mp-stat__n{ font-size:var(--cy-font-title); font-weight:700; color:var(--cy-color-text-primary); }
+.mp-stat__k{ font-size:var(--cy-type-micro); color:var(--cy-color-text-tertiary); }
+.mp-feedback{ margin:var(--cy-space-3) var(--cy-page-x) 0; padding:20rpx 24rpx;
+  border-radius:var(--cy-radius-md); background:var(--cy-color-action-secondary-bg);
+  font-size:var(--cy-font-label); line-height:1.5; color:var(--cy-color-text-primary); }
+.mp-consent{ margin-top:var(--cy-space-3); padding:22rpx 24rpx; display:flex; align-items:center; gap:20rpx;
+  border-radius:var(--cy-radius-lg); background:var(--cy-color-play-surface-solid); border:1rpx solid var(--cy-color-play-line); }
+.mp-consent>text{ flex:1; font-size:var(--cy-font-caption); line-height:1.5; color:var(--cy-color-text-secondary); }
+.mp-consent>view{ min-height:var(--cy-btn-h); flex:none; display:flex; align-items:center; font-size:var(--cy-font-caption); color:var(--cy-color-text-primary); text-decoration:underline; }
+
+.mp-addr{ margin-top:var(--cy-space-3); display:flex; align-items:center; gap:20rpx;
+  padding:24rpx; border-radius:var(--cy-radius-lg);
+  background:var(--cy-color-play-surface-solid); border:1rpx solid var(--cy-color-play-line);
+  color:var(--cy-color-text-tertiary); }
+.mp-addr__c{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6rpx; }
+.mp-addr__t{ font-size:26rpx; color:var(--cy-color-text-primary); } /* ds-ok 地址正文 */
+.mp-addr__s{ font-size:21rpx; color:var(--cy-color-text-tertiary); } /* ds-ok 同 caption 以下 */
+.mp-addr__go{ flex:none; padding:12rpx 26rpx; border-radius:var(--cy-radius-pill);
+  font-size:23rpx; font-weight:600; background:rgba(255,255,255,.12); /* ds-ok 次级动作面 */
+  color:var(--cy-color-text-primary); } /* ds-ok 次级动作面 */
+
+.mp-pad{ height:340rpx; } /* 底栏多了一行状态条,占位同步加高,别压住最后一张卡 */
+
+/* CTA 常驻:这一页很长,滚到底还要滑回去点按钮是纯浪费 */
+.mp-cta-wrap{ position:fixed; left:0; right:0; bottom:0; z-index:9;
+  padding:56rpx var(--cy-page-x) calc(52rpx + env(safe-area-inset-bottom));
+  /* 底栏是一整块材质,内容从它下面滚过去 —— 而不是在卡片上再叠一枚芯片。
+     所以渐变必须在状态条出现之前就落到实色(16%),否则那条会像是把卡片切了一刀。 */
+  background:linear-gradient(180deg, rgba(13,14,18,0) 0%, #0D0E12 16%); } /* ds-ok 渐隐到页面底色 */
+.mp-cta{ display:flex; align-items:center; gap:22rpx; }
+.mp-cta__ghost{ flex:none; width:108rpx; height:100rpx; border-radius:var(--cy-radius-lg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4rpx;
+  background:var(--cy-color-play-surface-solid); border:1rpx solid var(--cy-color-play-line);
+  font-size:18rpx; color:var(--cy-color-text-tertiary); } /* ds-ok 次级键 */
+.mp-cta__main{ flex:1; height:100rpx; border-radius:var(--cy-radius-lg);
+  display:flex; align-items:center; justify-content:center;
+  font-size:var(--cy-type-button); font-weight:700;
+  background:#FFFFFF; color:#101828; } /* ds-ok 主动作沿用 .pbar--running 侧键的白 */
+.mp-cta__main.is-disabled{ opacity:.58; }
+.mp-cta__main.is-dead{ background:#1A1C22; color:#5C636E; /* ds-ok 已核销的哑态 */
+  border:1rpx solid var(--cy-color-play-line); font-weight:600; } /* ds-ok 已核销的哑态 */
+
+.mp-empty{ display:flex; flex-direction:column; align-items:center; gap:var(--cy-space-3); }
+.mp-empty__t{ font-size:32rpx; font-weight:700; color:var(--cy-color-text-primary); } /* ds-ok 空态标题 */
+.mp-empty__s{ font-size:24rpx; color:var(--cy-color-text-tertiary); } /* ds-ok 空态副文案 */
+.mp-empty__b{ min-height:var(--cy-btn-h); box-sizing:border-box; display:inline-flex; align-items:center; margin-top:var(--cy-space-2); padding:0 52rpx; border-radius:var(--cy-radius-pill);
+  background:#FFFFFF; color:#101828; font-size:26rpx; font-weight:700; } /* ds-ok 同主动作 */
+
+/* ── 扫码后体验层(游戏卡/任务卡半屏)── */
+.mp-mask{ position:fixed; inset:0; z-index:20; background:rgba(0,0,0,.6); } /* ds-ok 遮罩(装饰) */
+/* 顶边复查(2026-09-18):原来无任何上限,长题面/≥8 选项会把顶边顶进微信胶囊行。
+   宿主页已接 resolveMenuChrome,在 wxml 两处 .mp-sheet 上传胶囊实测的 --cy-comp-sheet-max-h;
+   拿不到才退回 token(token 的 env(safe-area-inset-top) 在无刘海机解析为 0,仍偏浅)。 */
+.mp-sheet{ position:fixed; left:0; right:0; bottom:0; z-index:21; background:var(--cy-color-play-surface-solid);
+  border-radius:var(--cy-comp-sheet-radius) var(--cy-comp-sheet-radius) 0 0; padding:44rpx 40rpx calc(56rpx + env(safe-area-inset-bottom));
+  max-height:var(--cy-comp-sheet-max-h, var(--cy-comp-sheet-max-height)); overflow-y:auto;
+  /* 2026-09-19 圆角批:content-box 下 max-height 不吃 padding-bottom(56rpx+安全区),
+     长内容触 clamp 时实际顶边会高出整段 padding 压进胶囊行(.pop-topic2 实拍实证)。 */
+  box-sizing:border-box;
+  border-top:1rpx solid var(--cy-color-border-subtle); }
+.mp-sheet__k{ font-size:var(--cy-font-label); letter-spacing:2rpx; color:var(--cy-color-text-tertiary); }
+.mp-sheet__q{ margin-top:16rpx; font-size:var(--cy-font-body); font-weight:600; line-height:1.6; color:var(--cy-color-text-primary); }
+.mp-opt{ margin-top:24rpx; }
+.mp-opt__i{ display:flex; align-items:center; gap:16rpx; padding:22rpx 24rpx; margin-bottom:14rpx;
+  border:1rpx solid var(--cy-color-border-subtle); border-radius:18rpx; color:var(--cy-color-text-secondary); } /* ds-ok 选项卡圆角(装饰) */
+.mp-opt__i.is-on{ border-color:var(--cy-color-text-primary); color:var(--cy-color-text-primary); }
+.mp-opt__k{ font-weight:700; }
+.mp-opt__v{ flex:1; }
+.mp-sheet__input{ margin-top:24rpx; padding:22rpx 24rpx; border:1rpx solid var(--cy-color-border-subtle);
+  border-radius:18rpx; font-size:var(--cy-font-body); color:var(--cy-color-text-primary); } /* ds-ok 输入框圆角(装饰) */
+.mp-sheet__err{ margin-top:16rpx; font-size:var(--cy-font-label); color:var(--cy-color-text-tertiary); }
+.mp-sheet__ok{ margin-top:20rpx; font-size:var(--cy-font-body); font-weight:700; color:var(--cy-color-text-primary); }
+.mp-sheet__rv{ margin-top:14rpx; font-size:var(--cy-font-label); line-height:1.7; color:var(--cy-color-text-secondary); }
+.mp-sheet__btn{ margin-top:32rpx; height:var(--cy-btn-h); display:flex; align-items:center; justify-content:center;
+  border-radius:var(--cy-radius-pill); background:var(--cy-color-text-primary); color:var(--cy-color-play-surface-solid); font-weight:700; }
+.mp-sheet__btn.is-disabled{ opacity:.58; }
+.mp-sheet__minor{ min-height:var(--cy-btn-h); display:flex; align-items:center; justify-content:center; margin-top:20rpx; text-align:center; font-size:var(--cy-font-label); color:var(--cy-color-text-tertiary); }
+/* ── 写回执状态条 ────────────────────────────────────────────
+   Apple 的做法是「一点颜色 + 中性表面」,不是整块染色:状态色只承担识别,
+   叙述交给排版。所以色只落在 12rpx 的圆点上,文字保持正文墨色。
+   位置紧贴底部主按钮 —— 状态要和它管辖的控件在同一视野里。 */
+.mp-status{
+  display:flex; align-items:center; gap:var(--cy-space-2);
+  margin-bottom:var(--cy-space-2-5); padding:0 var(--cy-space-1);
+  /* 不给它自己的底和框:底栏已经是一整块材质,再加一层芯片边只会切出一道假边界 */
+  animation:mp-status-in var(--cy-motion-standard) var(--cy-ease-out) both;
+}
+.mp-status__dot{
+  flex:none; width:12rpx; height:12rpx; border-radius:50%;
+  background:var(--cy-color-text-secondary);
+}
+.mp-status--unknown .mp-status__dot{ background:var(--cy-color-status-warning); }
+.mp-status--failed  .mp-status__dot{ background:var(--cy-color-status-danger); }
+.mp-status__text{
+  flex:1; min-width:0; font-size:var(--cy-font-caption); line-height:1.45;
+  color:var(--cy-color-text-secondary);
+}
+@keyframes mp-status-in{ from{ opacity:0; transform:translateY(8rpx); } to{ opacity:1; transform:none; } }
+
+/* 答题弹层里的同一套语义,窄一档 */
+.mp-sheet__err--unknown{ color:var(--cy-color-status-warning); }
+.mp-sheet__act{ margin-left:var(--cy-space-1); color:var(--cy-color-text-secondary); }
+
+/* 状态条入场是 8rpx 位移,减少动态效果时撤掉位移(淡入保留 —— 反馈不能归零)。 */
+.cy-motion-reduced .mp-status { animation: none !important; }

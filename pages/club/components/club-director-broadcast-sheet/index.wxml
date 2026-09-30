@@ -1,0 +1,28 @@
+<cy-scene-sheet show="{{show}}" variant="half" title="{{title}}" closable maskClosable bind:close="onClose">
+  <view class="cdbs__body">
+    <text class="cdbs__section-title">范围</text>
+    <cy-club-director-chip-group options="{{scopeOptions}}" value="{{scope}}" bind:change="onScopeChange" />
+
+    <cy-club-director-row-list wx:if="{{targets.length}}" rows="{{targets}}" surface="raised" selectable bind:rowtap="onTargetTap" />
+
+    <text class="cdbs__section-title">内容</text>
+    <textarea
+      class="cdbs__textarea"
+      maxlength="200"
+      placeholder="输入广播内容"
+      placeholder-class="cdbs__textarea-placeholder"
+      value="{{content}}"
+      bindinput="onContentInput"
+    />
+
+    <cy-club-director-row-list rows="{{previewRows}}" surface="raised" />
+
+    <view
+      class="cdbs__primary {{confirmDisabled ? 'is-disabled' : ''}}"
+      bindtap="onConfirmTap"
+      aria-role="button" aria-label="{{confirmText}}"
+      hover-class="cy-pressed" hover-stay-time="80"
+    >{{confirmText}}</view>
+    <text class="cdbs__caption" wx:if="{{caption}}">{{caption}}</text>
+  </view>
+</cy-scene-sheet>

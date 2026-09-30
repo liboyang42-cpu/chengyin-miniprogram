@@ -1,0 +1,13 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-skeleton": "/components/cy/skeleton/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "project-drawer": "/pages/topic/components/project-drawer/index",
+    "cy-empty": "/components/cy/empty/index"
+  }
+}

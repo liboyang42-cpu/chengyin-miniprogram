@@ -1,0 +1,2 @@
+/* 深链兼容壳只留页面 chrome；D07 终态样式随正文收敛到 scene-member-order-detail。 */
+.odt-shell { min-height: 100vh; background: var(--cy-bg-page); }

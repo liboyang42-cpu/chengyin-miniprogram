@@ -1,0 +1,15 @@
+:host { display: block; }
+
+/* 图标形态 —— 复刻 merchant 的 .card-head(零视觉变化) */
+.sh--icon { display: flex; align-items: center; margin-bottom: var(--cy-space-3-5); }
+.sh--icon .sh-icon { width: var(--cy-legacy-36); height: var(--cy-legacy-36); margin-right: var(--cy-legacy-14); }
+.sh--icon .sh-title {
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  letter-spacing: -0.5rpx;
+}
+
+/* 纯标题形态 —— 复刻首页 .g-type(供后续接入 index 用) */
+.sh--plain { margin: 16rpx 0 var(--cy-space-3-5) 0; }
+.sh--plain .sh-title { font-size: var(--cy-font-display); font-weight: bold; }

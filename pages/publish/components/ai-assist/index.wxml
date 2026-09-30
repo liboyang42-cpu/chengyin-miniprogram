@@ -1,0 +1,67 @@
+<view class="ai" wx:if="{{active || expanded}}">
+
+  <!-- 折叠态:输入框附属 AI 按钮 -->
+  <view wx:if="{{!expanded}}" class="ai__trigger" catchtap="onExpand" hover-class="cy-pressed" hover-stay-time="80">
+    <text class="ai__trigger-mark">AI</text>
+    <text class="ai__trigger-txt">AI 助写</text>
+  </view>
+
+  <!-- 展开态:提示 + 生成 -->
+  <view wx:else class="ai__panel">
+    <view class="ai__head">
+      <text class="ai__title">AI 助写</text>
+      <text class="ai__collapse" catchtap="onCollapse" hover-class="cy-pressed" hover-stay-time="80">收起</text>
+    </view>
+
+    <!-- 提示 chips -->
+    <view class="ai__chips" wx:if="{{chips.length}}">
+      <view
+        class="ai__chip"
+        wx:for="{{chips}}"
+        wx:key="*this"
+        data-c="{{item}}"
+        catchtap="onChip"
+       hover-class="cy-pressed" hover-stay-time="80">{{item}}</view>
+    </view>
+
+    <!-- 想法输入 -->
+    <input
+      class="ai__input"
+      value="{{idea}}"
+      placeholder="{{placeholder}}"
+      placeholder-class="ai__input-ph"
+      disabled="{{state === 'generating'}}"
+      confirm-type="send"
+      bindinput="onIdeaInput"
+      bindconfirm="onGenerate"
+    />
+
+    <!-- 动作区(五态) -->
+    <view class="ai__actions">
+      <block wx:if="{{state === 'generating'}}">
+        <view class="ai__gen ai__gen--busy">
+          <view class="ai__spin"></view>
+          <text>生成中…</text>
+        </view>
+        <view class="ai__ghost" catchtap="onCancel" hover-class="cy-pressed" hover-stay-time="80">取消</view>
+      </block>
+
+      <block wx:elif="{{state === 'done'}}">
+        <text class="ai__status">已生成,可继续编辑</text>
+        <view class="ai__ghost" catchtap="onRegenerate" hover-class="cy-pressed" hover-stay-time="80">换一版</view>
+      </block>
+
+      <block wx:elif="{{state === 'error'}}">
+        <text class="ai__status ai__status--err">{{errorText}}</text>
+        <view class="ai__ghost" catchtap="onGenerate" hover-class="cy-pressed" hover-stay-time="80">重试</view>
+      </block>
+
+      <block wx:else>
+        <view class="ai__gen" catchtap="onGenerate" hover-class="cy-pressed" hover-stay-time="80">一键生成</view>
+      </block>
+    </view>
+
+    <!-- 来源标注(合规) -->
+    <view class="ai__source" wx:if="{{state === 'done' && sourceNote}}">{{sourceNote}}</view>
+  </view>
+</view>

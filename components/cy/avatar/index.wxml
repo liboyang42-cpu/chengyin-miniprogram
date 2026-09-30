@@ -1,0 +1,20 @@
+<view class="av {{clickable ? 'av--clickable' : ''}} {{disabled ? 'av--disabled' : ''}}"
+      style="--av-size:{{_size}}rpx;width:{{_size}}rpx;height:{{_size}}rpx"
+      hover-class="{{clickable && !disabled ? 'av--press' : ''}}" hover-stay-time="80"
+      aria-role="{{clickable ? 'button' : ''}}"
+      aria-label="{{clickable ? (name ? '查看' + name + '的资料' : '查看头像资料') : ''}}"
+      aria-disabled="{{disabled}}" bindtap="onTap">
+  <view class="av__visual">
+    <view class="av__inner {{bordered ? 'av__inner--bordered' : ''}} {{shape === 'rounded' ? 'av__inner--rounded' : ''}}">
+      <block wx:if="{{loading}}"><view class="av__sk"></view></block>
+      <image wx:elif="{{_mode === 'image'}}" class="av__img" src="{{src}}" mode="aspectFill" />
+      <text wx:elif="{{_mode === 'initial'}}" class="av__initial" style="font-size:{{_size * 0.4}}rpx">{{_initial}}</text>
+      <!-- 无 src 也无 name:走和显式传 `|| /images/d_profile.png` 的调用点同一张默认头像,
+           不再用线描图标 —— 否则「这人没头像」会有两套长相。有 name 时仍优先首字母,
+           它能区分人,比默认头像有信息量。 -->
+      <image wx:else class="av__img" src="/images/d_profile.png" mode="aspectFill" />
+    </view>
+    <view wx:if="{{!loading && verified}}" class="av__badge av__badge--verified"><cy-icon name="check" size="{{_size * 0.26}}" /></view>
+    <view wx:elif="{{!loading && online}}" class="av__badge av__badge--online"></view>
+  </view>
+</view>

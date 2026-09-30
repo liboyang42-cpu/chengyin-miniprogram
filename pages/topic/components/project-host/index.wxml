@@ -1,0 +1,321 @@
+<!-- 主办方「我发的这条路线」视图。
+     与 project-join 同一套视觉词汇(浅灰底 + 白卡 + 关系入口),但对象不同:
+     承接方管的是自己那一站,主办方管的是整条线上谁在帮他。
+     同样只负责渲染,所有点击从 bind:act 冒泡回页面。 -->
+<view class="page theme-merchant">
+  <!-- 2026-09-18 ✕统一裁决:打卡码弹层显示时导航退场,唯一出口是弹层✕/遮罩 -->
+  <cy-nav-bar overlay pill pillDark tint="light" wx:if="{{!navHidden}}" />
+
+  <view class="load-error" wx:if="{{ loadFailed }}" style="padding-top: {{ statusBarHeight + navBarHeight }}px;">
+    <view class="load-error-title">没能加载到这个项目</view>
+    <view class="load-error-tip">可能是网络问题,也可能这条路线已被删除</view>
+    <cy-btn variant="primary" bindtap="emit" data-act="retryLoad">重新加载</cy-btn>
+  </view>
+
+  <block wx:else>
+  <view class="hero">
+    <image class="hero-img" wx:if="{{ hostTopic.img }}" src="{{ hostTopic.img }}" mode="aspectFill" />
+    <view class="hero-img hero-img--fallback" wx:else></view>
+    <view class="hero-scrim"></view>
+    <view class="hero-status">
+      <view class="hero-status-dot {{ recruitDone ? 'state-running' : 'state-ok' }}"></view>
+      <text>{{ recruitDone ? '已招满' : '招募中' }}</text>
+    </view>
+  </view>
+
+
+  <view class="head">
+    <view class="head-title">{{ hostTopic.name }}</view>
+    <view class="head-meta">
+      <view class="meta-chip">
+        <cy-icon name="calendar" size="{{ 26 }}" />
+        <text>{{ hostTopic.scheduleValue || '开放时间待定' }}</text>
+      </view>
+    </view>
+    <view class="head-chips">
+      <view class="chip">我发布的</view>
+      <view class="chip" wx:if="{{ hostPlayers.paidCount > 0 }}">已售 {{ hostPlayers.paidCount || 0 }} 份</view>
+    </view>
+    <!-- 2026-09-06 补:发布成功弹层统一成「报一下就跳」之后,那颗「预览玩家看到的」
+         次按钮没了,而主办视图这边一直没有进玩家页的入口(goTopicDetail 只在承接视图
+         的「我承接的」卡上冒泡)。发完就落到本页,入口放在标题下最顺手。
+         走 bind:act 冒泡回页面,goTopicDetail 已在 onJoinAct 的白名单里,不用改派发表。 -->
+    <view class="head-preview" data-act="goTopicDetail" bindtap="emit" aria-role="button"
+          aria-label="预览玩家看到的样子" hover-class="cy-pressed" hover-stay-time="80">
+      <text>预览玩家看到的</text>
+      <cy-icon name="arrow-right" size="{{ 24 }}" />
+    </view>
+  </view>
+
+  <!-- ===== 四个关系入口 ===== -->
+  <view class="qa">
+    <view class="qa-btn" wx:for="{{ quickActions }}" wx:key="key"
+          data-act="onQuickAction" data-key="{{ item.key }}" bindtap="emit" hover-class="qa-btn--tap">
+      <view class="qa-ico"><image class="qa-ico-img" src="{{ item.icon }}" mode="aspectFit" /></view>
+      <text class="qa-label">{{ item.label }}</text>
+    </view>
+  </view>
+
+  <!-- ===== 售卖 ===== -->
+  <view class="sec">
+    <view class="sec-head">
+      <text class="sec-title">售卖</text>
+      <view class="sec-action" bindtap="emit" data-act="goFinance" hover-class="cy-pressed" hover-stay-time="80">
+        <text>结算</text>
+        <cy-icon name="arrow-right" size="{{ 24 }}" />
+      </view>
+    </view>
+    <view class="metrics">
+      <view class="metric">
+        <text class="metric-n">{{ hostPlayers.paidCount }}</text>
+        <text class="metric-l">已售份数</text>
+      </view>
+      <view class="metric">
+        <text class="metric-n">{{ hostRecruit.nodeFilled }}</text>
+        <text class="metric-l">已招站点</text>
+      </view>
+      <view class="metric" wx:if="{{ hostOwnerType !== 'club' }}">
+        <text class="metric-n">{{ clubCount }}</text>
+        <text class="metric-l">合作俱乐部</text>
+      </view>
+    </view>
+    <!-- 只给聚合量:玩家跟主办方之间没有需要电话联系的契约,核销靠扫码 -->
+    <!-- CU-C-123:零单不再补一句「数字为 0 是正常的」—— 上面那格已经把 0 摆在眼前,
+         这句只解释显而易见的事实、不给动作,还占掉指标卡与底部入口之间的一整行。 -->
+  </view>
+
+  <view class="sec rules" bindtap="emit" data-act="toggleRules" aria-role="button" aria-expanded="{{rulesOpen}}"
+        aria-label="{{rulesOpen ? '收起可修改内容说明' : '查看哪些内容还能修改'}}" hover-class="cy-pressed" hover-stay-time="80">
+    <cy-icon name="info" size="{{ 26 }}" />
+    <text wx:if="{{ rulesOpen }}">已开卖后,路线的日期、章节站点结构和票价不能再改 —— 玩家买的就是这几样。要改只能下架退款后重发。名称、描述、封面和营销类型随时可改。</text>
+    <text wx:else>哪些内容还能改</text>
+    <cy-icon wx:if="{{ !rulesOpen }}" name="arrow-right" size="24" />
+  </view>
+
+  <view class="sec" wx:if="{{ hostTopic.circleThemeCode }}">
+    <view class="sec-head">
+      <text class="sec-title">30天供给复核</text>
+      <text class="sec-action">{{ hostTopic.circleReviewText }}</text>
+    </view>
+    <view class="sec-empty">系统会重新校验3—4家当前供给；少于3家、资料过期或商家重复时不会刷新。</view>
+    <cy-btn variant="secondary" bindtap="emit" data-act="reviewCircleSupplies">确认本实例供给已复核</cy-btn>
+  </view>
+
+  <view class="page-pad"></view>
+
+  <view class="bottom-bar">
+    <cy-btn variant="primary" style="width:100%"
+            bindtap="emit" data-act="goReceivedApplies">查看收到的申请{{ hostRecruit.pendingCount ? '(' + hostRecruit.pendingCount + ')' : '' }}</cy-btn>
+  </view>
+  </block>
+
+
+  <!-- ===== 俱乐部抽屉 ===== -->
+  <project-drawer show="{{ clubSheet.show }}" title="{{ '合作俱乐部' }}" actions="{{ clubActions }}"
+                  bind:close="emitCloseClub" bind:action="emitDrawerAction">
+    <block wx:if="{{ clubSheet.items.length }}">
+      <view class="dcard">
+      <view class="dr" wx:for="{{ clubSheet.items }}" wx:key="clubId">
+        <image class="dr-avatar dr-avatar--round" wx:if="{{ item.logo }}" src="{{ item.logo }}" mode="aspectFill" />
+        <view class="dr-avatar dr-avatar--round dr-avatar--fallback" wx:else>{{ item.initial }}</view>
+        <view class="dr-text">
+          <view class="dr-line1">
+            <text class="dr-name">{{ item.name }}</text>
+            <text class="dr-tag {{ item.accepted ? 'dr-tag--ok' : 'dr-tag--wait' }}"
+                  wx:if="{{ item.statusText }}">{{ item.statusText }}</text>
+          </view>
+          <text class="dr-sub" wx:if="{{ item.leaderName || item.terms }}">{{ item.leaderName ? '负责人 ' + item.leaderName : '' }}{{ item.leaderName && item.terms ? ' · ' : '' }}{{ item.terms }}</text>
+          <view class="dr-phone" wx:if="{{ item.phone }}">
+            <text class="dr-phone-n">{{ item.phone }}</text>
+            <view class="dr-copy" catchtap="emit" data-act="copyText" data-text="{{ item.phone }}" aria-role="button" aria-label="复制电话" hover-class="cy-pressed" hover-stay-time="80"><image class="dr-copy-img" src="/pages/topic/images/icon_copy.svg" mode="aspectFit" /></view>
+          </view>
+          <text class="dr-sub" wx:else>未留电话</text>
+        </view>
+      </view>
+      </view>
+    </block>
+    <cy-empty wx:else title="还没有俱乐部带团" sub="俱乐部能一次带来成批玩家，比散客稳定。" />
+  </project-drawer>
+
+  <!-- ===== 承接商家抽屉(主办方独有) ===== -->
+  <!-- CU-C-126:原来 headerVariant="action" 走「取消 / 标题 / 完成」,两颗都只执行 onClose,
+       面板内又没有待保存表单 —— 「完成」不完成任何业务动作,还和同类抽屉的右上 ✕ 不一致。
+       退回默认标题头(右上 ✕),真正的招商动作留在底部 merchantActions(去找商家 / 收到的申请)。 -->
+  <project-drawer show="{{ merchantSheet.show }}" title="承接商家" actions="{{ merchantActions }}"
+                  bind:close="emitCloseMerchant" bind:action="emitDrawerAction">
+    <view class="dp" wx:if="{{ hostRecruit.segments.length }}">
+      <view class="dp-seg {{ item ? 'dp-seg--on' : '' }}" wx:for="{{ hostRecruit.segments }}" wx:key="index"></view>
+    </view>
+    <view class="dg-sub">已招 {{ hostRecruit.nodeFilled }}/{{ hostRecruit.nodeTotal }} 站<block wx:if="{{ hostRecruit.pendingCount }}"> · {{ hostRecruit.pendingCount || 0 }} 家待确认</block></view>
+
+    <block wx:if="{{ ownerChapterApplicationsState === 'error' || pendingMerchantNodesState === 'error' }}">
+      <view class="review-error">
+        <text>章节审核数据没加载完整，请重试后再判断是否无人申请。</text>
+        <view class="review-retry" catchtap="emit" data-act="retryChapterReviews" hover-class="cy-pressed" hover-stay-time="80">重新加载</view>
+      </view>
+    </block>
+
+    <block wx:if="{{ ownerChapterApplications.length }}">
+      <view class="dg-label">章节承接申请</view>
+      <view class="dcard">
+        <view class="review-row" wx:for="{{ ownerChapterApplications }}" wx:key="id">
+          <view class="review-main">
+            <view class="dr-line1">
+              <text class="dr-name ep1">{{ item.merchantName || '未命名商家' }}</text>
+              <text class="dr-tag {{ item.actionable ? 'dr-tag--wait' : '' }}">{{ item.statusLabel }}</text>
+            </view>
+            <text class="dr-sub">{{ item.chapterName || '未命名章节' }} · {{ item.sourceLabel }}</text>
+            <text class="dr-sub" wx:if="{{ item.message }}">{{ item.message }}</text>
+            <text class="dr-sub" wx:if="{{ item.auditRemark && !item.actionable }}">处理说明：{{ item.auditRemark }}</text>
+            <text class="dr-sub" wx:if="{{ item.actionable }}">通过本申请时，该商家已提交的点位会一并过审</text>
+          </view>
+          <view class="review-actions" wx:if="{{ item.actionable }}">
+            <view class="review-btn review-btn--ghost" catchtap="emit" data-act="auditChapterApplication"
+                  data-id="{{item.id}}" data-approved="{{false}}" hover-class="cy-pressed" hover-stay-time="80">婉拒</view>
+            <view class="review-btn" catchtap="emit" data-act="auditChapterApplication"
+                  data-id="{{item.id}}" data-approved="{{true}}" hover-class="cy-pressed" hover-stay-time="80">通过</view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{ pendingMerchantNodes.length }}">
+      <!-- CU-C-63(用户裁定 A:保持联动):章节申请通过时,该商家待审核的点位在同一次处置里
+           一并通过 —— 这张卡只是**过审后**更新的点位,单独审核只适用于这一类更新。
+           原来两张卡都写「待审核」+ 各自一颗「通过」,看不出哪一半会被连带处置。 -->
+      <view class="dg-label">过审后更新的点位（单独审核）</view>
+      <view class="dcard">
+        <view class="review-row" wx:for="{{ pendingMerchantNodes }}" wx:key="id">
+          <view class="review-main">
+            <view class="dr-line1"><text class="dr-name ep1">{{ item.name || '未命名点位' }}</text></view>
+            <text class="dr-sub" wx:if="{{ item.address }}">{{ item.address }}</text>
+            <text class="dr-sub" wx:if="{{ item.description }}">{{ item.description }}</text>
+          </view>
+          <view class="review-actions">
+            <view class="review-btn review-btn--ghost" catchtap="emit" data-act="auditMerchantNode"
+                  data-id="{{item.id}}" data-approved="{{false}}" hover-class="cy-pressed" hover-stay-time="80">驳回</view>
+            <view class="review-btn" catchtap="emit" data-act="auditMerchantNode"
+                  data-id="{{item.id}}" data-approved="{{true}}" hover-class="cy-pressed" hover-stay-time="80">通过</view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <block wx:if="{{ hostMerchants.length }}">
+      <view class="dg-label">已确认</view>
+      <view class="dcard">
+      <view class="dr" wx:for="{{ hostMerchants }}" wx:key="registrationId">
+        <image class="dr-avatar" wx:if="{{ item.logo }}" src="{{ item.logo }}" mode="aspectFill" />
+        <view class="dr-avatar dr-avatar--fallback" wx:else><cy-icon name="discover-shop" size="{{ 32 }}" /></view>
+        <view class="dr-text">
+          <view class="dr-line1">
+            <text class="dr-name ep1">{{ item.name || '未命名商家' }}</text>
+            <text class="dr-tag dr-tag--self" wx:if="{{ item.isSelf }}">自己的店</text>
+            <text class="dr-tag" wx:if="{{ item.statusText }}">{{ item.statusText }}</text>
+          </view>
+          <text class="dr-sub" wx:if="{{ item.nodeName }}">{{ item.nodeName }}</text>
+          <view class="dr-phone" wx:if="{{ item.phone }}">
+            <text class="dr-phone-n">{{ item.phone }}</text>
+            <view class="dr-copy" catchtap="emit" data-act="copyText" data-text="{{ item.phone }}" aria-role="button" aria-label="复制电话" hover-class="cy-pressed" hover-stay-time="80"><image class="dr-copy-img" src="/pages/topic/images/icon_copy.svg" mode="aspectFit" /></view>
+          </view>
+        </view>
+      </view>
+      </view>
+    </block>
+
+    <block wx:if="{{ hostRecruit.openNodes.length }}">
+      <view class="dg-label">还没人接</view>
+      <view class="dcard">
+      <view class="dn" wx:for="{{ hostRecruit.openNodes }}" wx:key="nodeId">
+        <view class="dn-plus"><cy-icon name="plus" size="{{ 28 }}" /></view>
+        <text class="dn-name">{{ item.nodeName || '未命名站点' }}</text>
+        <view class="dn-btn" catchtap="emit" data-act="goInviteMerchant" hover-class="cy-pressed" hover-stay-time="80">去招商</view>
+      </view>
+      </view>
+    </block>
+
+    <!-- CU-M-181:原来这句写着「先去编辑里加站点」,但抽屉底部那颗按钮恒写「去找商家」,
+         照着空态做找不到「编辑」,照按钮点又落进没有站点可承接的空页。空态只陈述前置条件,
+         怎么补交给底部那颗按 nodeTotal 换出来的「去加站点」。 -->
+    <cy-empty wx:if="{{ !hostMerchants.length && !hostRecruit.openNodes.length }}" title="这条路线还没有配置站点" sub="先把站点配好，商家才有可承接的站。" />
+  </project-drawer>
+
+  <!-- ===== 「更多」抽屉:按 role + 状态分组(2026-09-05) ===== -->
+  <project-drawer show="{{ moreSheet.show }}" title="更多" subtitle="{{ moreSheet.subtitle || '' }}" bind:close="emitCloseMore">
+    <!-- CU-C-68:站点资格探不到时给一行可见且可重试的说明 —— 探不到 ≠ 没资格,
+         不能静静把「本站运营」那一组灰着不解释。 -->
+    <cy-inline-error wx:if="{{ stationOpsErrorText }}" kind="data" title="本站运营项没能确认"
+      sub="{{ stationOpsErrorText }}" action="重新确认" data-act="probeStationOperable" bind:action="emit" />
+    <block wx:for="{{ moreSheet.groups }}" wx:key="head" wx:for-item="grp">
+      <text class="dgroup-head" wx:if="{{ grp.head }}">{{ grp.head }}</text>
+      <view class="dcard">
+        <view class="dpick {{ row.disabled ? 'dpick--off' : '' }}" wx:for="{{ grp.rows }}" wx:for-item="row" wx:key="key"
+              catchtap="emit" data-act="onMorePick" data-key="{{ row.key }}" hover-class="cy-pressed" hover-stay-time="80">
+          <view class="dpick-text">
+            <text class="dpick-name {{ row.danger ? 'dpick-name--danger' : '' }}">{{ row.label }}</text>
+            <text class="dpick-sub">{{ row.sub }}</text>
+          </view>
+          <!-- 稿 468:1162:「开」是软绿标签(#E4F5EE 底 / #0E7A57 字),其余档位仍是中性灰 -->
+          <text class="dpick-tag dpick-tag--{{ row.tagKind || 'neutral' }}" wx:if="{{ row.tag }}">{{ row.tag }}</text>
+          <!-- 与 project-join 的抽屉同一套:稿上行尾是 chevron.right,不是 arrow-right -->
+          <cy-icon wx:else class="dpick-chev" name="chevron-right" size="{{ 32 }}" />
+        </view>
+      </view>
+    </block>
+  </project-drawer>
+
+  <!-- ===== 本主题客户抽屉 ===== -->
+  <project-drawer show="{{ playerSheet.show }}" title="客户" customer-mode="{{true}}" actions="{{ playerActions }}"
+                  bind:close="emitClosePlayer" bind:action="emitDrawerAction">
+    <!-- CU-C-67:名单读失败与「一单没卖」是两个态 —— 失败时不摆三个 0(那读起来就是「没人买票」),
+         就地给可重试的错态。零单空态仍在 playerSheet.emptyText 那一条里。 -->
+    <cy-inline-error wx:if="{{ playerSheet.errorText }}" kind="data" title="客户名单没加载出来"
+      sub="{{ playerSheet.errorText }}" action="重新加载" data-act="retryPlayerSheet" bind:action="emit" />
+    <block wx:else>
+    <view class="dsum" wx:if="{{ playerSheet.shopDay }}">
+      <text>本店现场可见 <text class="dsum-n">{{ playerSheet.visibleCount || 0 }}</text></text>
+      <text>已核销 <text class="dsum-n">{{ playerSheet.redeemedCount || 0 }}</text></text>
+    </view>
+    <view class="dsum" wx:else>
+      <text>已售 <text class="dsum-n">{{ playerSheet.summary.paidCount || 0 }}</text></text>
+      <text class="dsum-pending">待核销 <text class="dsum-n">{{ playerSheet.summary.pendingCount || 0 }}</text></text>
+      <!-- 稿 471:6605 汇总是四格:已售 / 待核销 / 已接洽 / 已核销。
+           已接洽 = 玩家扫过码等我确认,原来它被并进「待核销」里数。 -->
+      <text class="dsum-contacted" wx:if="{{ playerSheet.summary.contactedCount }}">已接洽 <text class="dsum-n">{{ playerSheet.summary.contactedCount || 0 }}</text></text>
+      <text class="dsum-redeemed">已核销 <text class="dsum-n">{{ playerSheet.summary.arrivedCount || 0 }}</text></text>
+      <text wx:if="{{ playerSheet.summary.refundedCount }}">已退款 <text class="dsum-n">{{ playerSheet.summary.refundedCount || 0 }}</text></text>
+    </view>
+    <view class="dfil">
+      <view class="dfil-item {{ playerSheet.filter === item.key ? 'dfil-item--on' : '' }}"
+            wx:for="{{ playerFilters }}" wx:key="key"
+            catchtap="emit" data-act="onPlayerFilter" data-key="{{ item.key }}" hover-class="cy-pressed" hover-stay-time="80">{{ item.label }}</view>
+    </view>
+
+    <view class="dg-sub" wx:if="{{ playerSheet.contactHint }}">{{ playerSheet.contactHint }}</view>
+
+    <view class="player-list">
+    <block wx:if="{{ playerSheet.groups.length }}">
+      <block wx:for="{{ playerSheet.groups }}" wx:for-item="g" wx:key="key">
+        <view class="dr player-row" wx:for="{{ g.rows }}" wx:for-item="p" wx:key="registrationId">
+          <image class="dr-avatar dr-avatar--round" wx:if="{{ p.avatar }}" src="{{ p.avatar }}" mode="aspectFill" />
+          <view class="dr-avatar dr-avatar--round dr-avatar--fallback" wx:else>{{ p.initial }}</view>
+          <view class="dr-text">
+            <view class="dr-line1"><text class="dr-name">{{ p.name || '未留姓名' }}</text></view>
+            <text class="dr-sub">{{ g.when }}</text>
+            <view class="dr-phone" wx:if="{{ p.phone }}">
+              <text class="dr-phone-n">{{ p.phone }}</text>
+              <view class="dr-copy" catchtap="emit" data-act="copyText" data-text="{{ p.phone }}" aria-role="button" aria-label="复制电话" hover-class="cy-pressed" hover-stay-time="80"><image class="dr-copy-img" src="/pages/topic/images/icon_copy.svg" mode="aspectFit" /></view>
+            </view>
+          </view>
+          <view class="dr-right">
+            <text class="dr-state dr-state--{{ p.state }}">{{ p.stateText }}</text>
+            <text class="dr-time" wx:if="{{ p.arrivedTimeText }}">{{ p.arrivedTimeText }}</text>
+          </view>
+        </view>
+      </block>
+    </block>
+    <view class="dempty" wx:else>{{ playerSheet.emptyText }}</view>
+    </view>
+    </block>
+  </project-drawer>
+</view>

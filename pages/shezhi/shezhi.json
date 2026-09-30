@@ -1,0 +1,22 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "cy-btn": "/components/cy/btn/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-sheet": "/components/cy/sheet/index",
+    "cy-agreement-sheet": "/components/cy/agreement-sheet/index",
+    "cy-privacy-sheet": "/pages/shezhi/components/privacy-sheet/index",
+    "cy-cell": "/components/cy/cell/index",
+    "cy-nav-bar": "/components/cy/nav-bar/index",
+    "cy-page-title": "/components/cy/page-title/index",
+    "cy-scene-sheet": "/components/cy/scene-sheet/index",
+    "cy-modal": "/components/cy/modal/index",
+    "cy-scene-route-content": "/components/cy/scene-route-content/index",
+    "cy-privacy-gate": "/components/cy/privacy-gate/index",
+    "cy-marketing-consent": "/pages/shezhi/components/marketing-consent/index",
+    "cy-toast": "/components/cy/toast/index",
+    "cy-loading-mask": "/components/cy/loading-mask/index",
+    "cy-modal-host": "/components/cy/modal-host/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index"
+  }
+}

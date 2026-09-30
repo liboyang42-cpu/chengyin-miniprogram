@@ -1,0 +1,34 @@
+<!-- 留言:写一句留给后来的人。presets 是商家给的现成短句(点一下就填),
+     previous 是前面的人留下的 — 先看见别人写了什么,才知道可以写什么。 -->
+<cy-play-stage id="cy-play-stage" skin="qadark" show="{{show}}" back-label="退出" bind:back="onClose">
+  <view class="nt g-col {{reducedMotion ? 'pk--reduced' : ''}}">
+    <view class="g-kicker">{{title || '留一句'}}</view>
+    <view class="nt__prompt pk-in" wx:if="{{prompt}}">{{prompt}}</view>
+
+    <view class="nt__previous pk-in pk-in--2" wx:if="{{previous.length}}">
+      <view class="nt__previous-k">前面的人写过</view>
+      <view class="nt__previous-i" wx:for="{{previous}}" wx:key="index">
+        <text class="nt__previous-t">{{item.text}}</text>
+        <text class="nt__previous-at" wx:if="{{item.at}}">{{item.at}}</text>
+      </view>
+    </view>
+
+    <textarea class="nt__input" value="{{text}}" maxlength="{{maxLength}}" disabled="{{done}}"
+              placeholder="写在下面" placeholder-class="nt__input-ph"
+              bindinput="onInput" auto-height
+              aria-label="{{prompt || '写下你的留言'}}"></textarea>
+    <view class="nt__count">{{countLabel}}</view>
+
+    <view class="nt__presets" wx:if="{{!done && presets.length}}">
+      <view class="nt__preset" wx:for="{{presets}}" wx:key="*this" data-text="{{item}}" bindtap="onPickPreset"
+            aria-role="button" aria-label="用这句：{{item}}" hover-class="nt__preset--press" hover-stay-time="80">{{item}}</view>
+    </view>
+
+    <view class="nt__done" wx:if="{{done}}">这句已经留在这儿了</view>
+  </view>
+
+  <view class="g-btn {{canSubmit ? '' : 'g-btn--disabled'}}" bindtap="onSubmit"
+        aria-role="button" aria-label="{{done ? '已经留过了' : '留下这句'}}" hover-class="g-btn--press" hover-stay-time="80">
+    {{done ? '已留下' : '留下这句'}}
+  </view>
+</cy-play-stage>

@@ -1,0 +1,333 @@
+{
+  "_doc": [
+    "危险动作调用点登记表 · 门禁 scripts/danger-confirm-gate.js 的输入。",
+    "每个字段的判据:",
+    "  irreversible=true  做完之后用户没有任何办法把状态恢复回去(重新申请/重新上架/重新登录 都不算恢复,",
+    "                     因为身份、顺位、内容本身回不来)。这类必须有 confirmKey,并在 utils/danger-actions.js",
+    "                     的后果清单里写明「此操作不可撤销」。",
+    "  irreversible=false 状态能翻回来(上架/下架开关、退出登录),或者被拒方还能原样再来一次。",
+    "                     仍然要有确认,但不强制不可撤销文案。",
+    "  reason             为什么是这一档 —— 写下来是为了下次有人想改档时,先反驳这句话再改。",
+    "新增任何 /api/**/{delete,remove,quit,dissolve,...} 调用点而不登记在这里 = 门禁判红。",
+    "  confirmFile        可选。确认闸长在组件内部时(调用点只转发事件),指向真正持有",
+    "                     .open('<confirmKey>') 的那个文件;缺省 = file。",
+    "  trigger=payload    可选。危险性在请求体的决策值上而不在 URL 动词上(如售后 respond 的 decision=REJECT),",
+    "                     动词扫描看不见,须手工登记;过期判定改为「file 里仍含 endpoint 字面」,D2/D3 照常。"
+  ],
+  "sites": [
+    {
+      "endpoint": "/api/club/dissolve",
+      "file": "components/cy/scene-club-edit/index.js",
+      "irreversible": true,
+      "confirmKey": "club.dissolve",
+      "reason": "俱乐部整体消失,成员关系与内容都拿不回来"
+    },
+    {
+      "endpoint": "/api/club/quit",
+      "file": "pages/club/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "club.quit",
+      "reason": "可以重新申请,但成员身份、加入时间、会员活动资格都不会保留"
+    },
+    {
+      "endpoint": "/api/club/post/delete",
+      "file": "pages/club/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "club.post.delete",
+      "reason": "动态连同评论点赞一起删,内容无法找回"
+    },
+    {
+      "endpoint": "/api/club/post/comment/delete",
+      "file": "pages/club/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "club.comment.delete",
+      "reason": "评论内容无法找回"
+    },
+    {
+      "endpoint": "/api/club/remove-member",
+      "file": "pages/club/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "club.member.remove",
+      "reason": "对方可以重新申请,但成员身份与加入时间不保留"
+    },
+    {
+      "endpoint": "/api/club/remove-member",
+      "file": "pages/talent/list/index.js",
+      "irreversible": true,
+      "confirmKey": "club.member.remove",
+      "reason": "同上,达人榜里的另一个入口"
+    },
+    {
+      "endpoint": "/api/merchant/aftercare/respond",
+      "file": "pages/merchant/aftercare/detail/index.js",
+      "trigger": "payload",
+      "decision": "REJECT",
+      "irreversible": false,
+      "confirmKey": "merchant.aftercare.reject",
+      "reason": "2026-09-17 总控裁定「不同意」提交前走危险确认。商家意见只是意见、不动款项;平台审核结束前商家仍可再提交「同意」覆盖,所以是可逆档。「同意」与「补充凭证」不走确认。"
+    },
+    {
+      "endpoint": "/api/club/join-request/reject",
+      "file": "pages/club/join-requests/index.js",
+      "irreversible": false,
+      "confirmKey": "club.joinRequest.reject",
+      "reason": "对方之后仍可以原样重新提交申请"
+    },
+    {
+      "endpoint": "/api/club/roles/revoke",
+      "file": "pages/club/roles/index.js",
+      "irreversible": true,
+      "confirmKey": "club.role.revoke",
+      "reason": "权限立即失效,恢复只能重新分配一次角色"
+    },
+    {
+      "endpoint": "/api/team/quit",
+      "file": "pages/team/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "team.quit",
+      "reason": "要重新被邀请才能回来;是队长时还会触发移交或解散"
+    },
+    {
+      "endpoint": "/api/team/kick",
+      "file": "pages/team/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "team.kick",
+      "reason": "对方要重新接受邀请才能回来"
+    },
+    {
+      "endpoint": "/api/team/disband",
+      "file": "pages/team/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "team.disband",
+      "reason": "队伍与群聊记录都没了"
+    },
+    {
+      "endpoint": "/api/user/address/delete",
+      "file": "pages/address/address.js",
+      "irreversible": true,
+      "confirmKey": "address.delete",
+      "reason": "地址内容无法找回,只能重新填"
+    },
+    {
+      "endpoint": "/api/coop/perk-template/delete",
+      "file": "pages/merchant/decor/perks/index.js",
+      "irreversible": true,
+      "confirmKey": "perk.delete",
+      "reason": "模板内容无法找回"
+    },
+    {
+      "endpoint": "/api/merchant/chapter-application/withdraw",
+      "file": "pages/topic/merchantinfo/merchantinfo.js",
+      "irreversible": true,
+      "confirmKey": "merchant.chapterApplication.withdraw",
+      "reason": "排队顺位作废,重新报名按新时间排"
+    },
+    {
+      "endpoint": "/api/merchant/operators/remove",
+      "file": "pages/merchant/team/index.js",
+      "irreversible": true,
+      "confirmKey": "merchant.operator.remove",
+      "reason": "经营权限立即失效,恢复只能重新邀请"
+    },
+    {
+      "endpoint": "/api/merchant/operators/invite/revoke",
+      "file": "pages/merchant/team/index.js",
+      "irreversible": true,
+      "confirmKey": "merchant.invite.revoke",
+      "reason": "邀请链接立刻失效,凭证只显示一次所以无法复用"
+    },
+    {
+      "endpoint": "/api/merchant/reviews/reply/delete",
+      "file": "pages/merchant/reviews/index.js",
+      "irreversible": true,
+      "confirmKey": "merchant.review.reply.delete",
+      "reason": "被覆盖的公开回复内容无法找回(这条评价会回到待回复,可以重新回复,但旧文案回不来)"
+    },
+    {
+      "endpoint": "/api/activity/delete",
+      "file": "subpackageA/pages/myproject/index.js",
+      "irreversible": true,
+      "confirmKey": "activity.delete",
+      "reason": "场次的时间/名额/报名记录一起删;页面本身有下架开关可作替代"
+    },
+    {
+      "endpoint": "/api/topic/delete",
+      "file": "subpackageA/pages/myproject/index.js",
+      "irreversible": true,
+      "confirmKey": "route.delete",
+      "reason": "路线连同节点、玩法配置、已排场次一起删;页面本身有下架开关可作替代"
+    },
+    {
+      "endpoint": "/api/template/delete",
+      "file": "subpackageA/pages/myproject/index.js",
+      "irreversible": true,
+      "confirmKey": "template.delete",
+      "reason": "玩法配置无法找回;页面本身有玩法库上下架开关可作替代"
+    },
+    {
+      "_group": "以下为可逆动作:状态能翻回来,或被拒方能原样再来一次。只要求有确认,不强制不可撤销文案。",
+      "endpoint": "/api/merchant/city-node/offline",
+      "file": "pages/merchant/citynode/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "上架/下架单接口翻转,再点一次就回来了 —— 它本身就是「下架替代删除」里的那个下架"
+    },
+    {
+      "endpoint": "/api/merchant/city-node/claim/cancel",
+      "file": "pages/merchant/citynode/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "撤回自己的待审认领,节点原样回到可认领池,可以再认领一次;已被平台接手审核的不在撤回范围内"
+    },
+    {
+      "_group": "以下为资金动作:本次只统一确认文案,不改任何资金逻辑(退款口径/幂等/对账均未触碰)。已过 /security-review。",
+      "endpoint": "/api/registration/cancel",
+      "file": "pages/activity/baoming/baoming.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "取消报名走后端退款流程,状态与退款口径由后端裁决,前端不做不可逆断言"
+    },
+    {
+      "endpoint": "/api/registration/cancel",
+      "file": "components/cy/scene-member-order-detail/index.js",
+      "irreversible": true,
+      "confirmKey": "order.cancel",
+      "reason": "待支付订单关闭后不可恢复,需要重新下单"
+    },
+    {
+      "endpoint": "/api/registration/cancel-refund",
+      "file": "components/cy/scene-member-order-detail/index.js",
+      "irreversible": true,
+      "confirmKey": "order.cancel-refund",
+      "reason": "退款后这张票作废不可恢复;退款金额与口径仍由后端裁决,前端不改资金逻辑"
+    },
+    {
+      "endpoint": "/api/registration/cancel",
+      "file": "components/cy/scene-member-order-history/index.js",
+      "irreversible": true,
+      "confirmKey": "order.cancel",
+      "reason": "同上"
+    },
+    {
+      "endpoint": "/api/registration/cancel-refund",
+      "file": "components/cy/scene-member-order-history/index.js",
+      "irreversible": true,
+      "confirmKey": "order.cancel-refund",
+      "reason": "同上"
+    },
+    {
+      "endpoint": "/api/registration/cancel-by-owner",
+      "file": "pages/club/checkin-detail/index.js",
+      "irreversible": true,
+      "confirmKey": "club.enroll.refund",
+      "reason": "清退后名额释放、票作废;退款由后端裁决。2026-09-09 从名册行内挪到核销详情页底部 —— 名册一屏几十行,行内点退款太容易点错人"
+    },
+    {
+      "endpoint": "/api/registration/merchant/cancel",
+      "file": "pages/topic/merchantinfo/merchantinfo.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "商家侧取消,退款由后端裁决"
+    },
+    {
+      "endpoint": "/api/club/event-ops/cancel",
+      "file": "pages/club/event-ops/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "场次取消触发批量退款,状态由后端裁决"
+    },
+    {
+      "endpoint": "/api/club/event-ops/waitlist/cancel",
+      "file": "pages/activity/baoming/baoming.js",
+      "irreversible": false,
+      "confirmKey": "waitlist.quit",
+      "reason": "退出候补队列,可以重新排"
+    },
+    {
+      "endpoint": "/api/activity/cancel",
+      "file": "components/cy/scene-play-activity-detail/index.js",
+      "irreversible": true,
+      "confirmKey": "activity.cancel-refund",
+      "reason": "退款后报名作废不可恢复;退款由后端裁决"
+    },
+    {
+      "endpoint": "/api/topic/chapter/finish",
+      "file": "pages/topic/merchantinfo/merchantinfo.js",
+      "irreversible": true,
+      "confirmKey": "topic.chapter.finish",
+      "reason": "结束本章不可逆:结束后这一章不再接受商家承接,也不能重新开放;已售出的票不受影响"
+    },
+    {
+      "endpoint": "/api/roam/finish",
+      "file": "pages/roam/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "漫游结束时的结算上报,不删任何东西;轨迹与探店已落本机,失败可重试"
+    },
+    {
+      "endpoint": "/api/activity/cancel",
+      "file": "subpackageA/pages/myproject/index.js",
+      "irreversible": true,
+      "confirmKey": "activity.cancel-refund",
+      "reason": "我的项目里取消已开卖活动,退款后报名作废不可恢复"
+    },
+    {
+      "endpoint": "/api/activity/cancel_preview",
+      "file": "components/cy/scene-play-activity-detail/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "只读预览:取消确认框里「将给 N 位已付款玩家全额退款」的 N,不改任何数据"
+    },
+    {
+      "endpoint": "/api/activity/cancel_preview",
+      "file": "subpackageA/pages/myproject/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "只读预览:取消确认框里「将给 N 位已付款玩家全额退款」的 N,不改任何数据"
+    },
+    {
+      "endpoint": "/api/topic/cancel_preview",
+      "file": "subpackageA/pages/myproject/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "只读预览:取消确认框里「将给 N 位已付款玩家全额退款」的 N,不改任何数据"
+    },
+    {
+      "endpoint": "/api/topic/cancel",
+      "file": "subpackageA/pages/myproject/index.js",
+      "irreversible": true,
+      "confirmKey": "topic.cancel-refund",
+      "reason": "C8-05 主办方(天气/场地)取消主题:停售+已付款全额退+逐场取消场次,不可恢复"
+    },
+    {
+      "endpoint": "/api/coop/pool/withdraw",
+      "file": "pages/coop/list/index.js",
+      "irreversible": false,
+      "confirmKey": null,
+      "reason": "退出合作池,可以重新加入;资金结算由后端账本裁决。2026-09-11 随 coop/list 摘回 master 而恢复"
+    },
+    {
+      "endpoint": "/api/creativesquare/delete",
+      "file": "pages/square/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "club.post.delete",
+      "confirmFile": "pages/square/components/cy/post-actions/index.js",
+      "reason": "软删不可逆,帖文与互动无法找回;确认闸长在 cy-post-actions 组件内部(DELETE_CONFIRM_KEY),详情页只转发 select 事件"
+    },
+    {
+      "endpoint": "/api/creativesquare/delete",
+      "file": "pages/square/list/index.js",
+      "irreversible": true,
+      "confirmKey": "club.post.delete",
+      "confirmFile": "pages/square/components/cy/post-actions/index.js",
+      "reason": "同上,广场列表入口;确认闸同样长在 cy-post-actions 组件内部"
+    },
+    {
+      "endpoint": "/api/comment/delete",
+      "file": "pages/square/detail/index.js",
+      "irreversible": true,
+      "confirmKey": "club.comment.delete",
+      "reason": "帖文评论删除不可逆,内容无法找回;复用俱乐部评论删除同一套已登记文案(modal.show({dangerKey}) 路由到 cy-danger-confirm),A-04 补的前端入口"
+    }
+  ]
+}

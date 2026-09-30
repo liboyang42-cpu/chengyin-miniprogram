@@ -1,0 +1,103 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-countdown · 倒计时 · 一钟油(逐值照抄原型 playkit.html 的 .occd 一族)
+ * ⚠️ 类名全带 oc 前缀:原型里后面还有一块 .cd(精准停表那屏),重名会被它整段盖掉,
+ * 连 ::after 那团模糊光斑都会盖到按钮上,点不着 —— 原型上一版就是这么坏的。
+ */
+.oc {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  overflow: hidden;
+  isolation: isolate;
+  background: #fff;                       /* ds-ok 原型 .occd */
+  color: #0B0B0C;                         /* ds-ok */
+}
+/* 油位:整块往下退,退到 100% 就是空了。一次 CSS 过渡走完全程,不逐帧算 ——
+   逐帧 setData 在小程序里会把一秒切成几十次通信。 */
+.oc__oil {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: #0B0B0C;                    /* ds-ok */
+  transition: transform 1s linear;
+}
+/* 液面是两条真的波形,横向错速漂移 —— 不是「大圆角方块转圈」那个常见写法。
+   那个写法的起伏幅度是方块边长的 0.207 倍:方块得比表盘宽才能盖满,一转起来
+   却能鼓出一百多像素,把还没退完的空白整个吞掉。波形是画死的,鼓多高由 viewBox 说了算。
+   ⚠️ 小程序没有 <svg> 标签,所以原型那条 path 原样编码成 data URI 当背景图铺。
+   一条波有 8 个起伏、拉满两倍宽,左移半程正好接回自己,看不出接缝。 */
+.oc__wv {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  height: 76rpx;                          /* ds-ok 原型 38px */
+  top: -38rpx;                            /* ds-ok 原型 -19px */
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20240%2040'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%2020%20q15%20-9%2030%200%20t30%200%20t30%200%20t30%200%20t30%200%20t30%200%20t30%200%20t30%200%20V40%20H0Z'%20fill='%230B0B0C'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.oc__wv--a { animation: oc-slide 4.6s linear infinite; }
+.oc__wv--b {
+  top: -28rpx;                            /* ds-ok 原型 .ocwv.b -14px */
+  height: 60rpx;                          /* ds-ok 原型 30px */
+  animation: oc-slide 7.4s linear infinite reverse;   /* ds-ok 原型 7.4s reverse */
+}
+@keyframes oc-slide { to { transform: translateX(-50%); } }
+.oc--reduced .oc__oil { transition: none; }
+.oc--reduced .oc__wv { animation: none; }
+
+.oc__k {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(env(safe-area-inset-top) + 128rpx);   /* ds-ok 原型 64px */
+  z-index: 3;
+  text-align: center;
+  font-size: var(--cy-type-caption);
+  font-weight: 800;
+  letter-spacing: 7rpx;                   /* ds-ok 原型 3.45px */
+  color: #fff;                            /* ds-ok 差值混合的输入色,不是最终呈现色 */
+  mix-blend-mode: difference;
+}
+.oc__n {
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  text-align: center;
+  font-family: var(--cy-font-numeric);
+  font-size: var(--cy-play-display-3xl);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -5rpx;                  /* ds-ok 原型 -2.64px */
+  color: #fff;                            /* ds-ok 同上 */
+  mix-blend-mode: difference;
+}
+.oc__done {
+  position: absolute;
+  left: 52rpx; right: 52rpx;
+  top: 62%;
+  z-index: 3;
+  text-align: center;
+  font-size: var(--cy-type-body);
+  line-height: 1.6;
+  color: #fff;                            /* ds-ok 同上 */
+  mix-blend-mode: difference;
+}
+
+/* 按钮不混合 —— 它得一直看得清是个能按的东西。白底 + 黑描边,油上油下都成立 */
+.oc__b {
+  position: absolute;
+  left: 52rpx; right: 52rpx;              /* ds-ok 原型 26px */
+  bottom: calc(env(safe-area-inset-bottom) + 68rpx);   /* ds-ok 原型 34px */
+  z-index: 5;
+  height: 104rpx;                         /* ds-ok 原型 52px */
+  display: flex; align-items: center; justify-content: center;
+  border: 4rpx solid #0B0B0C;             /* ds-ok 原型 2px:油漫上来之后白底会糊掉,靠这圈描边把它托住 */
+  border-radius: 52rpx;                   /* ds-ok 原型 26px */
+  box-sizing: border-box;
+  background: #fff;                       /* ds-ok */
+  color: #0B0B0C;                         /* ds-ok */
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+}
+.oc__b--press { opacity: .88; }
+.oc__b--busy { opacity: .55; }

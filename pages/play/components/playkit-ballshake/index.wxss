@@ -1,0 +1,103 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-ballshake · 弹球(原型真源:模板编辑页 v2 · playkit shake) */
+.bl {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  overflow: hidden;
+  background: #0a0a0b;                       /* ds-ok 场地是玩法本身,不是界面底色 */
+}
+.bl__hud {
+  position: absolute;
+  left: 0; right: 0;
+  /* 原型 .blhud 是 44px,那一屏没有返回按钮也没有微信胶囊;这里必须让开台面那颗
+     「退出」。env(safe-area-inset-top) 在开发者工具里只有十几 px,照它调完真机会差三十多,
+     所以用 --pk-top(台面按真实状态栏高算出来的那条线)。 */
+  top: var(--pk-top, 120rpx);
+  z-index: 4;
+  text-align: center;
+  color: #fff;                               /* ds-ok 场地上的白字 */
+  pointer-events: none;
+}
+.bl__n {
+  font-size: var(--cy-play-display-2xl);
+  line-height: 1.05;
+  letter-spacing: -5.3rpx;                   /* ds-ok 原型 -.04em */
+}
+.bl__unit {
+  margin-left: 12rpx;                        /* ds-ok 原型 6px */
+  font-family: var(--cy-font-sans, inherit);
+  font-size: var(--cy-type-label);
+  font-weight: 700;
+  opacity: .42;
+  letter-spacing: 0;
+}
+/* 原型 .blsub 是白字压到五成,不是次级墨色 —— 这一屏没有皮肤,底下是黑场地 */
+.bl__sub {
+  margin-top: 4rpx;                          /* ds-ok 原型 2px */
+  font-size: var(--cy-type-body);
+  color: #fff;                               /* ds-ok */
+  opacity: .5;
+}
+
+.bl__ball {
+  position: absolute;
+  left: 0; top: 0;
+  width: 52rpx; height: 52rpx;
+  margin: -26rpx 0 0 -26rpx;
+  border-radius: 50%;
+  background: #fff;                          /* ds-ok 球 */
+}
+.bl__trail {
+  position: absolute;
+  left: 0; top: 0;
+  width: 52rpx; height: 52rpx;
+  margin: -26rpx 0 0 -26rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .16);  /* ds-ok 场地上的白边与高光,逐值照原型 */
+  pointer-events: none;
+}
+
+.bl__edge {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.bl__edge--on { animation: bl-edge .42s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes bl-edge { from { opacity: 1; } to { opacity: 0; } }
+.bl__edge--top {
+  left: 0; right: 0; top: 0; height: 192rpx;
+  background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.22) 34%, rgba(255,255,255,0));  /* ds-ok 场地上的白边与高光,逐值照原型 */
+}
+.bl__edge--bottom {
+  left: 0; right: 0; bottom: 0; height: 192rpx;
+  background: linear-gradient(0deg, rgba(255,255,255,.62), rgba(255,255,255,.22) 34%, rgba(255,255,255,0));  /* ds-ok 场地上的白边与高光,逐值照原型 */
+}
+.bl__edge--left {
+  top: 0; bottom: 0; left: 0; width: 192rpx;
+  background: linear-gradient(90deg, rgba(255,255,255,.62), rgba(255,255,255,.22) 34%, rgba(255,255,255,0));  /* ds-ok 场地上的白边与高光,逐值照原型 */
+}
+.bl__edge--right {
+  top: 0; bottom: 0; right: 0; width: 192rpx;
+  background: linear-gradient(270deg, rgba(255,255,255,.62), rgba(255,255,255,.22) 34%, rgba(255,255,255,0));  /* ds-ok 场地上的白边与高光,逐值照原型 */
+}
+
+/* 类兜底,不用 @media(见 play-verdict 里的说明) */
+.bl--reduced .bl__edge--on { animation: none; opacity: .5; }
+
+/* 玩法自己的按钮,照原型 .blb 的实测值 */
+.bl__b {
+  position: absolute;
+  left: 40rpx; right: 40rpx;              /* ds-ok 原型 20px */
+  bottom: calc(env(safe-area-inset-bottom) + 60rpx);
+  z-index: 5;
+  height: 104rpx;                         /* ds-ok 原型 52px */
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 52rpx;                   /* ds-ok 原型 26px */
+  background: #fff;                       /* ds-ok */
+  color: #0a0a0b;                         /* ds-ok */
+  font-size: var(--cy-type-card-title);
+  font-weight: 800;
+}
+.bl__b--press { opacity: .88; }
+.bl__b--busy { opacity: .55; }

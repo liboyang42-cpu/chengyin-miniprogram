@@ -1,0 +1,56 @@
+:host { display: block; }
+
+.wk {
+  position: relative; display: flex;
+  background: var(--cy-color-bg-surface);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-lg);
+  overflow: hidden;
+}
+.wk--overdue { background: var(--cy-color-status-danger-soft); border-color: transparent; }
+.wk--press { background: var(--cy-color-bg-surface-subtle); }
+
+.wk__rail { width: 8rpx; flex: none; background: var(--cy-color-status-info); }
+.wk--due-soon .wk__rail { background: var(--cy-color-status-warning); }
+.wk--overdue .wk__rail { background: var(--cy-color-status-danger); }
+.wk--done .wk__rail { background: var(--cy-color-status-success); }
+.wk--blocked .wk__rail { background: var(--cy-color-text-tertiary); }
+
+.wk__inner { flex: 1; padding: var(--cy-space-3) var(--cy-space-4); display: flex; flex-direction: column; gap: var(--cy-space-3); min-width: 0; }
+.wk__row { display: flex; align-items: flex-start; gap: var(--cy-space-3); }
+
+.wk__cal { width: 96rpx; height: 96rpx; flex: none; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+.wk__cal-m { width: 100%; text-align: center; font-size: var(--cy-type-caption); color: var(--cy-comp-oncover-fg); background: var(--cy-color-status-info); padding: 2rpx 0; }
+.wk--due-soon .wk__cal-m { background: var(--cy-color-status-warning); }
+.wk--overdue .wk__cal-m { background: var(--cy-color-status-danger); }
+.wk--done .wk__cal-m { background: var(--cy-color-status-success); }
+.wk__cal-d { font-size: var(--cy-type-card-title); font-weight: 700; color: var(--cy-color-text-primary); line-height: 1.35; }
+.wk__cal-w { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+
+.wk__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.wk__title-row { display: flex; align-items: center; gap: var(--cy-space-2); }
+.wk__title { flex: 1; font-size: var(--cy-type-card-title); font-weight: 600; color: var(--cy-color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wk--done .wk__title { color: var(--cy-color-text-tertiary); }
+.wk__meta { display: flex; align-items: center; gap: 8rpx; color: var(--cy-color-text-tertiary); font-size: var(--cy-type-label); }
+.wk__meta > .wk__meta-text { color: var(--cy-color-text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wk__due { display: flex; align-items: center; gap: 8rpx; color: var(--cy-color-text-tertiary); font-size: var(--cy-type-caption); }
+.wk--due-soon .wk__due { color: var(--cy-color-status-warning); }
+.wk--overdue .wk__due { color: var(--cy-color-status-danger); font-weight: 600; }
+.wk__note { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+.wk__chev { color: var(--cy-color-text-tertiary); flex: none; align-self: center; }
+
+.wk__cta { height: var(--cy-btn-h); display: flex; align-items: center; justify-content: center; border-radius: var(--cy-comp-btn-radius); font-size: var(--cy-type-button); font-weight: 600; }
+.wk__cta--primary { background: var(--cy-color-action-primary-bg); color: var(--cy-color-action-primary-fg); }
+/* ghost 也要有填充：cy-btn 的 ghost 是 background: var(--cy-bg-glass)，
+   这里原本是 transparent + 描边，同名变体两种长相。用户定：只有填充没有描边。 */
+.wk__cta--ghost { background: var(--cy-bg-glass); color: var(--cy-color-text-secondary); }
+.wk__cta--disabled { background: var(--cy-color-action-primary-bg); color: var(--cy-color-text-disabled); opacity: .45; }
+
+.wk__sk { display: flex; flex-direction: column; gap: 16rpx; padding: var(--cy-space-1) 0; }
+.wk__sk-line { height: 30rpx; background: var(--cy-color-skeleton-base); border-radius: var(--cy-radius-sm); }
+.wk__sk-line.short { width: 55%; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

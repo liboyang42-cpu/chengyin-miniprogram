@@ -1,0 +1,287 @@
+/* cy-post-compose —— 新建帖文弹窗(内容照 Figma 379:2484,呈现照 334:3563)
+ *
+ * 字号映射(稿 pt → token,1pt = 2rpx;新页面只读 ① 层 --cy-type-*):
+ *   15pt = 30rpx → var(--cy-type-body)       28rpx —— 30 落在 body 28 与 card-title 32 正中,
+ *                                              取正文档:取消/昵称/正文/发布同属「读的字」。
+ *   16pt = 32rpx → var(--cy-type-card-title) 32rpx —— 精确。
+ *   12pt = 24rpx → var(--cy-type-label)      24rpx —— 精确。
+ *
+ * 触达区:稿上「取消」「草稿」「更多」「附件三枚」「发布」的视觉盒都小于 88rpx,
+ * 一律视觉按稿、透明 ::after 撑到 88×88rpx(照抄 components/cy/btn 的 .btn--sm::after)。
+ * 相邻两枚图标的热区会在【间隙里】重叠十几 rpx,重叠段不覆盖任何一枚的 glyph,
+ * 因此不会出现「点在 A 的图标上却触发 B」——不为了对稿降热区,也不为了热区拉开视觉间距。
+ */
+
+/* 组件根只是个容器:两层 sheet 都是它的子节点,自己不占位、不画底。 */
+.pc { display: block; }
+
+/* 面板内容。两件事:
+   ① 抵掉 cy-sheet 面板的左右内边距 —— 稿上 Topbar/编辑区各有自己的 16pt,
+      分割线还要通栏,再套一层 page-x 就全对不上了(同 cy-post-drafts 的做法)。
+   ② 定高。cy-sheet 的 bottom 档只给面板 max-height、不给 height,面板高度由内容定;
+      不撑满的话「留白 + 底部工具条贴底」(稿 334:3639/334:3640)就没了,
+      发布钮会跟在正文下面浮着。用 min-height 不用 height:正文写长了还要能继续长、由面板滚。
+      减去的两截 = 面板自己的 padding-bottom + .sh__body 的上下 padding,
+      少减任何一截都会恒定溢出一小段(2026-09-03 在草稿弹层上实际踩过)。 */
+.pc-panel {
+  margin: 0 calc(var(--cy-page-x) * -1);
+  min-height: calc(var(--cy-comp-sheet-max-h, 70vh)
+                   - env(safe-area-inset-bottom) - 24rpx   /* .sh__panel 的 padding-bottom */
+                   - 16rpx);                               /* .sh__body 的 padding: 8rpx 0,上下各一份 */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ── Topbar:左右 16pt,上下 15pt,垂直居中 ── */
+.cmp-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 30rpx var(--cy-page-x);
+}
+.cmp-bar-gap { flex: 1; }
+.cmp-cancel {
+  position: relative;
+  height: 48rpx;
+  line-height: 48rpx;
+  font-size: var(--cy-type-body);
+  font-weight: 400;
+  color: var(--cy-color-text-primary);
+}
+.cmp-cancel::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+.cmp-bar-title {
+  font-size: var(--cy-type-card-title);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+}
+.cmp-bar-acts {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+.cmp-act {
+  position: relative;
+  width: 48rpx;
+  height: 48rpx;
+  color: var(--cy-color-text-primary);
+}
+.cmp-act::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+.cmp-hr {
+  flex: none;
+  height: 2rpx;
+  background: var(--cy-color-border-subtle);
+}
+
+/* ── 编辑区:左右 12pt,上 14pt,列间距 12pt,顶对齐 ── */
+.cmp-editor {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-3-5) var(--cy-space-3) 0;
+}
+.cmp-rail {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80rpx;
+  height: 204rpx;
+}
+.cmp-avatar {
+  flex: none;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+}
+/* 串联线:头像下方一条 1px 竖线,给「接着写下一条」留位置 */
+.cmp-thread {
+  flex: 1;
+  width: 2rpx;
+  margin-top: var(--cy-space-1-5);
+  background: var(--cy-color-border-subtle);
+}
+.cmp-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-1-5);
+}
+.cmp-name {
+  font-size: var(--cy-type-body);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+}
+.cmp-input {
+  width: 100%;
+  min-height: 88rpx;
+  font-size: var(--cy-type-body);
+  line-height: 1.5;
+  color: var(--cy-color-text-primary);
+  box-sizing: border-box;
+}
+.cmp-ph { color: var(--cy-color-input-placeholder); }
+
+/* 附件工具栏:上内边距 12pt,间距 20pt,三枚 22pt */
+.cmp-tools {
+  display: flex;
+  align-items: center;
+  gap: 40rpx;
+  padding-top: var(--cy-space-3);
+}
+.cmp-tool {
+  position: relative;
+  width: 44rpx;
+  height: 44rpx;
+  color: var(--cy-color-text-primary);
+}
+.cmp-tool::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+
+.cmp-fill { flex: 1; }
+
+/* ── 底部工具条:左右 12pt,上下 10pt,间距 12pt ── */
+.cmp-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  padding-bottom: calc(var(--cy-space-2-5) + constant(safe-area-inset-bottom));
+  padding-bottom: calc(var(--cy-space-2-5) + env(safe-area-inset-bottom));
+}
+.cmp-foot-avatar {
+  flex: none;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+}
+.cmp-count {
+  font-size: var(--cy-type-label);
+  font-weight: 400;
+  color: var(--cy-color-text-tertiary);
+}
+.cmp-send {
+  position: relative;
+  flex: none;
+  width: 132rpx;
+  height: 68rpx;
+  line-height: 68rpx;
+  text-align: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-size: var(--cy-type-body);
+  font-weight: 500;
+}
+.cmp-send::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 132rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+/* 正文空 / 发布在途:视觉 40% 透明 = 禁用。不用 disabled 属性——view 没有,
+   拦截在 onPublish 里(口径与 canSubmit 同一条:trim 后非空)。 */
+.cmp-send--off { opacity: .4; }
+
+.cmp-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-2);
+  padding-top: var(--cy-space-2);
+  color: var(--cy-color-text-primary);
+}
+.cmp-preview-pics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cy-space-2);
+}
+.cmp-pic {
+  position: relative;
+  width: 128rpx;
+  height: 128rpx;
+}
+.cmp-pic-img {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+.cmp-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  min-height: 56rpx;
+  padding: var(--cy-space-1-5) var(--cy-space-2);
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-surface-subtle);
+  color: var(--cy-color-text-primary);
+}
+.cmp-chip-txt {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-label);
+}
+.cmp-chip-x {
+  position: relative;
+  flex: none;
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-tertiary);
+}
+.cmp-chip-x::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88rpx;
+  height: 88rpx;
+  transform: translate(-50%, -50%);
+}
+.cmp-act-pick { padding: var(--cy-space-2) 0 var(--cy-space-4); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,按仓库既有组件的做法本地补一份(只减淡不位移)。
+   ⚠️ 漏了不报错、不抛异常,只是所有可点元素**按下去没反应** ——
+   由 hover-class 门禁「每个 hover-class 都必须在该文件真能取到的样式表里有定义」兜住。 */
+.cy-pressed { opacity: .88; }
+
+/* T4 「下层·已推后」(真源 25:6867):草稿叠上来时,本层左右各内缩 16pt。
+   稿上下层还整体上移 22pt,但那一段由 cy-sheet 的面板高度承担(上层比下层低 22pt,
+   见 index.js 的 T4_STACK_OFFSET_PT),这里只做横向内缩 —— 两处都做会缩两次。
+   「推后」的可见性靠上层自带的 dim 遮罩(rgba(0,0,0,.56))压暗本层来体现,
+   不靠换底色 —— 换底色要动 cy-sheet 的 role 档,那是全站弹层的事,不在本轮。 */
+.pc-panel--pushed {
+  margin-left: calc(var(--cy-page-x) * -1 + 32rpx);
+  margin-right: calc(var(--cy-page-x) * -1 + 32rpx);
+}

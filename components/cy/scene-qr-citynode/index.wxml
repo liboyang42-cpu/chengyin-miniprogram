@@ -1,0 +1,4 @@
+<view class="citynode-code-body">
+  <cy-empty wx:if="{{state === 'missing'}}" fill size="lg" title="这个核销码打不开" sub="链接缺少据点参数，请回据点页重新进入" cta="返回" bind:cta="close" />
+  <cy-qr-voucher wx:else embedded="{{true}}" show="{{true}}" state="{{state === 'ready' ? 'ready' : state === 'error' ? 'error' : 'loading'}}" qr="{{qr}}" code="{{code}}" title="{{name}}" desc="出示给商家扫码，即可领取优惠券" countdown="{{state === 'ready' ? countdown + 's 后自动刷新' : ''}}" error-text="{{errorText || '出码失败'}}" mask-closable="{{false}}" bind:close="close" bind:retry="retry" />
+</view>

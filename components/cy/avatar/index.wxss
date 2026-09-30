@@ -1,0 +1,36 @@
+:host { display: inline-block; vertical-align: middle; }
+
+.av { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.av--clickable { min-width: var(--cy-btn-h); min-height: var(--cy-btn-h); }
+.av__visual { position: relative; width: var(--av-size); height: var(--av-size); flex: none; }
+.av__inner {
+  width: 100%; height: 100%;
+  border-radius: var(--cy-radius-pill);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-bg-elevated);
+}
+.av__inner--bordered { border: 2rpx solid var(--cy-color-border-subtle); }
+/* 门店/品牌位:圆形是给人用的,店铺 logo 惯例是圆角方块。 */
+.av__inner--rounded { border-radius: var(--cy-radius-sm); }
+.av__img { width: 100%; height: 100%; display: block; }
+.av__initial { color: var(--cy-color-text-secondary); font-weight: 600; line-height: 1; }
+.av__sk { width: 100%; height: 100%; background: var(--cy-color-skeleton-base); }
+
+.av--disabled { opacity: .4; }
+.av--press { opacity: .82; }
+
+/* 角标:压右下角,4rpx 页底色 ring 抠出 */
+.av__badge {
+  position: absolute; right: -2rpx; bottom: -2rpx;
+  border-radius: var(--cy-radius-pill);
+  border: 4rpx solid var(--cy-color-bg-page);
+  box-sizing: border-box;
+}
+.av__badge--online { width: 28%; height: 28%; background: var(--cy-color-status-success); }
+.av__badge--verified {
+  width: 36%; height: 36%;
+  background: var(--cy-color-status-info);
+  color: var(--cy-comp-oncover-fg);
+  display: flex; align-items: center; justify-content: center;
+}

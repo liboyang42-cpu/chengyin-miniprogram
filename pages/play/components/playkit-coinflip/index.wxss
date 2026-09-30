@@ -1,0 +1,104 @@
+@import "/pages/play/style/play-surface.wxss";
+
+/* cy-playkit-coinflip · 抛硬币(逐块照抄原型 playkit.html 的 .cn / .cncoin / .cnface / .cnrim)
+ *
+ * 照参考视频改的三件事,前两版都做错了:
+ *   ① 是**银**不是金 —— 冷灰 + 强高光,不是暖黄;
+ *   ② 边是**滚花**的 —— 转到侧面能看见一圈密齿,所以侧壁得真做出来:
+ *      60 片薄条沿圆周排成一个圆柱,不是一条 box-shadow 假装的厚度;
+ *   ③ 绕**竖轴之外的横轴**转 —— 抛硬币本来就是上下翻,绕竖轴那是转陀螺。
+ * ⚠️ 整段是玩法道具色,ds-ok。值照抄原型。
+ */
+.cf {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48rpx;                                /* ds-ok 原型 24px */
+  padding: calc(env(safe-area-inset-top) + 180rpx) 52rpx 120rpx;
+  box-sizing: border-box;
+  text-align: center;
+  background: #000;                          /* ds-ok 原型 .cn */
+  color: #f2f3f5;                            /* ds-ok 原型 .cn */
+}
+.cf__k { font-size: var(--cy-type-caption); font-weight: 800; letter-spacing: 6rpx; opacity: .5; }  /* ds-ok 硬币的金属面,逐值照原型 */
+
+.cf__stage {
+  height: 460rpx;                            /* ds-ok 原型 .cnstage 230px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 2400rpx;                      /* ds-ok 原型 1200px */
+}
+.cf__coin {
+  position: relative;
+  width: 356rpx;                             /* ds-ok 原型 178px */
+  height: 356rpx;
+  transform-style: preserve-3d;
+  transition: transform 2.2s cubic-bezier(.2, .62, .14, 1);
+}
+/* 停着的时候慢慢自转:晃看不出它有两面,翻才看得出。
+   带一点固定的 rotateY 倾角,不然正对着看是个平圆。 */
+.cf__coin--idle { animation: cf-spin 9s linear infinite; }
+@keyframes cf-spin {
+  from { transform: rotateY(-9deg) rotateX(0deg); }
+  to   { transform: rotateY(-9deg) rotateX(360deg); }
+}
+.cf--reduced .cf__coin { transition: none; }
+.cf--reduced .cf__coin--idle { animation: none; }
+
+.cf__face {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  overflow: hidden;
+  /* 滚花的读法:一圈 conic 明暗交替(车出来的齿),叠一处主光斑(radial),
+     边缘往里压暗一圈(inset)。只用一条 radial 看着像塑料 —— 塑料才只有一个高光。 */
+  background:                                /* ds-ok 以下三层照抄原型 .cnface */
+    radial-gradient(56% 56% at 33% 25%, rgba(255,255,255,.8), rgba(255,255,255,0) 64%),  /* ds-ok 硬币的金属面,逐值照原型 */
+    conic-gradient(from 208deg at 50% 50%,
+      #b4bac3 0deg, #eef1f4 34deg, #949ba6 76deg, #dadee4 124deg, #8b929d 166deg,  /* ds-ok 硬币的金属面,逐值照原型 */
+      #e6e9ee 210deg, #8f96a1 258deg, #dfe3e8 306deg, #b4bac3 360deg),  /* ds-ok 硬币的金属面,逐值照原型 */
+    #b4bac3;  /* ds-ok 硬币的金属面,逐值照原型 */
+  box-shadow: inset 0 0 48rpx rgba(18,22,28,.42),  /* ds-ok 硬币的金属面,逐值照原型 */
+              inset 0 4rpx 10rpx rgba(255,255,255,.55),  /* ds-ok 硬币的金属面,逐值照原型 */
+              inset 0 -6rpx 14rpx rgba(18,22,28,.3);  /* ds-ok 硬币的金属面,逐值照原型 */
+}
+.cf__svg { width: 100%; height: 100%; display: block; }
+.cf__face--a { transform: translateZ(14rpx); }
+.cf__face--b { transform: rotateX(180deg) translateZ(14rpx); }
+
+.cf__big { font-size: var(--cy-type-page-title); font-weight: 900; letter-spacing: -.6rpx; }   /* ds-ok 原型 .cnbig 30px */
+.cf__lab {
+  font-size: var(--cy-type-body);
+  opacity: .66;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+.cf__hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  font-size: var(--cy-type-label);
+  letter-spacing: 1.5rpx;                    /* ds-ok 原型 .06em */
+  opacity: .5;
+}
+.cf__hint-i {
+  width: 36rpx; height: 36rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 10rpx;  /* ds-ok 硬币的金属面,逐值照原型 */
+  animation: cf-shake .9s ease-in-out infinite;
+}
+@keyframes cf-shake {
+  0%, 100% { transform: rotate(-13deg); }    /* ds-ok 原型 cnshake ±13deg */
+  50%      { transform: rotate(13deg); }
+}
+.cf--reduced .cf__hint-i { animation: none; }
+
+/* 整屏可点就要有回应。只减淡不动别的 —— 这两屏点下去直接出结果,
+   没有回应的话人会以为没点着,于是连点,而连点在这儿意味着连抛。 */
+.cf--press { opacity: .96; }

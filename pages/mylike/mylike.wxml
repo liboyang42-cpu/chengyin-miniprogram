@@ -1,0 +1,63 @@
+<wxs src="../../utils/wxs/img.wxs" module="img" />
+<view class="mylike-shell {{isMerchantView ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="mylike">
+  <cy-nav-bar />
+  <!-- 返回-标题间距是本批 A46 基准：fixed nav 后只留同高占位，不额外加空档。 -->
+  <view class="title-nav-spacer" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+  <cy-page-title class="c1-page-title" title="我的收藏" safe-top="{{false}}" />
+  <cy-tabs class="favorite-tabs" variant="fill" wide="{{true}}" tabs="{{favoriteTabs}}" active="{{activeFavoriteTab}}" bind:change="onFavoriteTabChange" />
+
+  <view class="tablist favorite-list">
+    <block wx:if="{{activeFavoriteTab === 'posts'}}">
+      <cy-error fill class="cy-fill-state" size="lg" wx:if="{{errorMsg && postList.length === 0}}" icon="/images/no_data.svg" title="收藏没能加载出来" sub="{{errorMsg}}" bind:retry="refreshData" auto-back />
+      <cy-skeleton wx:elif="{{loading && postList.length === 0}}" type="post-card" count="3" />
+      <cy-empty fill class="cy-fill-state" size="lg" wx:elif="{{postList.length === 0}}" icon="/images/no_data.svg" title="暂无收藏的帖文" sub="看到想留着慢慢看的动态，可以点星标收藏。" />
+      <block wx:else>
+        <view class="favorite-refreshing" wx:if="{{refreshing}}" aria-role="status" aria-live="polite"></view>
+        <cy-post-card wx:for="{{postList}}" wx:key="id" post="{{item}}" index="{{index}}" light="{{isMerchantView}}"
+          show-favorite show-share accessibility-label="查看收藏的动态"
+          bind:detail="goPost" bind:favorite="postUnlike" />
+        <view class="favorite-end" wx:if="{{postList.length && !hasMorePosts}}">已加载全部帖文</view>
+      </block>
+    </block>
+
+    <block wx:else>
+      <cy-error fill class="cy-fill-state" size="lg" wx:if="{{errorMsg && ztList1.length === 0}}" icon="/images/no_data.svg" title="收藏没能加载出来" sub="{{errorMsg}}" bind:retry="refreshData" auto-back />
+      <cy-skeleton wx:elif="{{loading && ztList1.length === 0}}" type="card" count="3" />
+      <cy-empty fill class="cy-fill-state" size="lg" wx:elif="{{ztList1.length === 0}}" icon="/images/no_data.svg" title="暂无收藏的主题" sub="遇到想体验的城市主题，可以先收藏，之后从这里找回。" />
+      <block wx:else>
+      <view class="favorite-refreshing" wx:if="{{refreshing}}" aria-role="status" aria-live="polite"></view>
+      <view class="favorite-card" wx:for="{{ztList1}}" wx:key="id">
+        <image class="favorite-card__cover" lazy-load="true"
+          src="{{img.first(item.imgUrl) || img.first(item.imgArr) || '/images/mer1.jpg'}}"
+          mode="aspectFill" bindtap="goTopic" data-id="{{item.id}}"  aria-role="button" aria-label="打开{{item.name || '收藏主题'}}" hover-class="cy-pressed" hover-stay-time="80"/>
+        <!-- CU-M-141：卡面文案层，与首页 feed 长方卡同一做法（名称 + 基本类型压在封面下沿）。
+             原来整张卡只有封面和两枚图标按钮，收藏多条相近封面时，点开之前分不出是哪条主题。 -->
+        <view class="favorite-card__scrim"></view>
+        <view class="favorite-card__body">
+          <text class="favorite-card__title">{{item.name}}</text>
+          <text class="favorite-card__type" wx:if="{{item.categoryText}}">{{item.categoryText}}</text>
+        </view>
+        <view class="favorite-card__actions">
+          <button open-type="share" data-type="topic" data-id="{{item.id}}" data-name="{{item.name}}"
+            data-img="{{img.first(item.imgUrl) || img.first(item.imgArr)}}" aria-label="分享主题">
+            <view class="favorite-card__action-visual">
+              <image src="/pages/mylike/images/icon_up.png" mode="aspectFit" />
+            </view>
+          </button>
+          <button bindtap="topicUnlike" data-index="{{index}}" data-id="{{item.id}}" aria-label="取消收藏">
+            <view class="favorite-card__action-visual">
+              <cy-icon class="favorite-card__action-heart" name="heart" size="32" />
+            </view>
+          </button>
+        </view>
+      </view>
+      <view class="favorite-end" wx:if="{{ztList1.length && !hasMore1}}">已加载全部主题</view>
+      </block>
+    </block>
+  </view>
+</view>
+</view>

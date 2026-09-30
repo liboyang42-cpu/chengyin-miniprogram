@@ -1,0 +1,41 @@
+@import "../../../style/merchant-light.wxss";
+
+.pg { min-height: 100vh; background: var(--cy-color-bg-page); color: var(--cy-color-text-primary); }
+.pg-scroll { height: calc(100vh - 180rpx); padding: 0 32rpx; box-sizing: border-box; }
+.pg-tabs { margin: 0 0 24rpx; }
+.pg-card { padding: var(--cy-space-3-5); margin-bottom: 20rpx; border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-surface); }
+.pg-floor { display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.pg-kicker { color: var(--cy-color-action-primary-bg); font-size: var(--cy-font-caption); }
+.pg-money { font-size: var(--cy-type-display); line-height: 1.2; font-weight: 700; }
+.pg-title { font-size: var(--cy-font-body); font-weight: 600; }
+.pg-note { color: var(--cy-color-text-secondary); font-size: var(--cy-font-caption); line-height: 1.6; }
+.pg-fields { display: flex; gap: var(--cy-space-2); margin: var(--cy-space-2-5) 0; }
+.pg-input { flex: 1; min-width: 0; padding: 20rpx; border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); }
+.pg-price-row, .pg-range { display: flex; align-items: center; justify-content: space-between; }
+.pg-final { font-size: var(--cy-type-section-title); font-weight: 700; color: var(--cy-color-action-primary-bg); }
+.pg-range { color: var(--cy-color-text-tertiary); font-size: var(--cy-font-caption); }
+.pg-reference { display: flex; flex-direction: column; gap: var(--cy-space-1); margin-top: var(--cy-space-3); padding: var(--cy-space-2-5); border-radius: var(--cy-radius-md); background: var(--cy-color-bg-surface-subtle); color: var(--cy-color-text-secondary); font-size: var(--cy-font-caption); }
+.pg-delta { color: var(--cy-color-action-primary-bg); }
+.pg-margin-note { margin: var(--cy-space-1) var(--cy-legacy-4) var(--cy-space-3); }
+.pg-actions { position: sticky; bottom: 0; z-index: var(--cy-z-sticky); padding: var(--cy-space-2) 0 calc(var(--cy-space-2) + env(safe-area-inset-bottom)); background: var(--cy-color-bg-page); animation: pricing-actions-in var(--cy-motion-slow) var(--cy-ease-out) both; }
+.pg-pad { height: 80rpx; }
+
+/* 常驻字段标签:placeholder 一填值就没了,而这两个数驱动成本地板,必须一直能看出谁是谁 */
+.pg-field { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.pg-field-label { font-size: var(--cy-type-caption); color: var(--cy-color-text-secondary); }
+
+/* 合作阵容行:整行 44px 热区,名称+条款摘要+箭头 */
+.pg-lineup-sub { margin: var(--cy-space-1) 0 var(--cy-space-1); }
+.pg-lineup-row { display: flex; align-items: center; justify-content: space-between; gap: var(--cy-space-2); min-height: var(--cy-btn-h); padding: 12rpx 0; border-bottom: 1rpx solid var(--cy-color-border-subtle); }
+.pg-lineup-row:last-child { border-bottom: 0; }
+.pg-lineup-row--pressed { opacity: .6; }
+.pg-lineup-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.pg-lineup-name { font-size: var(--cy-font-body); font-weight: 600; color: var(--cy-color-text-primary); }
+.pg-lineup-terms { font-size: var(--cy-font-caption); color: var(--cy-color-text-secondary); }
+.pg-lineup-chevron { flex-shrink: 0; color: var(--cy-color-text-tertiary); }
+
+@keyframes pricing-actions-in {
+  0% { opacity: 0; transform: translateY(16rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.cy-motion-reduced .pg-actions { animation: none !important; }

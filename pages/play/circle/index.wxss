@@ -1,0 +1,65 @@
+page { background:var(--cy-color-bg-page); color:var(--cy-color-text-primary); }
+.page { min-height:100vh; padding:30rpx 26rpx calc(64rpx + env(safe-area-inset-bottom)); box-sizing:border-box; background:var(--cy-color-bg-page); }
+.circle-sync-state { margin-bottom:var(--cy-space-3); }
+.circle-sync { min-height:72rpx; display:flex; align-items:center; color:var(--cy-color-text-tertiary); font-size:var(--cy-type-label); }
+.hero { padding:36rpx; border:1rpx solid var(--cy-color-border-subtle); border-radius:var(--cy-radius-lg); background:var(--cy-color-brand); color:var(--cy-color-text-inverse); }
+.eyebrow { color:var(--cy-color-text-inverse); font-size:var(--cy-type-caption); font-weight:800; letter-spacing:2rpx; opacity:.78; }
+.title { margin-top:18rpx; font-size:var(--cy-type-page-title); font-weight:800; }
+.subtitle { margin-top:12rpx; color:var(--cy-color-text-inverse); font-size:var(--cy-type-body); line-height:1.55; opacity:.72; }
+.combination { margin-top:12rpx; color:var(--cy-color-text-inverse); font-size:var(--cy-type-label); line-height:1.5; opacity:.72; }
+.progress { margin-top:28rpx; font-size:var(--cy-type-body); font-weight:800; }
+.invite { margin-top:10rpx; color:var(--cy-color-text-inverse); font-size:var(--cy-type-caption); opacity:.62; }
+.share-btn { margin:20rpx 0 0; border-radius:var(--cy-radius-md); background:var(--cy-color-bg-surface); color:var(--cy-color-text-primary); font-size:var(--cy-type-label); font-weight:800; }
+.readonly { margin-top:20rpx; padding:20rpx; border:1rpx solid var(--cy-color-status-warning); border-radius:var(--cy-radius-md); color:var(--cy-color-status-warning); font-size:var(--cy-type-label); line-height:1.5; }
+.section-title { margin:42rpx 6rpx 18rpx; font-size:var(--cy-type-card-title); font-weight:800; }
+.offer,.interaction { margin-bottom:18rpx; padding:26rpx; border:1rpx solid var(--cy-color-border-subtle); border-radius:var(--cy-radius-md); background:var(--cy-color-bg-surface); }
+.offer-done { border-color:var(--cy-color-status-success); }
+.offer-head { display:flex; align-items:center; gap:12rpx; }
+.offer-code { padding:5rpx 10rpx; border-radius:var(--cy-radius-sm); background:var(--cy-color-bg-surface-subtle); color:var(--cy-color-text-secondary); font-size:var(--cy-type-micro); font-weight:800; }
+.offer-name { flex:1; font-size:var(--cy-type-body); font-weight:800; }
+.offer-status { color:var(--cy-color-status-success); font-size:var(--cy-type-caption); }
+.supply-name { margin-top:18rpx; font-size:var(--cy-type-card-title); font-weight:700; }
+.facts { margin-top:9rpx; color:var(--cy-color-text-tertiary); font-size:var(--cy-type-label); line-height:1.45; }
+.note { width:100%; height:120rpx; margin-top:20rpx; padding:18rpx; box-sizing:border-box; border-radius:var(--cy-radius-sm); background:var(--cy-color-bg-surface-subtle); color:var(--cy-color-text-primary); font-size:var(--cy-type-label); }
+.record-btn,.answer-btn,.action-btn { margin-top:18rpx; border-radius:var(--cy-radius-md); background:var(--cy-color-action-secondary-bg); color:var(--cy-color-text-primary); font-size:var(--cy-type-body); font-weight:800; }
+.history { margin-top:28rpx; }
+.history-card { margin-top:14rpx; padding:22rpx; border:1rpx solid var(--cy-color-border-subtle); border-radius:var(--cy-radius-lg); background:var(--cy-color-bg-surface); }
+.history-name { color:var(--cy-color-text-primary); font-size:var(--cy-type-body); font-weight:800; }
+.history-supply,.history-note { margin-top:8rpx; color:var(--cy-color-text-secondary); font-size:var(--cy-type-caption); line-height:1.6; }
+.action-btn { border:1rpx solid var(--cy-color-border-subtle); background:var(--cy-color-bg-surface); }
+.interaction-title { color:var(--cy-color-text-secondary); font-size:var(--cy-type-caption); font-weight:800; }
+.interaction-prompt { margin-top:12rpx; font-size:var(--cy-type-body); font-weight:700; line-height:1.5; }
+.choices { display:flex; flex-wrap:wrap; gap:12rpx; margin-top:18rpx; }
+.choice { padding:14rpx 18rpx; border:1rpx solid var(--cy-color-border-strong); border-radius:var(--cy-radius-sm); color:var(--cy-color-text-secondary); font-size:var(--cy-type-label); }
+.choice-active { border-color:var(--cy-color-brand); background:var(--cy-color-brand); color:var(--cy-color-text-inverse); }
+.keyword-row { margin-top:22rpx; padding-top:18rpx; border-top:1rpx solid var(--cy-color-border-subtle); }
+.keyword-offer { font-size:var(--cy-type-label); font-weight:700; }
+.complete { margin-top:34rpx; padding:26rpx; border-radius:var(--cy-radius-md); background:var(--cy-color-brand); color:var(--cy-color-text-inverse); font-size:var(--cy-type-body); font-weight:700; text-align:center; }
+.complete-title { font-size:var(--cy-type-card-title); font-weight:800; }
+.complete-line { margin-top:14rpx; font-size:var(--cy-type-label); font-weight:500; line-height:1.5; }
+.complete-empty { margin-top:14rpx; font-size:var(--cy-type-label); font-weight:500; opacity:.72; }
+.disclaimer { margin:28rpx 12rpx 0; color:var(--cy-color-text-tertiary); font-size:var(--cy-type-caption); line-height:1.6; text-align:center; }
+
+/* ── 写回执状态条(与商家页同形制) ────────────────────────
+   状态色只落在圆点上;整块染色会把「还没确认」读成「出错了」。 */
+.cy-status{
+  display:flex; align-items:flex-start; gap:var(--cy-space-2-5);
+  margin:0 var(--cy-space-4) var(--cy-space-3);
+  padding:var(--cy-space-3) var(--cy-space-3-5);
+  border-radius:var(--cy-radius-md);
+  background:var(--cy-bg-card-2); border:1rpx solid var(--cy-border-card);
+  animation:cy-status-in var(--cy-motion-standard) var(--cy-ease-out) both;
+}
+.cy-status__dot{
+  flex:none; width:12rpx; height:12rpx; margin-top:12rpx; border-radius:50%;
+  background:var(--cy-color-text-secondary);
+}
+.cy-status--unknown .cy-status__dot{ background:var(--cy-color-status-warning); }
+.cy-status--failed  .cy-status__dot{ background:var(--cy-color-status-danger); }
+.cy-status__body{ flex:1; min-width:0; }
+.cy-status__text{ display:block; font-size:var(--cy-font-label); line-height:1.5; color:var(--cy-color-text-primary); }
+.cy-status__act{ display:block; margin-top:var(--cy-space-1); font-size:var(--cy-font-caption); line-height:1.4; color:var(--cy-color-text-secondary); }
+@keyframes cy-status-in{ from{ opacity:0; transform:translateY(-8rpx); } to{ opacity:1; transform:none; } }
+
+/* 状态条入场是 8rpx 位移,减少动态效果时撤掉位移(淡入保留 —— 反馈不能归零)。 */
+.cy-motion-reduced .cy-status { animation: none !important; }

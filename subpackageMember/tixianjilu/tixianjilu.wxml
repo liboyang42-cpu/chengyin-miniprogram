@@ -1,0 +1,13 @@
+<view class="{{isMerchant ? 'theme-merchant' : 'theme-dark'}}">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="txjl-page">
+  <cy-nav-bar custom-back bind:back="onClose" />
+  <cy-page-title title="提现记录" />
+  <!-- D21：独立路由不再套常驻半屏。半屏只盖 70vh，一条记录会沉在屏幕底下，看起来像没内容。 -->
+  <view class="txjl-page-body">
+    <cy-scene-member-withdraw-history id="withdrawHistory" />
+  </view>
+</view>
+</view>

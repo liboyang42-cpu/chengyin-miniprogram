@@ -1,0 +1,17 @@
+.davidbox{ overflow: hidden;}
+/* 左右边距统一 --cy-page-x(与 cy-page-title 对齐);标题区→字段组外边距由共享 cy-page-title 的 space-5 独家提供;底部留 footer-bar 等高空白。
+   ⚠️ 本轮补 padding-top: space-4 —— 副标题到字段组之间隔着 .add 的 border-top 发丝线,
+   线之下到第一行原来只有 .add_li 自己的 space-4,视觉上第一行贴着线。补这一档后
+   线→第一行 = space-4(padding)+ space-4(.add_li margin),不再贴。 */
+.add{overflow: hidden; margin: 0 var(--cy-page-x); padding-top: var(--cy-space-4); padding-bottom: var(--cy-comp-footer-h); border-top: 1rpx solid var(--cy-border-line);}
+.add_li{ overflow: hidden;border-bottom: 1rpx solid var(--cy-border-line); margin-top: var(--cy-space-4);}
+.add_li_left{ width: 120rpx; float: left; font-size: var(--cy-font-body);height: 100rpx; line-height: 100rpx;}
+.add_li_right{ font-size: var(--cy-font-body); margin-left: 120rpx; height: 100rpx;line-height: 100rpx;} /* ds-ok: margin-left 120rpx 和上一行 .add_li_left 的 width:120rpx 配对(右列紧跟左列宽度),不是留白档位 */
+.add_li_right input{  height: 100rpx; color: var(--cy-text-body);}
+.add_li_right .picker{ color: var(--cy-text-body);}
+.address-save-state { margin: 0 var(--cy-page-x) var(--cy-space-4); }
+
+button.fbox_but{ width: 686rpx; height: var(--cy-btn-h); background: var(--cy-btn-solid-bg); color: var(--cy-btn-solid-fg); font-size: var(--cy-font-body); font-weight: bold; border-radius: var(--cy-radius-lg);position: fixed; bottom: calc(60rpx + env(safe-area-inset-bottom)); left: 32rpx;}
+
+/* 输入占位色:原为 WXML 内联 placeholder-style 硬编码灰(WXSS 门禁扫不到),收进类里走 token(同 templatedetail.wxss 收编模式) */
+.fld-ph { color: var(--cy-color-text-placeholder); }

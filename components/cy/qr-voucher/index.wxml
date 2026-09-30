@@ -1,0 +1,54 @@
+<template name="qr-voucher-body">
+  <view wx:if="{{show}}" class="qr {{surface === 'host' ? 'qr--host-surface' : ''}} {{reducedMotion ? 'qr--reduced-motion' : ''}}">
+    <view class="qr__panel">
+      <view wx:if="{{state === 'error' || (state === 'ready' && !qr && !code)}}" class="qr__error" aria-role="alert" aria-live="polite" aria-label="{{errorText}}">
+        <image class="qr__error-ic" src="/images/no_data.svg" mode="widthFix" aria-hidden="true" />
+        <view class="qr__err-content">
+          <text class="qr__err-txt">{{errorText}}</text>
+          <view wx:if="{{retryText}}" class="qr__err-retry" catchtap="onRetry" aria-role="button" aria-label="{{retryText}}" hover-class="cy-pressed" hover-stay-time="80">{{retryText}}</view>
+        </view>
+      </view>
+
+      <view wx:else class="qr__card">
+        <view class="qr__code">
+          <image wx:if="{{state === 'ready' && qr}}" class="qr__img" src="{{qr}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
+          <view wx:elif="{{state === 'ready' && code}}" class="qr__code-text">{{code}}</view>
+          <view wx:else class="qr__ph" aria-role="status" aria-live="polite" aria-label="二维码加载中" aria-busy="true"><view class="qr__spin" aria-hidden="true"></view></view>
+          <view class="qr__corner qr__corner--tl"></view>
+          <view class="qr__corner qr__corner--tr"></view>
+          <view class="qr__corner qr__corner--bl"></view>
+          <view class="qr__corner qr__corner--br"></view>
+          <view wx:if="{{state === 'ready' && qr && showLogo}}" class="qr__logo" catchtap="noop" hover-class="cy-pressed" hover-stay-time="80">
+            <!-- 2026-09-18 用户裁决:码心 logo 走黑色版(白挖空上纯黑,与码点同色不抢读)。
+                 不新增一张黑色 PNG:主包资源棘轮 2026-09-09 起已贴到顶,再加任何字节都判红 ——
+                 用既有 mark 图 + brightness(0) 压黑,brightness(0) 把 RGB 全清零、只保留 alpha,
+                 得到的就是那份黑色轮廓的像素级同物。 -->
+            <image class="qr__logo-img" src="/images/cy_logo_mark.png" mode="aspectFit" />
+          </view>
+        </view>
+        <view wx:if="{{countdown}}" class="qr__count">{{countdown}}</view>
+      </view>
+
+      <!-- ⚠️ 这里的条件必须与上面 qr__error 的**完全一致**。原来只写 state !== 'error',
+           而错误 UI 有两个触发条件(还包括「state=ready 但既无 qr 也无 code」)⇒
+           取码失败时错误块渲染,desc 和「刷新二维码」也跟着渲染,变成
+           「二维码未加载 + 重试」和「出示给商家扫码核销 + 刷新二维码」三者同屏,
+           而「重试」与「刷新二维码」绑的还是同一个 refreshToken(2026-08-19 D16/D18 实拍)。
+           同一个「算不算错误」的问题在两处各写一遍、两处不一致 —— 这是本仓库反复猎的形状。 -->
+      <block wx:if="{{!(state === 'error' || (state === 'ready' && !qr && !code))}}">
+        <view wx:if="{{desc}}" class="qr__desc">{{desc}}</view>
+        <view wx:if="{{secondaryText}}" class="qr__secondary" catchtap="onSecondary" hover-class="cy-pressed" hover-stay-time="80">{{secondaryText}}</view>
+      </block>
+    </view>
+  </view>
+</template>
+
+<!-- ⚠️ template 有独立作用域,不传 data 就是空对象 —— 首行 wx:if="{{show}}" 求值 undefined,
+     整个码卡静默不渲染(有标题、无正文、零 console error)。#572 引入 template 化时漏了 data=,
+     四个承载面(入场码/优惠券/据点码/团码)的页面侧与弹窗侧同时空白。新增字段必须同步进这两处 data。 -->
+<block wx:if="{{embedded}}">
+  <template is="qr-voucher-body" data="{{show, reducedMotion, surface, state, qr, code, errorText, retryText, showLogo, countdown, desc, secondaryText}}" />
+</block>
+<cy-scene-sheet wx:else show="{{show}}" variant="full" theme="player" title="{{title || '出示核销码'}}" mask-closable="{{maskClosable}}" reduced-motion="{{reducedMotion}}" z-index="{{zIndex}}" bind:requestclose="onClose">
+  <template is="qr-voucher-body" data="{{show, reducedMotion, surface, state, qr, code, errorText, retryText, showLogo, countdown, desc, secondaryText}}" />
+</cy-scene-sheet>

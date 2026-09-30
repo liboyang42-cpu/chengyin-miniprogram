@@ -1,0 +1,25 @@
+:host { display: block; height: 100%; }
+.hs { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; box-sizing: border-box; color: var(--cy-color-text-primary); }
+.hs-sum { display: flex; gap: 31rpx; padding: 0 38rpx 23rpx; flex: none; color: var(--cy-color-text-tertiary); font-size: 27rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.hs-scroll { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.rc { margin: 0 31rpx 23rpx; overflow: hidden; border: 1rpx solid var(--cy-color-border-subtle); border-radius: 31rpx; background: var(--cy-color-bg-surface-subtle); } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__main { display: flex; align-items: center; gap: 23rpx; padding: 31rpx 31rpx 0; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__thumb { width: 138rpx; height: 138rpx; flex: none; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 23rpx; background: var(--cy-color-bg-elevated); color: var(--cy-color-text-tertiary); } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__thumb-image { width: 100%; height: 100%; }
+.rc__copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rpx; }
+.rc__date { color: var(--cy-color-text-tertiary); font-size: 25rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__title { overflow: hidden; color: var(--cy-color-text-primary); font-size: 31rpx; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__stats { display: flex; gap: 46rpx; padding: 31rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__st { display: flex; flex-direction: column; gap: 4rpx; }
+.rc__v { color: var(--cy-color-text-primary); font-size: 34rpx; font-weight: 700; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__l { color: var(--cy-color-text-tertiary); font-size: 23rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.rc__badges { display: flex; align-items: center; flex-wrap: wrap; gap: 15rpx; padding: 23rpx 31rpx; border-top: 1rpx solid var(--cy-color-border-subtle); }
+.rc__hex { width: 62rpx; height: 70rpx; display: flex; align-items: center; justify-content: center; color: var(--cy-color-status-warning); }
+.rc__stamps { align-self: center; display: flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-color-text-tertiary); font-size: 23rpx; } /* ds-ok Figma 实测(用户裁决字面值) */
+.fill-slot { display: flex !important; flex: 1 !important; flex-direction: column !important; min-height: 0 !important; }
+.history-loading { display: flex; align-items: center; justify-content: center; min-height: 240rpx; color: var(--cy-color-text-tertiary); font-size: var(--cy-type-body); }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

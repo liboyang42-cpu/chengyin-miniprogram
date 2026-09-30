@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Unusable token fixture exercising error-message redaction"
+condition = "AND"
+paths = ['''(^|/)tests/unit/safe-user-message\.test\.js$''']
+regexTarget = "match"
+regexes = ['''token=eyJhbGciOiJIUzI1NiJ9\.secret''']

@@ -1,0 +1,118 @@
+<!-- UI-17 返修(2026-09-18):卡面只留一张完整的票图，名称和状态放在卡外，整卡点击进入。
+     状态取值仍全部来自既有列表字段,不新增接口、不造字段:
+     registrationStatus 1待支付 / 2已报名 / 3已取消 / 4已过期,verificationStatus 1已核验。
+     点卡分流见 _openTicket:待支付→订单、已取消/过期→提示、待使用→play。
+     wxs 的 label / cta 同时服务可见状态和 aria-label。 -->
+<wxs module="tk">
+function state(item) {
+  if (!item) return 'pending';
+  if (item.verificationStatus == 1) return 'done';
+  if (item.registrationStatus == 3 || item.registrationStatus == 4) return 'void';
+  if (item.registrationStatus == 2) return 'ready';
+  return 'pending';
+}
+function label(item) {
+  var s = state(item);
+  if (s === 'done') return '已核验';
+  if (s === 'void') return item.registrationStatus == 4 ? '已过期' : '已取消';
+  if (s === 'ready') return '待使用';
+  return '待支付';
+}
+function cta(item) {
+  var s = state(item);
+  // 「出示入场码」是谎话——整卡点击进的是 play 页。码要在里面再点一次才出。文案照实写
+  if (s === 'ready') return '进入游玩';
+  /* 2026-09-10 用户定的方向：票夹点进去就是开始玩，票夹去不了订单。
+     订单有订单的页面，而且只有订单页能来票夹，反过来不行。
+     所以这里不再写「查看详情」——它以前指的就是订单页，那条路已经关了。
+     待支付是唯一的例外：它还不是一张票，是一笔没付完的单，得有地方去付。 */
+  if (s === 'pending') return '去支付';
+  return '';
+}
+module.exports = { state: state, label: label, cta: cta };
+</wxs>
+<view class="theme-dark">
+  <cy-toast id="cy-toast" />
+  <cy-loading-mask id="cy-loading" />
+  <cy-modal-host id="cy-modal-host" />
+<view class="signup flex-col">
+  <!-- UI-17 二次返修(2026-09-18 用户追加):全屏背景 = 当前票主题图(固定层,压在整页下面)。
+       卡在导航以下、底部安全区以上的区域里水平垂直居中并整体放大;票名移到卡外、紧贴卡顶之上,
+       卡面本身仍然零叠字。 -->
+  <image wx:if="{{topicBg}}" lazy-load="true" src="{{topicBg}}" mode="aspectFill" class="ztbg" />
+  <view class="signup-scrim"></view>
+  <cy-nav-bar overlay pill pillDark tint="light" />
+
+  <!-- 2026-07-31:优惠券已独立(subpackageMember/coupon),「票夹/优惠券」那层 tab 已删。
+       2026-09-09 用户裁决:「路线 / 场次」这层 tab 也删掉,两种票放一起。
+       两类票在后端确实是两回事(ownerType 1/2,两个接口),但那是数据模型的区分,
+       不是用户要做的选择 —— 打开票夹只想看「我有哪些票」。合并只在渲染层做,
+       落点差异由每张票自己带的 kind 分流(见 index.js goTicket)。 -->
+
+  <view class="davidwu" wx:if="{{walletState === 'loading'}}">
+    <cy-skeleton class="fill-slot" type="ticket" count="1" loading-label="正在加载我的票" />
+  </view>
+  <view class="davidwu" wx:elif="{{walletState === 'error'}}">
+    <cy-state-shell class="fill-slot" kind="error" title="票夹没能打开" sub="{{walletErrorMsg}}" primary="重试" fill="{{true}}" size="lg" theme="player" bind:primary="retryWallet" auto-back />
+  </view>
+  <view class="davidwu" wx:elif="{{walletState === 'empty'}}">
+    <cy-state-shell class="fill-slot" kind="empty" title="还没有票" sub="去首页发现路线或报名场次，票会在这里出现。" fill="{{true}}" size="lg" theme="player" />
+  </view>
+
+  <view class="flex-a flex-col main" wx:if="{{walletState === 'ready'}}" style="padding-top:{{navTop}}px;">
+    <view class="wrap flex-a flex-c">
+      <!-- UI-17 二次返修(2026-09-18):票名回到卡外、紧贴卡顶之上;卡面仍零可见文字。
+           名称与当前卡同源(读 currentSwiperTicket,不新增 data 字段),滑动换卡时跟着切。 -->
+      <view class="ticket-name">
+        <text class="ticket-name__t ep1">{{ticketList[currentSwiperTicket].wTitle}}</text>
+        <text class="ticket-name__state">{{tk.label(ticketList[currentSwiperTicket])}}{{tk.cta(ticketList[currentSwiperTicket]) ? ' · ' + tk.cta(ticketList[currentSwiperTicket]) : ''}}</text>
+      </view>
+      <view class="slides rd">
+        <swiper
+          indicator-dots="{{indicatorDots}}"
+          autoplay="{{autoplay}}"
+          interval="{{interval}}"
+          duration="{{duration}}"
+          indicator-color="rgba(255, 255, 255, .5)"
+          indicator-active-color="#fff"
+          bindchange="onTicketSwiperChange"
+          previous-margin="115rpx"
+          next-margin="115rpx"
+          circular="{{true}}"
+          current="{{currentSwiperTicket}}"
+          key="ticket-swiper-{{currentSwiperTicket}}">
+          <block wx:for="{{ticketList}}" wx:key="wKey">
+            <swiper-item bindtap="goTicket" data-index="{{index}}" aria-role="button" aria-label="{{tk.cta(item) || tk.label(item)}}，{{item.wTitle}}" hover-class="cy-pressed" hover-stay-time="80">
+              <view class="swiper-item-content {{currentSwiperTicket === index ? 'active' : 'inactive'}}">
+                <!-- 卡面 = 一张完整票图:不再叠票名/日期/状态/入口文字。
+                     票名与状态只走 aria-label(读屏可达),点击分区仍由 _openTicket 按状态兜底;
+                     wImg 缺失时 rebuildTicketList 已退回 /images/route_city_cover.png,不会留空洞。 -->
+                <view class="tk">
+                  <view class="tk-face">
+                    <image lazy-load="true" src="{{ item.wImg }}" mode="aspectFill" />
+                  </view>
+                </view>
+              </view>
+            </swiper-item>
+          </block>
+        </swiper>
+      </view>
+    </view>
+
+    <!-- 2026-09-04 判定表:「票夹全页没有任何队伍入口」。这一行跟着当前那张票走 ——
+         队伍是挂在具体某场/某条路线上的,放在票外面写死一个「我的队伍」会指向别的票。
+         没有队伍就整行不出:不摆一个点进去是空的入口。 -->
+    <view class="team-entry" wx:if="{{currentTeam}}" bindtap="goMyTeam"
+      hover-class="cy-pressed" hover-stay-time="80"
+      aria-role="button" aria-label="打开我的队伍{{currentTeam.title ? '：' + currentTeam.title : ''}}">
+      <view class="team-entry__main">
+        <text class="team-entry__k">我的队伍</text>
+        <text class="team-entry__v ep1" wx:if="{{currentTeam.title}}">{{currentTeam.title}}</text>
+      </view>
+      <!-- 人数拿不到就不写,不补 0/0 -->
+      <text class="team-entry__n" wx:if="{{currentTeam.joinedCount !== null && currentTeam.maxMembers !== null}}">{{currentTeam.joinedCount}}/{{currentTeam.maxMembers}}</text>
+      <cy-icon name="arrow-right" size="24" />
+    </view>
+  </view>
+</view>
+</view>

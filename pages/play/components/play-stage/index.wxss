@@ -1,0 +1,126 @@
+/* cy-play-stage · 玩法整屏台面(原型真源:模板编辑页 v2 · playkit 的 .phone + 各玩法根)
+ *
+ * 不 @import style/playkit.wxss:那份是 v5.1 半屏 sheet 的语言(pk-eyebrow / pk-option),
+ * 与这批玩法的整屏台面不是一套东西。混用会让同一个玩法半身是 sheet、半身是整屏。
+ *
+ * ⚠️ 但 play-surface.wxss 必须 import:皮肤表(.skin-estimate 等)在那一份里,
+ * 而 styleIsolation: isolated 下本组件匹配不到别处定义的类。少这一行,.st 上的
+ * skin-xxx 无人认领,--bg 解析成空,整层透明 —— 表现是「玩法屏后面能看见游玩页」,
+ * 而且**不报错**。踩过一次,是截图并排看才发现的。
+ */
+@import "/pages/play/style/play-surface.wxss";
+.st {
+  /* ★ 内嵌档(契约 §1.5,2026-09-18):四边贴死的整屏台面之外,还有一条「在故事流里」的路。
+     它由**故事流那一层的 CSS 变量**切进来,不需要 24 个 kit 各传一个 inline 属性 ——
+     变量能穿组件边界(与 .g-col 的 --pk-top 同一条路,那也是从 stage 传进 kit 的)。
+     --pk-stage-pos 缺省 fixed = 存量模板逐字不变;内嵌时那一层给 relative,块高由
+     --pk-stage-height 定(--st 不贴四边就没有高度可撑,absolute 的 .st__body 会塌成 0)。
+     ⚠️ 变量名改了/写错了不会报错,表现是「配了内嵌但整屏糊在页面上」或「块高为 0」。 */
+  position: var(--pk-stage-pos, fixed);
+  left: 0; right: 0; top: 0; bottom: 0;
+  height: var(--pk-stage-height, auto);
+  /* z-index 走 token,不手写数字:这张页面上地图和角色卡都在 80–90 档,
+     手写的 100 压不住,组件会渲染在它们**底下** —— 表现是「注入成功但画面没变」,
+     不报错。cy-sheet 走的也是这一档。内嵌态同样走这一条(position:relative 仍认 z-index)。 */
+  z-index: var(--cy-z-sheet);
+  overflow: hidden;
+  background: var(--bg);
+}
+/* ⚠️ inline 档只换 position 与 height:left/right/top/bottom 保持 0 ——
+   relative 下四个 0 不产生位移,也不参与高度;fixed 那档正是靠 top/bottom:0 + height:auto
+   撑满整屏。谁把 top/bottom 改成 auto,内嵌就塌成 0 高(absolute 的 .st__body 撑不起来)。 */
+.st__body {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+}
+
+/* 返回:左上角。只有一个叉的时候,人不确定退出去之后这一局还在不在。
+   ★ 内嵌态隐藏(契约 §1.5):在故事流里,它就是流里的一块,滑走就是退出 ——
+   再摆一个「退出」会让人以为这一下会把整章关掉。由故事流那层给 --pk-back-display:none。 */
+.st__back {
+  position: absolute;
+  left: var(--cy-page-x);
+  z-index: 12;
+  display: var(--pk-back-display, flex);
+  align-items: center;
+  gap: 6rpx;
+  padding: 10rpx 20rpx 10rpx 12rpx;
+  border-radius: var(--cy-radius-pill);
+  background: var(--soft);
+  font-size: 23rpx;                    /* ds-ok 原型 11.5px */
+  color: var(--sub);
+}
+.st__press { opacity: .88; }
+
+/* 限时条压在顶上,不进玩法内容区 —— 它是这一局的框,不是这一屏的一部分 */
+.st__limit {
+  position: absolute;
+  left: var(--cy-page-x);
+  right: var(--cy-page-x);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+}
+.st__limit-t, .st__limit-n {
+  flex: none;
+  font-size: 22rpx;                    /* ds-ok 原型 11px */
+  font-weight: 700;
+  color: var(--sub);
+}
+.st__limit-n { font-family: var(--cy-font-numeric); }
+.st__limit-bar {
+  flex: 1;
+  height: 6rpx;
+  border-radius: var(--cy-radius-pill);
+  overflow: hidden;
+  background: var(--soft);
+}
+.st__limit-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--ink);
+  /* 同 play-calibrate:限时条每秒都在退,用 width 会每帧 layout */
+  transform-origin: 0 50%;
+  transition: transform 1s linear;
+}
+
+/* 「还能错几次」挂在右上角,不横跨整屏。
+   ⚠️ 别钉一个固定的 top 再居中:各玩法的内容起点不一样,钉死会压到内容上 ——
+   找东西那屏的场景是撑开的,居中的次数条直接盖在图上了。
+   靠右上角与返回按钮同一行,任何一屏都不会撞。 */
+.st__tries {
+  position: absolute;
+  right: var(--cy-page-x);
+  top: calc(env(safe-area-inset-top) + 30rpx);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--cy-space-1);
+}
+.st__tries-t {
+  margin-right: var(--cy-space-1);
+  font-size: 22rpx;                    /* ds-ok 原型 11px */
+  color: var(--sub);
+}
+.st__tries-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.st__tries-dot--used { background: var(--soft); }
+/* 浅色玻璃上 14rpx 的点压不住背景光,放大一档 */
+.skin-glass .st__tries-dot { width: 18rpx; height: 18rpx; }    /* ds-ok */
+
+/* 答错抖一下:原型 .phone.shake(.28s)。抖的是整块台面,不是那一个选项 ——
+   错的是这一次回答,不是那一行。减动效时整条不生效(见 .st--reduced)。 */
+.st--shake { animation: st-shake .28s cubic-bezier(.36, .07, .19, .97); }
+@keyframes st-shake {
+  10%, 90% { transform: translateX(-4rpx); }
+  20%, 80% { transform: translateX(8rpx); }
+  30%, 50%, 70% { transform: translateX(-14rpx); }
+  40%, 60% { transform: translateX(14rpx); }
+}
+.st--reduced .st--shake, .st--reduced.st--shake { animation: none; }

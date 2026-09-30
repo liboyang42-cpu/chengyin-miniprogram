@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-empty": "/components/cy/empty/index",
+    "cy-error": "/components/cy/error/index",
+    "cy-icon": "/components/cy/icon/index"
+  },
+  "styleIsolation": "isolated"
+}

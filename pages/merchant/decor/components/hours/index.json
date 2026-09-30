@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-dropdown": "/components/cy/dropdown/index",
+    "cy-btn": "/components/cy/btn/index",
+    "cy-inline-error": "/components/cy/inline-error/index"
+  }
+}

@@ -1,0 +1,58 @@
+/* 平列表(vault §3.22):行高 56、行间发丝线、单选圆点右对齐。
+   分隔线与文字都读 sheet 的 role-* 档 —— 玩家暗底与商家浅底各自成立,组件里不写死明暗。 */
+:host {
+  --os-row-h: 112rpx;                                  /* 56px */
+  --os-line: var(--cy-comp-sheet-role-divider);
+}
+
+.os { display: block; }
+
+.os__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--os-row-h);
+  box-sizing: border-box;
+  border-bottom: 1rpx solid var(--os-line);
+}
+/* 末行不画线:列表的下边界由 sheet 自己的留白给,再画一条会和 footer 顶边撞成双线 */
+.os__row:last-child { border-bottom: none; }
+
+.os__label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+}
+
+.os__row--off .os__label { color: var(--cy-color-text-disabled); }
+
+/* 行尾选择标记:未选空圈,选中圈内对勾。用 text-primary 而不是品牌色 ——
+   玩家域的 brand 本就等于 text-primary(去紫那轮),商家域主操作是黑,两边都成立。 */
+.os__dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-inverse);
+  flex: none;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: var(--cy-radius-pill);
+  box-sizing: border-box;
+  border: 2rpx solid var(--cy-color-border-strong);
+}
+.os__row--on .os__dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-color-text-inverse);
+  border-color: var(--cy-color-text-primary);
+  background: var(--cy-color-text-primary);
+}
+
+/* ⚠️ 本组件 styleIsolation: isolated —— 全局 app.wxss 的 .cy-pressed 在这里取不到,
+   写了 hover-class 也按不出反应(press-feedback-resolves-contract 会判红,它是对的)。
+   所以按压态在组件内自带一份,取值与全局同源(state-pressed)。 */
+.cy-pressed { background: var(--cy-color-state-pressed); }
+
+.os__row.cy-pressed .os__label { color: var(--cy-color-text-tertiary); }

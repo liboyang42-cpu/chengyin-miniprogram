@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-modal": "../modal/index",
+    "cy-result-sheet": "../result-sheet/index"
+  }
+}

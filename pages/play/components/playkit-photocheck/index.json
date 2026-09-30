@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "styleIsolation": "isolated",
+  "usingComponents": {
+    "cy-play-stage": "/pages/play/components/play-stage/index",
+    "cy-icon": "/components/cy/icon/index",
+    "cy-spin-card": "/components/cy/spin-card/index"
+  }
+}

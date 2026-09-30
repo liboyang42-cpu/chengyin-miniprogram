@@ -1,0 +1,39 @@
+:host { display: block; min-height: 100%; }
+.ticket-scene { position: relative; min-height: calc(100vh - 180rpx); box-sizing: border-box; padding: var(--cy-space-3) 0 calc(var(--cy-space-5) + env(safe-area-inset-bottom)); }
+
+/* #568 3964:16801：终态票面移入 qr-ticket 场景，页面不再保留第二套出码视图。 */
+.voucher__card { position: relative; width: 480rpx; height: 797rpx; margin: var(--cy-space-4) auto 0; background: #FFFFFF; /* ds-ok Figma 票面实测白底 */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20480%20797%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M36%200H444A36%2036%200%200%201%20480%2036V761A36%2036%200%200%201%20444%20797H36A36%2036%200%200%201%200%20761V36A36%2036%200%200%201%2036%200ZM-45%20467a45%2045%200%201%200%2090%200a45%2045%200%201%200%20-90%200ZM435%20467a45%2045%200%201%200%2090%200a45%2045%200%201%200%20-90%200Z%22%2F%3E%3C%2Fsvg%3E");
+  -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat;
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20480%20797%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M36%200H444A36%2036%200%200%201%20480%2036V761A36%2036%200%200%201%20444%20797H36A36%2036%200%200%201%200%20761V36A36%2036%200%200%201%2036%200ZM-45%20467a45%2045%200%201%200%2090%200a45%2045%200%201%200%20-90%200ZM435%20467a45%2045%200%201%200%2090%200a45%2045%200%201%200%20-90%200Z%22%2F%3E%3C%2Fsvg%3E");
+  mask-size: 100% 100%; mask-repeat: no-repeat; }
+.voucher__top { position: absolute; left: 38rpx; right: 38rpx; top: 45rpx; height: 258rpx; display: flex; align-items: flex-start; justify-content: space-between; }
+.voucher__amt { width: 183rpx; display: flex; flex-direction: column; }
+.voucher__amt-n, .voucher__amt-u { font-size: 76rpx; font-weight: 700; color: #0A0A0A; line-height: 1.05; } /* ds-ok Figma 票面实测字号与墨色 */
+.voucher__qr { width: 258rpx; height: 258rpx; }
+.voucher__qr--empty { display: flex; align-items: center; justify-content: center; font-size: 23rpx; color: #6A7282; background: #F2F2F2; } /* ds-ok Figma 二维码占位槽 */
+.voucher__notch { position: absolute; left: 0; right: 0; top: 394rpx; height: 79rpx; background: #0A0A0A; display: flex; align-items: center; justify-content: center; } /* ds-ok Figma 黑色 Code 带 */
+.voucher__code { font-size: 40rpx; font-weight: 700; color: #FFFFFF; } /* ds-ok Figma Code 实测字号与反色 */
+.voucher__foot { position: absolute; left: 31rpx; right: 31rpx; top: 548rpx; display: flex; flex-direction: column; }
+.voucher__exp { font-size: 24rpx; color: #6A7282; line-height: 1.4; } /* ds-ok Figma 票面辅助文字 */
+.voucher__name { margin-top: 14rpx; font-size: 34rpx; font-weight: 700; color: #0A0A0A; } /* ds-ok Figma 票面标题 */
+.voucher__desc { margin-top: 14rpx; font-size: 24rpx; color: #6A7282; } /* ds-ok Figma 票面说明 */
+.voucher__acts { width: calc(100% - 76rpx); margin: var(--cy-space-5) auto 0; display: flex; align-items: center; gap: 23rpx; }
+.voucher__back { flex: none; width: 88rpx; height: 88rpx; border-radius: var(--cy-radius-pill); background: var(--cy-color-bg-glass); display: flex; align-items: center; justify-content: center; color: var(--cy-text-title); }
+.voucher__cta { flex: 1; height: var(--cy-btn-h); border-radius: var(--cy-radius-pill); background: var(--cy-text-title); color: var(--cy-bg-page); font-size: var(--cy-font-subtitle); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.voucher__cta--disabled { opacity: .45; }
+
+.bigqr-mask { position: fixed; inset: 0; z-index: 128; background: rgba(0,0,0,.45); } /* ds-ok Figma Drawer 遮罩 */
+.bigqr-under { position: fixed; left: 25rpx; right: 25rpx; top: 339rpx; height: 120rpx; z-index: 129; background: #D1D5DB; border-radius: 25rpx 25rpx 0 0; } /* ds-ok Figma 堆叠后层卡 */
+.bigqr { position: fixed; left: 0; right: 0; bottom: 0; top: 370rpx; z-index: 130; background: #EBEBEB; border-radius: 42rpx 42rpx 0 0; display: flex; flex-direction: column; align-items: center; overflow: hidden; } /* ds-ok Figma 扫码 sheet */
+.bigqr__head { width: 100%; box-sizing: border-box; padding: 35rpx 38rpx 8rpx; display: flex; }
+.bigqr__close { color: #0A0A0A; } /* ds-ok Figma sheet 深色前景 */
+.bigqr__img { width: 520rpx; height: 520rpx; margin-top: 8rpx; }
+.bigqr__title { margin-top: 44rpx; font-size: 44rpx; font-weight: 700; color: #0A0A0A; } /* ds-ok Figma sheet 标题 */
+.bigqr__desc { margin-top: 16rpx; padding: 0 80rpx; text-align: center; font-size: 27rpx; line-height: 1.6; color: #6A7282; } /* ds-ok Figma sheet 说明 */
+.bigqr__alt { position: absolute; left: 120rpx; right: 120rpx; height: 96rpx; border-radius: var(--cy-radius-pill); bottom: calc(var(--cy-space-8) + env(safe-area-inset-bottom)); background: #0A0A0A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 32rpx; font-weight: 700; } /* ds-ok Figma 黑底白字刷新钮 */
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

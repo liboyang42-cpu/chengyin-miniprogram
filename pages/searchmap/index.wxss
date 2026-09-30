@@ -1,0 +1,291 @@
+@charset "UTF-8";
+@import '../../style/picker-wheel.wxss';
+/* L2 Browse · Map + List(迁移矩阵 §5.1 / 模板库 §4.4)
+   本页读 ① 真值层 --cy-color-* / --cy-type-*(DS §10.1:迁移页面禁旧名 alias 与硬编码)。
+   筛选与结果弹层已收编为 cy-sheet,原 .screen / .pop-cont / .pop-baoming 私有弹层删除。 */
+.smap{ width: 100%; height: 100vh; }
+.smap image{ width: 100%; height: 100vh; vertical-align: top; }
+/* ADA:去系统导航依赖后,顶部条不再铺整幅 bg-page 底(那是压在地图上的一道色带),
+   改为透明容器 + 搜索条自己的表面色,地图从顶部一直可见。 */
+/* UI-14 返修(2026-09-18):整行几何由 JS 按胶囊实测值下发(padding-top = navTop,
+   padding-right = navRight),这里只固定左内边距:88rpx 命中盒里的 64rpx 视觉圆居中后
+   左缘会右偏 12rpx,减掉 --cy-space-1-5,返回圆仍锚在 --cy-space-4 页面边距上 ——
+   与右端 filter 到胶囊左缘的间距一致。box-sizing 必须 border-box,
+   否则 padding 会把整行撑出屏外。 */
+.smapso{ background: transparent; position: fixed; top: 0; left: 0; right: 0; z-index: 6;
+  box-sizing: border-box;
+  padding-left: calc(var(--cy-space-4) - var(--cy-space-1-5)); }
+.smapso_bar{ display: flex; align-items: center; gap: var(--cy-space-2); height: 88rpx; }
+
+/* 浮动返回的可见圆钮保持原 64rpx page-edge 锚点；外层 88rpx 命中区按规范不变。
+   返修后它是行内 flex 子项,垂直居中交给行(不再绝对定位 + 光学补偿)。 */
+.smap-back{
+  flex: none;
+  width: 88rpx; height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.smap-back-visual{
+  width: var(--cy-space-6); height: var(--cy-space-6);
+  border-radius: var(--cy-radius-pill);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cy-color-bg-glass);
+  border: 1rpx solid var(--cy-color-border-subtle);
+  box-shadow: inset 0 1rpx 0 rgba(255,255,255,.08); /* ds-ok 刻意:玻璃顶边高光,inset 描边非表面色,token 层无对应 */
+  color: var(--cy-color-text-primary);
+}
+.smapso_search{ flex: 1; min-width: 0; }
+.smapso_filter{ flex: none; }
+.smap-offline{ position:fixed; left:var(--cy-space-4); right:var(--cy-space-4); z-index:6; }
+.smap-merchant-fields{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--cy-space-2); }
+.smap-merchant-fields input,.smap-merchant-picker{ min-height:var(--cy-btn-h-sm); padding:0 var(--cy-space-2); border:1rpx solid var(--cy-color-border-subtle); border-radius:var(--cy-radius-md); background:var(--cy-color-bg-surface); color:var(--cy-color-text-primary); font-size:var(--cy-type-body); box-sizing:border-box; }
+.smap-merchant-picker{ display:flex; align-items:center; }
+/* ⚠️ 这三处原来引用 --cy-space-12 —— 那一档**从未定义**(量表只到 space-8=96rpx)。
+   CSS 里 calc() 引用未定义自定义属性会让**整条声明作废**,于是这条 top、legend 的 margin-left、
+   以及下面那个 bottom 全部静默失效 ⇒ 定位提示条压在搜索条上、图例被返回钮压住
+   (2026-08-19 A30/A31 实拍坐实)。 */
+.smap-location-error{
+  position:absolute; left:var(--cy-space-4); right:var(--cy-space-4);
+  top:calc(var(--cy-space-8) + var(--cy-space-4) + env(safe-area-inset-top)); z-index:6;
+  display:flex; align-items:center; justify-content:space-between; gap:var(--cy-space-2);
+  padding:var(--cy-space-2) var(--cy-space-3);
+  background:var(--cy-color-bg-surface); border:1rpx solid var(--cy-color-border-strong);
+  border-radius:var(--cy-radius-md); color:var(--cy-color-text-secondary);
+  font-size:var(--cy-type-caption);
+}
+.smap-location-error__message{ flex:1; }
+.smap-location-error__action{
+  flex:none; min-height:88rpx; padding:0 var(--cy-space-2);
+  display:flex; align-items:center;
+  color:var(--cy-color-text-primary); font-weight:600;
+}
+
+/* 结果入口胶囊:悬浮在地图上,四态可达(§4.4③)。
+   地图底图任意 ⇒ 用描边而非投影分层(--cy-shadow-card 暗端为 none,压不住底图)。 */
+.smap-listbtn{
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--cy-space-6) + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: var(--cy-space-1);
+  background: var(--cy-color-bg-surface); color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-label);
+  padding: var(--cy-space-3) var(--cy-space-5);
+  border: 1rpx solid var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-pill);
+  z-index: 5; white-space: nowrap;
+  min-height: 88rpx; box-sizing: border-box;   /* DS §11:点击区 ≥88rpx */
+}
+.smap-listbtn--error{ color: var(--cy-color-status-danger); border-color: var(--cy-color-status-danger); }
+.smap-listbtn--loading{ color: var(--cy-color-text-tertiary); }
+.smap-listbtn-sub{ color: var(--cy-color-text-tertiary); }
+/* bbb 标准:胶囊里不再单靠"正在加载…"文字表达加载态,配一个小转圈(同 cy-btn__spinner 视觉规格,
+   组件 styleIsolation 隔离,keyframe 拿不到,故本页按同一份规格重声明)。 */
+.smap-listbtn__spinner {
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  border: 4rpx solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%; /* ds-ok */
+  animation: smap-listbtn-spin var(--cy-motion-spinner-cycle) linear infinite;
+  flex: none;
+}
+@keyframes smap-listbtn-spin { to { transform: rotate(360deg); } }
+
+/* Sheet 内:无坐标提示 / 加载态 */
+.smap-listtip{ margin: 0 var(--cy-space-4) var(--cy-space-2); font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+.smap-sel-cta{ display: flex; gap: var(--cy-space-3); margin-top: var(--cy-space-4); }
+.smap-sel-cta > cy-btn { flex: 1; }
+
+swiper{ margin: 0 var(--cy-space-4) var(--cy-space-3) var(--cy-space-4); height: 615rpx; }
+
+/* 活动卡片(全部结果 / 选中对象 共用) */
+.item {
+  padding: var(--cy-space-2);
+  box-sizing: border-box;
+  background: var(--cy-color-bg-surface);
+  border-radius: var(--cy-radius-md);
+  border: 1rpx solid var(--cy-color-border-strong);
+}
+.item .item-pic {
+  height: 350rpx;
+  background: var(--cy-color-bg-surface-subtle);
+  border-radius: var(--cy-radius-sm);
+  position: relative;
+  overflow: hidden;
+}
+.item .item-pic image {
+  width: 100%;
+  height: 100% !important;
+  border-radius: var(--cy-radius-sm);
+}
+/* 无封面占位:不再留一块裸色块 */
+.item .item-pic-ph{
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--cy-color-text-tertiary);
+}
+/* 分类片定位;片本体是 cy-tag(原 .cat 私有片近黑底压在近黑卡上 = 实测 1.07:1,暗端隐形) */
+.item .item-pic .item-cat { position: absolute; left: var(--cy-space-2); top: var(--cy-space-2); z-index: 1; }
+.item .item-pic .tags {
+  position: absolute;
+  bottom: var(--cy-space-2); right: var(--cy-space-1);
+  display: flex; gap: var(--cy-space-1);
+}
+
+.item .item-txt {
+  padding: var(--cy-space-2) var(--cy-space-2) 0 var(--cy-space-2);
+  box-sizing: border-box;
+}
+.item .item-txt .item-tit {
+  font-weight: bold;
+  font-size: var(--cy-type-card-title);
+  color: var(--cy-color-text-primary);
+  border-bottom: 2rpx solid var(--cy-color-border-strong);
+  margin-top: var(--cy-space-1);
+  padding-bottom: var(--cy-space-2);
+}
+.item-association { margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); }
+/* 事实行(原 .david_hdbom* 三层嵌套 + 一张写死的 /pages/searchmap/images/d_smap1.jpg 装饰图,已随标记重写删除) */
+.item-meta{ margin-top: var(--cy-space-2); display: flex; flex-direction: column; gap: var(--cy-space-1); }
+.item-meta-row{ display: flex; align-items: center; gap: var(--cy-space-1); color: var(--cy-color-text-tertiary); }
+.item-meta-txt{ font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); min-width: 0; }
+
+/* ── 筛选表单(承载于 cy-sheet 内) ── */
+.form-main {
+  box-sizing: border-box;
+  overflow: hidden;
+  overflow-y: auto;
+  font-size: var(--cy-type-card-title);
+  color: var(--cy-color-text-primary);
+}
+.riqi {
+  min-height: 64rpx;
+  background: var(--cy-color-bg-page);
+  border-radius: var(--cy-radius-sm);
+  padding: 0 var(--cy-space-1);
+  box-sizing: border-box;
+  font-size: var(--cy-type-label);
+  color: var(--cy-color-text-primary);
+  gap: var(--cy-space-2);
+}
+.riqi .text-style1 { margin: 0 var(--cy-space-1); color: var(--cy-color-text-tertiary); }
+.riqi .text-style2 { color: var(--cy-color-text-primary); }
+
+.dl { margin-bottom: var(--cy-space-6); }
+.dl .dt { font-weight: bold; margin-bottom: var(--cy-space-5); color: var(--cy-color-text-primary); }
+/* 选项行:选中态 = 勾图标出现 + 文字提亮,不只靠颜色(DS §11) */
+.dl .cont .dd {
+  font-size: var(--cy-type-card-title);
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--cy-color-text-tertiary);
+}
+.dl .cont .dd.active { color: var(--cy-color-text-primary); font-weight: 600; }
+.dl .cont .dd .ck { color: var(--cy-color-text-primary); flex: none; }
+
+.dl.dl2 .price .li { width: 46%; }
+.dl.dl2 .price .li .tit { font-size: var(--cy-type-label); color: var(--cy-color-text-tertiary); }
+.dl.dl2 .price .li .cont {
+  margin-top: var(--cy-space-2);
+  width: 100%;
+  height: 86rpx;
+  border-radius: var(--cy-radius-md);
+  border: 2rpx solid var(--cy-color-border-strong);
+}
+.dl.dl2 .price .li .cont input {
+  width: 100%;
+  font-size: var(--cy-type-body);
+  color: var(--cy-color-text-primary);
+  text-align: center;
+  height: 86rpx;
+  line-height: 86rpx;
+}
+.price-range-tip{ margin-top: var(--cy-space-2); font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+
+.form-btn {
+  display: flex;
+  gap: var(--cy-space-3);
+  padding: var(--cy-space-4) 0 0;
+  box-sizing: border-box;
+}
+.form-btn > .form-btn__item { flex: 1; }  /* WXSS 不支持 `*` 通配符(整包编译阻断);标签名选择器官方亦不建议 → 用 class */
+
+/* 双向滑块:原 .slider-range 填充与 .slider-handle 描边都用近黑字面值,压在近黑卡面上
+   实测仅 1.06:1 —— 暗色主题下"已选区间"物理隐形(浅色设计残留)。
+   改品牌紫 = 4.54:1,且与 track 的 surface-subtle 明确分层。 */
+.slider-container {
+  position: relative;
+  width: 95%;
+  height: 60rpx;
+  margin-top: var(--cy-space-2);
+  padding: 0 var(--cy-space-1);
+  box-sizing: border-box;
+}
+.slider-track {
+  position: absolute;
+  width: 100%;
+  height: 16rpx;
+  background-color: var(--cy-color-bg-surface-subtle);
+  top: 27rpx;
+  border-radius: var(--cy-radius-pill);
+}
+/* 2026-07-31:去紫色化,对齐 search2 同一套筛选表单(那边滑块已是黑白) */
+.slider-range {
+  position: absolute;
+  height: 16rpx;
+  background-color: var(--cy-color-text-primary);
+  border-radius: var(--cy-radius-pill);
+  top: 27rpx;
+  z-index: 1;
+}
+.slider-handle {
+  position: absolute;
+  width: 30rpx;
+  height: 30rpx;
+  background-color: var(--cy-color-bg-surface);
+  border: 10rpx solid var(--cy-color-text-primary);
+  border-radius: 50%;
+  top: var(--cy-legacy-10);
+  z-index: 2;
+  /* 原有一层黑色浅投影;本页是暗页,黑投影压近黑本就近乎不可见,
+     且 shadow-card 暗端 = none ⇒ 此处不再用投影定形,改由上面 10rpx 描边承担。 */
+}
+
+/* 原生 map 只能由其内部 cover-view 覆盖；入口先说明用途，再按需请求一次定位。 */
+.location-btn {
+  position: absolute;
+  bottom: calc(var(--cy-space-8) + env(safe-area-inset-bottom));
+  right: var(--cy-space-4);
+  width: 88rpx;
+  height: 88rpx;
+  background: var(--cy-color-bg-surface);
+  border-radius: 50%;
+  box-shadow: var(--cy-shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.location-btn__label{ color:var(--cy-color-text-primary); font-size:var(--cy-type-caption); }
+
+.date-picker-view { height: 560rpx; }
+.date-picker-item {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cy-text-title);
+  font-size: var(--cy-font-body);
+}
+
+.smap-more {
+  padding: var(--cy-space-4) 0 var(--cy-space-2);
+  display: flex;
+  justify-content: center;
+}
+
+.smap-sync {
+  display: block;
+  margin: 0 var(--cy-space-4) var(--cy-space-2);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-type-caption);
+}

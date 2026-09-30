@@ -1,0 +1,3 @@
+<view wx:if="{{_label}}" class="idt idt--{{_kind}}" aria-role="text" aria-label="{{_kind === 'biz' ? '商家' : '俱乐部'}}">
+  <text class="idt__t">{{_label}}</text>
+</view>

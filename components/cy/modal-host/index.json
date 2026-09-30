@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-modal": "/components/cy/modal/index",
+    "cy-danger-confirm": "/components/cy/danger-confirm/index",
+    "cy-inline-error": "/components/cy/inline-error/index"
+  }
+}

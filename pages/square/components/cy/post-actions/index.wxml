@@ -1,0 +1,36 @@
+<!-- cy-post-actions · 帖文「···」操作弹层(Figma 347:737)。三合一:编辑 / 删除 / 举报。
+     ⚠️ 分组卡(两张)不是平列表,理由见 index.wxss 头部注释 —— 别顺手拍平。 -->
+<cy-sheet show="{{show}}" bind:close="onClose">
+  <view class="pa">
+    <!-- 卡1 · 可逆编辑。非本人的帖没有这张卡。 -->
+    <view class="pa-card" wx:if="{{owner}}">
+      <view class="pa-row" bindtap="onEdit" data-action="edit"
+            aria-role="button" aria-label="编辑这条帖文"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <view class="pa-row__label">编辑</view>
+        <cy-icon name="edit" size="44" />
+      </view>
+    </view>
+
+    <!-- 卡2 · 处置(删除 / 举报)。两行之间的发丝线由 .pa-row + .pa-row 自动画,
+         非本人只剩「举报」一行时自然不画。 -->
+    <view class="pa-card">
+      <view class="pa-row pa-row--danger" wx:if="{{owner}}" bindtap="onDelete" data-action="delete"
+            aria-role="button" aria-label="删除这条帖文"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <view class="pa-row__label">删除</view>
+        <cy-icon name="trash" size="44" />
+      </view>
+      <view class="pa-row pa-row--danger" bindtap="onReport" data-action="report"
+            aria-role="button" aria-label="举报这条帖文"
+            hover-class="cy-pressed" hover-stay-time="80">
+        <view class="pa-row__label">举报</view>
+        <cy-icon name="warning" size="44" />
+      </view>
+    </view>
+  </view>
+</cy-sheet>
+
+<!-- 删除的危险确认闸长在组件内部(2026-09-02 拍板):接入页只监听 bind:select,
+     拿到 action='delete' 时用户**已经**过完确认弹窗,页面不必也不应再自建一道闸。 -->
+<cy-danger-confirm id="pa-danger" bind:confirm="onDeleteConfirmed" />

@@ -1,0 +1,1 @@
+.deregister-page { min-height: 100vh; background: var(--cy-color-bg-page); color: var(--cy-text-title); }

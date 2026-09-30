@@ -1,0 +1,303 @@
+@import '/style/lib.wxss';
+@import '../../../style/merchant-light-scope.wxss';
+
+/* 本页局部覆盖全局深色 page 背景 */
+page { background: var(--cy-bg-card); }
+
+.talent-v2 {
+  min-height: 100vh;
+  background: var(--cy-bg-card);
+}
+
+/* ===== 顶栏 ===== */
+.nav-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--cy-bg-card);
+  transition: box-shadow var(--cy-dur);
+}
+.nav-wrap.sticky {
+  box-shadow: 0 1rpx 0 rgba(0,0,0,0.06);
+}
+.nav-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-icon {
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-icon image {
+  width: 44rpx;
+  height: 44rpx;
+}
+/* 2026-07-31:搜索/对话图标源文件是接近纯黑的深色描边，压在暗色导航条上"看不清"——
+   商户主题导航条是浅色，图标本来就该保持深色，只反色暗端。 */
+.theme-dark .nav-icon image { filter: brightness(0) invert(1); }
+.nav-msg { position: relative; }
+.im-dot {
+  position: absolute; top: calc(var(--cy-legacy-6) * -1); right: calc(var(--cy-legacy-10) * -1); min-width: 30rpx; height: 30rpx;
+  padding: 0 var(--cy-space-1); box-sizing: border-box; border-radius: var(--cy-radius-pill); background: var(--cy-danger);
+  color: var(--cy-text-inverse); font-size: var(--cy-font-caption); font-weight: 700;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+/* 2026-09-18 UI-19:一级 tab 页标题,导航栏居中一行(左右各让 96rpx 给右侧消息钮与胶囊) */
+.nav-title {
+  position: absolute;
+  left: 96rpx;
+  right: 96rpx;
+  text-align: center;
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.nav-right {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+}
+/* 2026-07-31:全页 17 处 var(--cy-brand) 已改成 --cy-btn-solid-bg/--cy-color-text-primary(黑白系,
+   用户原话"所有紫色都应该是白色的")。核实发现其中大多数(.nav-dot/.tab-item/.hero-x/.mine-project-cta/
+   .row-join/.empty-cta/.promo-x/.chip.active/.rec-avatar--brand/.rec-join/.pub-opt-primary)对应的 class
+   现码 wxml 里已经不再渲染,是俱乐部改版前遗留的死 CSS——按要求照做了 token 替换,但实际渲染画面
+   目前不受影响;是否借机清掉这些死选择器留给后续统一裁决,本轮不顺手删。 */
+.nav-dot::after {
+  content: '';
+  position: absolute;
+  top: 2rpx;
+  right: 2rpx;
+  width: var(--cy-space-1-5);
+  height: var(--cy-space-1-5);
+  border-radius: 50%;
+  background: var(--cy-btn-solid-bg);
+}
+
+.tab-item.active {
+  color: var(--cy-text-title);
+  font-weight: 700;
+}
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44rpx;
+  height: var(--cy-legacy-4);
+  border-radius: 2rpx;
+  background: var(--cy-btn-solid-bg);
+}
+/* ===== 页面内容（漫游子 tab 已拆除，tab-body 代替原 .tab-content 的 padding） ===== */
+.tab-body { padding: 0 var(--cy-page-x); }
+.tab-body--feed { padding: 0; }
+.feed-state { display: block; margin: 0 var(--cy-page-x); }
+
+/* ===== Hero ===== */
+.hero { padding: 40rpx 0 var(--cy-space-2); }  /* ds-ok: 40rpx 介于 --cy-space-4(32)/--cy-space-5(48) 正中间,量表无半步 token,保留字面值 */
+.hero-cta:active { opacity: 0.85; }
+
+/* ===== Section ===== */
+.section { margin-top: var(--cy-space-5); }
+.section-more:active { opacity: 0.75; }
+
+.route-card:active { opacity: 0.92; }
+.route-card-badge text {
+  font-size: var(--cy-font-caption);
+  font-weight: 800;
+  color: var(--cy-text-inverse);
+  text-align: center;
+  line-height: 1.15;
+}
+.route-card-share::after { border: none; }
+.route-card-share image {
+  width: var(--cy-space-3-5);
+  height: var(--cy-space-3-5);
+  opacity: 0.72;
+}
+.route-card-share:active { opacity: 0.7; }
+
+
+.xbox-proj:active { opacity: 0.82; }
+
+.mine-project:active { opacity: 0.92; }
+
+
+.mine-row.last { border-bottom: none; }
+
+/* ===== 列表行(色块徽章) ===== */
+.badge {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: var(--cy-radius-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--cy-space-1);
+  box-sizing: border-box;
+}
+.badge text {
+  font-size: var(--cy-font-label);
+  font-weight: 800;
+  color: var(--cy-text-inverse);
+  text-align: center;
+  line-height: 1.15;
+}
+.tags { margin-top: var(--cy-space-1-5); display: flex; flex-wrap: wrap; gap: var(--cy-legacy-10); }
+.tag {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-body);
+  background: var(--cy-bg-page);
+  border-radius: 6rpx;
+  padding: var(--cy-legacy-4) var(--cy-legacy-14);
+  line-height: var(--cy-leading-normal);
+}
+.row-join:active { opacity: 0.8; }
+
+/* ===== 空态 ===== */
+.empty { padding: var(--cy-space-7) 0; text-align: center; }
+.empty-cta:active { opacity: 0.85; }
+
+.promo-badge text { font-size: var(--cy-font-caption); font-weight: 800; color: var(--cy-text-inverse); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--cy-legacy-14) var(--cy-space-3-5);
+  border-radius: var(--cy-radius-lg);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-text-title);
+  background: var(--cy-bg-card);
+  border: 1rpx solid var(--cy-border-line);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.chip.active {
+  color: var(--cy-text-inverse);
+  background: var(--cy-btn-solid-bg);
+  border-color: var(--cy-btn-solid-bg);
+  font-weight: 600;
+}
+
+.rec-sub { font-size: var(--cy-font-label); color: var(--cy-text-secondary); margin-top: var(--cy-legacy-4); }
+
+.rec-badge text {
+  font-size: var(--cy-font-caption); font-weight: 800; color: var(--cy-text-inverse);
+  text-align: center; line-height: 1.15;
+  overflow: hidden; display: -webkit-box;
+  -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+
+/* ===== 俱乐部 Tab(参考 Strava「针对你的建议」:标题与卡片同边距) ===== */
+.club-create {
+  margin-top: var(--cy-space-4);
+  padding-bottom: var(--cy-space-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cy-space-2-5);
+}
+.club-create-txt {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  line-height: 1.4;
+}
+.club-create-btn {
+  flex-shrink: 0;
+  padding: var(--cy-legacy-14) var(--cy-space-3-5);
+  border-radius: var(--cy-radius-lg);
+  border: 1rpx solid var(--cy-border-line);
+  font-size: var(--cy-font-label);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  background: transparent;
+}
+
+/* 区块:与 tab-content 同宽,不再套一层灰底内边距 */
+.club-section {
+  margin-top: var(--cy-space-5);
+}
+/* 2026-08-20 重设计:卡体样式收进 components/cy/club-card,页面只管列表布局与卡间距。
+   .club-card 类名留在组件实例上(截图矩阵选择器 .club-grid, .club-card 还认它)。 */
+.club-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cy-space-3);
+  width: 100%;
+}
+.club-manage-sub {
+  margin-bottom: var(--cy-space-2);
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+}
+.club-member-list {
+  max-height: 54vh;
+}
+.talent-state {
+  margin: var(--cy-space-3) 0;
+}
+.club-member {
+  display: flex;
+  align-items: center;
+  padding: var(--cy-legacy-22) 0;
+  border-bottom: 1rpx solid var(--cy-border-line);
+}
+.club-member-info {
+  flex: 1;
+  min-width: 0;
+  margin-left: var(--cy-space-2-5);
+}
+.club-member-name {
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+.club-member-meta {
+  margin-top: var(--cy-legacy-6);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+.club-member-remove {
+  flex-shrink: 0;
+  min-width: var(--cy-btn-h);
+  min-height: var(--cy-btn-h);
+  padding: var(--cy-space-1-5) var(--cy-space-2-5);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  background: var(--cy-bg-page);
+  color: var(--cy-danger);
+  font-size: var(--cy-font-label);
+}
+
+/* ===== 安全区 ===== */
+.safe-bottom { height: 140rpx; }
+
+.pub-opt:active { opacity: 0.85; }
+.pub-opt-primary .pub-opt-name,
+.pub-opt-primary .pub-opt-arrow { color: var(--cy-text-inverse); }
+.pub-opt-primary .pub-opt-desc { color: rgba(255,255,255,0.7); }
+
+/* 漫游地图预览块已随漫游子 tab 拆除 */
+
+/* ===== 帖文流(2026-08-05)===== */
+.top-tabs {
+  margin: 0 0 var(--cy-space-2);
+}

@@ -1,0 +1,75 @@
+:host { display: block; }
+
+.fd { display: flex; flex-direction: column; gap: var(--cy-space-2); }
+
+/* label */
+.fd__label { display: flex; align-items: center; gap: var(--cy-legacy-6); }
+.fd__label-t { font-size: var(--cy-type-label); color: var(--cy-color-text-secondary); }
+.fd__req { font-size: var(--cy-type-caption); color: var(--cy-color-status-danger); }
+.fd__count { margin-left: auto; font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+.fd__count--over { color: var(--cy-color-status-danger); }
+
+/* control */
+.fd__control {
+  position: relative; display: flex; align-items: center; gap: var(--cy-space-2);
+  min-height: 88rpx; padding: 0 var(--cy-space-3);
+  /* 空态灰槽 + 灰描边;填写/聚焦改白底 + 深描边,否则空框和已填框分不清。 */
+  background: var(--cy-color-input-idle-bg);
+  box-shadow: inset 0 0 0 2rpx var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+}
+.fd--textarea .fd__control { min-height: 200rpx; align-items: stretch; padding: var(--cy-space-3); }
+
+.fd__input, .fd__ta, .fd__val { flex: 1; font-size: var(--cy-type-body); color: var(--cy-color-text-primary); }
+.fd__ta { width: 100%; height: 160rpx; line-height: var(--cy-leading-normal); }
+.fd__ph { color: var(--cy-color-text-placeholder); }
+.fd__select { flex: 1; display: flex; align-items: center; justify-content: space-between; }
+.fd__arrow { color: var(--cy-color-text-tertiary); transform: rotate(90deg); transition: transform var(--cy-motion-fast) var(--cy-ease); }
+.fd__arrow--up { transform: rotate(-90deg); }
+
+.fd__tail { flex: none; color: var(--cy-color-text-tertiary); }
+.fd__tail--ok { color: var(--cy-color-status-success); }
+.fd__clear { position: relative; display: flex; align-items: center; justify-content: center; width: 48rpx; height: 48rpx; }
+/* 触控热区:视觉 48rpx,低于 88rpx 最小可点(DS §3.2)。
+   ⚠️ 不居中展开:左邻就是 .fd__input,居中热区会盖住输入框右段,
+   用户想把光标点到末尾反而触发了清空。改为向右(背离 input)展开 40rpx,
+   48+40=88rpx。纵向 ±20rpx 正好填满 .fd__control 的 88rpx 最小高度,不越界。
+   .fd__control 无 overflow:hidden,热区不会被裁(见 cy-btn 注释里那条坑)。 */
+.fd__clear::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: -40rpx;
+  top: -20rpx;
+  bottom: -20rpx;
+  width: 88rpx;
+  height: 88rpx;
+}
+
+/* states —— 空态灰描边,填写/聚焦改深描边(不是品牌色,避免发紫发蓝)。
+   错误/成功仍用内阴影描状态色。 */
+.is-focused .fd__control,
+.is-filled .fd__control {
+  background: var(--cy-color-input-filled-bg);
+  box-shadow: inset 0 0 0 2rpx var(--cy-color-text-primary);
+}
+.is-error .fd__control { box-shadow: inset 0 0 0 2rpx var(--cy-color-status-danger); }
+/* 2026-09-03 用户定:**成功态不描边** —— 填对了是常态,不该再邀功;尾部那枚勾够了。
+   错误态的描边保留(它要拦住提交)。 */
+.is-disabled .fd__control { background: var(--cy-color-bg-surface-subtle); }
+.is-disabled .fd__input, .is-disabled .fd__ta, .is-disabled .fd__val { color: var(--cy-color-text-disabled); }
+.is-readonly .fd__control { background: transparent; box-shadow: none; padding-left: 0; }
+
+/* helper / error */
+.fd__help { display: flex; align-items: center; gap: 8rpx; min-height: 30rpx; }
+.fd__helper { font-size: var(--cy-type-caption); color: var(--cy-color-text-tertiary); }
+.fd__err-i { color: var(--cy-color-status-danger); flex: none; }
+.fd__err { font-size: var(--cy-type-caption); color: var(--cy-color-status-danger); }
+
+/* 整行可点的选择字段:没反馈时和只读文本看起来一样 */
+.fd__select--press { opacity: 0.7; }
+
+/* isolated 组件内全局 .cy-pressed 进不来,必须本地定义一份。
+   只减淡不位移:位移要配 .cy-motion-reduced 兜底,而那个类挂在组件外的祖先上,
+   isolated 下同样够不着 —— 与其留个撤不掉的位移,不如按仓库既有组件按压类的做法只减淡。 */
+.cy-pressed { opacity: .88; }

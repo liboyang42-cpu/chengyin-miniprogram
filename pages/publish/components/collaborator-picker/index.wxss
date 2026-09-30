@@ -1,0 +1,22 @@
+@import '../../../../style/fade-in.wxss';
+
+/* cy-collaborator-picker · 半屏选择器(类型 A),视觉沿用原独立选择页(改数值走 token) */
+:host { display: block; }
+.cp-search { display: block; margin-bottom: var(--cy-space-2-5); }
+.cp-scroll { max-height: 60vh; }
+.cp-li { width: 100%; overflow: hidden; display: flex; align-items: flex-start; }
+.cp-li-avatar { margin: var(--cy-space-3) var(--cy-space-3) 0 0; flex-shrink: 0; }
+.cp-li-body { flex: 1; min-width: 0; overflow: hidden; border-bottom: 1rpx solid var(--cy-border-line); margin-top: var(--cy-space-3); padding-bottom: var(--cy-space-2-5); }
+.cp-li-name { font-size: var(--cy-font-body); font-weight: bold; }
+.cp-li-meta { font-size: var(--cy-font-body); margin-top: var(--cy-space-2-5); }
+.cp-li-btn { flex-shrink: 0; width: 180rpx; margin: var(--cy-space-3) 0 0 var(--cy-space-2); }
+.cp-tail { padding: var(--cy-space-3) 0 var(--cy-space-5); }
+.cp-tail__loading { color: var(--cy-text-secondary); font-size: var(--cy-font-caption); text-align: center; }
+
+/* 稿 K10:标题下那句「合作者可编辑内容，不参与结算」 */
+.cp-note {
+  display: block;
+  margin: 0 var(--cy-page-x) var(--cy-space-3);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}

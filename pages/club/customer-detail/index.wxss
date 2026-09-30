@@ -1,0 +1,160 @@
+/* K2 客户详情(暗)· Figma s7SEFaoJ3GQUIxJhdqcFUb node 141:140
+   同屏六态:K2 标准 / K2-B 金额无权限 / K2-C 暂无记录 / K2-D 无权限 / K2-E 加载失败 / K2-F 编辑标签与备注 */
+page { background: var(--cy-color-bg-page); }   /* 顶栏与铺满层同色，避免固定导航下缘出色带(custom-nav-page-surface 契约) */
+.page { min-height: 100vh; padding: 0 var(--cy-page-x) var(--cy-space-5); display: flex; flex-direction: column; box-sizing: border-box; }
+cy-empty, cy-error { display: flex !important; flex: 1 !important; min-height: 0; }
+
+.cd-head { position: relative; padding-right: 128rpx; }   /* 给绝对定位的头像(112rpx)留出净空,长名字才不会压到它底下 */
+/* 头像绝对定位:它不是标题流的一部分,不能顶开共享的上 space-5 / 下 space-2 基准 */
+.cd-head-ava { position: absolute; right: 0; top: var(--cy-space-4); }
+.cd-last { display: block; font-size: var(--cy-font-label); color: var(--cy-color-text-placeholder); }
+
+.cd-amount { margin-top: var(--cy-space-4); }
+.cd-amount-label { display: block; font-size: var(--cy-font-label); color: var(--cy-color-text-placeholder); }
+.cd-amount-value {
+  display: block;
+  margin-top: var(--cy-space-1-5);
+  font-size: var(--cy-type-data-xl);
+  font-weight: 700;
+  color: var(--cy-color-text-primary);
+}
+/* K2-B:金额位不许显示 ¥0 冒充真实数字,降级成灰色说明 */
+.cd-amount-value--locked { font-size: var(--cy-font-title); color: var(--cy-color-text-placeholder); }
+/* 手机号:服务端已渲染(脱敏或替代说明),这里只负责显示 */
+.cd-phone { display: block; margin-top: var(--cy-space-1-5); font-size: var(--cy-font-label); color: var(--cy-color-text-placeholder); }
+
+.cd-section {
+  display: block;
+  margin-top: var(--cy-space-5);
+  margin-bottom: var(--cy-space-2);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+  color: var(--cy-color-text-tertiary);
+}
+.cd-section-row { display: flex; align-items: baseline; justify-content: space-between; }
+.cd-section-row .cd-section { margin-bottom: var(--cy-space-2); }
+.cd-section--editing { font-size: var(--cy-font-subtitle); color: var(--cy-color-text-primary); }
+.cd-section-cancel { font-size: var(--cy-font-body); color: var(--cy-color-text-tertiary); }
+
+/* 概览三块 */
+.cd-stats { display: flex; gap: var(--cy-space-2-5); }
+.cd-stat {
+  flex: 1;
+  min-width: 0;
+  padding: var(--cy-space-3-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-surface-subtle);
+}
+/* 行高必须显式收紧:继承的 normal 行距会给这两行各加半个行距,把卡从稿子的 74px 撑到 89px。
+   字号本身是对的(实测数字字形高 16px、标签 9-10px,与稿子一致),多出来的全是行盒留白。 */
+.cd-stat-num { display: block; line-height: 1.15; font-size: var(--cy-font-sheet-title); font-weight: 700; color: var(--cy-color-text-primary); }
+.cd-stat-label { display: block; margin-top: var(--cy-space-1); line-height: 1.2; font-size: var(--cy-font-caption); color: var(--cy-color-text-placeholder); }
+
+/* 参与记录 */
+.cd-record {
+  display: flex;
+  align-items: center;
+  padding: var(--cy-space-3) var(--cy-space-4);
+  border-radius: var(--cy-radius-lg);
+  background: var(--cy-color-bg-elevated);
+}
+.cd-record + .cd-record { margin-top: var(--cy-space-2-5); }
+.cd-record-date { width: 92rpx; flex-shrink: 0; }
+.cd-record-day { display: block; font-size: var(--cy-font-title); font-weight: 700; color: var(--cy-color-text-primary); }
+.cd-record-month { display: block; margin-top: var(--cy-space-1); font-size: var(--cy-font-caption); color: var(--cy-color-text-placeholder); }
+.cd-record-main { flex: 1; min-width: 0; }
+.cd-record-title {
+  display: block;
+  font-size: var(--cy-font-subtitle);
+  font-weight: 500;
+  color: var(--cy-color-text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cd-record-sub { margin-top: var(--cy-space-1-5); font-size: var(--cy-font-caption); }
+.cd-record-kind { color: var(--cy-color-text-placeholder); }
+/* 状态色档:已核销=绿,待核销/已接洽=warning,已退款=danger */
+.cd-record-status--success { color: var(--cy-color-status-success); }
+.cd-record-status--warning { color: var(--cy-color-status-warning); }
+.cd-record-status--danger { color: var(--cy-color-status-danger); }
+.cd-record-status--muted { color: var(--cy-color-text-placeholder); }
+.cd-record-arrow { flex-shrink: 0; margin-left: var(--cy-space-2); color: var(--cy-color-text-placeholder); }
+
+/* K2-C 暂无参与记录:上面第 5 行给整屏态的 cy-empty/cy-error 配了 flex:1,这一处是区块内空态,
+ * 要退回块级、不吃剩余高度,再加虚线框(与稿子同形)。 */
+.cd-record-empty {
+  display: block !important;
+  flex: none !important;
+  border: 2rpx dashed var(--cy-color-border-strong);
+  border-radius: var(--cy-radius-lg);
+}
+
+/* 标签与备注 */
+/* 竖向留白与 .cd-record 同档(space-3):给 space-4 会比稿子的 92px 高出 10px */
+.cd-tagcard { padding: var(--cy-space-3) var(--cy-space-4); border-radius: var(--cy-radius-lg); background: var(--cy-color-bg-elevated); }
+.cd-tags { display: flex; flex-wrap: wrap; gap: var(--cy-space-1-5); }
+.cd-tag {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+  padding: var(--cy-space-1) var(--cy-space-2-5);
+  border-radius: var(--cy-radius-sm);
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption);
+}
+.cd-tag-x { font-size: var(--cy-font-label); }
+.cd-tagcard-foot { display: flex; align-items: center; justify-content: space-between; margin-top: var(--cy-space-3); gap: var(--cy-space-3); }
+.cd-remark { flex: 1; min-width: 0; font-size: var(--cy-font-caption); color: var(--cy-color-text-tertiary); }
+.cd-edit-btn {
+  flex-shrink: 0;
+  height: var(--cy-btn-h-sm);
+  padding: 0 var(--cy-space-4);
+  display: flex;
+  align-items: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  font-size: var(--cy-font-label);
+  font-weight: 500;
+}
+
+/* K2-F 编辑表单(稿子只画了标题行,表单按 DS 输入件补全) */
+.cd-tagform { display: flex; align-items: center; gap: var(--cy-space-2); margin-top: var(--cy-space-3); }
+.cd-input {
+  flex: 1;
+  min-width: 0;
+  height: var(--cy-btn-h-sm);
+  padding: 0 var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+}
+.cd-placeholder { color: var(--cy-color-text-placeholder); }
+.cd-add-btn {
+  flex-shrink: 0;
+  height: var(--cy-btn-h-sm);
+  padding: 0 var(--cy-space-4);
+  display: flex;
+  align-items: center;
+  border-radius: var(--cy-radius-pill);
+  background: var(--cy-color-bg-interactive);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-label);
+}
+.cd-textarea {
+  width: 100%;
+  height: 160rpx;
+  margin-top: var(--cy-space-3);
+  padding: var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-raised);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-font-body);
+}
+.cd-draft-error { display: block; margin-top: var(--cy-space-2); }
+.cd-save { display: block; margin-top: var(--cy-space-3); }

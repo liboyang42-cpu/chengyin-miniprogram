@@ -1,0 +1,73 @@
+:host { display: block; }
+
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-3);
+  min-height: var(--cy-btn-h);
+  padding: var(--cy-space-1) var(--cy-space-3);
+  box-sizing: border-box;
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-status-warning-soft);
+  color: var(--cy-color-text-primary);
+}
+.offline-banner--serious { background: var(--cy-color-status-danger-soft); }
+
+.offline-banner__signal {
+  position: relative;
+  width: var(--cy-space-5);
+  height: var(--cy-space-5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: var(--cy-color-status-warning);
+}
+.offline-banner--serious .offline-banner__signal { color: var(--cy-color-status-danger); }
+.offline-banner__signal::after {
+  content: '';
+  position: absolute;
+  inset: -4rpx;
+  border: 2rpx solid currentColor;
+  border-radius: var(--cy-radius-pill);
+  animation: offline-signal 2.4s var(--cy-ease-out) infinite;
+}
+
+.offline-banner__copy { flex: 1; min-width: 0; }
+.offline-banner__message {
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+  line-height: var(--cy-leading-tight);
+}
+.offline-banner__cache {
+  margin-top: var(--cy-space-1);
+  color: var(--cy-color-text-secondary);
+  font-size: var(--cy-type-caption);
+  line-height: var(--cy-leading-normal);
+}
+.offline-banner__action {
+  min-width: 128rpx;
+  height: var(--cy-btn-h);
+  padding: 0 var(--cy-space-3);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: var(--cy-radius-pill);
+  color: var(--cy-color-text-primary);
+  font-size: var(--cy-type-label);
+  font-weight: 600;
+}
+.offline-banner__action--pressed { background: var(--cy-color-state-pressed); }
+
+@keyframes offline-signal {
+  0%, 100% { opacity: .12; transform: scale(.82); }
+  50% { opacity: .36; transform: scale(1); }
+}
+.offline-banner--reduced-motion .offline-banner__signal::after {
+  animation: none;
+  opacity: .28;
+  transform: none;
+}

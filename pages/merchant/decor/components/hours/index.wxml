@@ -1,0 +1,127 @@
+<cy-dropdown
+  portal="{{false}}"
+  id="hours-drop"
+  custom-panel
+  below
+  gap="4"
+  panel-height="300"
+  disabled="{{saving}}"
+  bind:open="open"
+>
+  <slot />
+  <view slot="panel" class="hours-panel">
+    <text class="hours-label">营业日</text>
+    <view class="hours-days">
+      <view
+        wx:for="{{draft.days}}"
+        wx:key="label"
+        data-index="{{index}}"
+        class="hours-day"
+        bindtap="toggleDay"
+        aria-role="checkbox"
+        aria-checked="{{item.on}}"
+        aria-label="周{{item.label}}"
+        hover-class="cy-pressed"
+      >
+        <text class="hours-day-dot {{item.on ? 'hours-on' : ''}}">{{item.label}}</text>
+      </view>
+    </view>
+    <view class="hours-pair">
+      <view class="hours-half">
+        <text class="hours-label">开始时间</text>
+        <cy-dropdown
+          portal="{{false}}"
+          id="start-drop"
+          custom-panel
+          below
+          gap="4"
+          panel-height="148"
+          disabled="{{saving}}"
+          bind:open="openStart"
+        >
+          <view class="hours-value">{{draft.start}}</view>
+          <view slot="panel" class="hours-columns">
+            <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="hours-column" scroll-top="{{hourIndex * 44}}">
+              <view
+                wx:for="{{hours}}"
+                wx:key="*this"
+                data-index="{{index}}"
+                bindtap="pickHour"
+                class="hours-option {{index === hourIndex ? 'hours-on' : ''}}"
+                aria-role="button"
+                aria-label="{{item}}时"
+                hover-class="cy-pressed"
+              >
+                {{item}}
+              </view>
+            </scroll-view>
+            <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="hours-column" scroll-top="{{minuteIndex * 44}}">
+              <view
+                wx:for="{{minutes}}"
+                wx:key="*this"
+                data-index="{{index}}"
+                bindtap="pickMinute"
+                class="hours-option {{index === minuteIndex ? 'hours-on' : ''}}"
+                aria-role="button"
+                aria-label="{{item}}分"
+                hover-class="cy-pressed"
+              >
+                {{item}}
+              </view>
+            </scroll-view>
+          </view>
+        </cy-dropdown>
+      </view>
+      <view class="hours-half">
+        <text class="hours-label">结束时间</text>
+        <cy-dropdown
+          portal="{{false}}"
+          id="end-drop"
+          custom-panel
+          below
+          gap="4"
+          panel-height="148"
+          disabled="{{saving}}"
+          bind:open="openEnd"
+        >
+          <view class="hours-value">{{draft.end}}</view>
+          <view slot="panel" class="hours-columns">
+            <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="hours-column" scroll-top="{{hourIndex * 44}}">
+              <view
+                wx:for="{{hours}}"
+                wx:key="*this"
+                data-index="{{index}}"
+                bindtap="pickHour"
+                class="hours-option {{index === hourIndex ? 'hours-on' : ''}}"
+                aria-role="button"
+                aria-label="{{item}}时"
+                hover-class="cy-pressed"
+              >
+                {{item}}
+              </view>
+            </scroll-view>
+            <scroll-view scroll-y enhanced show-scrollbar="{{false}}" class="hours-column" scroll-top="{{minuteIndex * 44}}">
+              <view
+                wx:for="{{minutes}}"
+                wx:key="*this"
+                data-index="{{index}}"
+                bindtap="pickMinute"
+                class="hours-option {{index === minuteIndex ? 'hours-on' : ''}}"
+                aria-role="button"
+                aria-label="{{item}}分"
+                hover-class="cy-pressed"
+              >
+                {{item}}
+              </view>
+            </scroll-view>
+          </view>
+        </cy-dropdown>
+      </view>
+    </view>
+    <text class="hours-label">
+      {{draft.end < draft.start ? '结束时间为次日，按选中的营业日生效' : '时间按上方选中的营业日生效'}}
+    </text>
+    <cy-inline-error kind="error" wx:if="{{localError || error}}" title="暂未完成" sub="{{localError || error}}" />
+    <cy-btn bindtap="save" loading="{{saving}}">完成</cy-btn>
+  </view>
+</cy-dropdown>

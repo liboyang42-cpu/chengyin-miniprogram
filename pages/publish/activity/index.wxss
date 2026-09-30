@@ -1,0 +1,491 @@
+@import '../../../style/merchant-light.wxss';
+
+.fabu {
+  padding-bottom: 250rpx; /* ds-ok: 底部固定CTA栏预留高度,不是排版间距 */
+}
+
+.publish-access-state { min-height: calc(100vh - 96rpx); display: flex; flex-direction: column; }
+.publish-access-state > cy-skeleton { margin: 0 var(--cy-page-x); }
+.publish-access-state > cy-error { flex: 1; display: flex; }
+
+.fabu .form .li {
+  margin-bottom: var(--cy-space-2-5);
+}
+
+.fabu .form .li .item-tit {
+  font-size: var(--cy-font-body);
+  margin-bottom: var(--cy-space-2);
+  color: var(--cy-text-body);
+}
+
+.fabu .form .li .item-tit text {
+  color: var(--cy-danger);
+  margin-left: 4rpx; /* ds-ok: 原值 01rpx 疑似笔误,按同类必填星号间距(见 club/create .cc-req)统一为 4rpx 像素级微调 */
+}
+
+/* 处方 I 输入框规范:统一 96rpx 高、聚焦态 2rpx 墨色边 */
+.fabu .form .li .item-cont {
+  height: var(--cy-space-8);
+  background: var(--cy-bg-card);
+  border-radius: 12rpx;
+  padding: 0 var(--cy-space-2-5);
+  box-sizing: border-box;
+  border: 2rpx solid var(--cy-border-line);
+}
+
+.fabu .form .li .item-cont.is-focused,
+.fabu .form .li .item-cont2.is-focused {
+  border-color: var(--cy-text-title);
+}
+
+/* 占位文案统一走 placeholder token(亮域对比度已在 R1 校准过) */
+.fld-ph {
+  color: var(--cy-color-text-placeholder);
+}
+.fabu .form .li2 .item-cont {
+  height:auto;
+}
+.fabu .form .li .item-cont2{
+  background: var(--cy-bg-card);
+  border-radius: 12rpx;
+  box-sizing: border-box; border: 2rpx solid var(--cy-border-line); 
+}
+.fabu .form .li .hezuo .fl image{
+  width: var(--cy-legacy-72);
+  height: var(--cy-legacy-72);
+  border-radius:50%;
+}
+.fabu .form .li .hezuo .fl .name{
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-body);
+  margin-left:var(--cy-space-4);
+}
+.fabu .form .li .hezuo .zw{
+  color: var(--cy-text-body);
+  font-size: var(--cy-font-label);
+}
+.fabu .form .li .hezuo .add-more{
+  font-size: var(--cy-font-label);
+  color: var(--cy-accent);
+  min-height: var(--cy-btn-h);
+  gap: var(--cy-space-1);
+  margin-top:var(--cy-space-4);padding-bottom: var(--cy-space-1-5);
+}
+.fabu .form .li .item-cont input {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.fabu .form .li .item-cont textarea {
+  min-height:180rpx;
+  padding: var(--cy-space-2);
+  box-sizing: border-box;
+}
+
+.fabu .form .li .item-cont .jt image {
+  width: var(--cy-legacy-14);
+  height: var(--cy-legacy-22) !important;
+}
+
+.fabu .form .li .picker_group {
+  height: 100%;
+  font-size: var(--cy-font-label);
+  color: var(--cy-text-secondary);
+}
+
+.fabu .form .li .picker_group .text-style1 {
+  margin: 0 3rpx; /* ds-ok: 3rpx 分隔符左右像素级微调 */
+}
+
+.fabu .form .date-value {
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.fabu .form .li .picker_group image {
+  flex-shrink: 0;
+  width: 24rpx;
+  height: 24rpx;
+  margin-left: 8rpx;
+}
+
+.fabu .form .li .picker2 {
+  height: var(--cy-space-8);
+}
+
+.fabu .form .ul .li {
+  width: 48%;
+}
+
+@media (max-width: 430px) {
+  .fabu .form .date-type-fields {
+    flex-direction: column;
+  }
+
+  .fabu .form .date-type-fields .li {
+    width: 100%;
+  }
+}
+
+.fabu .fabu-btn {
+  position: fixed;
+  width: 100%;
+  left: 0;
+  bottom: 0;
+  font-size: var(--cy-font-subtitle);
+  z-index: 2;
+  border-top: 2rpx solid var(--cy-border-line);
+  background: var(--cy-bg-page);
+}
+
+.fabu .fabu-btn .wrap {
+  padding: var(--cy-space-2-5) var(--cy-space-3-5);
+}
+
+
+/* 多选弹框样式 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  /* 2026-09-02:原 999 越过 token 档(压过 celebrate 990)。居中弹窗 = modal 档。 */
+  z-index: var(--cy-z-modal);
+}
+
+
+
+
+
+
+
+
+.category-item.selected .category-checkbox {
+  background: var(--cy-accent);
+  border-color: var(--cy-accent);
+  color: white;
+}
+
+
+
+
+
+/* 在原有样式基础上添加以下样式 */
+
+/* 活动类型选择器文字样式 */
+.tit.selected-text {
+  color: var(--cy-text-title); /* 选中时的文字颜色 */
+}
+
+.tit.placeholder-text {
+  color: var(--cy-text-secondary); /* 未选择时的文字颜色 */
+}
+
+/* 确保选择器显示正确 */
+.picker2 .tit {
+  width: 100%;
+  text-align: left;
+}
+
+/* 多选弹框样式优化 */
+.category-item.selected {
+  background-color: var(--cy-bg-page);
+}
+
+
+
+.david_ty_rl_hcz_li_right{width: var(--cy-btn-h); height: var(--cy-btn-h); display:flex; align-items:center; justify-content:center; color: var(--cy-text-body); float: right;}
+.david_del{ float:right; color: var(--cy-danger);}
+
+
+/* 模板选择 */
+.pop-temp .temp-list {
+  padding: var(--cy-space-4) 0;
+  margin: calc(var(--cy-legacy-10) * -1);
+}
+
+.pop-temp .temp-list .li {
+  width: 50%;
+  margin: 0 0 var(--cy-space-4) 0;
+}
+
+.pop-temp .temp-list .li .item {
+  margin: var(--cy-space-2);
+  overflow: hidden;
+}
+
+
+.topic-list .list .li .item .item-box1 .item-add {
+  border-top:0;
+}
+
+/* 选中状态样式。用户定:只有填充没有描边;品牌紫只做强调不做选中态。
+   原本是 2px(全仓唯一用 px 不用 rpx 的地方) + --cy-accent 紫描边。
+   改成 cy-tabs chip 同款:实心反色中性(DS §2.1 主 CTA 不用品牌紫)。 */
+.li.selected .item {
+  position: relative;
+  background: var(--cy-color-action-primary-bg);
+  color: var(--cy-color-action-primary-fg);
+  border-radius: 8px;
+}
+
+
+.selected-mark image {
+  width: 100%;
+  height: 100%;
+}
+
+
+/* 活动时间区间选择器：同一面板内完成开始/结束两步，避免两个 sheet 串联。 */
+.activity-time-picker {
+  padding-bottom: var(--cy-space-2);
+}
+
+.time-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--cy-btn-h);
+}
+
+.time-picker-title {
+  font-size: var(--cy-font-subtitle);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+
+.time-range-switch {
+  display: flex;
+  align-items: center;
+  margin-top: var(--cy-space-2);
+  padding: var(--cy-space-2);
+  border: 2rpx solid var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+
+.time-range-point {
+  flex: 1;
+  min-width: 0;
+  padding: var(--cy-space-2);
+  border-radius: var(--cy-radius-sm);
+}
+
+.time-range-point--active {
+  background: var(--cy-color-action-primary-bg);
+}
+
+.time-range-point--locked {
+  box-sizing: border-box;
+  border: 2rpx dashed var(--cy-color-border-strong);
+}
+
+.time-range-point__label,
+.time-range-point__value {
+  display: block;
+}
+
+.time-range-point__label {
+  margin-bottom: var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.time-range-point__value {
+  overflow: hidden;
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--cy-text-title);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time-range-point--active .time-range-point__label,
+.time-range-point--active .time-range-point__value {
+  color: var(--cy-color-action-primary-fg);
+}
+
+.time-range-connector {
+  width: var(--cy-space-4);
+  height: 2rpx;
+  flex: none;
+  background: var(--cy-color-border-strong);
+}
+
+.time-picker-help {
+  min-height: 40rpx;
+  padding: var(--cy-space-2) 0 var(--cy-space-1);
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+  text-align: center;
+}
+
+.time-picker-stage {
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  border-top: 2rpx solid var(--cy-color-border-subtle);
+}
+
+.time-section {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.time-section--clock {
+  flex: 1.35;
+}
+
+.time-label {
+  padding-top: var(--cy-space-2);
+  font-size: var(--cy-font-body);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}
+
+.time-picker-view {
+  height: 440rpx;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  font-size: var(--cy-font-body);
+  color: var(--cy-text-title);
+}
+
+/* cy-sheet 收编:本页全部 .pop-model 弹窗(活动时间 + popTemp)均已转,
+ * 页级降级 .pop-model 自身 chrome + 隐::before + display:block 覆盖全局 display:none(已去 .show);
+ * popTemp 内层滚动容器压平，活动时间选择器直接使用 cy-sheet。 */
+.pop-model {
+  position: static;
+  left: auto;
+  bottom: auto;
+  width: auto;
+  z-index: auto;
+  border-radius: 0;
+  padding: 0;
+  display: block;
+}
+.pop-model::before { display: none; }
+.pop-model .pop-cont { height: auto; overflow: visible; }
+
+/* 活动发布沿用主题创建域：卡片靠白面与细线分层，不用浮层阴影。 */
+.fabu.theme-topic-editor {
+  min-height: 100vh;
+  background: var(--cy-color-bg-page);
+}
+
+.fabu.theme-topic-editor .form .li .item-cont,
+.fabu.theme-topic-editor .form .li .item-cont2,
+.fabu.theme-topic-editor .ticket-section,
+.fabu.theme-topic-editor .multi-select-modal {
+  background: var(--cy-color-bg-surface);
+  border-color: var(--cy-color-border-subtle);
+  border-radius: var(--cy-radius-sm);
+  box-shadow: none;
+}
+
+
+/* 聚焦态必须排在上面那条 theme-topic-editor 覆盖之后:两者选择器权重相同
+ * (都是 5 个 class),靠后者胜。写在前面的话聚焦边框会被无条件压回细灰线。 */
+.fabu.theme-topic-editor .form .li .item-cont.is-focused,
+.fabu.theme-topic-editor .form .li .item-cont2.is-focused {
+  border-color: var(--cy-text-title);
+}
+
+.fabu.theme-topic-editor .form .li .item-cont.is-error,
+.fabu.theme-topic-editor .form .li .item-cont2.is-error {
+  border-color: var(--cy-color-status-danger);
+  background: var(--cy-color-status-danger-soft);
+}
+
+.form-inline-error { display: block; margin-top: var(--cy-space-1-5); }
+
+/* CR-63:已售出(有已支付报名)后时间/地点置灰。真正的锁在服务端,
+   这里只是让「点不动」在视觉上也成立,别做出还能改的假象。 */
+.fabu.theme-topic-editor .form .li .item-cont.is-sold-locked {
+  opacity: 0.55;
+}
+
+.field-purpose {
+  margin-top: var(--cy-space-1-5);
+  color: var(--cy-color-text-tertiary);
+  font-size: var(--cy-font-caption);
+  line-height: var(--cy-leading-normal);
+}
+
+/* ⚠️ 必须排在 .field-purpose 之后:同权重靠后者胜,写在前面锁定态会被默认灰盖掉。 */
+.field-purpose--locked { color: var(--cy-color-status-warning); }
+
+.publish-review {
+  margin: 0 var(--cy-space-3-5) var(--cy-space-2);
+  padding: var(--cy-space-2-5) var(--cy-space-3);
+  border-radius: var(--cy-radius-md);
+  background: var(--cy-color-bg-surface-subtle);
+}
+.publish-review__title { color: var(--cy-color-text-primary); font-size: var(--cy-type-label); font-weight: 700; }
+.publish-review__text,
+.publish-review__visibility { margin-top: var(--cy-space-1); color: var(--cy-color-text-secondary); font-size: var(--cy-type-caption); line-height: var(--cy-leading-normal); }
+.publish-review__visibility { color: var(--cy-color-status-warning); }
+
+.fabu.theme-topic-editor .fabu-btn {
+  background: var(--cy-color-bg-surface);
+  border-color: var(--cy-color-border-subtle);
+}
+
+.fabu.theme-topic-editor .li.selected .item {
+  border-color: var(--cy-color-selection);
+  box-shadow: none;
+}
+
+
+/* 步进进度点(处方 I):大标题下一行,done/current/todo 三态 */
+.step-dots {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-2);
+  padding: 0 var(--cy-page-x) var(--cy-space-3);
+}
+
+.step-dot {
+  display: flex;
+  align-items: center;
+  gap: var(--cy-space-1);
+}
+
+.step-dot-mark {
+  width: var(--cy-space-1-5);
+  height: var(--cy-space-1-5);
+  border-radius: 50%;
+  background: var(--cy-border-line);
+}
+
+.step-dot-title {
+  font-size: var(--cy-font-caption);
+  color: var(--cy-text-secondary);
+}
+
+.step-dot--current .step-dot-mark,
+.step-dot--done .step-dot-mark {
+  background: var(--cy-text-title);
+}
+
+.step-dot--current .step-dot-title {
+  color: var(--cy-text-title);
+  font-weight: 600;
+}
+
+/* 稿 J4/N6/N7/N8:每屏顶上的问句 */
+.step-heading {
+  margin: var(--cy-space-5) var(--cy-page-x) var(--cy-space-3);
+  font-size: var(--cy-font-title);
+  font-weight: 700;
+  color: var(--cy-text-title);
+}

@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "cy-modal": "/components/cy/modal/index"
+  }
+}

@@ -1,0 +1,17 @@
+<cy-play-stage id="cy-play-stage" show="{{show}}" back-label="退出"
+               calibrate-label="先听一下这儿有多吵" calibrate-ms="2000"
+               bind:back="onClose" bind:calibratetick="onSample" bind:calibrated="onCalibrated"
+               bind:run="onRun" bind:verdict="onVerdict">
+  <!-- 与 quietHold 同一屏骨架,语义反过来:数字是「还差几秒」,过线时整屏烧红。
+       不做音量条 —— 条是连续读数,这一屏要的是一句人话:「过线了,别停」。 -->
+  <view class="sh {{running && loud ? 'sh--on' : ''}}">
+    <view class="g-kicker sh__k">{{kicker}}</view>
+    <view class="sh__n g-figure">{{left}}</view>
+    <view class="sh__s">{{running ? (loud ? '过线了，别停' : '喊出来，让这儿听见') : '按住一口气，喊满 ' + seconds + ' 秒'}}</view>
+
+    <view class="sh__b {{running ? 'sh__b--busy' : ''}}" bindtap="onStart"
+          aria-role="button" aria-label="开始喊一嗓子" hover-class="sh__b--press" hover-stay-time="80">
+      {{running ? '喊' : '开始'}}
+    </view>
+  </view>
+</cy-play-stage>

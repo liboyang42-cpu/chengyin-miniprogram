@@ -1,0 +1,54 @@
+/* ══ 原型自带的图标集(IC / DIC)══════════════════════════════════════════════
+ * ⚠️ 本文件由 scripts/gen-proto-icons.py 从原型 HTML 生成,别手改;要改先改原型。
+ * 生成规则与理由见那个脚本的文件头。 */
+.pic{ display:block; background-repeat:no-repeat; background-position:center; background-size:100% 100%; }
+/* 抽屉「查找附近好玩的」(原型 DIC.filter2) */
+.pic--filter2{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M3.4 6.2h17.2M6.6 12h10.8M9.8 17.8h4.4' stroke='%238A93A0' stroke-width='1.9' stroke-linecap='round'/></svg>"); }
+/* 抽屉「附近正在走的人」/ 玩法说明第三行(原型 DIC.people2) */
+.pic--people2{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><circle cx='12' cy='8' r='3.4' stroke='%238A93A0' stroke-width='1.8'/><path d='M5 20c0-3.4 3.1-5.6 7-5.6s7 2.2 7 5.6' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 抽屉「任务」(原型 DIC.flagtask) */
+.pic--flagtask{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M5.6 21V3.6M5.6 4.8h12.2l-2.6 4.4 2.6 4.4H5.6' stroke='%238A93A0' stroke-width='1.8' stroke-linejoin='round'/></svg>"); }
+/* 抽屉「勋章」(原型 DIC.medal) */
+.pic--medal{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><circle cx='12' cy='14.6' r='5.4' stroke='%238A93A0' stroke-width='1.8'/><path d='M8.4 9.6 6.2 3.4h11.6l-2.2 6.2' stroke='%238A93A0' stroke-width='1.8' stroke-linejoin='round'/><path d='m12 12 .9 1.9 2.1.3-1.5 1.4.4 2-1.9-1-1.9 1 .4-2-1.5-1.4 2.1-.3Z' fill='%238A93A0'/></svg>"); }
+/* 抽屉「奖励」(原型 DIC.gift) */
+.pic--gift{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><rect x='3.4' y='9.4' width='17.2' height='11' rx='2' stroke='%238A93A0' stroke-width='1.8'/><path d='M2.6 9.4h18.8M12 9.4v11' stroke='%238A93A0' stroke-width='1.8'/><path d='M12 9.4S10.4 3.6 8 3.6a2.4 2.4 0 0 0 0 4.8M12 9.4s1.6-5.8 4-5.8a2.4 2.4 0 0 1 0 4.8' stroke='%238A93A0' stroke-width='1.8'/></svg>"); }
+/* 抽屉「记录」/ 设置「后台持续定位」/ 玩法说明第一行(原型 DIC.track) */
+.pic--track{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M5.6 19.4c3.6 0 5-1.7 5-3.6 0-2-1.6-3.2-3.8-3.6-2.2-.4-3.8-1.6-3.8-3.6 0-2.1 1.4-3.8 5-3.8h7.4' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round' stroke-dasharray='0.1 3.8'/><circle cx='5.6' cy='19.4' r='2' fill='%238A93A0'/><circle cx='17.6' cy='4.8' r='2' fill='%238A93A0'/></svg>"); }
+/* 抽屉「集邮册」/ 设置「清空本机缓存」/ 玩法说明第二行(原型 DIC.stamp) */
+.pic--stamp{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M4.4 13.6h15.2v6H4.4z' stroke='%238A93A0' stroke-width='1.8'/><path d='M9.6 13.6V10a2.4 2.4 0 1 1 4.8 0v3.6' stroke='%238A93A0' stroke-width='1.8'/><path d='M6.6 22h10.8' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 抽屉「玩法说明」/ 设置「位置权限」(原型 DIC.info) */
+.pic--info{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><circle cx='12' cy='12' r='8.8' stroke='%238A93A0' stroke-width='1.8'/><path d='M12 11v5.4' stroke='%238A93A0' stroke-width='1.9' stroke-linecap='round'/><circle cx='12' cy='7.8' r='1.2' fill='%238A93A0'/></svg>"); }
+/* 组局抽屉「附近的人」/ 游玩抽屉「队伍位置」(原型 DIC.team) */
+.pic--team{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><circle cx='8.6' cy='8' r='3.2' stroke='%238A93A0' stroke-width='1.8'/><circle cx='16.4' cy='9.4' r='2.4' stroke='%238A93A0' stroke-width='1.8'/><path d='M3.2 19.4c0-3 2.4-4.9 5.4-4.9s5.4 1.9 5.4 4.9M16 14.8c2.6.2 4.6 1.9 4.6 4.4' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 自由探索抽屉「入场码」(原型 DIC.ticket) */
+.pic--ticket{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M3 8.4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1.2a2.4 2.4 0 0 0 0 4.8v1.2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1.2a2.4 2.4 0 0 0 0-4.8Z' stroke='%238A93A0' stroke-width='1.8'/><path d='M13 7.6v8.8' stroke='%238A93A0' stroke-width='1.8' stroke-dasharray='2 2.6' stroke-linecap='round'/></svg>"); }
+/* 游玩抽屉「展示整团码」(原型 DIC.groupcode) */
+.pic--groupcode{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><rect x='3.2' y='3.2' width='7' height='7' rx='1.6' stroke='%238A93A0' stroke-width='1.8'/><rect x='13.8' y='3.2' width='7' height='7' rx='1.6' stroke='%238A93A0' stroke-width='1.8'/><rect x='3.2' y='13.8' width='7' height='7' rx='1.6' stroke='%238A93A0' stroke-width='1.8'/><path d='M14.4 14.4h2.6v2.6h-2.6zM19.6 14.4h1.2M14.4 19.6h2.6M19.6 18.4v2.4' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 游玩抽屉「解锁下一章节」(原型 DIC.unlock) */
+.pic--unlock{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><rect x='4.4' y='10.6' width='15.2' height='10.2' rx='2.6' stroke='%238A93A0' stroke-width='1.8'/><path d='M8 10.6V7.4a4 4 0 0 1 7.6-1.7' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/><circle cx='12' cy='15.6' r='1.5' fill='%238A93A0'/></svg>"); }
+/* 游玩抽屉「整团结算」(原型 DIC.settle) */
+.pic--settle{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M4 20V7.6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2V20l-2.7-1.6L14.6 20 12 18.4 9.4 20 6.7 18.4Z' stroke='%238A93A0' stroke-width='1.8' stroke-linejoin='round'/><path d='M8.4 10.4h7.2M8.4 14h4.6' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 自由探索抽屉「旅程手记」(原型 DIC.journal) */
+.pic--journal{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><rect x='4.4' y='3.6' width='15.2' height='16.8' rx='2.4' stroke='%238A93A0' stroke-width='1.8'/><path d='M8.4 3.6v16.8' stroke='%238A93A0' stroke-width='1.8'/><path d='M12 8.4h4M12 12h4' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 抽屉「设置」/ 设置「减少动态效果」(原型 DIC.gear) */
+.pic--gear{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><circle cx='12' cy='12' r='3.1' stroke='%238A93A0' stroke-width='1.8'/><path d='M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2 5.5 5.5' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 设置「到点提醒」(原型 DIC.bell) */
+.pic--bell{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'><path d='M6.4 10.4a5.6 5.6 0 0 1 11.2 0c0 4 1.6 5.4 1.6 5.4H4.8s1.6-1.4 1.6-5.4Z' stroke='%238A93A0' stroke-width='1.8' stroke-linejoin='round'/><path d='M10.2 19a2 2 0 0 0 3.6 0' stroke='%238A93A0' stroke-width='1.8' stroke-linecap='round'/></svg>"); }
+/* 自由探索卡包页「N 家商户」旁那枚地图钮(原型 IC.route) */
+.pic--route{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'><path d='M6 19.2c3.4 0 4.6-1.6 4.6-3.4 0-1.9-1.5-3-3.6-3.4-2.1-.4-3.6-1.5-3.6-3.4C3.4 7.2 4.6 5.6 8 5.6h7.6' stroke='%238A93A0' stroke-width='1.9' stroke-linecap='round' stroke-dasharray='0.1 3.6'/><circle cx='6' cy='19.2' r='2.3' fill='%238A93A0'/><path d='M17.6 2.2c2 0 3.7 1.7 3.7 3.8 0 2.6-3.7 6.2-3.7 6.2s-3.7-3.6-3.7-6.2c0-2.1 1.7-3.8 3.7-3.8Z' fill='%238A93A0'/><circle cx='17.6' cy='5.9' r='1.35' fill='%23fff'/></svg>"); }
+/* 三键左「更多」—— 白底圆钮上是深色(原型 IC.more) */
+.pic--more{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><circle cx='5' cy='12' r='2.1' fill='%231A1A1A'/><circle cx='12' cy='12' r='2.1' fill='%231A1A1A'/><circle cx='19' cy='12' r='2.1' fill='%231A1A1A'/></svg>"); }
+/* 三键右「拍照」(原型 IC.cam) */
+.pic--cam{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M9.4 3.5h5.2c.5 0 1 .3 1.2.7l.7 1.3h2.6A2.9 2.9 0 0 1 22 8.4v9A2.9 2.9 0 0 1 19.1 20H4.9A2.9 2.9 0 0 1 2 17.4v-9a2.9 2.9 0 0 1 2.9-2.9h2.6l.7-1.3c.2-.4.7-.7 1.2-.7Z' fill='%231A1A1A'/><circle cx='12' cy='12.8' r='3.9' fill='%23fff'/></svg>"); }
+/* 三键中「继续」—— 绿底圆钮上是白色(原型 IC.play) */
+.pic--play{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24'><path d='M8 5.4v13.2c0 .9 1 1.5 1.8 1L20 13.2a1.4 1.4 0 0 0 0-2.4L9.8 4.4C9 3.9 8 4.5 8 5.4Z' fill='%23FFFFFF'/></svg>"); }
+/* 三键左「核销」—— 白底圆钮上是深色(原型 IC.qr) */
+.pic--qr{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'><rect x='3' y='3' width='7' height='7' rx='1.6' stroke='%231A1A1A' stroke-width='1.9'/><rect x='14' y='3' width='7' height='7' rx='1.6' stroke='%231A1A1A' stroke-width='1.9'/><rect x='3' y='14' width='7' height='7' rx='1.6' stroke='%231A1A1A' stroke-width='1.9'/><path d='M14 14h3v3h-3zM19 14h2M14 19h3M19 18v3' stroke='%231A1A1A' stroke-width='1.9' stroke-linecap='round'/></svg>"); }
+/* 三键右「扫码」(原型 IC.scan) */
+.pic--scan{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'><path d='M3 8.6V6a3 3 0 0 1 3-3h2.6M15.4 3H18a3 3 0 0 1 3 3v2.6M21 15.4V18a3 3 0 0 1-3 3h-2.6M8.6 21H6a3 3 0 0 1-3-3v-2.6' stroke='%231A1A1A' stroke-width='2' stroke-linecap='round'/><path d='M3.8 12h16.4' stroke='%231A1A1A' stroke-width='2' stroke-linecap='round'/></svg>"); }
+/* 同一枚扫码,出现在抽屉行里是灰色(原型 IC.scan) */
+.pic--scan2{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'><path d='M3 8.6V6a3 3 0 0 1 3-3h2.6M15.4 3H18a3 3 0 0 1 3 3v2.6M21 15.4V18a3 3 0 0 1-3 3h-2.6M8.6 21H6a3 3 0 0 1-3-3v-2.6' stroke='%238A93A0' stroke-width='2' stroke-linecap='round'/><path d='M3.8 12h16.4' stroke='%238A93A0' stroke-width='2' stroke-linecap='round'/></svg>"); }
+/* 三键中「暂停」—— 橙底圆钮上是白色(原型 LIT.pause) */
+.pic--pause{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24'><rect x='7' y='5' width='3.6' height='14' rx='1.6' fill='%23FFFFFF'/><rect x='13.4' y='5' width='3.6' height='14' rx='1.6' fill='%23FFFFFF'/></svg>"); }
+/* 读数卡右上那枚展开钮(原型 dcard 里的 EX)(原型 LIT.expand) */
+.pic--expand{ background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 15 15' fill='none'><path d='M9.2 1.5h4.3v4.3M13.5 1.5 9 6M5.8 13.5H1.5V9.2M1.5 13.5 6 9' stroke='%237A8496' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/></svg>"); }
